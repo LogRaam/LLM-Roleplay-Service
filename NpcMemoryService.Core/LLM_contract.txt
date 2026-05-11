@@ -1,0 +1,24 @@
+[DIALOGUE] ... [/DIALOGUE]
+[MEMORY]
+topic: ...
+sentiment: ...
+decision: ...          ← optionnel
+[/MEMORY]
+[EVENT]
+type: ...
+summary: ...
+[/EVENT]
+[REPUTATION]
+clan_delta: ...        ← optionnel
+faction_delta: ...     ← optionnel
+[/REPUTATION]
+
+
+
+Règles du contrat :
+
+Seul [DIALOGUE] est obligatoire ; les autres sections sont émises au besoin
+Les balises sont insensibles à la casse
+Le préfixe # sur les valeurs est toléré et nettoyé
+Une section malformée ou un champ requis manquant → section ignorée gracieusement (jamais d'exception)
+Un type inconnu → mappé à NotableEventType.Other (on garde quand même le résumé)

@@ -1,0 +1,45 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "V:\\OneDrive\\Programmation\\GIT Workspace\\LLM Roleplay Service\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{B63FC3DB-620E-8DBF-398C-1C561A28DE32}|NpcMemoryService.Core\\NpcMemoryService.Core.csproj|v:\\onedrive\\programmation\\git workspace\\llm roleplay service\\npcmemoryservice.core\\polyfills\\isexternalinit.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B63FC3DB-620E-8DBF-398C-1C561A28DE32}|NpcMemoryService.Core\\NpcMemoryService.Core.csproj|solutionrelative:npcmemoryservice.core\\polyfills\\isexternalinit.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{c6f34f0d-7ae5-4f3a-be61-fe0c21ae9eb8}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{e506b91c-c606-466a-90a9-123d1d1e12b3}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "IsExternalInit.cs",
+              "DocumentMoniker": "V:\\OneDrive\\Programmation\\GIT Workspace\\LLM Roleplay Service\\NpcMemoryService.Core\\Polyfills\\IsExternalInit.cs",
+              "RelativeDocumentMoniker": "NpcMemoryService.Core\\Polyfills\\IsExternalInit.cs",
+              "ToolTip": "V:\\OneDrive\\Programmation\\GIT Workspace\\LLM Roleplay Service\\NpcMemoryService.Core\\Polyfills\\IsExternalInit.cs",
+              "RelativeToolTip": "NpcMemoryService.Core\\Polyfills\\IsExternalInit.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-11T13:50:37.513Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

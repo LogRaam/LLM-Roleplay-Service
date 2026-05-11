@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "IxCX4UBMnO8=",
+  "success": true,
+  "projectFilePath": "V:\\OneDrive\\Programmation\\GIT Workspace\\LLM Roleplay Service\\NpcMemoryServiceTests\\NpcMemoryServiceTests.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\logra\\.nuget\\packages\\fluentassertions\\8.9.0\\fluentassertions.8.9.0.nupkg.sha512",
+    "C:\\Users\\logra\\.nuget\\packages\\nunit\\4.6.0\\nunit.4.6.0.nupkg.sha512"
+  ],
+  "logs": []
+}

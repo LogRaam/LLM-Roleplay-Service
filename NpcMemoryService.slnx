@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="NpcMemoryService.ConsoleRunner/NpcMemoryService.ConsoleRunner.csproj" />
+  <Project Path="NpcMemoryService.Core/NpcMemoryService.Core.csproj" />
+  <Project Path="NpcMemoryServiceTests/NpcMemoryServiceTests.csproj" Id="7545ef9c-02af-479e-87d3-22aca39f4b8c" />
+</Solution>

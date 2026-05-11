@@ -1,0 +1,4 @@
+﻿namespace NpcMemoryService.Core.Polyfills
+{
+    internal static class IsExternalInit { }
+}
