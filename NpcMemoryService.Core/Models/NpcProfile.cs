@@ -1,26 +1,101 @@
+// Code written by Gabriel Mailhot, 26/05/2026.
+
+#region
+
+using System;
+using System.Collections.Generic;
+
+#endregion
+
 namespace NpcMemoryService.Core.Models
 {
     /// <summary>
-    /// An NPC's identity and accumulated memory of the player.
-    /// Persisted per save game in Phase 4 via INpcMemoryStore.
+    ///   An NPC's identity and accumulated memory of the player.
+    ///   Persisted per save game via INpcMemoryStore.
     /// </summary>
     public sealed class NpcProfile
     {
-        public required string Id         { get; init; }
-        public required string Name       { get; init; }
-        public required string Faction    { get; init; }
-        public required string Clan       { get; init; }
+        /// <summary>
+        ///   Background narrative context produced when older events are compressed away.
+        ///   Preserves the gist of dropped events as a short prose paragraph.
+        /// </summary>
+        public string? BackgroundContext { get; set; }
 
-        /// <summary>Free-text personality description injected into the system prompt.</summary>
-        public string? Personality        { get; init; }
+        public required string Clan { get; init; }
 
         /// <summary>
-        /// Running digest of past interactions, updated after each conversation.
-        /// Null means the NPC has never met the player.
+        ///   Significant past events with natural-language summaries.
+        ///   This is the primary long-term memory surfaced to the LLM.
         /// </summary>
-        public string? MemoryDigest       { get; set; }
+        public List<NotableEvent> Events { get; init; } = new List<NotableEvent>();
 
-        /// <summary>Player reputation score from this NPC's perspective. Negative = hostile.</summary>
-        public int ReputationWithPlayer   { get; set; }
+        public required string Faction { get; init; }
+        public required string Id { get; init; }
+
+        /// <summary>
+        ///   Compact per-conversation summaries. Useful for diagnostics.
+        ///   Not currently injected into the prompt — see <see cref="Events" />.
+        ///   Null means the NPC has never met the player.
+        /// </summary>
+        public string? MemoryDigest { get; set; }
+
+        public required string Name { get; init; }
+        public string? Personality { get; init; }
+
+        /// <summary>
+        ///   Player reputation from this NPC's perspective.
+        ///   Clamped to [-100, 100]. Negative = hostile.
+        /// </summary>
+        public int ReputationWithPlayer { get; set; }
+
+        /// <summary>
+        ///   Optional romantic profile. Null if the consumer disabled romantic
+        ///   features at profile creation, or if this NPC was created before
+        ///   the feature existed. Persisted across sessions once created.
+        /// </summary>
+        public RomanticProfile? Romantic { get; set; }
+
+        /// <summary>
+        ///   Short personality archetype derived from the NPC's traits.
+        ///   E.g., "Pitiless", "Decent And Kind", "The Charming Manipulator".
+        /// </summary>
+        public string? Trait { get; set; }
+
+        /// <summary>
+        ///   Applies memory, reputation, and event (if any) from a parsed response
+        ///   in a single call. The current game day is required to timestamp events.
+        /// </summary>
+        public void ApplyConversationResult(ParsedResponse response, int gameDay)
+        {
+            if (response.Memory != null) ApplyMemoryUpdate(response.Memory);
+            if (response.Reputation != null) ApplyReputationDelta(response.Reputation);
+            if (response.NewEventData != null) ApplyNotableEvent(response.NewEventData, gameDay);
+        }
+
+        // ── Tell Don't Ask ────────────────────────────────────────────────────
+
+        public void ApplyMemoryUpdate(ConversationMemory memory)
+        {
+            var entry = $"[{memory.Topic}] sentiment:{memory.Sentiment}" +
+                        (memory.Decision != null
+                            ? $" decision:{memory.Decision}"
+                            : string.Empty);
+            MemoryDigest = string.IsNullOrEmpty(MemoryDigest)
+                ? entry
+                : MemoryDigest + "\n" + entry;
+        }
+
+        /// <summary>Stamps a parsed event with the current game day and records it.</summary>
+        public void ApplyNotableEvent(ParsedEventData data, int gameDay)
+        {
+            Events.Add(new NotableEvent(gameDay, data.Type, data.Summary));
+        }
+
+        public void ApplyReputationDelta(ReputationDelta delta)
+        {
+            if (!delta.ClanDelta.HasValue) return;
+            var updated = ReputationWithPlayer + delta.ClanDelta.Value;
+            ReputationWithPlayer = Math.Max(-100, Math.Min(100, updated));
+        }
     }
 }

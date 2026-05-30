@@ -7,8 +7,10 @@ namespace NpcMemoryService.Core.Models
     public enum NotableEventType
     {
         FirstMeeting,
+        Farewell,
         Conflict,
         Collaboration,
+        Agreement,
         Flirt,
         Intimacy,
         Betrayal,

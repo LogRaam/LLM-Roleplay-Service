@@ -1,146 +1,187 @@
+// Code written by Gabriel Mailhot, 12/05/2026.
+
+#region
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using NpcMemoryService.Core.Models;
 
+#endregion
+
 namespace NpcMemoryService.Core.Parsing
 {
     /// <summary>
-    /// Regex-based parser for the canonical bracketed-section LLM response format.
-    /// Tolerant of malformed input: never throws, returns a degraded
-    /// <see cref="ParsedResponse"/> when sections are missing or invalid.
+    ///   Regex-based parser for the canonical bracketed-section LLM response format.
+    ///   Tolerant of malformed input: never throws, returns a degraded
+    ///   <see cref="ParsedResponse" /> when sections are missing or invalid.
     /// </summary>
     public sealed class SectionResponseParser : IResponseParser
     {
+        private const string ActionContextKey = "context";
+        private const string ActionTag = "ACTION";
+        private const string ActionTypeKey = "type";
+        private const string ClanDeltaKey = "clan_delta";
+
+        private const string DecisionKey = "decision";
+
         // Section tag names (canonical form, matched case-insensitively).
-        private const string DialogueTag   = "DIALOGUE";
-        private const string MemoryTag     = "MEMORY";
-        private const string EventTag      = "EVENT";
+        private const string DialogueTag = "DIALOGUE";
+        private const string EventTag = "EVENT";
+        private const string EventTypeKey = "type";
+        private const string FactionDeltaKey = "faction_delta";
+        private const string MemoryTag = "MEMORY";
         private const string ReputationTag = "REPUTATION";
+        private const string SentimentKey = "sentiment";
+        private const string SummaryKey = "summary";
 
         // Property keys inside sections (matched case-insensitively).
-        private const string TopicKey        = "topic";
-        private const string SentimentKey    = "sentiment";
-        private const string DecisionKey     = "decision";
-        private const string EventTypeKey    = "type";
-        private const string SummaryKey      = "summary";
-        private const string ClanDeltaKey    = "clan_delta";
-        private const string FactionDeltaKey = "faction_delta";
+        private const string TopicKey = "topic";
 
         public ParsedResponse Parse(string rawResponse)
         {
-            if (string.IsNullOrWhiteSpace(rawResponse))
-            {
-                return new ParsedResponse { Dialogue = string.Empty };
-            }
+            if (string.IsNullOrWhiteSpace(rawResponse)) return new ParsedResponse {Dialogue = string.Empty};
 
-            string dialogue = ExtractSection(rawResponse, DialogueTag)
-                              ?? ExtractDialogueFallback(rawResponse);
+            var dialogue = ExtractSection(rawResponse, DialogueTag) ?? ExtractDialogueFallback(rawResponse);
 
-            string? memorySection     = ExtractSection(rawResponse, MemoryTag);
-            string? eventSection      = ExtractSection(rawResponse, EventTag);
-            string? reputationSection = ExtractSection(rawResponse, ReputationTag);
+            var memorySection = ExtractSection(rawResponse, MemoryTag);
+            var eventSection = ExtractSection(rawResponse, EventTag);
+            var reputationSection = ExtractSection(rawResponse, ReputationTag);
+            IReadOnlyList<GameAction> actions = ParseActions(rawResponse);
 
-            return new ParsedResponse
-            {
-                Dialogue      = dialogue.Trim(),
-                Memory        = ParseMemory(memorySection),
-                NewEventData  = ParseEventData(eventSection),
-                Reputation    = ParseReputation(reputationSection)
+            return new ParsedResponse {
+                Dialogue = dialogue.Trim(),
+                Memory = ParseMemory(memorySection),
+                NewEventData = ParseEventData(eventSection),
+                Reputation = ParseReputation(reputationSection),
+                Actions = actions
             };
         }
 
-        /// <summary>
-        /// Extracts the body of [TAG]...[/TAG]. Returns null if not found.
-        /// Non-greedy: stops at the first closing tag encountered.
-        /// </summary>
-        private static string? ExtractSection(string text, string tag)
-        {
-            string pattern = $@"\[{Regex.Escape(tag)}\](.*?)\[/{Regex.Escape(tag)}\]";
-            Match match = Regex.Match(text, pattern,
-                RegexOptions.Singleline | RegexOptions.IgnoreCase);
-            return match.Success ? match.Groups[1].Value : null;
-        }
+        #region private
 
         /// <summary>
-        /// Fallback when no [DIALOGUE] tag is found: returns everything before
-        /// the first recognized section tag, or the whole text if none present.
+        ///   Fallback when no [DIALOGUE] tag is found: returns everything before
+        ///   the first recognized section tag, or the whole text if none present.
         /// </summary>
         private static string ExtractDialogueFallback(string text)
         {
-            string pattern = $@"\[(?:MEMORY|EVENT|REPUTATION)\]";
+            var pattern = @"\[(?:MEMORY|EVENT|REPUTATION|ACTION)\]";
             Match match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
-            return match.Success ? text.Substring(0, match.Index) : text;
+
+            return match.Success
+                ? text.Substring(0, match.Index)
+                : text;
         }
 
-        private static ConversationMemory? ParseMemory(string? section)
+        /// <summary>
+        ///   Extracts the body of [TAG]...[/TAG]. Returns null if not found.
+        ///   Non-greedy: stops at the first closing tag encountered.
+        /// </summary>
+        private static string? ExtractSection(string text, string tag)
         {
-            if (string.IsNullOrWhiteSpace(section)) return null;
-            var fields = ParseKeyValueLines(section!);
+            var pattern = $@"\[{Regex.Escape(tag)}\](.*?)\[/{Regex.Escape(tag)}\]";
+            Match match = Regex.Match(text, pattern,
+                RegexOptions.Singleline | RegexOptions.IgnoreCase);
 
-            if (!fields.TryGetValue(TopicKey, out string? topic)) return null;
-            if (!fields.TryGetValue(SentimentKey, out string? sentiment)) return null;
-            fields.TryGetValue(DecisionKey, out string? decision);
+            return match.Success
+                ? match.Groups[1].Value
+                : null;
+        }
 
-            return new ConversationMemory(topic, sentiment, decision);
+        /// <summary>
+        ///   Extracts all [ACTION] sections (multiple allowed per response).
+        ///   Each section must specify a <c>type</c>; sections missing it are skipped.
+        /// </summary>
+        private static IReadOnlyList<GameAction> ParseActions(string text)
+        {
+            var actions = new List<GameAction>();
+            var pattern = $@"\[{ActionTag}\](.*?)\[/{ActionTag}\]";
+
+            foreach (Match match in Regex.Matches(text, pattern,
+                         RegexOptions.Singleline | RegexOptions.IgnoreCase))
+            {
+                Dictionary<string, string> fields = ParseKeyValueLines(match.Groups[1].Value);
+
+                if (!fields.TryGetValue(ActionTypeKey, out var type) || string.IsNullOrWhiteSpace(type))
+                    continue;
+
+                fields.TryGetValue(ActionContextKey, out var context);
+
+                // Everything else becomes parameters.
+                var parameters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                foreach (KeyValuePair<string, string> kvp in fields)
+                {
+                    if (string.Equals(kvp.Key, ActionTypeKey, StringComparison.OrdinalIgnoreCase)) continue;
+                    if (string.Equals(kvp.Key, ActionContextKey, StringComparison.OrdinalIgnoreCase)) continue;
+                    parameters[kvp.Key] = kvp.Value;
+                }
+
+                actions.Add(new GameAction {
+                    Type = type.Trim(),
+                    Context = context,
+                    Parameters = parameters
+                });
+            }
+
+            return actions;
         }
 
         private static ParsedEventData? ParseEventData(string? section)
         {
             if (string.IsNullOrWhiteSpace(section)) return null;
-            var fields = ParseKeyValueLines(section!);
+            Dictionary<string, string> fields = ParseKeyValueLines(section!);
 
-            if (!fields.TryGetValue(EventTypeKey, out string? typeStr)) return null;
-            if (!fields.TryGetValue(SummaryKey, out string? summary)) return null;
+            if (!fields.TryGetValue(EventTypeKey, out var typeStr)) return null;
+            if (!fields.TryGetValue(SummaryKey, out var summary)) return null;
 
             return new ParsedEventData(ParseEventType(typeStr), summary);
         }
 
-        private static ReputationDelta? ParseReputation(string? section)
+        private static NotableEventType ParseEventType(string raw)
         {
-            if (string.IsNullOrWhiteSpace(section)) return null;
-            var fields = ParseKeyValueLines(section!);
+            var v = raw.TrimStart(trimChars: '#').Trim();
 
-            int? clanDelta    = TryParseSignedInt(fields, ClanDeltaKey);
-            int? factionDelta = TryParseSignedInt(fields, FactionDeltaKey);
+            if (Enum.TryParse(v, true, out NotableEventType direct)) return direct;
 
-            if (clanDelta is null && factionDelta is null) return null;
-            return new ReputationDelta(clanDelta, factionDelta);
-        }
-
-        private static int? TryParseSignedInt(IReadOnlyDictionary<string, string> fields, string key)
-        {
-            if (!fields.TryGetValue(key, out string? raw)) return null;
-            return int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out int v)
-                ? v
-                : (int?)null;
+            return v.ToLowerInvariant() switch {
+                "first_meeting" or "meeting" => NotableEventType.FirstMeeting,
+                "farewell" or "goodbye" or "parting" or "departure" => NotableEventType.Farewell,
+                "conflict" => NotableEventType.Conflict,
+                "collaboration" => NotableEventType.Collaboration,
+                "agreement" or "promise" or "oath" or "contract" or "mission" => NotableEventType.Agreement,
+                "flirt" => NotableEventType.Flirt,
+                "intimacy" => NotableEventType.Intimacy,
+                "betrayal" => NotableEventType.Betrayal,
+                "confrontation" => NotableEventType.Confrontation,
+                _ => NotableEventType.Other
+            };
         }
 
         /// <summary>
-        /// Parses lines of the form "key: value" into a dictionary.
-        /// Tolerant: skips lines without ':', strips optional '#' value prefix,
-        /// trims whitespace, comparison is case-insensitive.
+        ///   Parses lines of the form "key: value" into a dictionary.
+        ///   Tolerant: skips lines without ':', strips optional '#' value prefix,
+        ///   trims whitespace, comparison is case-insensitive.
         /// </summary>
         private static Dictionary<string, string> ParseKeyValueLines(string section)
         {
             var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (string rawLine in section.Split('\n'))
+            foreach (var rawLine in section.Split(separator: '\n'))
             {
-                string line = rawLine.Trim();
+                var line = rawLine.Trim();
+
                 if (line.Length == 0) continue;
 
-                int colonIdx = line.IndexOf(':');
+                var colonIdx = line.IndexOf(':');
+
                 if (colonIdx <= 0) continue;
 
-                string key   = line.Substring(0, colonIdx).Trim();
-                string value = line.Substring(colonIdx + 1).Trim();
+                var key = line.Substring(0, colonIdx).Trim();
+                var value = line.Substring(colonIdx + 1).Trim();
 
-                if (value.StartsWith("#", StringComparison.Ordinal))
-                {
-                    value = value.Substring(1);
-                }
+                if (value.StartsWith("#", StringComparison.Ordinal)) value = value.Substring(1);
 
                 dict[key] = value;
             }
@@ -148,26 +189,40 @@ namespace NpcMemoryService.Core.Parsing
             return dict;
         }
 
-        private static NotableEventType ParseEventType(string raw)
+        private static ConversationMemory? ParseMemory(string? section)
         {
-            string v = raw.TrimStart('#').Trim();
+            if (string.IsNullOrWhiteSpace(section)) return null;
+            Dictionary<string, string> fields = ParseKeyValueLines(section!);
 
-            if (Enum.TryParse<NotableEventType>(v, ignoreCase: true, out NotableEventType direct))
-            {
-                return direct;
-            }
+            if (!fields.TryGetValue(TopicKey, out var topic)) return null;
+            if (!fields.TryGetValue(SentimentKey, out var sentiment)) return null;
+            fields.TryGetValue(DecisionKey, out var decision);
 
-            return v.ToLowerInvariant() switch
-            {
-                "first_meeting" or "meeting"       => NotableEventType.FirstMeeting,
-                "conflict"                         => NotableEventType.Conflict,
-                "collaboration"                    => NotableEventType.Collaboration,
-                "flirt"                            => NotableEventType.Flirt,
-                "intimacy"                         => NotableEventType.Intimacy,
-                "betrayal"                         => NotableEventType.Betrayal,
-                "confrontation"                    => NotableEventType.Confrontation,
-                _                                  => NotableEventType.Other
-            };
+            return new ConversationMemory(topic, sentiment, decision);
         }
+
+        private static ReputationDelta? ParseReputation(string? section)
+        {
+            if (string.IsNullOrWhiteSpace(section)) return null;
+            Dictionary<string, string> fields = ParseKeyValueLines(section!);
+
+            var clanDelta = TryParseSignedInt(fields, ClanDeltaKey);
+            var factionDelta = TryParseSignedInt(fields, FactionDeltaKey);
+
+            if (clanDelta is null && factionDelta is null) return null;
+
+            return new ReputationDelta(clanDelta, factionDelta);
+        }
+
+        private static int? TryParseSignedInt(IReadOnlyDictionary<string, string> fields, string key)
+        {
+            if (!fields.TryGetValue(key, out var raw)) return null;
+
+            return int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var v)
+                ? v
+                : null;
+        }
+
+        #endregion
     }
 }
