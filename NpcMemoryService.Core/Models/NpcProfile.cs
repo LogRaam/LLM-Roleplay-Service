@@ -49,6 +49,15 @@ namespace NpcMemoryService.Core.Models
         public int ReputationWithPlayer { get; set; }
 
         /// <summary>
+        ///   Campaign-time hour (<c>CampaignTime.Now.ToHours</c>) of the last
+        ///   POSITIVE relation gain granted through a relation-changing action.
+        ///   Used by the consumer to throttle relationship growth (at most one
+        ///   routine gain per cooldown window). Null = no gain recorded yet.
+        ///   Game-agnostic: the SDK only stores it; the consumer defines the policy.
+        /// </summary>
+        public double? LastRelationGainHour { get; set; }
+
+        /// <summary>
         ///   Formatted description of the NPC's key in-game relationships:
         ///   liege, friends, enemies, family. Built from live game state and
         ///   refreshed on every session launch — not a stable identity field.

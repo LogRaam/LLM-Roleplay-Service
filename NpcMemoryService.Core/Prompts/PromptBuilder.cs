@@ -33,6 +33,16 @@ namespace NpcMemoryService.Core.Prompts
         public bool PlayerIsFemale { get; init; }
 
         /// <summary>
+        ///   When true (default), the response format includes the <c>[REPUTATION]</c>
+        ///   block, letting the LLM move <see cref="NpcProfile.ReputationWithPlayer"/>.
+        ///   Consumers that drive the NPC's standing from an external, authoritative
+        ///   source (e.g. a game's own relation system) set this false: the block is
+        ///   omitted and <see cref="NpcProfile.ReputationWithPlayer"/> is expected to be
+        ///   synced from that source before each prompt build, keeping a single score.
+        /// </summary>
+        public bool EnableReputationBlock { get; init; } = true;
+
+        /// <summary>
         ///   Static world description loaded from <c>world.txt</c>.
         ///   Injected early in the prompt (before NPC-specific sections) so it
         ///   is shared across all NPCs in a session and maximizes prefix cache hits.
@@ -289,7 +299,7 @@ namespace NpcMemoryService.Core.Prompts
 
         // ── Sprint 8.1: dialogue style ───────────────────────────────────────
 
-        private static void AppendDialogueStyle(StringBuilder sb)
+        private void AppendDialogueStyle(StringBuilder sb)
         {
             sb.AppendLine("DIALOGUE STYLE:");
             sb.AppendLine("[DIALOGUE] is the heart of your response. Develop it with substance:");
@@ -303,7 +313,9 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("  My father said much the same, before he fell at Pendraic.");
             sb.AppendLine("Use them sparingly — they should serve the moment, not slow it down.");
             sb.AppendLine();
-            sb.AppendLine("Other sections ([MEMORY], [EVENT], [REPUTATION], [ACTION]) are metadata.");
+            sb.AppendLine(EnableReputationBlock
+                ? "Other sections ([MEMORY], [EVENT], [REPUTATION], [ACTION]) are metadata."
+                : "Other sections ([MEMORY], [EVENT], [ACTION]) are metadata.");
             sb.AppendLine("Keep them concise. The player came to hear what you have to say.");
             sb.AppendLine();
             sb.AppendLine("─────────────────────────────────────────────");
@@ -483,8 +495,12 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("a reunion. Acknowledge the gap. If you parted with pending obligations or agreements,");
             sb.AppendLine("you may naturally ask about their status before discussing other matters.");
             sb.AppendLine();
-            sb.AppendLine("EMIT [REPUTATION] only when the player's standing genuinely changes.");
-            sb.AppendLine();
+            if (EnableReputationBlock)
+            {
+                sb.AppendLine("EMIT [REPUTATION] only when the player's standing genuinely changes.");
+                sb.AppendLine();
+            }
+
             sb.AppendLine("[DIALOGUE]");
             sb.AppendLine("Your in-character response.");
             sb.AppendLine("[/DIALOGUE]");
@@ -500,11 +516,16 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("summary: One sentence; write so a future you can recall what happened and why it mattered.");
             sb.AppendLine("[/EVENT]");
             sb.AppendLine();
-            sb.AppendLine("[REPUTATION]");
-            sb.AppendLine("clan_delta: +N or -N");
-            sb.AppendLine("faction_delta: +N or -N");
-            sb.AppendLine("[/REPUTATION]");
-            sb.AppendLine();
+
+            if (EnableReputationBlock)
+            {
+                sb.AppendLine("[REPUTATION]");
+                sb.AppendLine("clan_delta: +N or -N");
+                sb.AppendLine("faction_delta: +N or -N");
+                sb.AppendLine("[/REPUTATION]");
+                sb.AppendLine();
+            }
+
             AppendActionInstructions(sb);
             sb.AppendLine("Stay in character at all times. Never break the fourth wall.");
             sb.AppendLine("If the player's history conflicts with a stated stance, the history wins.");

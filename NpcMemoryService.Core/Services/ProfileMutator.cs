@@ -3,6 +3,7 @@
 
 #region
 
+using System.Linq;
 using NpcMemoryService.Core.Models;
 
 #endregion
@@ -37,7 +38,9 @@ namespace NpcMemoryService.Core.Services
             // An empty or whitespace summary would pollute the history with lines
             // like "Day N (Other):" that carry no information for future prompts.
             if (response.NewEventData != null
-                && !string.IsNullOrWhiteSpace(response.NewEventData.Summary))
+                && !string.IsNullOrWhiteSpace(response.NewEventData.Summary)
+                && !(response.NewEventData.Type == NotableEventType.FirstMeeting
+                     && profile.Events.Any(e => e.type == NotableEventType.FirstMeeting)))
             {
                 profile.Events.Add(new NotableEvent(
                     gameDay,
