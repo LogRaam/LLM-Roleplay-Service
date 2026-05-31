@@ -9,9 +9,10 @@ namespace NpcMemoryService.Core.Models
     public enum SexualOrientation
     {
         Heterosexual,
+        BiCurious,   // Predominantly one gender, occasionally the other
         Bisexual,
-        Homosexual,
-        Pansexual,
-        Asexual
+        Homosexual,  // Kept for mod use; not assigned by default distribution
+        Pansexual,   // Kept for mod use; not assigned by default distribution
+        Asexual      // Kept for mod use; not assigned by default distribution
     }
 }

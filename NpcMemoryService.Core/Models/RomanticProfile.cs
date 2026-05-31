@@ -88,8 +88,9 @@ namespace NpcMemoryService.Core.Models
         public bool IsCompatibleWith(bool playerIsFemale)
             => Orientation switch {
                 SexualOrientation.Heterosexual => playerIsFemale != IsFemale,
-                SexualOrientation.Homosexual   => playerIsFemale == IsFemale,
+                SexualOrientation.BiCurious    => true,
                 SexualOrientation.Bisexual     => true,
+                SexualOrientation.Homosexual   => playerIsFemale == IsFemale,
                 SexualOrientation.Pansexual    => true,
                 SexualOrientation.Asexual      => false,
                 _                              => false

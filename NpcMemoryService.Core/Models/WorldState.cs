@@ -7,6 +7,7 @@ namespace NpcMemoryService.Core.Models
     public sealed class WorldState
     {
         public int     CurrentDay       { get; init; }
+        public string? Season           { get; init; }
         public string? ActiveConflicts  { get; init; }
         public string? Rumors           { get; init; }
     }

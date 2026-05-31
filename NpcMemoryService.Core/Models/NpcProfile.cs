@@ -40,13 +40,21 @@ namespace NpcMemoryService.Core.Models
         public string? MemoryDigest { get; set; }
 
         public required string Name { get; init; }
-        public string? Personality { get; init; }
+        public string? Personality { get; set; }
 
         /// <summary>
         ///   Player reputation from this NPC's perspective.
         ///   Clamped to [-100, 100]. Negative = hostile.
         /// </summary>
         public int ReputationWithPlayer { get; set; }
+
+        /// <summary>
+        ///   Formatted description of the NPC's key in-game relationships:
+        ///   liege, friends, enemies, family. Built from live game state and
+        ///   refreshed on every session launch — not a stable identity field.
+        ///   Null until the first session launch after profile creation.
+        /// </summary>
+        public string? Relationships { get; set; }
 
         /// <summary>
         ///   Optional romantic profile. Null if the consumer disabled romantic

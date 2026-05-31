@@ -26,37 +26,86 @@ namespace NpcMemoryService.Core.Prompts
         public IReadOnlyList<GameActionDefinition> ActionVocabulary { get; init; }
             = new List<GameActionDefinition>();
 
-        /// <summary>
-        ///   Controls how much of an NPC's <see cref="RomanticProfile"/> is
-        ///   injected into the system prompt. Default is <see cref="AdultContentLevel.Off"/>
-        ///   so consumers must explicitly opt in.
-        /// </summary>
+        /// <summary>Controls how much romantic content is injected. Default Off.</summary>
         public AdultContentLevel AdultLevel { get; init; } = AdultContentLevel.Off;
 
-        /// <summary>
-        ///   Whether the player is female. Used to evaluate romantic compatibility
-        ///   against the NPC's orientation. Defaults to false; consumer should
-        ///   set this from their game's player data.
-        /// </summary>
+        /// <summary>Whether the player is female. Used for romantic compatibility gating.</summary>
         public bool PlayerIsFemale { get; init; }
+
+        /// <summary>
+        ///   Static world description loaded from <c>world.txt</c>.
+        ///   Injected early in the prompt (before NPC-specific sections) so it
+        ///   is shared across all NPCs in a session and maximizes prefix cache hits.
+        ///   Empty string → section omitted.
+        /// </summary>
+        public string WorldDescription { get; init; } = "";
+
+        /// <summary>
+        ///   Player description loaded from <c>player_description.txt</c>.
+        ///   Injected in the static prefix so NPCs always know who they are speaking to.
+        ///   Empty string → section omitted.
+        /// </summary>
+        public string PlayerDescription { get; init; } = "";
+
+        /// <summary>
+        ///   Behavioral guidelines loaded from <c>behavior_guidelines.txt</c>.
+        ///   When non-empty, replaces the hardcoded BEHAVIOR GUIDELINES section
+        ///   so the content can be customised without recompiling.
+        ///   Empty string → hardcoded fallback is used.
+        /// </summary>
+        public string BehaviorGuidelinesOverride { get; init; } = "";
 
         public string BuildSystemPrompt(NpcProfile npc, WorldState world, EncounterContext? encounterContext = null)
         {
             StringBuilder sb = new StringBuilder();
+            // ── Static prefix — identical for every NPC in the session ──────────
             AppendFormatInstructions(sb);
             AppendDialogueStyle(sb);
             AppendBehaviorGuidelines(sb);
+            AppendWorldDescription(sb);
+            AppendPlayerDescription(sb);
+            // ── Per-NPC identity ─────────────────────────────────────────────────
             AppendIdentity(sb, npc);
+            AppendRelationships(sb, npc);
             AppendRomanticContext(sb, npc);
             AppendBackgroundContext(sb, npc);
             AppendHistory(sb, npc);
             AppendCurrentStance(sb, npc);
+            // ── Dynamic world state (changes each turn) ──────────────────────────
             AppendWorldState(sb, world);
             AppendEncounterContext(sb, encounterContext);
             return sb.ToString();
         }
 
         #region private
+
+        // ── Sprint 9: world description + player description ─────────────────
+
+        private void AppendWorldDescription(StringBuilder sb)
+        {
+            if (string.IsNullOrWhiteSpace(WorldDescription)) return;
+            sb.AppendLine("WORLD:");
+            sb.AppendLine(WorldDescription);
+            sb.AppendLine();
+        }
+
+        private void AppendPlayerDescription(StringBuilder sb)
+        {
+            if (string.IsNullOrWhiteSpace(PlayerDescription)) return;
+            sb.AppendLine("THE PLAYER:");
+            sb.AppendLine(PlayerDescription);
+            sb.AppendLine();
+        }
+
+        // ── Sprint 8.4: relationships ────────────────────────────────────────
+
+        private static void AppendRelationships(StringBuilder sb, NpcProfile npc)
+        {
+            if (string.IsNullOrWhiteSpace(npc.Relationships)) return;
+            sb.AppendLine("RELATIONSHIPS:");
+            sb.AppendLine(npc.Relationships);
+            sb.AppendLine();
+        }
 
         // ── Sprint 8.2: romantic context ─────────────────────────────────────
 
@@ -170,8 +219,11 @@ namespace NpcMemoryService.Core.Prompts
         private static string DescribeOrientation(SexualOrientation o, bool npcIsFemale) => o switch
         {
             SexualOrientation.Heterosexual => npcIsFemale ? "Drawn to men." : "Drawn to women.",
-            SexualOrientation.Homosexual   => npcIsFemale ? "Drawn to women." : "Drawn to men.",
+            SexualOrientation.BiCurious    => npcIsFemale
+                ? "Drawn primarily to men, though not exclusively — the right person can surprise them."
+                : "Drawn primarily to women, though not exclusively — the right person can surprise them.",
             SexualOrientation.Bisexual     => "Drawn to both men and women.",
+            SexualOrientation.Homosexual   => npcIsFemale ? "Drawn to women." : "Drawn to men.",
             SexualOrientation.Pansexual    => "Attraction transcends gender — drawn to the person.",
             SexualOrientation.Asexual      => "Feels little to no sexual attraction.",
             _ => ""
@@ -260,8 +312,17 @@ namespace NpcMemoryService.Core.Prompts
 
         // ── Sprint 8.1: behavior guidelines ──────────────────────────────────
 
-        private static void AppendBehaviorGuidelines(StringBuilder sb)
+        private void AppendBehaviorGuidelines(StringBuilder sb)
         {
+            if (!string.IsNullOrWhiteSpace(BehaviorGuidelinesOverride))
+            {
+                sb.AppendLine(BehaviorGuidelinesOverride);
+                sb.AppendLine();
+                sb.AppendLine("─────────────────────────────────────────────");
+                sb.AppendLine();
+                return;
+            }
+
             sb.AppendLine("BEHAVIOR GUIDELINES (how a noble of Calradia carries themselves):");
             sb.AppendLine();
             sb.AppendLine("- You speak as a lord of your land. Your words carry the weight of your name,");
@@ -362,7 +423,10 @@ namespace NpcMemoryService.Core.Prompts
 
         private static void AppendWorldState(StringBuilder sb, WorldState world)
         {
-            sb.AppendLine($"CURRENT WORLD STATE (Day {world.CurrentDay}):");
+            var header = !string.IsNullOrWhiteSpace(world.Season)
+                ? $"CURRENT WORLD STATE (Day {world.CurrentDay} — {world.Season}):"
+                : $"CURRENT WORLD STATE (Day {world.CurrentDay}):";
+            sb.AppendLine(header);
             if (!string.IsNullOrWhiteSpace(world.ActiveConflicts))
                 sb.AppendLine($"Active conflicts: {world.ActiveConflicts}");
             if (!string.IsNullOrWhiteSpace(world.Rumors))
