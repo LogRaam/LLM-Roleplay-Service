@@ -43,6 +43,15 @@ namespace NpcMemoryService.Core.Prompts
         public bool EnableReputationBlock { get; init; } = true;
 
         /// <summary>
+        ///   When true, the prompt teaches the NPC to offer informal quests
+        ///   (<c>[QUEST]</c>) and acknowledge completed ones (<c>[QUEST_COMPLETE]</c>),
+        ///   and surfaces the NPC's active quests with their verified evidence.
+        ///   Default false: consumers that cannot verify deeds (e.g. the console runner)
+        ///   leave it off so the NPC never promises a reward the host cannot honor.
+        /// </summary>
+        public bool EnableQuests { get; init; } = false;
+
+        /// <summary>
         ///   Static world description loaded from <c>world.txt</c>.
         ///   Injected early in the prompt (before NPC-specific sections) so it
         ///   is shared across all NPCs in a session and maximizes prefix cache hits.
@@ -78,8 +87,11 @@ namespace NpcMemoryService.Core.Prompts
             AppendIdentity(sb, npc);
             AppendRelationships(sb, npc);
             AppendRomanticContext(sb, npc);
+            AppendIntimacyConsentRules(sb, npc, encounterContext);
+            AppendDiscoveredTraits(sb, npc);
             AppendBackgroundContext(sb, npc);
             AppendHistory(sb, npc);
+            AppendActiveQuests(sb, npc);
             AppendCurrentStance(sb, npc);
             // ── Dynamic world state (changes each turn) ──────────────────────────
             AppendWorldState(sb, world);
@@ -115,6 +127,101 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("RELATIONSHIPS:");
             sb.AppendLine(npc.Relationships);
             sb.AppendLine();
+        }
+
+        // ── Sprint 10.6: intimacy consent rules ──────────────────────────────
+
+        /// <summary>
+        ///   Injects hard behavioural rules about intimacy thresholds, marital fidelity,
+        ///   and the player's own marital status. Married NPCs require deep trust (≥30)
+        ///   and treat any intimacy as clandestine. Casual NPCs accept direct encounters
+        ///   with minimal trust (≥5); Intense NPCs burn fast (≥10). Standard NPCs require
+        ///   meaningful connection across multiple meetings (≥20).
+        /// </summary>
+        private void AppendIntimacyConsentRules(StringBuilder sb, NpcProfile npc, EncounterContext? context)
+        {
+            if (AdultLevel == AdultContentLevel.Off) return;
+            if (npc.Romantic == null) return;
+            if (!IsPlayerCompatible(npc.Romantic)) return;
+
+            bool isMarried = !string.IsNullOrWhiteSpace(npc.SpouseName);
+            bool isCasual  = npc.Romantic.Preferences != null
+                && npc.Romantic.Preferences.Contains(RomanticPreference.Casual);
+            bool isIntense = npc.Romantic.Preferences != null
+                && npc.Romantic.Preferences.Contains(RomanticPreference.Intense);
+            int rep = npc.ReputationWithPlayer;
+
+            sb.AppendLine("RELATIONSHIP STATUS & CONSENT:");
+
+            if (isMarried)
+            {
+                sb.AppendLine($"You are married to {npc.SpouseName}. Your vows bind you to fidelity.");
+                sb.AppendLine("Physical intimacy with the player — kissing, touching, sexual contact — requires");
+                sb.AppendLine("deep personal trust built over many separate encounters (personal relation ≥ 30).");
+                sb.AppendLine("Below that threshold you resist all advances — warmly or firmly as your character");
+                sb.AppendLine("dictates, but you do not yield. Attraction alone is not consent.");
+
+                if (rep >= 30)
+                {
+                    sb.AppendLine($"Your trust in this player has now reached that depth. Should intimacy occur,");
+                    sb.AppendLine($"you remain fully aware it is an act of infidelity against {npc.SpouseName}.");
+                    sb.AppendLine("You are conflicted, secretive, anxious about discovery. It must stay absolutely");
+                    sb.AppendLine("hidden from your spouse and from your social circle. Never speak of it openly.");
+                }
+            }
+            else if (isCasual)
+            {
+                sb.AppendLine("You are open to brief, unattached encounters — no commitment required on either side.");
+                sb.AppendLine("If the moment is right and you feel drawn to the person, you act (personal relation ≥ 5).");
+                sb.AppendLine("You don't need weeks of courtship or declarations of devotion. Attraction and comfort");
+                sb.AppendLine("are enough. You don't apologise for this, and you don't attach more meaning than there is.");
+            }
+            else if (isIntense)
+            {
+                sb.AppendLine("Your desire moves fast — when the spark is real, you don't need lengthy courtship.");
+                sb.AppendLine("Genuine attraction is enough to act (personal relation ≥ 10 for physical intimacy).");
+                sb.AppendLine("You need to feel the pull is authentic, not manufactured by persistence alone.");
+                sb.AppendLine("If it isn't there, no amount of flattery will conjure it.");
+            }
+            else
+            {
+                sb.AppendLine("You have no spouse or formal commitment — free to pursue connection on your own terms.");
+                sb.AppendLine("You may show genuine romantic interest as trust grows (personal relation ≥ 10).");
+                sb.AppendLine("Physical intimacy requires emotional connection built across multiple encounters");
+                sb.AppendLine("(personal relation ≥ 20). Below these thresholds redirect rather than comply:");
+                sb.AppendLine("acknowledge the attraction honestly, but hold your ground with warmth or quiet dignity.");
+            }
+
+            sb.AppendLine();
+
+            if (!isCasual)
+            {
+                sb.AppendLine("NOTE: Your relational preferences (Submissive, Devoted, etc.) describe how you behave");
+                sb.AppendLine("WITHIN an established relationship — not how quickly you enter one. They do not");
+                sb.AppendLine("override the consent thresholds above.");
+                sb.AppendLine();
+            }
+
+            if (context != null && !string.IsNullOrWhiteSpace(context.PlayerSpouseName))
+            {
+                sb.AppendLine($"The player is married to {context.PlayerSpouseName}.");
+                sb.AppendLine("How you respond to this is a matter of your character — some would refuse to enable");
+                sb.AppendLine("another's infidelity; others find it irrelevant or even exciting. Let your own");
+                sb.AppendLine("personality and moral code guide you, not a generic reaction.");
+                sb.AppendLine();
+            }
+
+            if (AdultLevel >= AdultContentLevel.Explicit)
+            {
+                sb.AppendLine("DURING PHYSICAL INTIMACY:");
+                sb.AppendLine("When the player's message is primarily a physical action (indicated by *…* stage");
+                sb.AppendLine("directions), let the body lead your response. Sensation, breath, and involuntary");
+                sb.AppendLine("reaction outweigh speech. Dialogue becomes sparse — a gasp, a name, a single");
+                sb.AppendLine("unguarded phrase at most. Long reflections on destiny, loyalty, or devotion break");
+                sb.AppendLine("the moment; keep them for before or after. Your physical responses should flow");
+                sb.AppendLine("from your character and preferences — not override them with philosophical prose.");
+                sb.AppendLine();
+            }
         }
 
         // ── Sprint 8.2: romantic context ─────────────────────────────────────
@@ -277,12 +384,13 @@ namespace NpcMemoryService.Core.Prompts
 
         private static string DescribeStatus(RomanticStatus s) => s switch
         {
-            RomanticStatus.Curious   => "Noticed the player, intrigued but distant.",
-            RomanticStatus.Courting  => "Active romantic interest. Exchanges carry meaning.",
-            RomanticStatus.Intimate  => "Physically close. The bond is real.",
-            RomanticStatus.Committed => "Long-term bond — marriage or its equivalent.",
-            RomanticStatus.Estranged => "Trust broken, but feeling remains.",
-            RomanticStatus.Broken    => "Done. No path back.",
+            RomanticStatus.Curious      => "Noticed the player, intrigued but distant.",
+            RomanticStatus.Courting     => "Active romantic interest. Exchanges carry meaning.",
+            RomanticStatus.Intimate     => "Physically close. The bond is real.",
+            RomanticStatus.SecretLover  => "Intimate with the player while married to another. This is clandestine — never acknowledged openly, never safe.",
+            RomanticStatus.Committed    => "Long-term bond — marriage or its equivalent.",
+            RomanticStatus.Estranged    => "Trust broken, but feeling remains.",
+            RomanticStatus.Broken       => "Done. No path back.",
             _ => "No romantic engagement so far."
         };
 
@@ -313,9 +421,10 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("  My father said much the same, before he fell at Pendraic.");
             sb.AppendLine("Use them sparingly — they should serve the moment, not slow it down.");
             sb.AppendLine();
+            var discoverySuffix = AdultLevel != AdultContentLevel.Off ? ", [DISCOVERY]" : "";
             sb.AppendLine(EnableReputationBlock
-                ? "Other sections ([MEMORY], [EVENT], [REPUTATION], [ACTION]) are metadata."
-                : "Other sections ([MEMORY], [EVENT], [ACTION]) are metadata.");
+                ? $"Other sections ([MEMORY], [EVENT], [REPUTATION], [ACTION]{discoverySuffix}) are metadata."
+                : $"Other sections ([MEMORY], [EVENT], [ACTION]{discoverySuffix}) are metadata.");
             sb.AppendLine("Keep them concise. The player came to hear what you have to say.");
             sb.AppendLine();
             sb.AppendLine("─────────────────────────────────────────────");
@@ -391,29 +500,62 @@ namespace NpcMemoryService.Core.Prompts
 
         private static void AppendCurrentStance(StringBuilder sb, NpcProfile npc)
         {
-            var sentiment = npc.ReputationWithPlayer switch
+            // No clan standing supplied → personal opinion only (legacy/console behavior).
+            if (npc.ClanRelationWithPlayer == null)
             {
-                >=  30 => "You deeply trust this player.",
-                >=  10 => "You view this player favorably.",
-                >=  -9 => "Your overall feelings toward this player are neutral.",
-                >= -29 => "You distrust this player.",
-                _      => "You deeply resent this player."
-            };
+                sb.AppendLine($"CURRENT STANCE (reputation {npc.ReputationWithPlayer:+#;-#;0}):");
+                sb.AppendLine(DescribePersonalRegard(npc.ReputationWithPlayer));
+                sb.AppendLine();
+                return;
+            }
 
-            sb.AppendLine($"CURRENT STANCE (reputation {npc.ReputationWithPlayer:+#;-#;0}):");
-            sb.AppendLine(sentiment);
+            // Dual stance: the clan's collective standing AND this NPC's own opinion.
+            // They may diverge — a noble can privately favor someone their clan resents.
+            sb.AppendLine("CURRENT STANCE:");
+            sb.AppendLine($"Your clan's standing toward this player ({npc.ClanRelationWithPlayer.Value:+#;-#;0}): " +
+                          DescribeClanStanding(npc.ClanRelationWithPlayer.Value));
+            sb.AppendLine($"Your own personal regard for this player ({npc.ReputationWithPlayer:+#;-#;0}): " +
+                          DescribePersonalRegard(npc.ReputationWithPlayer));
+            sb.AppendLine("These may differ. Let your personal regard color your warmth and candor; " +
+                          "let your clan's standing shape what you can openly promise or commit to.");
             sb.AppendLine();
         }
+
+        private static string DescribePersonalRegard(int value) => value switch
+        {
+            >=  30 => "You trust and care for this player deeply.",
+            >=  10 => "You think well of this player.",
+            >=  -9 => "Your personal feelings toward this player are neutral.",
+            >= -29 => "You personally distrust this player.",
+            _      => "You personally resent this player."
+        };
+
+        private static string DescribeClanStanding(int value) => value switch
+        {
+            >=  30 => "Your clan counts this player a trusted friend.",
+            >=  10 => "Your clan regards this player favorably.",
+            >=  -9 => "Your clan has no strong feeling toward this player.",
+            >= -29 => "Your clan distrusts this player.",
+            _      => "Your clan considers this player an enemy."
+        };
 
         private static void AppendEncounterContext(StringBuilder sb, EncounterContext? context)
         {
             if (context == null) return;
             var description = context.ToPromptDescription();
-            if (string.IsNullOrWhiteSpace(description)) return;
 
-            sb.AppendLine("CURRENT ENCOUNTER:");
-            sb.AppendLine(description);
-            sb.AppendLine();
+            if (!string.IsNullOrWhiteSpace(description))
+            {
+                sb.AppendLine("CURRENT ENCOUNTER:");
+                sb.AppendLine(description);
+                sb.AppendLine();
+            }
+
+            if (!string.IsNullOrWhiteSpace(context.ContextualNames))
+            {
+                sb.AppendLine(context.ContextualNames);
+                sb.AppendLine();
+            }
         }
 
         private static void AppendHistory(StringBuilder sb, NpcProfile npc)
@@ -433,6 +575,88 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
         }
 
+        /// <summary>
+        ///   Surfaces the tasks this NPC has given the player, split by state:
+        ///   outstanding (not yet done — the NPC may ask after it but has no proof),
+        ///   done-and-ready (the host verified the deed; the NPC may acknowledge it and
+        ///   emit [QUEST_COMPLETE] to pay the promised reward), and past (terminated, kept
+        ///   as memory). The verified evidence is the ONLY ground on which completion may
+        ///   be granted — this is what stops roleplay-only success. No-op unless
+        ///   <see cref="EnableQuests" /> is set or the NPC has no quests.
+        /// </summary>
+        private void AppendActiveQuests(StringBuilder sb, NpcProfile npc)
+        {
+            if (!EnableQuests) return;
+            if (npc.ActiveQuests == null || npc.ActiveQuests.Count == 0) return;
+
+            var outstanding = new List<InformalQuest>();
+            var ready = new List<InformalQuest>();
+            var past = new List<InformalQuest>();
+            foreach (InformalQuest q in npc.ActiveQuests)
+            {
+                if (q.IsAwaitingReward) ready.Add(q);
+                else if (q.IsOutstanding) outstanding.Add(q);
+                else past.Add(q);
+            }
+
+            sb.AppendLine("YOUR QUESTS (tasks you have given this player):");
+
+            foreach (InformalQuest q in outstanding)
+            {
+                sb.AppendLine($"- OUTSTANDING: {q.Description}{RewardSuffix(q)}{DeadlineSuffix(q)}");
+                sb.AppendLine("  Not yet done — you may ask how it fares, but you have no proof it is finished.");
+            }
+
+            foreach (InformalQuest q in ready)
+            {
+                sb.AppendLine($"- DONE: {q.Description}");
+                sb.AppendLine($"  Verified: {q.Evidence}");
+                sb.AppendLine($"  If satisfied, acknowledge it and emit [QUEST_COMPLETE] type: {QuestTypeToken(q.Type)}" +
+                              $" — the game pays{RewardSuffix(q)}.");
+            }
+
+            foreach (InformalQuest q in past)
+            {
+                var fate = q.Status switch {
+                    QuestStatus.Completed => "completed and rewarded",
+                    QuestStatus.Expired   => "left undone past its deadline — a disappointment you remember",
+                    QuestStatus.Cancelled => "set aside when circumstances changed",
+                    QuestStatus.Abandoned => "abandoned by the player, who chose not to finish it",
+                    _                     => "closed"
+                };
+                sb.AppendLine($"- PAST: {q.Description} — {fate}.");
+            }
+
+            sb.AppendLine();
+        }
+
+        private static string RewardSuffix(InformalQuest q)
+        {
+            var parts = new List<string>();
+            if (q.RewardGold > 0) parts.Add($"{q.RewardGold} denars");
+            if (q.RewardRelation > 0) parts.Add($"+{q.RewardRelation} regard");
+            return parts.Count == 0 ? "" : $" (promised: {string.Join(", ", parts)})";
+        }
+
+        private static string DeadlineSuffix(InformalQuest q)
+            => q.DeadlineDay.HasValue ? $" [deadline: day {q.DeadlineDay.Value}]" : "";
+
+        private static string QuestTypeToken(QuestType t) => t switch
+        {
+            QuestType.BanditClear     => "bandit_clear",
+            QuestType.BanditHideout   => "bandit_hideout",
+            QuestType.AttackFaction   => "attack_faction",
+            QuestType.AttackLord      => "attack_lord",
+            QuestType.RaidVillage     => "raid_village",
+            QuestType.AttackCaravan   => "attack_caravan",
+            QuestType.Siege           => "siege",
+            QuestType.CapturePrisoner => "capture_prisoner",
+            QuestType.ExecuteEnemy    => "execute_enemy",
+            QuestType.RescuePrisoner  => "rescue_prisoner",
+            QuestType.DeliverLetter   => "deliver_letter",
+            _                         => t.ToString().ToLowerInvariant()
+        };
+
         private static void AppendWorldState(StringBuilder sb, WorldState world)
         {
             var header = !string.IsNullOrWhiteSpace(world.Season)
@@ -443,6 +667,109 @@ namespace NpcMemoryService.Core.Prompts
                 sb.AppendLine($"Active conflicts: {world.ActiveConflicts}");
             if (!string.IsNullOrWhiteSpace(world.Rumors))
                 sb.AppendLine($"Rumors: {world.Rumors}");
+            sb.AppendLine();
+        }
+
+        /// <summary>
+        ///   Injects the [DISCOVERY] section format when romantic content is enabled.
+        ///   The NPC emits this block at most once per exchange, only when they have
+        ///   genuinely revealed a personal preference through their dialogue.
+        /// </summary>
+        private void AppendDiscoveryInstructions(StringBuilder sb)
+        {
+            if (AdultLevel == AdultContentLevel.Off) return;
+
+            sb.AppendLine("EMIT [DISCOVERY] at most ONCE per exchange, ONLY when you have naturally revealed");
+            sb.AppendLine("a personal preference, orientation, or intimate trait through your own words in [DIALOGUE].");
+            sb.AppendLine("Do not force it. Do not repeat keys already listed under WHAT THIS PLAYER ALREADY KNOWS ABOUT YOU.");
+            sb.AppendLine();
+            sb.AppendLine("[DISCOVERY]");
+            sb.AppendLine("key: a short slug identifying what was revealed");
+            sb.AppendLine("     (e.g.: orientation, archetype, preference_dominant, preference_slow_burn, kink_bondage)");
+            sb.AppendLine("description: what this player now perceives, in their voice (one sentence)");
+            sb.AppendLine("[/DISCOVERY]");
+            sb.AppendLine();
+        }
+
+        /// <summary>
+        ///   Teaches the NPC to offer informal quests and acknowledge completed ones.
+        ///   No-op unless <see cref="EnableQuests" /> is set. The reward is fixed at the
+        ///   moment of offering and paid by the host on completion, so the NPC is told to
+        ///   promise only what they would truly give. Completion is gated on verified
+        ///   evidence (surfaced under YOUR QUESTS) — a player's bare claim is never enough.
+        /// </summary>
+        private void AppendQuestInstructions(StringBuilder sb)
+        {
+            if (!EnableQuests) return;
+
+            sb.AppendLine("OFFERING TASKS (quests):");
+            sb.AppendLine("When the conversation naturally calls for it and you have reason to trust or");
+            sb.AppendLine("need this player, you may ask them to carry out a concrete deed. Nobles do not");
+            sb.AppendLine("hand tasks to strangers — offer only when it fits who you are and where you stand.");
+            sb.AppendLine();
+            sb.AppendLine("Task types you may offer (use the exact 'type' token and the noted target):");
+            sb.AppendLine("- bandit_clear (target_settlement): defeat bandits raiding near a settlement.");
+            sb.AppendLine("- bandit_hideout (target_settlement): clear out a bandit hideout near a settlement.");
+            sb.AppendLine("- attack_faction (target_faction): strike an enemy faction's parties — only if you war with them.");
+            sb.AppendLine("- attack_lord (target_hero): defeat a specific enemy lord in battle.");
+            sb.AppendLine("- raid_village (target_settlement): raid a village of a faction you war with.");
+            sb.AppendLine("- attack_caravan (target_faction): destroy a caravan of an enemy faction.");
+            sb.AppendLine("- siege (target_settlement): help take an enemy town or castle by siege.");
+            sb.AppendLine("- capture_prisoner (target_hero): take a specific enemy hero prisoner.");
+            sb.AppendLine("- execute_enemy (target_hero): kill a specific enemy hero.");
+            sb.AppendLine("- rescue_prisoner (target_hero): free a specific ally held captive.");
+            sb.AppendLine("- deliver_letter (target_hero): carry your message to a recipient — put it in 'description'.");
+            sb.AppendLine();
+            sb.AppendLine("[QUEST]");
+            sb.AppendLine("type: one token from the list above");
+            sb.AppendLine("target_settlement: name (only when the type needs it)");
+            sb.AppendLine("target_hero: name (only when the type needs it)");
+            sb.AppendLine("target_faction: name (only when the type needs it)");
+            sb.AppendLine("deadline_days: N (optional; omit or 0 for open-ended; set it for urgent tasks like letters)");
+            sb.AppendLine("reward_gold: N (denars you promise, 0 if none)");
+            sb.AppendLine("reward_relation: N (personal regard you promise, 0 if none)");
+            sb.AppendLine("description: one or two sentences in your own voice");
+            sb.AppendLine("[/QUEST]");
+            sb.AppendLine();
+            sb.AppendLine("Rules: name real, plausible targets you would know. Promise only rewards you would");
+            sb.AppendLine("truly pay — the figure is fixed now and honored on completion. Offer at most ONE task,");
+            sb.AppendLine("and never while you already have one outstanding (see YOUR QUESTS).");
+            sb.AppendLine();
+            sb.AppendLine("When YOUR QUESTS shows a task the player has DONE (proof is listed) and you are");
+            sb.AppendLine("satisfied, acknowledge it in [DIALOGUE] and emit:");
+            sb.AppendLine("[QUEST_COMPLETE]");
+            sb.AppendLine("type: the completed task's type token");
+            sb.AppendLine("[/QUEST_COMPLETE]");
+            sb.AppendLine("The game then pays the reward you promised. NEVER emit [QUEST_COMPLETE] for a task not");
+            sb.AppendLine("shown as done — if the player only claims success without proof, doubt them and ask for");
+            sb.AppendLine("specifics. Words are cheap; you reward deeds, not stories.");
+            sb.AppendLine();
+            sb.AppendLine("If the player tells you plainly they will NOT carry out an outstanding task — they");
+            sb.AppendLine("withdraw, refuse, or give it up — react in character (disappointed, cold, understanding,");
+            sb.AppendLine("as your nature dictates) and emit:");
+            sb.AppendLine("[QUEST_ABANDON]");
+            sb.AppendLine("type: the abandoned task's type token");
+            sb.AppendLine("[/QUEST_ABANDON]");
+            sb.AppendLine("Emit this ONLY when the player has clearly chosen to give up the task — never on your");
+            sb.AppendLine("own initiative, and never merely because they are slow.");
+            sb.AppendLine();
+        }
+
+        /// <summary>
+        ///   Injects the list of personal traits the player already knows about this NPC.
+        ///   Placed after ROMANTIC NATURE so the NPC can see what has already been shared
+        ///   and avoid emitting duplicate [DISCOVERY] blocks.
+        ///   No-op when AdultLevel is Off or no traits have been discovered yet.
+        /// </summary>
+        private void AppendDiscoveredTraits(StringBuilder sb, NpcProfile npc)
+        {
+            if (AdultLevel == AdultContentLevel.Off) return;
+            if (npc.DiscoveredTraits == null || npc.DiscoveredTraits.Count == 0) return;
+
+            sb.AppendLine("WHAT THIS PLAYER ALREADY KNOWS ABOUT YOU:");
+            foreach (DiscoveredTrait trait in npc.DiscoveredTraits)
+                sb.AppendLine($"- ({trait.Key}) {trait.Description}");
+            sb.AppendLine("Do not emit [DISCOVERY] for any of these keys — they are already known.");
             sb.AppendLine();
         }
 
@@ -527,6 +854,8 @@ namespace NpcMemoryService.Core.Prompts
             }
 
             AppendActionInstructions(sb);
+            AppendDiscoveryInstructions(sb);
+            AppendQuestInstructions(sb);
             sb.AppendLine("Stay in character at all times. Never break the fourth wall.");
             sb.AppendLine("If the player's history conflicts with a stated stance, the history wins.");
             sb.AppendLine();

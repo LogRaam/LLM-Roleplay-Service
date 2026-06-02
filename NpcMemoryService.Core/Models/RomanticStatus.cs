@@ -12,6 +12,7 @@ namespace NpcMemoryService.Core.Models
         Curious,      // Noticed the player, intrigued but distant
         Courting,     // Active romantic interest, meaningful exchanges
         Intimate,     // Physically close (exclusive or not depending on preferences)
+        SecretLover,  // Intimate with the player while married to another — kept hidden
         Committed,    // Long-term bond — marriage or its equivalent
         Estranged,    // Trust broken but feeling remains
         Broken        // Done. No path back.

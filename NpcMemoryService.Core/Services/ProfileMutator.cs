@@ -3,6 +3,7 @@
 
 #region
 
+using System;
 using System.Linq;
 using NpcMemoryService.Core.Models;
 
@@ -50,6 +51,131 @@ namespace NpcMemoryService.Core.Services
 
             // Adjust reputation when present
             if (response.Reputation != null) profile.ReputationWithPlayer += response.Reputation.ClanDelta ?? 0;
+
+            // Advance the romantic arc based on the event type and current trust level.
+            if (response.NewEventData != null
+                && !string.IsNullOrWhiteSpace(response.NewEventData.Summary))
+            {
+                AdvanceRomanticStatus(profile, response.NewEventData.Type, profile.ReputationWithPlayer);
+            }
+
+            // Record newly discovered trait — deduplicated by key so the same fact is never stored twice.
+            if (response.Discovery != null
+                && !string.IsNullOrWhiteSpace(response.Discovery.Key)
+                && !profile.DiscoveredTraits.Any(t =>
+                    string.Equals(t.Key, response.Discovery.Key, StringComparison.OrdinalIgnoreCase)))
+            {
+                profile.DiscoveredTraits.Add(new DiscoveredTrait {
+                    Key         = response.Discovery.Key,
+                    Description = response.Discovery.Description,
+                    GameDay     = gameDay
+                });
+            }
+        }
+
+        /// <summary>
+        ///   Advances <see cref="RomanticProfile.Status" /> based on the event type and
+        ///   the current trust level. Rules differ by NPC personality:
+        ///   <list type="bullet">
+        ///     <item>Married — intimacy triggers <see cref="RomanticStatus.SecretLover" />; otherwise unchanged.</item>
+        ///     <item>Casual   — goes directly to <see cref="RomanticStatus.Intimate" /> at relation ≥ 5.</item>
+        ///     <item>Intense  — skips <see cref="RomanticStatus.Curious" />, reaches Intimate at relation ≥ 10.</item>
+        ///     <item>Standard — full progression: Curious → Courting → Intimate at thresholds 10 / 20.</item>
+        ///   </list>
+        ///   Negative events (Conflict / Betrayal) can push any arc toward Estranged or Broken.
+        /// </summary>
+        private static void AdvanceRomanticStatus(NpcProfile profile, NotableEventType eventType, int relation)
+        {
+            if (profile.Romantic == null) return;
+
+            var status    = profile.Romantic.Status;
+            bool isMarried = !string.IsNullOrWhiteSpace(profile.SpouseName);
+            bool isCasual  = profile.Romantic.Preferences != null
+                && profile.Romantic.Preferences.Contains(RomanticPreference.Casual);
+            bool isIntense = profile.Romantic.Preferences != null
+                && profile.Romantic.Preferences.Contains(RomanticPreference.Intense);
+
+            // ── Negative events degrade any arc ─────────────────────────────
+            if (eventType == NotableEventType.Betrayal
+                && (status == RomanticStatus.Courting
+                    || status == RomanticStatus.Intimate
+                    || status == RomanticStatus.SecretLover))
+            {
+                profile.Romantic.Status = RomanticStatus.Broken;
+                return;
+            }
+            if (eventType == NotableEventType.Conflict
+                && (status == RomanticStatus.Intimate || status == RomanticStatus.SecretLover))
+            {
+                profile.Romantic.Status = relation <= -30
+                    ? RomanticStatus.Broken
+                    : RomanticStatus.Estranged;
+                return;
+            }
+            if (eventType == NotableEventType.Conflict && status == RomanticStatus.Estranged)
+            {
+                profile.Romantic.Status = RomanticStatus.Broken;
+                return;
+            }
+
+            // ── Married: intimacy → SecretLover ─────────────────────────────
+            if (isMarried)
+            {
+                if (eventType == NotableEventType.Intimacy
+                    && status != RomanticStatus.SecretLover
+                    && status != RomanticStatus.Broken)
+                {
+                    profile.Romantic.Status = RomanticStatus.SecretLover;
+                }
+                return;
+            }
+
+            // ── Casual: direct path to Intimate ─────────────────────────────
+            if (isCasual)
+            {
+                if (eventType == NotableEventType.Intimacy
+                    && relation >= 5
+                    && status != RomanticStatus.Intimate
+                    && status != RomanticStatus.Broken)
+                {
+                    profile.Romantic.Status = RomanticStatus.Intimate;
+                }
+                return;
+            }
+
+            // ── Intense: skip Curious, Courting → Intimate at ≥ 10 ──────────
+            if (isIntense)
+            {
+                if (eventType == NotableEventType.Flirt && status == RomanticStatus.None)
+                {
+                    profile.Romantic.Status = RomanticStatus.Courting;
+                    return;
+                }
+                if (eventType == NotableEventType.Intimacy
+                    && relation >= 10
+                    && status == RomanticStatus.Courting)
+                {
+                    profile.Romantic.Status = RomanticStatus.Intimate;
+                }
+                return;
+            }
+
+            // ── Standard progression ─────────────────────────────────────────
+            switch (status)
+            {
+                case RomanticStatus.None:
+                    if (eventType == NotableEventType.Flirt)
+                        profile.Romantic.Status = RomanticStatus.Curious;
+                    break;
+                case RomanticStatus.Curious:
+                    if (eventType == NotableEventType.Flirt && relation >= 10)
+                        profile.Romantic.Status = RomanticStatus.Courting;
+                    break;
+                case RomanticStatus.Courting:
+                    if (eventType == NotableEventType.Intimacy && relation >= 20)
+                        profile.Romantic.Status = RomanticStatus.Intimate;
+                    break;
+            }
         }
     }
 }

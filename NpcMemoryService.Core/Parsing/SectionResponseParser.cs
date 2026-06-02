@@ -28,10 +28,16 @@ namespace NpcMemoryService.Core.Parsing
 
         // Section tag names (canonical form, matched case-insensitively).
         private const string DialogueTag = "DIALOGUE";
+        private const string DiscoveryDescriptionKey = "description";
+        private const string DiscoveryKeyKey = "key";
+        private const string DiscoveryTag = "DISCOVERY";
         private const string EventTag = "EVENT";
         private const string EventTypeKey = "type";
         private const string FactionDeltaKey = "faction_delta";
         private const string MemoryTag = "MEMORY";
+        private const string QuestAbandonTag = "QUEST_ABANDON";
+        private const string QuestCompleteTag = "QUEST_COMPLETE";
+        private const string QuestTag = "QUEST";
         private const string ReputationTag = "REPUTATION";
         private const string SentimentKey = "sentiment";
         private const string SummaryKey = "summary";
@@ -48,6 +54,10 @@ namespace NpcMemoryService.Core.Parsing
             var memorySection = ExtractSection(rawResponse, MemoryTag);
             var eventSection = ExtractSection(rawResponse, EventTag);
             var reputationSection = ExtractSection(rawResponse, ReputationTag);
+            var discoverySection = ExtractSection(rawResponse, DiscoveryTag);
+            var questSection = ExtractSection(rawResponse, QuestTag);
+            var questCompleteSection = ExtractSection(rawResponse, QuestCompleteTag);
+            var questAbandonSection = ExtractSection(rawResponse, QuestAbandonTag);
             IReadOnlyList<GameAction> actions = ParseActions(rawResponse);
 
             return new ParsedResponse {
@@ -55,7 +65,11 @@ namespace NpcMemoryService.Core.Parsing
                 Memory = ParseMemory(memorySection),
                 NewEventData = ParseEventData(eventSection),
                 Reputation = ParseReputation(reputationSection),
-                Actions = actions
+                Actions = actions,
+                Discovery = ParseDiscovery(discoverySection),
+                QuestGiven = ParseQuestProposal(questSection),
+                QuestCompleted = ParseQuestCompletion(questCompleteSection),
+                QuestAbandoned = ParseQuestAbandon(questAbandonSection)
             };
         }
 
@@ -67,7 +81,7 @@ namespace NpcMemoryService.Core.Parsing
         /// </summary>
         private static string ExtractDialogueFallback(string text)
         {
-            var pattern = @"\[(?:MEMORY|EVENT|REPUTATION|ACTION)\]";
+            var pattern = @"\[(?:MEMORY|EVENT|REPUTATION|ACTION|DISCOVERY|QUEST_COMPLETE|QUEST_ABANDON|QUEST)\]";
             Match match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
 
             return match.Success
@@ -127,6 +141,122 @@ namespace NpcMemoryService.Core.Parsing
 
             return actions;
         }
+
+        private static DiscoveredTrait? ParseDiscovery(string? section)
+        {
+            if (string.IsNullOrWhiteSpace(section)) return null;
+            Dictionary<string, string> fields = ParseKeyValueLines(section!);
+
+            if (!fields.TryGetValue(DiscoveryKeyKey, out var key)) return null;
+            if (!fields.TryGetValue(DiscoveryDescriptionKey, out var description)) return null;
+            if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(description)) return null;
+
+            // GameDay is 0 here — the consumer stamps the real day when persisting.
+            return new DiscoveredTrait { Key = key.Trim(), Description = description.Trim(), GameDay = 0 };
+        }
+
+        /// <summary>
+        ///   Parses a [QUEST] block. Returns null when the block is absent or its type
+        ///   is unrecognized — a malformed proposal is dropped, never half-persisted.
+        ///   Target names stay as the LLM wrote them; the consumer resolves them to
+        ///   real game objects and computes the deadline from <c>deadline_days</c>.
+        /// </summary>
+        private static QuestProposal? ParseQuestProposal(string? section)
+        {
+            if (string.IsNullOrWhiteSpace(section)) return null;
+            Dictionary<string, string> fields = ParseKeyValueLines(section!);
+
+            if (!fields.TryGetValue("type", out var typeStr)) return null;
+            QuestType? type = ParseQuestType(typeStr);
+            if (type == null) return null;
+
+            fields.TryGetValue("description", out var description);
+
+            var deadline = TryParseSignedInt(fields, "deadline_days");
+            if (deadline is <= 0) deadline = null; // 0 or negative means "no deadline"
+
+            return new QuestProposal {
+                Type = type.Value,
+                Description = description?.Trim() ?? "",
+                TargetSettlement = NullIfBlank(GetField(fields, "target_settlement")),
+                TargetHero = NullIfBlank(GetField(fields, "target_hero")),
+                TargetFaction = NullIfBlank(GetField(fields, "target_faction")),
+                DeadlineDays = deadline,
+                RewardGold = ClampNonNegative(TryParseSignedInt(fields, "reward_gold")),
+                RewardRelation = ClampNonNegative(TryParseSignedInt(fields, "reward_relation"))
+            };
+        }
+
+        /// <summary>
+        ///   Parses a [QUEST_COMPLETE] block. An empty body is valid — it means
+        ///   "complete the single satisfied quest". A named <c>type</c> disambiguates
+        ///   when the giver has several quests open. Returns null only when the block
+        ///   is entirely absent.
+        /// </summary>
+        private static QuestCompletionClaim? ParseQuestCompletion(string? section)
+        {
+            if (section == null) return null;
+
+            Dictionary<string, string> fields = ParseKeyValueLines(section);
+            QuestType? type = fields.TryGetValue("type", out var typeStr)
+                ? ParseQuestType(typeStr)
+                : null;
+
+            return new QuestCompletionClaim { Type = type };
+        }
+
+        /// <summary>
+        ///   Parses a [QUEST_ABANDON] block. Like completion, an empty body means
+        ///   "the single outstanding quest"; a named <c>type</c> disambiguates. Returns
+        ///   null only when the block is entirely absent.
+        /// </summary>
+        private static QuestAbandonClaim? ParseQuestAbandon(string? section)
+        {
+            if (section == null) return null;
+
+            Dictionary<string, string> fields = ParseKeyValueLines(section);
+            QuestType? type = fields.TryGetValue("type", out var typeStr)
+                ? ParseQuestType(typeStr)
+                : null;
+
+            return new QuestAbandonClaim { Type = type };
+        }
+
+        /// <summary>
+        ///   Maps the LLM's quest-type token (snake_case or the enum name) to a
+        ///   <see cref="QuestType" />. Returns null for unrecognized tokens.
+        /// </summary>
+        private static QuestType? ParseQuestType(string raw)
+        {
+            var v = raw.TrimStart(trimChars: '#').Trim().ToLowerInvariant();
+
+            if (Enum.TryParse(v, true, out QuestType direct)) return direct;
+
+            return v switch {
+                "bandit_clear" or "bandits" or "clear_bandits"        => QuestType.BanditClear,
+                "bandit_hideout" or "hideout" or "clear_hideout"      => QuestType.BanditHideout,
+                "attack_faction" or "raid_faction" or "war_faction"   => QuestType.AttackFaction,
+                "attack_lord" or "defeat_lord" or "fight_lord"        => QuestType.AttackLord,
+                "raid_village" or "burn_village"                      => QuestType.RaidVillage,
+                "attack_caravan" or "raid_caravan"                    => QuestType.AttackCaravan,
+                "siege" or "besiege" or "siege_town"                  => QuestType.Siege,
+                "capture_prisoner" or "capture" or "take_prisoner"    => QuestType.CapturePrisoner,
+                "execute_enemy" or "execute" or "kill_enemy"          => QuestType.ExecuteEnemy,
+                "rescue_prisoner" or "rescue" or "free_prisoner"      => QuestType.RescuePrisoner,
+                "deliver_letter" or "letter" or "carry_letter"
+                    or "deliver_message" or "carry_message"          => QuestType.DeliverLetter,
+                _ => (QuestType?)null
+            };
+        }
+
+        private static string? GetField(IReadOnlyDictionary<string, string> fields, string key)
+            => fields.TryGetValue(key, out var v) ? v : null;
+
+        private static string? NullIfBlank(string? value)
+            => string.IsNullOrWhiteSpace(value) ? null : value!.Trim();
+
+        private static int ClampNonNegative(int? value)
+            => value.HasValue && value.Value > 0 ? value.Value : 0;
 
         private static ParsedEventData? ParseEventData(string? section)
         {

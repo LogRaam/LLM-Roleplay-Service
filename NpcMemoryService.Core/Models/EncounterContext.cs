@@ -28,6 +28,22 @@ namespace NpcMemoryService.Core.Models
         public DiplomaticStatus WarStatus { get; init; } = DiplomaticStatus.Unknown;
 
         /// <summary>
+        ///   Ready-to-inject hint about heroes the player mentioned in their last message.
+        ///   Null when no hero names were detected. Built by the game-side resolver so the
+        ///   NPC can accurately answer questions about third parties — friends, enemies, or
+        ///   strangers — and ask for clarification when several people share a name.
+        /// </summary>
+        public string? ContextualNames { get; init; }
+
+        /// <summary>
+        ///   Name of the player's current spouse, or null if the player is single or widowed.
+        ///   Used to inject the player's marital status into the NPC's consent section so the
+        ///   NPC can react according to their own character — refusing to enable infidelity,
+        ///   being indifferent, or finding the forbidden element appealing.
+        /// </summary>
+        public string? PlayerSpouseName { get; init; }
+
+        /// <summary>
         ///   Produces a natural-language description of this encounter, suitable
         ///   for injection into the LLM system prompt. Returns an empty string
         ///   when all fields are Unknown.
