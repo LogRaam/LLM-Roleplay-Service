@@ -1,0 +1,14 @@
+Pour que ça fonctionne au mieux, donne au LLM descripteur des instructions précises selon le type de screenshot :
+
+UI Bannerlord : 
+Décris cette capture du jeu Mount & Blade Bannerlord. Détaille : tous les textes visibles (verbatim), la position des éléments, les couleurs notables (notamment quand certains textes sont en jaune ou en rouge), le contexte de scène, et tout indicateur d'état.
+
+
+Code/IDE : 
+Décris cette capture d'écran de Visual Studio. Si tu vois un message d'erreur, transcris-le verbatim. Liste le panneau actif, les fichiers ouverts, la position du curseur, et tout indicateur visuel pertinent (warnings, breakpoints, etc.).
+
+Logs : Transcris fidèlement tout texte visible dans cette capture de log/console. Garde l'ordre exact.
+
+
+
+Tu pourras même créer un template réutilisable et le coller en préfixe à chaque demande de description.
