@@ -110,6 +110,15 @@ namespace NpcMemoryService.Core.Models
         public List<PendingLetter> SentLetters { get; init; } = new List<PendingLetter>();
 
         /// <summary>
+        ///   Letters the player has sent to this NPC. In transit until
+        ///   <see cref="PlayerLetter.DeliveryDay" />; injected into the NPC's system
+        ///   prompt while delivered but unread, then marked read after the first
+        ///   dialogue response that follows delivery.
+        ///   Persisted across sessions via the store's JSON serializer.
+        /// </summary>
+        public List<PlayerLetter> ReceivedPlayerLetters { get; init; } = new List<PlayerLetter>();
+
+        /// <summary>
         ///   Tasks this NPC has asked the player to accomplish. Holds quests in every
         ///   lifecycle state — outstanding, satisfied-awaiting-reward, and recently
         ///   terminated — so the giver can reference both pending work and how the

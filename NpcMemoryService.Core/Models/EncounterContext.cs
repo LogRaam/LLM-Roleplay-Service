@@ -62,6 +62,19 @@ namespace NpcMemoryService.Core.Models
         public int PlayerArenaWins { get; init; } = 0;
 
         /// <summary>
+        ///   NPCs present during this encounter who can hear the conversation.
+        ///   When non-empty, the prompt instructs the NPC to adjust candor accordingly.
+        ///   Null or empty list means the conversation is private.
+        /// </summary>
+        public System.Collections.Generic.IReadOnlyList<WitnessEntry>? Witnesses { get; init; }
+
+        /// <summary>
+        ///   True when the player has requested a private audience this turn.
+        ///   Injected once — cleared after the NPC responds (accepted or refused).
+        /// </summary>
+        public bool PrivacyRequested { get; init; }
+
+        /// <summary>
         ///   Produces a natural-language description of this encounter, suitable
         ///   for injection into the LLM system prompt. Returns an empty string
         ///   when all fields are Unknown.

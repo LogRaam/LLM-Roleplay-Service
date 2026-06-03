@@ -46,5 +46,13 @@ namespace NpcMemoryService.Core.Models
         ///   marks the quest abandoned and applies the broken-word consequence.
         /// </summary>
         public QuestAbandonClaim? QuestAbandoned { get; init; }
+
+        /// <summary>
+        ///   Visible reactions from witnesses present during this exchange
+        ///   (<c>[WITNESS_REACTION]</c> blocks). Empty list when no witnesses reacted.
+        ///   Each reaction is displayed as a separate chat message with the witness's portrait.
+        /// </summary>
+        public IReadOnlyList<WitnessReaction> WitnessReactions { get; init; }
+            = new List<WitnessReaction>();
     }
 }

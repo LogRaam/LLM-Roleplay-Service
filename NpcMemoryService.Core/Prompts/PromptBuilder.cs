@@ -94,6 +94,8 @@ namespace NpcMemoryService.Core.Prompts
             AppendHistory(sb, npc);
             AppendActiveQuests(sb, npc);
             AppendCurrentStance(sb, npc);
+            AppendPlayerLetters(sb, npc);
+            AppendWitnesses(sb, encounterContext);
             // ── Dynamic world state (changes each turn) ──────────────────────────
             AppendWorldState(sb, world);
             AppendEncounterContext(sb, encounterContext);
@@ -144,6 +146,39 @@ namespace NpcMemoryService.Core.Prompts
             if (AdultLevel == AdultContentLevel.Off) return;
             if (npc.Romantic == null) return;
             if (!IsPlayerCompatible(npc.Romantic)) return;
+
+            // ── Witness privacy gate ──────────────────────────────────────────
+            // When others are present, physical intimacy is blocked — with one
+            // Hardcore exception: a captive in front of an audience, where the
+            // non-consensual dynamic is explicit and the power imbalance is total.
+            if (context?.Witnesses != null && context.Witnesses.Count > 0)
+            {
+                bool isCaptiveHardcore = AdultLevel >= AdultContentLevel.Hardcore
+                                      && context.PlayerStatus == PlayerStatusVsNpc.NpcIsCaptive;
+                if (isCaptiveHardcore)
+                {
+                    sb.AppendLine("CAPTIVE — AUDIENCE PRESENT (Hardcore):");
+                    sb.AppendLine("You are this player's captive. Others are present and watching.");
+                    sb.AppendLine("Your position is one of helplessness — your options are severely constrained.");
+                    sb.AppendLine("React as your character would under coercion: resist, endure, or comply under duress.");
+                    sb.AppendLine("This is an explicitly non-consensual context. Do not soften it or break character.");
+                    sb.AppendLine();
+                }
+                else
+                {
+                    sb.AppendLine("INTIMACY RESTRICTED — WITNESSES PRESENT:");
+                    sb.AppendLine("You are not alone. Physical contact — touching, kissing, anything intimate —");
+                    sb.AppendLine("is off the table in front of others. Light verbal flirting may slip through");
+                    sb.AppendLine("but carries social risk: people notice, people talk, reputations suffer.");
+                    sb.AppendLine("If the player makes a physical advance, decline firmly and redirect it to");
+                    sb.AppendLine("a private setting. Do not yield regardless of persistence.");
+                    sb.AppendLine();
+                }
+                // Full consent rules are not injected — they are either irrelevant (blocked)
+                // or replaced by the captive dynamic above.
+                return;
+            }
+            // ─────────────────────────────────────────────────────────────────
 
             bool isMarried = !string.IsNullOrWhiteSpace(npc.SpouseName);
             bool isCasual  = npc.Romantic.Preferences != null
@@ -539,6 +574,89 @@ namespace NpcMemoryService.Core.Prompts
             >= -29 => "Your clan distrusts this player.",
             _      => "Your clan considers this player an enemy."
         };
+
+        // ── Sprint 12d: player letters ───────────────────────────────────────
+
+        /// <summary>
+        ///   Injects unread player letters into the NPC's prompt. Only letters that
+        ///   have been delivered but not yet acknowledged appear here. After the NPC's
+        ///   first response the mod marks them read so they are not injected again.
+        /// </summary>
+        private static void AppendPlayerLetters(StringBuilder sb, NpcProfile npc)
+        {
+            if (npc.ReceivedPlayerLetters == null || npc.ReceivedPlayerLetters.Count == 0) return;
+
+            var unread = new System.Collections.Generic.List<PlayerLetter>();
+            foreach (PlayerLetter letter in npc.ReceivedPlayerLetters)
+                if (letter.IsDelivered && !letter.HasBeenRead) unread.Add(letter);
+
+            if (unread.Count == 0) return;
+
+            sb.AppendLine("LETTERS FROM THE PLAYER (received — you have not yet spoken of these):");
+            foreach (PlayerLetter letter in unread)
+            {
+                sb.AppendLine($"Sent on day {letter.SentOnDay}:");
+                sb.AppendLine($"\"{letter.Content}\"");
+            }
+            sb.AppendLine("Acknowledge receiving this letter naturally in your response.");
+            sb.AppendLine("Refer to having read it as something that arrived in the past days.");
+            sb.AppendLine();
+        }
+
+        // ── Multi-NPC witnesses ──────────────────────────────────────────────
+
+        /// <summary>
+        ///   Injects the list of witnesses present during this encounter and, when the
+        ///   player has requested a private audience, instructs the NPC to decide and
+        ///   signal acceptance or refusal via <c>[ACTION] type: request_privacy</c>.
+        /// </summary>
+        private static void AppendWitnesses(StringBuilder sb, EncounterContext? context)
+        {
+            if (context?.Witnesses == null || context.Witnesses.Count == 0) return;
+
+            sb.AppendLine("WITNESSES PRESENT (they can hear this conversation):");
+            foreach (WitnessEntry w in context.Witnesses)
+            {
+                string role = w.IsPlayerCompanion
+                    ? $"the player's companion"
+                    : w.RelationToNpc;
+                sb.AppendLine($"- {w.Name} ({role})");
+            }
+            sb.AppendLine("Adjust your candor based on who is listening.");
+            sb.AppendLine("You will not share secrets or make commitments you would not voice in front of these people.");
+            sb.AppendLine();
+            sb.AppendLine("When a witness reacts visibly — a gesture, an expression, a brief unguarded phrase —");
+            sb.AppendLine("emit one block per reacting witness:");
+            sb.AppendLine("[WITNESS_REACTION]");
+            sb.AppendLine("name: WitnessName (exactly as listed above)");
+            sb.AppendLine("text: *brief stage direction or one short spoken line*");
+            sb.AppendLine("[/WITNESS_REACTION]");
+            sb.AppendLine("Emit only for meaningful, visible reactions. Keep text to one sentence.");
+            sb.AppendLine("Witnesses do not hold the floor — they react; you continue the conversation.");
+            sb.AppendLine("IMPORTANT: Do NOT describe witness reactions inside [DIALOGUE] — not even");
+            sb.AppendLine("as a brief aside. Use [WITNESS_REACTION] exclusively so each witness appears");
+            sb.AppendLine("under their own name. This overrides the general SCENE DISCIPLINE allowance.");
+            sb.AppendLine();
+
+            if (!context.PrivacyRequested) return;
+
+            sb.AppendLine("THE PLAYER HAS REQUESTED A PRIVATE AUDIENCE.");
+            sb.AppendLine("Decide whether to grant it based on your character, your relation to the player,");
+            sb.AppendLine("and the nature of the witnesses. A liege, a rival, or a crowded hall changes things.");
+            sb.AppendLine("Signal your decision in an [ACTION] block:");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: request_privacy");
+            sb.AppendLine("result: accepted");
+            sb.AppendLine("[/ACTION]");
+            sb.AppendLine("   — or —");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: request_privacy");
+            sb.AppendLine("result: refused");
+            sb.AppendLine("[/ACTION]");
+            sb.AppendLine("Explain your decision naturally in [DIALOGUE]. The action block carries the game effect;");
+            sb.AppendLine("your words carry the character.");
+            sb.AppendLine();
+        }
 
         private static void AppendEncounterContext(StringBuilder sb, EncounterContext? context)
         {

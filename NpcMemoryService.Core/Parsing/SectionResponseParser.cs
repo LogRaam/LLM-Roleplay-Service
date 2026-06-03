@@ -39,6 +39,7 @@ namespace NpcMemoryService.Core.Parsing
         private const string QuestCompleteTag = "QUEST_COMPLETE";
         private const string QuestTag = "QUEST";
         private const string ReputationTag = "REPUTATION";
+        private const string WitnessReactionTag = "WITNESS_REACTION";
         private const string SentimentKey = "sentiment";
         private const string SummaryKey = "summary";
 
@@ -59,6 +60,7 @@ namespace NpcMemoryService.Core.Parsing
             var questCompleteSection = ExtractSection(rawResponse, QuestCompleteTag);
             var questAbandonSection = ExtractSection(rawResponse, QuestAbandonTag);
             IReadOnlyList<GameAction> actions = ParseActions(rawResponse);
+            IReadOnlyList<WitnessReaction> witnessReactions = ParseWitnessReactions(rawResponse);
 
             return new ParsedResponse {
                 Dialogue = dialogue.Trim(),
@@ -69,7 +71,8 @@ namespace NpcMemoryService.Core.Parsing
                 Discovery = ParseDiscovery(discoverySection),
                 QuestGiven = ParseQuestProposal(questSection),
                 QuestCompleted = ParseQuestCompletion(questCompleteSection),
-                QuestAbandoned = ParseQuestAbandon(questAbandonSection)
+                QuestAbandoned = ParseQuestAbandon(questAbandonSection),
+                WitnessReactions = witnessReactions
             };
         }
 
@@ -81,7 +84,7 @@ namespace NpcMemoryService.Core.Parsing
         /// </summary>
         private static string ExtractDialogueFallback(string text)
         {
-            var pattern = @"\[(?:MEMORY|EVENT|REPUTATION|ACTION|DISCOVERY|QUEST_COMPLETE|QUEST_ABANDON|QUEST)\]";
+            var pattern = @"\[(?:MEMORY|EVENT|REPUTATION|ACTION|DISCOVERY|QUEST_COMPLETE|QUEST_ABANDON|QUEST|WITNESS_REACTION)\]";
             Match match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
 
             return match.Success
@@ -140,6 +143,35 @@ namespace NpcMemoryService.Core.Parsing
             }
 
             return actions;
+        }
+
+        /// <summary>
+        ///   Extracts all [WITNESS_REACTION] blocks (zero or more per response).
+        ///   Each block must have a <c>name</c> and <c>text</c> field; malformed blocks
+        ///   are skipped silently.
+        /// </summary>
+        private static IReadOnlyList<WitnessReaction> ParseWitnessReactions(string text)
+        {
+            var reactions = new List<WitnessReaction>();
+            var pattern = $@"\[{WitnessReactionTag}\](.*?)\[/{WitnessReactionTag}\]";
+
+            foreach (Match match in Regex.Matches(text, pattern,
+                         RegexOptions.Singleline | RegexOptions.IgnoreCase))
+            {
+                Dictionary<string, string> fields = ParseKeyValueLines(match.Groups[1].Value);
+
+                if (!fields.TryGetValue("name", out var name)
+                    || string.IsNullOrWhiteSpace(name)) continue;
+                if (!fields.TryGetValue("text", out var reactionText)
+                    || string.IsNullOrWhiteSpace(reactionText)) continue;
+
+                reactions.Add(new WitnessReaction {
+                    Name = name.Trim(),
+                    Text = reactionText.Trim()
+                });
+            }
+
+            return reactions;
         }
 
         private static DiscoveredTrait? ParseDiscovery(string? section)
