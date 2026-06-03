@@ -46,6 +46,13 @@ namespace NpcMemoryService.Core.Models
         DeliverLetter,
 
         /// <summary>
+        ///   Give a specific amount of gold to the quest giver. Issued by letter when a
+        ///   mother asks the player to help support their child financially. Verified when
+        ///   the player uses the <c>take_gold</c> action toward the giver in conversation.
+        /// </summary>
+        ProvideGold,
+
+        /// <summary>
         ///   Locate an enemy army on the move, get close enough to observe its composition
         ///   (troop count, cavalry ratio, notable lords), and report back. Verified by
         ///   proximity to an active army on the campaign map — no battle required.

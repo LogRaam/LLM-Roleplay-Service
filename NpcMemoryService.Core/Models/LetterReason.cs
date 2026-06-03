@@ -56,6 +56,21 @@ namespace NpcMemoryService.Core.Models
       ///   A third party threatens to expose the player's secret lover unless paid.
       ///   Requires player to have a spouse AND a <c>SecretLover</c> NPC.
       /// </summary>
-      Blackmail
+      Blackmail,
+
+      // ── Family ──────────────────────────────────────────────────────────────
+
+      /// <summary>
+      ///   A woman informs the player that she has given birth to his child —
+      ///   whether the child is legitimate (player's vanilla spouse) or born
+      ///   outside of marriage.
+      /// </summary>
+      BirthAnnouncement,
+
+      /// <summary>
+      ///   A mother asks the player for financial support to help raise their child.
+      ///   Translates into a <c>ProvideGold</c> quest in the vanilla quest journal.
+      /// </summary>
+      ChildSupportRequest
    }
 }

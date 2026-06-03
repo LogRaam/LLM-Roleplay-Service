@@ -96,6 +96,8 @@ namespace NpcMemoryService.Core.Prompts
          LetterReason.SpouseCorrespondence  => "You are the player's partner and have not seen them in days. You are writing as a spouse would — with warmth, worry, or reproach.",
          LetterReason.CorruptionAttempt     => "You want information about the player's liege or war plans, and are willing to pay — or threaten.",
          LetterReason.Blackmail             => "You know the player has a secret and you intend to use it unless they pay handsomely. The tone should be veiled menace.",
+         LetterReason.BirthAnnouncement     => "You have just given birth to the player's child. Write to inform him — the tone depends on your relationship: tender if you love him, matter-of-fact if it was an arrangement, conflicted if it is a secret. Mention the child's name and sex.",
+         LetterReason.ChildSupportRequest   => "Some weeks have passed since you informed the player of your child. You are now asking him to help provide financially for the child's upbringing. Be specific about what you need and why. The tone should reflect your character and your relationship.",
          _                                  => "You have a matter of personal importance to communicate."
       };
    }

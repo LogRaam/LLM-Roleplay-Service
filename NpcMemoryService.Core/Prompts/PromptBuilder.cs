@@ -655,6 +655,7 @@ namespace NpcMemoryService.Core.Prompts
             QuestType.ExecuteEnemy    => "execute_enemy",
             QuestType.RescuePrisoner  => "rescue_prisoner",
             QuestType.DeliverLetter   => "deliver_letter",
+            QuestType.ProvideGold     => "provide_gold",
             QuestType.ScoutArmy       => "scout_army",
             _                         => t.ToString().ToLowerInvariant()
         };
@@ -782,6 +783,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("- execute_enemy (target_hero): kill a specific enemy hero.");
             sb.AppendLine("- rescue_prisoner (target_hero): free a specific ally held captive.");
             sb.AppendLine("- deliver_letter (target_hero): carry your message to a recipient — put it in 'description'.");
+            sb.AppendLine("- provide_gold (no target needed): the player owes you financial support — they must give you denars in conversation. This quest is issued by the game, not by you; only emit [QUEST_COMPLETE] once the player has actually paid (the deed is shown as done in YOUR QUESTS).");
             sb.AppendLine("- scout_army (target_faction or target_hero): get close to an enemy army, observe its strength, and report back. Use target_hero to name the army's leader, or target_faction to accept any army of that faction.");
             sb.AppendLine();
             sb.AppendLine("[QUEST]");
