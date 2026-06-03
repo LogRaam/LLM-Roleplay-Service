@@ -88,6 +88,7 @@ namespace NpcMemoryService.Core.Prompts
             AppendRelationships(sb, npc);
             AppendRomanticContext(sb, npc);
             AppendIntimacyConsentRules(sb, npc, encounterContext);
+            AppendSocialAttractionInstructions(sb, npc, encounterContext);
             AppendDiscoveredTraits(sb, npc);
             AppendBackgroundContext(sb, npc);
             AppendHistory(sb, npc);
@@ -670,6 +671,67 @@ namespace NpcMemoryService.Core.Prompts
                 sb.AppendLine($"Rumors: {world.Rumors}");
             sb.AppendLine();
         }
+
+        /// <summary>
+        ///   Injects behavioral guidance for NPC-initiated social interest when the player's
+        ///   public standing crosses a meaningful threshold. Two distinct vectors:
+        ///   (1) Clan tier ≥ 3 — signals eligibility for a proper match; an unmarried NPC
+        ///       may raise the subject of courtship or marriage on their own initiative.
+        ///   (2) Arena rank ≤ 10 (and > 0) — tournament fame carries a different allure,
+        ///       personal rather than political; the NPC may show attraction regardless of
+        ///       their own marital status.
+        ///   No-op when romantic content is off, when the NPC has no romantic profile, or
+        ///   when neither threshold is met.
+        /// </summary>
+        private void AppendSocialAttractionInstructions(StringBuilder sb, NpcProfile npc, EncounterContext? context)
+        {
+            if (AdultLevel == AdultContentLevel.Off) return;
+            if (npc?.Romantic == null) return;
+            if (!IsPlayerCompatible(npc.Romantic)) return;
+            if (context == null) return;
+
+            bool hasClanPrestige  = context.PlayerClanTier >= 3;
+            bool hasTournamentFame = context.PlayerArenaRank > 0 && context.PlayerArenaRank <= 10;
+            if (!hasClanPrestige && !hasTournamentFame) return;
+
+            sb.AppendLine("SOCIAL STANDING & ATTRACTION:");
+
+            if (hasClanPrestige)
+            {
+                sb.AppendLine($"This player leads a clan of {ClanTierLabel(context.PlayerClanTier)} standing (tier {context.PlayerClanTier}).");
+                sb.AppendLine("Among those who think about lineage and alliances, they are a credible prospect.");
+                sb.AppendLine("If you are unmarried or widowed, your station would notice this.");
+                sb.AppendLine("You may raise the subject of a deeper bond — courtship, a potential match —");
+                sb.AppendLine("if the moment and your nature allow it. Do not force it, but do not wait");
+                sb.AppendLine("for them to bring it up either. Let your character set the tone.");
+                sb.AppendLine();
+            }
+
+            if (hasTournamentFame)
+            {
+                string winsClause = context.PlayerArenaWins > 0
+                    ? $" — {context.PlayerArenaWins} tournament {(context.PlayerArenaWins == 1 ? "victory" : "victories")} to their name"
+                    : "";
+                sb.AppendLine($"This player is ranked #{context.PlayerArenaRank} among the world's tournament fighters{winsClause}.");
+                sb.AppendLine("Champions carry an aura: glory, danger, the weight of a proven sword arm.");
+                sb.AppendLine("This may appeal to a side of you that does not answer to duty or alliance.");
+                sb.AppendLine("Regardless of your marital status, you may feel drawn to them in a more");
+                sb.AppendLine("personal, less official way — admiration shading into fascination, a pull");
+                sb.AppendLine("you might not openly admit. You may take the initiative.");
+                sb.AppendLine();
+            }
+        }
+
+        private static string ClanTierLabel(int tier) => tier switch
+        {
+           1 => "minor",
+           2 => "notable",
+           3 => "noble",
+           4 => "prominent",
+           5 => "great",
+           6 => "royal",
+           _ => "modest"
+        };
 
         /// <summary>
         ///   Injects the [DISCOVERY] section format when romantic content is enabled.

@@ -44,6 +44,24 @@ namespace NpcMemoryService.Core.Models
         public string? PlayerSpouseName { get; init; }
 
         /// <summary>
+        ///   The player's clan tier (0–6). Tier 0 means no clan or a landless household;
+        ///   tier 3+ represents genuine nobility with a fief. Used to signal to NPCs
+        ///   whether the player is a credible prospect for an official match (marriage).
+        /// </summary>
+        public int PlayerClanTier { get; init; } = 0;
+
+        /// <summary>
+        ///   The player's rank in the world-wide tournament leaderboard (1 = champion,
+        ///   0 = never won a tournament / not on the leaderboard). A rank ≤ 10 means the
+        ///   player has a genuine reputation as a tournament fighter — the kind that turns
+        ///   heads for reasons that have nothing to do with clan prestige.
+        /// </summary>
+        public int PlayerArenaRank { get; init; } = 0;
+
+        /// <summary>Total tournament victories for the player. Accompanies <see cref="PlayerArenaRank"/>.</summary>
+        public int PlayerArenaWins { get; init; } = 0;
+
+        /// <summary>
         ///   Produces a natural-language description of this encounter, suitable
         ///   for injection into the LLM system prompt. Returns an empty string
         ///   when all fields are Unknown.
