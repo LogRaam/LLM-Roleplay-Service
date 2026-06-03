@@ -43,6 +43,13 @@ namespace NpcMemoryService.Core.Models
         RescuePrisoner,
 
         /// <summary>Carry a message to a specific recipient hero and deliver it in person.</summary>
-        DeliverLetter
+        DeliverLetter,
+
+        /// <summary>
+        ///   Locate an enemy army on the move, get close enough to observe its composition
+        ///   (troop count, cavalry ratio, notable lords), and report back. Verified by
+        ///   proximity to an active army on the campaign map — no battle required.
+        /// </summary>
+        ScoutArmy
     }
 }

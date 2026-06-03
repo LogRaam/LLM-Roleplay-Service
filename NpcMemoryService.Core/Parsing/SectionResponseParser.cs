@@ -245,6 +245,8 @@ namespace NpcMemoryService.Core.Parsing
                 "rescue_prisoner" or "rescue" or "free_prisoner"      => QuestType.RescuePrisoner,
                 "deliver_letter" or "letter" or "carry_letter"
                     or "deliver_message" or "carry_message"          => QuestType.DeliverLetter,
+                "scout_army" or "scout" or "spy_army"
+                    or "locate_army" or "find_army"                  => QuestType.ScoutArmy,
                 _ => (QuestType?)null
             };
         }
