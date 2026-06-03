@@ -632,7 +632,12 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("text: *brief stage direction or one short spoken line*");
             sb.AppendLine("[/WITNESS_REACTION]");
             sb.AppendLine("Emit only for meaningful, visible reactions. Keep text to one sentence.");
-            sb.AppendLine("Witnesses do not hold the floor — they react; you continue the conversation.");
+            sb.AppendLine("Witnesses do not hold the floor — they react with one gesture or one short");
+            sb.AppendLine("line, then you continue the conversation.");
+            sb.AppendLine("Their words and gestures are heard by you — you may acknowledge them naturally");
+            sb.AppendLine("in your [DIALOGUE] when it fits, without making them the focus.");
+            sb.AppendLine("When the conversation history shows [WitnessName]: \"...\", that witness spoke");
+            sb.AppendLine("aloud — you heard it and may react as your character would.");
             sb.AppendLine("IMPORTANT: Do NOT describe witness reactions inside [DIALOGUE] — not even");
             sb.AppendLine("as a brief aside. Use [WITNESS_REACTION] exclusively so each witness appears");
             sb.AppendLine("under their own name. This overrides the general SCENE DISCIPLINE allowance.");

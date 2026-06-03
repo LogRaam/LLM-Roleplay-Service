@@ -38,6 +38,19 @@ namespace NpcMemoryService.Core.Models
                 _messages.RemoveAt(_messages.Count - 1);
         }
 
+        /// <summary>
+        ///   Injects a witness statement into the conversation history as a user-role
+        ///   message so the main NPC's LLM can see and react to it on the next turn.
+        ///   Format: "[SpeakerName]: content" — the NPC recognises this as a third-party
+        ///   voice, not the player's words, and may acknowledge it naturally.
+        /// </summary>
+        public void AddWitnessStatement(string speakerName, string content)
+        {
+            if (string.IsNullOrWhiteSpace(content)) return;
+            var prefix = string.IsNullOrWhiteSpace(speakerName) ? "" : $"[{speakerName}]: ";
+            _messages.Add(new LlmMessage(MessageRole.User, prefix + content));
+        }
+
         // Purpose: lets the caller seed the conversation with the NPC's opening line
         // from the vanilla game dialogue, so the LLM continues from what the player
         // just heard rather than starting cold.
