@@ -102,6 +102,14 @@ namespace NpcMemoryService.Core.Models
         public RomanticProfile? Romantic { get; set; }
 
         /// <summary>
+        ///   Letters this NPC has sent (or is about to send) to the player. Holds every
+        ///   letter in all states — in transit, delivered, and replied — so the full
+        ///   correspondence history is available for prompt injection and anti-spam checks.
+        ///   Persisted across sessions via the store's JSON serializer.
+        /// </summary>
+        public List<PendingLetter> SentLetters { get; init; } = new List<PendingLetter>();
+
+        /// <summary>
         ///   Tasks this NPC has asked the player to accomplish. Holds quests in every
         ///   lifecycle state — outstanding, satisfied-awaiting-reward, and recently
         ///   terminated — so the giver can reference both pending work and how the
