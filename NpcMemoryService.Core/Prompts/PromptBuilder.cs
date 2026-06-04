@@ -620,24 +620,26 @@ namespace NpcMemoryService.Core.Prompts
                 string role = w.IsPlayerCompanion
                     ? $"the player's companion"
                     : w.RelationToNpc;
-                sb.AppendLine($"- {w.Name} ({role})");
+                string persona = string.IsNullOrWhiteSpace(w.Persona)
+                    ? ""
+                    : $" — {w.Persona}";
+                sb.AppendLine($"- {w.Name} ({role}){persona}");
             }
             sb.AppendLine("Adjust your candor based on who is listening.");
             sb.AppendLine("You will not share secrets or make commitments you would not voice in front of these people.");
             sb.AppendLine();
-            sb.AppendLine("When a witness reacts visibly — a gesture, an expression, a brief unguarded phrase —");
-            sb.AppendLine("emit one block per reacting witness:");
+            sb.AppendLine("When a witness reacts visibly, emit one block per reacting witness:");
             sb.AppendLine("[WITNESS_REACTION]");
             sb.AppendLine("name: WitnessName (exactly as listed above)");
-            sb.AppendLine("text: *brief stage direction or one short spoken line*");
+            sb.AppendLine("text: a gesture/expression *in asterisks*, OR a brief spoken line in quotes, OR both");
             sb.AppendLine("[/WITNESS_REACTION]");
-            sb.AppendLine("Emit only for meaningful, visible reactions. Keep text to one sentence.");
-            sb.AppendLine("Witnesses do not hold the floor — they react with one gesture or one short");
-            sb.AppendLine("line, then you continue the conversation.");
-            sb.AppendLine("Their words and gestures are heard by you — you may acknowledge them naturally");
-            sb.AppendLine("in your [DIALOGUE] when it fits, without making them the focus.");
-            sb.AppendLine("When the conversation history shows [WitnessName]: \"...\", that witness spoke");
-            sb.AppendLine("aloud — you heard it and may react as your character would.");
+            sb.AppendLine("Each witness reacts TRUE TO THEIR OWN CHARACTER (see their descriptor above):");
+            sb.AppendLine("an aloof witness stays guarded and terse; a warm one is openly expressive;");
+            sb.AppendLine("a rival bristles. Do not make every witness react the same bland way.");
+            sb.AppendLine("Vary the form: a silent gesture for minor moments, but when something provocative,");
+            sb.AppendLine("personal, or insulting is said in their hearing, let them speak a short line of");
+            sb.AppendLine("their own — one sentence, in their voice. Witnesses do not hold the floor: they");
+            sb.AppendLine("react, then you continue. Emit only for meaningful, visible reactions.");
             sb.AppendLine("IMPORTANT: Do NOT describe witness reactions inside [DIALOGUE] — not even");
             sb.AppendLine("as a brief aside. Use [WITNESS_REACTION] exclusively so each witness appears");
             sb.AppendLine("under their own name. This overrides the general SCENE DISCIPLINE allowance.");
@@ -1058,6 +1060,12 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("- Have other characters answer the player's questions");
             sb.AppendLine("If the player wishes to address someone else, they must seek them separately.");
             sb.AppendLine("You can acknowledge this but never speak for them.");
+            sb.AppendLine("EXCEPTION — named witnesses (listed under WITNESSES PRESENT if present):");
+            sb.AppendLine("They are physically in the room. When they visibly react — a gesture, a");
+            sb.AppendLine("glance, a brief word — emit a [WITNESS_REACTION] block for them. This is");
+            sb.AppendLine("narrating an observable physical reaction, not speaking for them. Even when");
+            sb.AppendLine("the player directly addresses a witness, that witness may show a visible");
+            sb.AppendLine("reaction via [WITNESS_REACTION] without it counting as 'speaking for them'.");
             sb.AppendLine();
             sb.AppendLine("─────────────────────────────────────────────");
             sb.AppendLine();

@@ -30,5 +30,12 @@ namespace NpcMemoryService.Core.Models
       ///   Null for manually seeded console witnesses.
       /// </summary>
       public string? HeroStringId { get; init; }
+
+      /// <summary>
+      ///   A short character descriptor (archetype / trait) so the main NPC can voice
+      ///   this witness's reactions true to their nature — an aloof witness reacts
+      ///   differently from an impulsive one. Null when no profile is available.
+      /// </summary>
+      public string? Persona { get; init; }
    }
 }
