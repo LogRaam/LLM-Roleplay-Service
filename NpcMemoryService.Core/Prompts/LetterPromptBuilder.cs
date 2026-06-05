@@ -47,6 +47,37 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   Asks the NPC to decide whether to send a written reply to a player-sent
+      ///   courier letter. The LLM outputs either "PASS" (no reply) or a "DELAY: N"
+      ///   header followed by the letter body. The delay is how many days the NPC
+      ///   waits before dispatching the courier — 1 (urgent) to 7 (considered).
+      /// </summary>
+      public static string BuildPlayerLetterReplyDecisionMessage(
+         NpcProfile npc, string playerLetterContent, string playerName)
+      {
+         var sb = new StringBuilder();
+         sb.AppendLine("[PLAYER LETTER RECEIVED — INTERNAL INSTRUCTION, DO NOT INCLUDE IN YOUR RESPONSE]");
+         sb.AppendLine($"You have just received the following letter from {playerName} via courier:");
+         sb.AppendLine();
+         sb.AppendLine($"\"{playerLetterContent}\"");
+         sb.AppendLine();
+         AppendRecentHistory(sb, npc);
+         sb.AppendLine();
+         sb.AppendLine("Decide whether this letter warrants a written reply.");
+         sb.AppendLine("Consider: does it raise something personal, important, or requiring an answer?");
+         sb.AppendLine("Would your character actually write back, or simply act on it in person next time?");
+         sb.AppendLine();
+         sb.AppendLine("If you choose NOT to reply, write \"PASS: [one sentence reason]\" in [DIALOGUE].");
+         sb.AppendLine("If you choose to reply, start [DIALOGUE] with exactly:");
+         sb.AppendLine("  DELAY: N");
+         sb.AppendLine("where N is the days you would wait before sending (1=urgent, 2-3=normal, 4-7=considered).");
+         sb.AppendLine("Leave one blank line, then write your reply letter in 2-3 paragraphs.");
+         sb.AppendLine($"Address {playerName} by name. Period-appropriate language only.");
+         sb.AppendLine("Write ONLY the letter body after the DELAY line. No section headers.");
+         return sb.ToString();
+      }
+
+      /// <summary>
       ///   Builds the trigger message for an NPC reply to the player's response.
       /// </summary>
       public static string BuildReplyLetterMessage(

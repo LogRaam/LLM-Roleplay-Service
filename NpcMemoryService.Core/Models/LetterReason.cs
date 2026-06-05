@@ -71,6 +71,14 @@ namespace NpcMemoryService.Core.Models
       ///   A mother asks the player for financial support to help raise their child.
       ///   Translates into a <c>ProvideGold</c> quest in the vanilla quest journal.
       /// </summary>
-      ChildSupportRequest
+      ChildSupportRequest,
+
+      // ── Sprint 12d ──────────────────────────────────────────────────────────
+
+      /// <summary>
+      ///   NPC is replying to a letter the player sent via courier. The LLM decides
+      ///   whether to write at all; if so, a visible reply courier travels to the player.
+      /// </summary>
+      PlayerLetterReply
    }
 }

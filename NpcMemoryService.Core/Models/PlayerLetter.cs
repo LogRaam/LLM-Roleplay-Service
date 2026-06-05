@@ -1,5 +1,6 @@
 // Code written by Gabriel Mailhot, 03/06/2026.
 // Sprint 12d: player-to-NPC letter model.
+// Sprint 12c: visible courier party (CourierPartyId, IsLost).
 
 namespace NpcMemoryService.Core.Models
 {
@@ -30,5 +31,26 @@ namespace NpcMemoryService.Core.Models
       ///   preventing the letter from being re-injected into future prompts.
       /// </summary>
       public bool HasBeenRead { get; set; }
+
+      /// <summary>
+      ///   Sprint 12c — Bannerlord <c>MobileParty.StringId</c> of the visible courier
+      ///   carrying this letter across the campaign map. Null when no courier was
+      ///   spawned (spawn failed, or a legacy letter). Cleared once the courier is
+      ///   gone (delivered or lost).
+      /// </summary>
+      public string? CourierPartyId { get; set; }
+
+      /// <summary>
+      ///   Sprint 12c — set true when the courier was destroyed in transit (waylaid by
+      ///   bandits). A lost letter is never delivered and never injected into a prompt.
+      /// </summary>
+      public bool IsLost { get; set; }
+
+      /// <summary>
+      ///   Sprint 12d — set true once <see cref="LetterGenerationService" /> has been
+      ///   asked to generate an NPC reply, preventing duplicate LLM calls on subsequent
+      ///   daily ticks. Set regardless of whether the LLM ultimately decides to reply.
+      /// </summary>
+      public bool HasTriggeredReply { get; set; }
    }
 }

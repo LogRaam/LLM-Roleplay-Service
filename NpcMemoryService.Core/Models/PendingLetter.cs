@@ -1,5 +1,6 @@
 // Code written by Gabriel Mailhot, 02/06/2026.
 // Sprint 12b: NPC-initiated letter correspondence.
+// Sprint 12d: reply courier support (DispatchDay, CourierPartyId, IsLost).
 
 namespace NpcMemoryService.Core.Models
 {
@@ -43,5 +44,22 @@ namespace NpcMemoryService.Core.Models
       ///   service triggers a new LLM call to generate the NPC's next letter.
       /// </summary>
       public string? PlayerReply { get; set; }
+
+      /// <summary>
+      ///   Sprint 12d — Day the reply courier should depart. Zero for NPC-initiated
+      ///   letters (dispatched immediately). For <see cref="LetterReason.PlayerLetterReply" />
+      ///   letters this is set to <c>decisionDay + chosenDelay</c> by the LLM; the
+      ///   courier only spawns when <c>today >= DispatchDay</c> on the main thread.
+      /// </summary>
+      public int DispatchDay { get; set; }
+
+      /// <summary>
+      ///   Sprint 12d — <c>MobileParty.StringId</c> of the visible reply courier.
+      ///   Null until the courier spawns; cleared once delivered or lost.
+      /// </summary>
+      public string? CourierPartyId { get; set; }
+
+      /// <summary>Sprint 12d — true when the reply courier was destroyed in transit.</summary>
+      public bool IsLost { get; set; }
    }
 }
