@@ -135,7 +135,7 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
 
             HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Post, ChatCompletionsUrl);
             httpRequest.Headers.Authorization =
-                new AuthenticationHeaderValue("Bearer", _config.ApiKey);
+                new AuthenticationHeaderValue("Bearer", _config.ResolveApiKey());
             httpRequest.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
             return httpRequest;
@@ -172,7 +172,7 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
                 });
 
             return new {
-                model = _config.Model,
+                model = _config.ResolveModel(),
                 messages,
                 temperature = (double) request.Parameters.Creativity,
                 max_tokens = request.Parameters.MaxTokens

@@ -1,10 +1,7 @@
 {
   "profiles": {
     "NpcMemoryService.ConsoleRunner": {
-      "commandName": "Project",
-      "environmentVariables": {
-        "OPENROUTER_API_KEY": "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"
-      }
+      "commandName": "Project"
     }
   }
 }
