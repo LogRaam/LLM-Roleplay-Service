@@ -39,5 +39,28 @@ namespace NpcMemoryService.Core.Models
         // ── Affection patterns ────────────────────────────────────────────
         Possessiveness,       // Marking, claiming, leaving proof
         PublicAffection,      // Open displays of attachment
+
+        // ── Control & denial (Sprint 17 expansion) ────────────────────────
+        OrgasmControl,        // Granting, denying, or drawing out release
+        Chastity,             // Enforced denial, release earned
+        FreeUse,              // The partner is available to use at will
+
+        // ── Humiliation, objectification & praise ─────────────────────────
+        Degradation,          // Verbal and postural abasement
+        Objectification,      // Treating the partner as an object or possession
+        PetPlay,              // Collar, leash, the partner as a creature
+        Praise,               // Devotion and praise as reward and weapon
+
+        // ── Pain & sensation (extends Sadism/Masochism) ───────────────────
+        ImpactPlay,           // Spanking, flogging, the cane
+        SensoryDeprivation,   // Blindfolds, hoods, removing the senses
+        FearPlay,             // The charge of the partner's fear
+
+        // ── Role & fantasy (medieval-fitting) ─────────────────────────────
+        MasterSlave,          // Ownership as a persistent dynamic
+        Breeding,             // Impregnation, dynastic claiming
+        Training,             // Conditioning the partner over time
+        CorruptionKink,       // The pleasure of corrupting the virtuous
+        Prize,                // The partner as a trophy, won and displayed
     }
 }

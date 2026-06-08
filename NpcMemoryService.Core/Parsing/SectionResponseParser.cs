@@ -35,6 +35,7 @@ namespace NpcMemoryService.Core.Parsing
         private const string EventTypeKey = "type";
         private const string FactionDeltaKey = "faction_delta";
         private const string MemoryTag = "MEMORY";
+        private const string NarrationTag = "NARRATION";
         private const string QuestAbandonTag = "QUEST_ABANDON";
         private const string QuestCompleteTag = "QUEST_COMPLETE";
         private const string QuestTag = "QUEST";
@@ -52,6 +53,7 @@ namespace NpcMemoryService.Core.Parsing
 
             var dialogue = ExtractSection(rawResponse, DialogueTag) ?? ExtractDialogueFallback(rawResponse);
 
+            var narrationSection = ExtractSection(rawResponse, NarrationTag);
             var memorySection = ExtractSection(rawResponse, MemoryTag);
             var eventSection = ExtractSection(rawResponse, EventTag);
             var reputationSection = ExtractSection(rawResponse, ReputationTag);
@@ -64,6 +66,7 @@ namespace NpcMemoryService.Core.Parsing
 
             return new ParsedResponse {
                 Dialogue = dialogue.Trim(),
+                Narration = string.IsNullOrWhiteSpace(narrationSection) ? null : narrationSection.Trim(),
                 Memory = ParseMemory(memorySection),
                 NewEventData = ParseEventData(eventSection),
                 Reputation = ParseReputation(reputationSection),
@@ -84,7 +87,7 @@ namespace NpcMemoryService.Core.Parsing
         /// </summary>
         private static string ExtractDialogueFallback(string text)
         {
-            var pattern = @"\[(?:MEMORY|EVENT|REPUTATION|ACTION|DISCOVERY|QUEST_COMPLETE|QUEST_ABANDON|QUEST|WITNESS_REACTION)\]";
+            var pattern = @"\[(?:NARRATION|MEMORY|EVENT|REPUTATION|ACTION|DISCOVERY|QUEST_COMPLETE|QUEST_ABANDON|QUEST|WITNESS_REACTION)\]";
             Match match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
 
             return match.Success

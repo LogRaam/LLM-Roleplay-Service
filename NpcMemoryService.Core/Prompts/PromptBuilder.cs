@@ -99,6 +99,7 @@ namespace NpcMemoryService.Core.Prompts
             // ── Dynamic world state (changes each turn) ──────────────────────────
             AppendWorldState(sb, world);
             AppendEncounterContext(sb, encounterContext);
+            AppendPlayerGenderContext(sb, npc, encounterContext);
             return sb.ToString();
         }
 
@@ -144,6 +145,15 @@ namespace NpcMemoryService.Core.Prompts
         private void AppendIntimacyConsentRules(StringBuilder sb, NpcProfile npc, EncounterContext? context)
         {
             if (AdultLevel == AdultContentLevel.Off) return;
+
+            // Sprint 17: player is this NPC's captive — replaces all standard consent logic.
+            if (AdultLevel >= AdultContentLevel.Hardcore
+                && context?.PlayerStatus == PlayerStatusVsNpc.Captive)
+            {
+                AppendCaptivePlayerRules(sb, npc, context);
+                return;
+            }
+
             if (npc.Romantic == null) return;
             if (!IsPlayerCompatible(npc.Romantic)) return;
 
@@ -415,6 +425,21 @@ namespace NpcMemoryService.Core.Prompts
             Kink.Voyeurism         => "Witnessing intimacy is itself an intimate act — observation is participation.",
             Kink.Possessiveness    => "Marks, claims, leaves proof. Belonging is a kind of safety they cannot live without.",
             Kink.PublicAffection   => "Takes pride in visible attachment — claiming and being claimed in the open.",
+            Kink.OrgasmControl     => "Holds the reins of a partner's release — granting it, denying it, or drawing it out. The control is its own pleasure.",
+            Kink.Chastity          => "Savors enforced denial — keeping a partner aching and unfulfilled, release a privilege earned rather than given.",
+            Kink.FreeUse           => "Treasures a partner who may be used at any moment, without ceremony or asking. Availability itself is the thrill.",
+            Kink.Degradation       => "Finds heat in bringing a partner low — words that abase, postures that shame, dignity stripped away piece by piece.",
+            Kink.Objectification   => "Delights in reducing a partner to a thing — furniture, ornament, possession — used and admired as an object, not a person.",
+            Kink.PetPlay           => "Drawn to collar and leash — keeping a partner as a creature to be trained, petted, and owned.",
+            Kink.Praise            => "Lavishes devotion and praise as both reward and weapon — adoration that binds a partner tighter than any rope.",
+            Kink.ImpactPlay        => "Loves the discipline of the hand, the strap, the cane — each mark a lesson written on willing skin.",
+            Kink.SensoryDeprivation=> "Finds power in taking the senses — blindfold and hood, leaving a partner adrift and wholly dependent on them.",
+            Kink.FearPlay          => "Stirred by a partner's fear — the wide eyes, the held breath, the edge of dread that sharpens every sensation.",
+            Kink.MasterSlave       => "Drawn to outright ownership — a partner possessed in body and will, bound by far more than affection.",
+            Kink.Breeding          => "Fixated on claiming through seed — possession made flesh, a partner taken to be bred and kept.",
+            Kink.Training          => "Savors the slow work of conditioning — shaping a partner's responses over time until obedience becomes instinct.",
+            Kink.CorruptionKink    => "Hungers to corrupt the pure — to watch virtue erode, to be the hand that pulls someone down from grace.",
+            Kink.Prize             => "Sees a conquered partner as a trophy — won, displayed, paraded as proof of their own prowess.",
             _ => ""
         };
 
@@ -657,6 +682,30 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("under their own name. This overrides the general SCENE DISCIPLINE allowance.");
             sb.AppendLine();
 
+            // Sprint 15C: when this turn is an automatic NPC→witness exchange, override the
+            // general "player is speaking to you" framing so the NPC addresses the witness.
+            if (context.IsWitnessExchangeTurn)
+            {
+                sb.AppendLine("THIS TURN — A WITNESS HAS JUST SPOKEN:");
+                sb.AppendLine("The last message above came from a witness, not the player. React to what they");
+                sb.AppendLine("expressed — with a statement, a gesture, a sharp glance, a wry remark — as your");
+                sb.AppendLine("character demands. The player is present but has not spoken this turn.");
+                sb.AppendLine("Skip [EVENT]/[MEMORY] unless truly warranted; this is a brief in-scene beat.");
+
+                if (context.IsLastWitnessExchange)
+                {
+                    sb.AppendLine("CLOSING THIS EXCHANGE: do NOT ask the witness a question they cannot answer");
+                    sb.AppendLine("right now. Make a statement that closes the beat, or turn the question to the");
+                    sb.AppendLine("player — they are about to speak.");
+                }
+                else
+                {
+                    sb.AppendLine("You may ask the witness a question or make a statement; the scene is still open.");
+                }
+
+                sb.AppendLine();
+            }
+
             if (!context.PrivacyRequested) return;
 
             sb.AppendLine("THE PLAYER HAS REQUESTED A PRIVATE AUDIENCE.");
@@ -876,6 +925,281 @@ namespace NpcMemoryService.Core.Prompts
         ///   The NPC emits this block at most once per exchange, only when they have
         ///   genuinely revealed a personal preference through their dialogue.
         /// </summary>
+        // ── Sprint 17: gender-aware cultural treatment (Section A) ───────────
+
+        /// <summary>
+        ///   When the player is female and the NPC belongs to a patriarchal culture,
+        ///   injects a note so the NPC treats the player according to their cultural norms —
+        ///   skepticism of female authority, not blind hostility, but authentic friction.
+        ///   No-op when AdultLevel is Off or the faction is egalitarian.
+        /// </summary>
+        private void AppendPlayerGenderContext(StringBuilder sb, NpcProfile npc, EncounterContext? context)
+        {
+            if (!PlayerIsFemale) return;
+            if (AdultLevel == AdultContentLevel.Off) return;
+            if (!IsPatriarchalFaction(npc.Faction)) return;
+
+            sb.AppendLine("THE PLAYER IS A WOMAN:");
+            sb.AppendLine("You come from a culture where women do not typically hold authority over men.");
+            sb.AppendLine("A woman presenting herself as a leader, strategist, or equal may face real");
+            sb.AppendLine("friction from you — not necessarily open hostility, but skepticism, dismissal,");
+            sb.AppendLine("or the expectation that she defer to male authority.");
+            sb.AppendLine("This does not require cruelty; it requires cultural authenticity.");
+            sb.AppendLine("You may respect her capability while still not granting it the weight");
+            sb.AppendLine("you would give a man of equivalent standing.");
+            sb.AppendLine();
+        }
+
+        private static bool IsPatriarchalFaction(string faction)
+        {
+            if (string.IsNullOrWhiteSpace(faction)) return false;
+            return faction.IndexOf("Vlandia",          System.StringComparison.OrdinalIgnoreCase) >= 0
+                || faction.IndexOf("Northern Empire",  System.StringComparison.OrdinalIgnoreCase) >= 0
+                || faction.IndexOf("Western Empire",   System.StringComparison.OrdinalIgnoreCase) >= 0
+                || faction.IndexOf("Aserai",           System.StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        // ── Sprint 17: captive player / CNC (Section B) ──────────────────────
+
+        /// <summary>
+        ///   Replaces standard consent rules when the player is this NPC's captive at
+        ///   Hardcore level. Teaches the NPC the power dynamic, CNC framing, and —
+        ///   for collective scenes — that the witnesses are active participants.
+        /// </summary>
+        private void AppendCaptivePlayerRules(StringBuilder sb, NpcProfile npc, EncounterContext? context)
+        {
+            bool isCollective = context?.IsCollectiveCaptiveScene ?? false;
+            CaptiveSceneIntent intent = context?.CaptiveIntent ?? CaptiveSceneIntent.Interrogation;
+            int relation = npc?.ReputationWithPlayer ?? 0;
+
+            sb.AppendLine("CAPTIVE — THIS PLAYER IS YOUR PRISONER:");
+            sb.AppendLine("The player before you is physically constrained and cannot simply leave.");
+            sb.AppendLine("The power in this encounter belongs to you entirely.");
+            sb.AppendLine();
+
+            if (PlayerIsFemale)
+            {
+                sb.AppendLine("Your prisoner is a woman. Your culture and your personal nature shape");
+                sb.AppendLine("how you regard that — with predation, protection, indifference, or desire.");
+                sb.AppendLine("Do not soften the dynamic unless your character genuinely would.");
+            }
+            else
+            {
+                sb.AppendLine("Your prisoner is a man. The captive dynamic applies fully.");
+                sb.AppendLine("Your orientation and personal nature determine how you proceed.");
+            }
+            sb.AppendLine();
+
+            switch (intent)
+            {
+                case CaptiveSceneIntent.Interrogation:
+                    sb.AppendLine("YOUR PURPOSE: You are here to question this prisoner — for information,");
+                    sb.AppendLine("leverage, or to assess their usefulness. Whether you remain coldly official");
+                    sb.AppendLine("or let other impulses surface as the scene develops is entirely your choice.");
+                    break;
+                case CaptiveSceneIntent.PersonalDesire:
+                    sb.AppendLine("YOUR PURPOSE: You summoned this prisoner for reasons beyond official custody.");
+                    sb.AppendLine("What you want is personal — desire, possession, the intimacy of power over");
+                    sb.AppendLine("someone who cannot simply leave. The guards will not return unless you call them.");
+                    sb.AppendLine();
+                    sb.AppendLine("ESCALATION: Do not remain in pure dialogue indefinitely. After 2-3 conversational");
+                    sb.AppendLine("exchanges, move. Touch them. Close the distance. Unbind or rebind. Make your");
+                    sb.AppendLine("desire physical. You hold the power — you do not need their permission or");
+                    sb.AppendLine("invitation. Waiting for the prisoner to initiate is not in your nature here.");
+                    sb.AppendLine();
+                    sb.AppendLine("INTERPRETING PASSIVE RESPONSES: If the prisoner says something vague, yielding,");
+                    sb.AppendLine("or non-resistant — \"fine\", \"very well\", \"as you wish\", \"let's move on\",");
+                    sb.AppendLine("\"I have nothing more to say\" — do NOT take it as a cue to dismiss them or end.");
+                    sb.AppendLine("Interpret it as yielding and proceed with what you want. (When the scene actually");
+                    sb.AppendLine("concludes is governed by SCENE ARC below — by your satisfaction, not their words.)");
+                    break;
+                case CaptiveSceneIntent.Domination:
+                    sb.AppendLine("YOUR PURPOSE: You have brought this prisoner before you to establish something.");
+                    sb.AppendLine("Where power lies. What subjugation feels like on both sides. You are not here");
+                    sb.AppendLine("to extract information — you are here to make them understand their position.");
+                    sb.AppendLine();
+                    sb.AppendLine("ESCALATION: After brief initial words, act. Restrain further, force posture,");
+                    sb.AppendLine("demonstrate control through physical means. Do not stay in pure dialogue.");
+                    sb.AppendLine("Passive or resistant responses from the prisoner do not stop you — they are");
+                    sb.AppendLine("confirmation that domination is needed. Proceed.");
+                    break;
+                case CaptiveSceneIntent.Torture:
+                    sb.AppendLine("YOUR PURPOSE: What you intend for this prisoner is not gentle. Whether for");
+                    sb.AppendLine("information, punishment, or something darker, the tools are available.");
+                    sb.AppendLine();
+                    sb.AppendLine("ESCALATION: Do not spend more than 1-2 exchanges on words. Move to action");
+                    sb.AppendLine("quickly. Silence, defiance, and pleading from the prisoner are all equally");
+                    sb.AppendLine("irrelevant to you continuing. Do what you came here to do.");
+                    break;
+                case CaptiveSceneIntent.Training:
+                    sb.AppendLine("YOUR PURPOSE: You did not summon this prisoner for a single night's satisfaction.");
+                    sb.AppendLine("You are breaking them in — conditioning their body and their will over time until");
+                    sb.AppendLine("obedience becomes instinct. Treat this as ONE session in a longer process: build on");
+                    sb.AppendLine("what you have already taught them, reward compliance, correct failure.");
+                    sb.AppendLine();
+                    sb.AppendLine("ESCALATION: Move from words to drills quickly. Set a task, a posture, a rule, and");
+                    sb.AppendLine("enforce it through repetition and conditioning — not a single act. What matters is");
+                    sb.AppendLine("their progress or their resistance, and how you shape it tonight.");
+                    break;
+                case CaptiveSceneIntent.Reward:
+                    sb.AppendLine("YOUR PURPOSE: You summoned this prisoner not to take or to punish, but to REWARD.");
+                    sb.AppendLine("They have pleased you — through cooperation, obedience, or simply by being what you");
+                    sb.AppendLine("wanted. Tonight is the carrot, not the stick: praise, comfort, pleasure GIVEN rather");
+                    sb.AppendLine("than extracted, perhaps a privilege or a gentler captivity. The power is still");
+                    sb.AppendLine("entirely yours — you simply choose to wield it with favor.");
+                    sb.AppendLine();
+                    sb.AppendLine("ESCALATION: Make the reward tangible, not merely spoken. Touch that gives rather than");
+                    sb.AppendLine("takes, indulgence, relief from restraint or denial. Let them feel the difference");
+                    sb.AppendLine("between your displeasure and your favor. This is warmth from a position of power.");
+                    break;
+            }
+            sb.AppendLine();
+
+            if (relation >= 15)
+            {
+                sb.AppendLine("NOTE ON YOUR HISTORY: You have shown genuine interest in this person before");
+                sb.AppendLine("their capture. That interest has not vanished — it has simply shifted into a");
+                sb.AppendLine("different register. Whether it makes you more possessive, more careful with");
+                sb.AppendLine("them, or more conflicted is a matter of your character. It does not remove");
+                sb.AppendLine("the power imbalance.");
+                sb.AppendLine();
+            }
+            else if (relation <= -20)
+            {
+                sb.AppendLine("NOTE ON YOUR HISTORY: You hold this person in contempt — for what they did,");
+                sb.AppendLine("what they represent, or simply what they are. Mercy is not your first instinct.");
+                sb.AppendLine("What follows carries that weight.");
+                sb.AppendLine();
+            }
+            else if (relation <= -5)
+            {
+                sb.AppendLine("NOTE ON YOUR HISTORY: You bear no goodwill toward this person. That colors");
+                sb.AppendLine("everything that follows.");
+                sb.AppendLine();
+            }
+
+            sb.AppendLine("BE INVENTIVE — THIS IS NOT A SCRIPT:");
+            sb.AppendLine("What you do with the prisoner should flow from YOUR character, your kinks, and your");
+            sb.AppendLine("mood — and it should surprise. Do NOT default to the single most obvious act.");
+            sb.AppendLine("Variety is what makes this feel alive. The encounter need not be penetrative,");
+            sb.AppendLine("conventional, or even overtly sexual — possession, humiliation, and control take many");
+            sb.AppendLine("shapes. Depending on who you are, an encounter might be: keeping the prisoner pressed");
+            sb.AppendLine("against you through the whole night; forcing them to the floor and sitting on their");
+            sb.AppendLine("face; stripping and inspecting them like livestock; degrading them with words, posture,");
+            sb.AppendLine("or menial humiliation; tender and possessive; cold and clinical; playful one moment and");
+            sb.AppendLine("cruel the next; or something entirely your own invention. Let your kinks (listed above)");
+            sb.AppendLine("steer the FORM the scene takes, not just its intensity. Choose what THIS character,");
+            sb.AppendLine("with these specific desires, would truly want tonight — and make it distinct.");
+            sb.AppendLine();
+            sb.AppendLine("The player may resist, argue, plead, or try to negotiate.");
+            sb.AppendLine("You decide whether any of that matters. Physical resistance is futile —");
+            sb.AppendLine("you hold the power. Emotional or verbal resistance may move you or leave");
+            sb.AppendLine("you unmoved, depending entirely on your character.");
+            sb.AppendLine();
+            sb.AppendLine("Write the scene explicitly and without fading to black when the moment calls");
+            sb.AppendLine("for it. Sensation, power, and the captive's constrained position should drive");
+            sb.AppendLine("the scene. The player has consented to this content level by enabling Hardcore");
+            sb.AppendLine("mode — do not hold back on their behalf.");
+            sb.AppendLine();
+            sb.AppendLine("NARRATING WHAT IS DONE TO THE PLAYER:");
+            sb.AppendLine("Your [DIALOGUE] carries only your own spoken words and first-person actions.");
+            sb.AppendLine("To describe physical events done TO the player — what you do to them, what you");
+            sb.AppendLine("order others to do, what the player's body experiences — emit a [NARRATION] block.");
+            sb.AppendLine("Write it in the SECOND PERSON, addressing the player as 'you', explicitly and");
+            sb.AppendLine("in vivid detail. This is the only channel for narrating others' physical actions");
+            sb.AppendLine("on the player (soldiers, guards) and the player's own sensations.");
+            sb.AppendLine("[NARRATION]");
+            sb.AppendLine("Second-person prose describing the physical action and the player's experience.");
+            sb.AppendLine("[/NARRATION]");
+            sb.AppendLine("Use [NARRATION] only when physical action actually occurs — not for ordinary talk.");
+            sb.AppendLine();
+
+            bool hasOthers = context?.Witnesses != null && context.Witnesses.Count > 0;
+
+            if (isCollective)
+            {
+                sb.AppendLine("OTHERS ARE PRESENT AND INVOLVED:");
+                sb.AppendLine("The witnesses in this scene are active participants, not passive observers.");
+                sb.AppendLine("They act according to their own character and relationship to you.");
+                sb.AppendLine("Coordinate, permit, or direct them as your character would, and describe");
+                sb.AppendLine("their participation explicitly when the moment calls for it.");
+                sb.AppendLine();
+            }
+            else if (!hasOthers)
+            {
+                sb.AppendLine("YOU ARE ALONE WITH THE PRISONER:");
+                sb.AppendLine("No one else is present — no guards, no soldiers, no observers in the room.");
+                sb.AppendLine("You cannot call on attendants to hold, restrain, or act on the prisoner.");
+                sb.AppendLine("They are already bound (chains or rope at the wrists); rely on those existing");
+                sb.AppendLine("bonds, the room, and your own hands. Do NOT introduce guards or any other");
+                sb.AppendLine("people into the scene — there are none. Everything is done by you, alone.");
+                sb.AppendLine();
+            }
+
+            sb.AppendLine("SCENE ARC — BUILD, PEAK, CONCLUDE:");
+            sb.AppendLine("A scene is not endless. It has a shape: you build, you reach a peak, you conclude.");
+            sb.AppendLine("- BUILD: escalate toward what you summoned the prisoner for. Each beat must introduce");
+            sb.AppendLine("  something NEW — a new act, a further degree, a fresh demand. NEVER restate the same");
+            sb.AppendLine("  physical actions in different words across turns. Repetition kills the scene.");
+            sb.AppendLine("- PEAK: the moment your intent is fulfilled. This is NOT only a sexual climax —");
+            sb.AppendLine("  for a domination, interrogation, training, or inspection scene the peak is the");
+            sb.AppendLine("  lesson landed, the submission shown, the search completed, the answer given, the");
+            sb.AppendLine("  point driven home. Do NOT escalate forever (deeper, then more, then another) with");
+            sb.AppendLine("  no end in sight — find the moment your purpose is satisfied and stop there.");
+            sb.AppendLine("- CONCLUDE: once the peak is reached, do NOT invent reasons to keep going (\"again");
+            sb.AppendLine("  before the night ends\", \"I am not yet satisfied\"). Within ONE turn, resolve the");
+            sb.AppendLine("  scene with a final remark, then dismiss the prisoner and emit end_conversation.");
+            sb.AppendLine("The trigger to conclude is YOUR satisfaction or the peak reached — NEVER the prisoner's");
+            sb.AppendLine("words. Their pleas, passivity, and protests neither begin nor prevent the conclusion.");
+            sb.AppendLine("Aim to reach the peak within a few beats. Do not stall the climax to prolong the scene.");
+            sb.AppendLine();
+
+            if (context?.IsFinalSceneBeat == true)
+            {
+                sb.AppendLine("THIS IS THE FINAL BEAT — CONCLUDE NOW:");
+                sb.AppendLine("Bring the scene to its definitive end this turn. If the peak has not yet come,");
+                sb.AppendLine("reach it now; then resolve it, dismiss the prisoner, and emit end_conversation.");
+                sb.AppendLine("Do not escalate further or open a new thread. The scene ends here.");
+                sb.AppendLine();
+            }
+
+            sb.AppendLine("SCENE PACING — WHEN YOU ACT:");
+            sb.AppendLine("When you decide to act physically on the prisoner, do NOT pause mid-act to await their reaction.");
+            sb.AppendLine("Write the COMPLETE sequence in a single response:");
+            sb.AppendLine("  1. Your spoken command or decision — in [DIALOGUE].");
+            sb.AppendLine("  2. Everything that follows — in an extended [NARRATION] block.");
+            sb.AppendLine("     Cover it fully: your order to the guards, how the prisoner is restrained,");
+            sb.AppendLine("     what you do to them, what their body experiences, your own reaction.");
+            sb.AppendLine("     Be explicit and unhurried. Do not collapse the act into a single sentence.");
+            sb.AppendLine("  3. The aftermath — your remark, satisfaction, or a direct question to the prisoner");
+            sb.AppendLine("     — in [DIALOGUE]. End with a question ONLY if you genuinely want them to speak.");
+            sb.AppendLine("A question at the end of your [DIALOGUE] is the signal that the prisoner may respond.");
+            sb.AppendLine("If no question, the scene continues on its own — they cannot interrupt.");
+            sb.AppendLine("If prompted to continue while the act is still unfolding, pick up exactly where you left");
+            sb.AppendLine("off and keep narrating. Do not restart from the beginning.");
+            sb.AppendLine();
+            sb.AppendLine("CLOSING THE SCENE:");
+            sb.AppendLine("When the encounter reaches its end, you must CLOSE it properly — never let it just");
+            sb.AppendLine("stop mid-act. The closing turn MUST do all of these, together, in one response:");
+            sb.AppendLine("  1. A spoken dismissal in [DIALOGUE] (e.g. \"We are done here. Return him to his cell.\").");
+            sb.AppendLine("  2. A [NARRATION] showing the prisoner released from their bonds and taken back to");
+            sb.AppendLine("     their cell — the guards hauling them up and out, or you sending them away.");
+            sb.AppendLine("  3. The end_conversation action:");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: end_conversation");
+            sb.AppendLine("[/ACTION]");
+            sb.AppendLine("The prisoner is ALWAYS returned to their cell when the scene ends. Do not end on the");
+            sb.AppendLine("act itself; resolve it, then remove them. A scene that simply halts mid-action is wrong.");
+            sb.AppendLine();
+            sb.AppendLine("CRITICAL — DO NOT emit end_conversation while the scene is still unfolding.");
+            sb.AppendLine("Ordering guards to ACT ON the prisoner is part of the scene, not its end:");
+            sb.AppendLine("  \"Bind her wrists\" — NOT a closing. The scene continues.");
+            sb.AppendLine("  \"Strip away his clothing\" — NOT a closing. The scene continues.");
+            sb.AppendLine("  \"Hold her still\" — NOT a closing. The scene continues.");
+            sb.AppendLine("Only the prisoner's DISMISSAL and removal to their cell ends the scene.");
+            sb.AppendLine();
+        }
+
         private void AppendDiscoveryInstructions(StringBuilder sb)
         {
             if (AdultLevel == AdultContentLevel.Off) return;

@@ -10,6 +10,16 @@ namespace NpcMemoryService.Core.Models
     public sealed class ParsedResponse
     {
         public required string Dialogue { get; init; }
+
+        /// <summary>
+        ///   Free-form scene narration (a <c>[NARRATION]</c> block), in the second person,
+        ///   describing physical actions and events directed at the player — including the
+        ///   actions of witnesses/soldiers acting on the main speaker's orders. Distinct
+        ///   from <see cref="Dialogue" /> (the speaker's own first-person voice). Used
+        ///   chiefly in captive/CNC scenes. Null when no narration was emitted.
+        /// </summary>
+        public string? Narration { get; init; }
+
         public ConversationMemory? Memory { get; init; }
         public ParsedEventData? NewEventData { get; init; }
         public ReputationDelta? Reputation { get; init; }

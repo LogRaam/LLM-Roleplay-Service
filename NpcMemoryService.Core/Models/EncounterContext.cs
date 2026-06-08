@@ -75,6 +75,45 @@ namespace NpcMemoryService.Core.Models
         public bool PrivacyRequested { get; init; }
 
         /// <summary>
+        ///   True when this turn is an automatic NPC response to a witness who just
+        ///   reacted (Sprint 15C). The final user message in the session is a witness
+        ///   statement ([Name]: …), not a player message. When set, the prompt instructs
+        ///   the NPC to address the witness rather than the player.
+        /// </summary>
+        public bool IsWitnessExchangeTurn { get; init; }
+
+        /// <summary>
+        ///   True on the final witness-exchange turn before control returns to the player
+        ///   (Sprint 15C, cap enforcement). The prompt instructs the NPC not to pose a
+        ///   question to another NPC — they may close the beat or redirect to the player.
+        /// </summary>
+        public bool IsLastWitnessExchange { get; init; }
+
+        /// <summary>
+        ///   True when the player is the NPC's captive AND the witnesses present are
+        ///   active participants rather than bystanders (Sprint 17 collective captive scene).
+        ///   Causes the prompt to instruct the NPC to involve the witnesses explicitly.
+        /// </summary>
+        public bool IsCollectiveCaptiveScene { get; init; }
+
+        /// <summary>
+        ///   The captor's intent for this encounter. Only meaningful when
+        ///   <see cref="PlayerStatus"/> == <see cref="PlayerStatusVsNpc.Captive"/>.
+        ///   Controls the specific framing injected into the captive prompt section
+        ///   and the scene-opening cue sent to the LLM as the first stimulus.
+        /// </summary>
+        public CaptiveSceneIntent CaptiveIntent { get; init; } = CaptiveSceneIntent.Interrogation;
+
+        /// <summary>
+        ///   True on the final beat of a captive scene continuation (mirrors
+        ///   <see cref="IsLastWitnessExchange"/> for the 15C loop). When set, the prompt
+        ///   instructs the NPC to bring the scene to a definitive conclusion this turn —
+        ///   resolve the act and dismiss the prisoner with end_conversation — rather than
+        ///   continuing to escalate.
+        /// </summary>
+        public bool IsFinalSceneBeat { get; init; }
+
+        /// <summary>
         ///   Produces a natural-language description of this encounter, suitable
         ///   for injection into the LLM system prompt. Returns an empty string
         ///   when all fields are Unknown.
