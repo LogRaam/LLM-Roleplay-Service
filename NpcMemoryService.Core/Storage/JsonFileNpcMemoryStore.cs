@@ -5,10 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using NpcMemoryService.Core.Models;
 
 #endregion
@@ -27,10 +26,11 @@ namespace NpcMemoryService.Core.Storage
     {
         private const string TempSuffix = ".tmp";
 
-        private static readonly JsonSerializerOptions SerializerOptions = new JsonSerializerOptions {
-            WriteIndented = true,
-            PropertyNameCaseInsensitive = true,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        // Newtonsoft is case-insensitive on read by default, so no equivalent of
+        // PropertyNameCaseInsensitive is needed.
+        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings {
+            Formatting = Formatting.Indented,
+            NullValueHandling = NullValueHandling.Ignore
         };
 
         private readonly JsonFileStoreConfig _config;
@@ -56,12 +56,9 @@ namespace NpcMemoryService.Core.Storage
                     var finalPath = GetPath(profile.Id);
                     var tempPath = finalPath + TempSuffix;
 
-                    using (FileStream stream = File.Open(tempPath, FileMode.Create, FileAccess.Write))
-                    {
-                        await JsonSerializer
-                              .SerializeAsync(stream, profile, SerializerOptions, ct)
-                              .ConfigureAwait(false);
-                    }
+                    var serialized = JsonConvert.SerializeObject(profile, SerializerSettings);
+                    using (var writer = new StreamWriter(File.Open(tempPath, FileMode.Create, FileAccess.Write)))
+                        await writer.WriteAsync(serialized).ConfigureAwait(false);
 
                     tempPaths.Add((tempPath, finalPath));
                 }
@@ -115,10 +112,11 @@ namespace NpcMemoryService.Core.Storage
             {
                 ct.ThrowIfCancellationRequested();
 
-                using FileStream stream = File.OpenRead(file);
-                NpcProfile? profile = await JsonSerializer
-                                            .DeserializeAsync<NpcProfile>(stream, SerializerOptions, ct)
-                                            .ConfigureAwait(false);
+                string serialized;
+                using (var reader = new StreamReader(File.OpenRead(file)))
+                    serialized = await reader.ReadToEndAsync().ConfigureAwait(false);
+
+                NpcProfile? profile = JsonConvert.DeserializeObject<NpcProfile>(serialized, SerializerSettings);
 
                 if (profile != null)
                     _profiles[profile.Id] = profile;

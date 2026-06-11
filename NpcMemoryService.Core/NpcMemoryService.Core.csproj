@@ -6,6 +6,10 @@
     <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-  <PackageReference Include="System.Text.Json" Version="10.0.7" />
-</ItemGroup>
+    <!-- Newtonsoft.Json is shipped by Bannerlord (13.0.1) and already loaded in-process;
+         match that exact version so there is no binding conflict, and so we ship no extra
+         JSON assemblies. Replaces System.Text.Json, whose .NET-Framework facade tree caused
+         assembly-load failures on some players' setups. -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
 </Project>

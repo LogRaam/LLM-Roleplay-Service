@@ -51,7 +51,7 @@ namespace NpcMemoryService.Core.Parsing
         {
             if (string.IsNullOrWhiteSpace(rawResponse)) return new ParsedResponse {Dialogue = string.Empty};
 
-            var dialogue = ExtractSection(rawResponse, DialogueTag) ?? ExtractDialogueFallback(rawResponse);
+            var dialogue = ExtractDialogue(rawResponse);
 
             var narrationSection = ExtractSection(rawResponse, NarrationTag);
             var memorySection = ExtractSection(rawResponse, MemoryTag);
@@ -80,6 +80,46 @@ namespace NpcMemoryService.Core.Parsing
         }
 
         #region private
+
+        /// <summary>
+        ///   Extracts the dialogue, tolerating a missing [/DIALOGUE] close tag — which the
+        ///   LLM sometimes drops when it ends its turn by handing the floor to the player.
+        ///   Order: (1) a properly closed [DIALOGUE]…[/DIALOGUE]; (2) an open [DIALOGUE] with
+        ///   no close — take up to the next section tag; (3) no tag at all — everything before
+        ///   the first section. Any stray [DIALOGUE]/[/DIALOGUE] markers are then stripped so
+        ///   the raw tag never leaks into the displayed line.
+        /// </summary>
+        private static string ExtractDialogue(string text)
+        {
+            string body;
+
+            string? closed = ExtractSection(text, DialogueTag);
+            if (closed != null)
+            {
+                body = closed;
+            }
+            else
+            {
+                Match open = Regex.Match(text, $@"\[{DialogueTag}\]", RegexOptions.IgnoreCase);
+                body = open.Success
+                    ? TrimAtFirstSection(text.Substring(open.Index + open.Length))
+                    : ExtractDialogueFallback(text);
+            }
+
+            // Safety net: drop any residual [DIALOGUE]/[/DIALOGUE] markers that slipped through.
+            return Regex.Replace(body, @"\[/?DIALOGUE\]", "", RegexOptions.IgnoreCase);
+        }
+
+        /// <summary>Returns the text up to the first recognized section boundary (or all of it).</summary>
+        private static string TrimAtFirstSection(string text)
+        {
+            const string pattern = @"\[(?:/DIALOGUE|NARRATION|MEMORY|EVENT|REPUTATION|ACTION|DISCOVERY|QUEST_COMPLETE|QUEST_ABANDON|QUEST|WITNESS_REACTION)\]";
+            Match match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
+
+            return match.Success
+                ? text.Substring(0, match.Index)
+                : text;
+        }
 
         /// <summary>
         ///   Fallback when no [DIALOGUE] tag is found: returns everything before

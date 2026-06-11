@@ -738,11 +738,39 @@ namespace NpcMemoryService.Core.Prompts
                 sb.AppendLine();
             }
 
+            if (!string.IsNullOrWhiteSpace(context.NpcCurrentActivity))
+            {
+                sb.AppendLine("YOUR CURRENT SITUATION:");
+                sb.AppendLine($"Right now you are {context.NpcCurrentActivity}. Speak of your movements and plans consistently with this.");
+                sb.AppendLine();
+            }
+
             if (!string.IsNullOrWhiteSpace(context.ContextualNames))
             {
                 sb.AppendLine(context.ContextualNames);
                 sb.AppendLine();
             }
+
+            var kin = new List<string>();
+            if (!string.IsNullOrWhiteSpace(context.PlayerFatherName)) kin.Add($"father {context.PlayerFatherName}");
+            if (!string.IsNullOrWhiteSpace(context.PlayerMotherName)) kin.Add($"mother {context.PlayerMotherName}");
+            if (kin.Count > 0)
+            {
+                sb.AppendLine("THE PLAYER'S PARENTAGE:");
+                sb.AppendLine($"If you ever speak of the player's parents, these are their real names — never invent one: {string.Join("; ", kin)}.");
+                sb.AppendLine("Mention them only when naturally relevant; do not recite this unprompted.");
+                sb.AppendLine();
+            }
+
+            // Anti-confabulation guard — the primary fix for invented parent names and made-up
+            // troop movements. It holds even when the data feeds above are absent (the player
+            // often has no parent Hero objects, and a destination cannot always be read).
+            sb.AppendLine("STAY WITHIN WHAT YOU KNOW:");
+            sb.AppendLine("Do not invent concrete facts you have not been given. If the player's parentage is not named");
+            sb.AppendLine("above, speak of their parents only in general terms — never make up a name. Likewise, if your");
+            sb.AppendLine("current situation above does not state where you are headed, do not fabricate a destination,");
+            sb.AppendLine("troop movements, or war plans; speak in general terms rather than naming a specific place.");
+            sb.AppendLine();
         }
 
         private static void AppendHistory(StringBuilder sb, NpcProfile npc)
@@ -1270,6 +1298,9 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("The game then pays the reward you promised. NEVER emit [QUEST_COMPLETE] for a task not");
             sb.AppendLine("shown as done — if the player only claims success without proof, doubt them and ask for");
             sb.AppendLine("specifics. Words are cheap; you reward deeds, not stories.");
+            sb.AppendLine("Do NOT use give_gold to pay a quest reward yourself — the game pays the promised reward");
+            sb.AppendLine("automatically through [QUEST_COMPLETE]. Reserve give_gold for separate gifts or bribes,");
+            sb.AppendLine("never for a task the player reports completing, or they would be paid twice.");
             sb.AppendLine();
             sb.AppendLine("If the player tells you plainly they will NOT carry out an outstanding task — they");
             sb.AppendLine("withdraw, refuse, or give it up — react in character (disappointed, cold, understanding,");

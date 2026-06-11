@@ -7,9 +7,10 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NpcMemoryService.Core.Models;
 
 #endregion
@@ -38,11 +39,28 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
         #region private properties
 
         private string ChatCompletionsUrl =>
-            _config.BaseUrl.TrimEnd(trimChars: '/') + "/chat/completions";
+            _config.ResolveBaseUrl().TrimEnd(trimChars: '/') + "/chat/completions";
 
         #endregion
 
         public async Task<LlmResponse> CompleteAsync(LlmRequest request, CancellationToken ct = default)
+        {
+            LlmResponse response = await SendOnceAsync(request, ct).ConfigureAwait(false);
+
+            // One retry when the provider cut the reply off by output length. Some models
+            // (notably certain DeepSeek deployments) truncate a reply mid-sentence; a fresh
+            // generation usually completes. Bounded to a single retry so a model that always
+            // truncates cannot loop or double-bill indefinitely.
+            if (response.IsSuccess && IsLengthTruncated(response.FinishReason))
+            {
+                LlmResponse retry = await SendOnceAsync(request, ct).ConfigureAwait(false);
+                if (retry.IsSuccess) return retry; // prefer the retry even if also truncated — it's no worse
+            }
+
+            return response;
+        }
+
+        private async Task<LlmResponse> SendOnceAsync(LlmRequest request, CancellationToken ct)
         {
             try
             {
@@ -68,6 +86,9 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
             }
         }
 
+        private static bool IsLengthTruncated(string? finishReason)
+            => string.Equals(finishReason, "length", StringComparison.OrdinalIgnoreCase);
+
         #region private
 
         private static LlmResponse Failure(string message) =>
@@ -79,32 +100,39 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
         {
             try
             {
-                using JsonDocument doc = JsonDocument.Parse(json);
-                JsonElement root = doc.RootElement;
+                JObject root = JObject.Parse(json);
 
-                var content = root
-                              .GetProperty("choices")[0]
-                              .GetProperty("message")
-                              .GetProperty("content")
-                              .GetString() ??
-                              string.Empty;
+                // Preserve the original contract: a body without choices[0].message.content
+                // is a failure, not a silent empty success — an unexpected API error body
+                // would otherwise read as an empty reply.
+                JToken? contentToken = root["choices"]?[0]?["message"]?["content"];
+                if (contentToken == null || contentToken.Type == JTokenType.Null)
+                    return Failure("Response contained no message content.");
+
+                var content = contentToken.Value<string>() ?? string.Empty;
+
+                // "length" here means the reply was cut off by the token limit — surfaced so
+                // the host can log it and the one-shot retry above can fire.
+                var finishReason = root["choices"]?[0]?["finish_reason"]?.Value<string>();
 
                 LlmUsage? usage = null;
-                if (root.TryGetProperty("usage", out JsonElement usageEl))
+                if (root["usage"] is JObject usageEl)
                 {
-                    var prompt = usageEl.GetProperty("prompt_tokens").GetInt32();
-                    var completion = usageEl.GetProperty("completion_tokens").GetInt32();
+                    var prompt = usageEl["prompt_tokens"]?.Value<int>() ?? 0;
+                    var completion = usageEl["completion_tokens"]?.Value<int>() ?? 0;
 
                     // Cached token counts when reported by the provider.
                     // OpenRouter normalizes these into the usage block.
-                    var cachedRead = TryReadInt(usageEl, "cache_read_input_tokens") ?? TryReadInt(usageEl, "cached_tokens") ?? TryReadPromptDetailsCached(usageEl);
+                    int? cachedRead = ReadIntOrNull(usageEl["cache_read_input_tokens"])
+                                   ?? ReadIntOrNull(usageEl["cached_tokens"])
+                                   ?? ReadIntOrNull(usageEl["prompt_tokens_details"]?["cached_tokens"]);
 
                     usage = new LlmUsage(prompt, completion) {
                         CachedPromptTokens = cachedRead
                     };
                 }
 
-                return new LlmResponse {Content = content, IsSuccess = true, Usage = usage};
+                return new LlmResponse {Content = content, IsSuccess = true, Usage = usage, FinishReason = finishReason};
             }
             catch (Exception ex)
             {
@@ -112,26 +140,16 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
             }
         }
 
-        private static int? TryReadInt(JsonElement parent, string property)
-        {
-            if (parent.TryGetProperty(property, out JsonElement el) && el.ValueKind == JsonValueKind.Number) return el.GetInt32();
-
-            return null;
-        }
-
-        private static int? TryReadPromptDetailsCached(JsonElement usage)
-        {
-            // OpenAI nests cache stats under prompt_tokens_details.
-            if (usage.TryGetProperty("prompt_tokens_details", out JsonElement details) && details.TryGetProperty("cached_tokens", out JsonElement cached) && cached.ValueKind == JsonValueKind.Number) return cached.GetInt32();
-
-            return null;
-        }
+        private static int? ReadIntOrNull(JToken? token)
+            => token != null && (token.Type == JTokenType.Integer || token.Type == JTokenType.Float)
+                ? token.Value<int>()
+                : (int?) null;
 
         // ── Request building ──────────────────────────────────────────────────
 
         private HttpRequestMessage BuildHttpRequest(LlmRequest request)
         {
-            var json = JsonSerializer.Serialize(ToWireFormat(request));
+            var json = JsonConvert.SerializeObject(ToWireFormat(request));
 
             HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Post, ChatCompletionsUrl);
             httpRequest.Headers.Authorization =
@@ -142,25 +160,35 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
         }
 
         /// <summary>
-        ///   Translates our <see cref="LlmRequest" /> into OpenRouter's
-        ///   OpenAI-compatible format, marking the system prompt as a
-        ///   cacheable prefix via <c>cache_control: ephemeral</c>.
+        ///   Translates our <see cref="LlmRequest" /> into the provider's
+        ///   OpenAI-compatible format. When system-prompt caching is enabled
+        ///   (OpenRouter), the system message is a content array marking a
+        ///   cacheable prefix via <c>cache_control: ephemeral</c>. When disabled
+        ///   (providers that reject the array form, e.g. NanoGPT), it is sent as a
+        ///   plain OpenAI string — the maximally-portable form.
         /// </summary>
         private object ToWireFormat(LlmRequest request)
         {
             var messages = new List<object> {
-                // System message as a content array enables the cache_control
-                // breakpoint. Anthropic/OpenAI honor it; others ignore it.
-                new {
-                    role = "system",
-                    content = new object[] {
-                        new {
-                            type = "text",
-                            text = request.SystemPrompt,
-                            cache_control = new {type = "ephemeral"}
+                _config.ResolveUseSystemPromptCaching()
+                    // Content array enables the cache_control breakpoint.
+                    // Anthropic/OpenRouter honor it; others ignore it.
+                    ? (object) new {
+                        role = "system",
+                        content = new object[] {
+                            new {
+                                type = "text",
+                                text = request.SystemPrompt,
+                                cache_control = new {type = "ephemeral"}
+                            }
                         }
                     }
-                }
+                    // Plain string system content — accepted by every OpenAI-compatible
+                    // endpoint, no caching extension.
+                    : new {
+                        role = "system",
+                        content = request.SystemPrompt
+                    }
             };
 
             foreach (LlmMessage msg in request.Messages)

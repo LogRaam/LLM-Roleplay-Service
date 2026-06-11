@@ -36,12 +36,30 @@ namespace NpcMemoryService.Core.Models
         public string? ContextualNames { get; init; }
 
         /// <summary>
+        ///   What the NPC is currently doing on the campaign map (laying siege, marching
+        ///   with an army toward an objective, traveling to a settlement). Null when it
+        ///   cannot be read with confidence — the prompt then tells the NPC not to invent
+        ///   a destination rather than feeding it a guess it would treat as fact.
+        /// </summary>
+        public string? NpcCurrentActivity { get; init; }
+
+        /// <summary>
         ///   Name of the player's current spouse, or null if the player is single or widowed.
         ///   Used to inject the player's marital status into the NPC's consent section so the
         ///   NPC can react according to their own character — refusing to enable infidelity,
         ///   being indifferent, or finding the forbidden element appealing.
         /// </summary>
         public string? PlayerSpouseName { get; init; }
+
+        /// <summary>
+        ///   Name of the player's father, or null if unknown. Injected so an NPC that
+        ///   refers to the player's parentage uses the real name instead of inventing one.
+        ///   A "(the late …)" form is built game-side when the parent is deceased.
+        /// </summary>
+        public string? PlayerFatherName { get; init; }
+
+        /// <summary>Name of the player's mother, or null if unknown. See <see cref="PlayerFatherName"/>.</summary>
+        public string? PlayerMotherName { get; init; }
 
         /// <summary>
         ///   The player's clan tier (0–6). Tier 0 means no clan or a landless household;

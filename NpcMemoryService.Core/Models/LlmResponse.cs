@@ -29,5 +29,12 @@ namespace NpcMemoryService.Core.Models
         public required bool    IsSuccess    { get; init; }
         public string?          ErrorMessage { get; init; }
         public LlmUsage?        Usage        { get; init; }
+
+        /// <summary>
+        ///   The provider's reason for ending generation ("stop", "length", "content_filter", …),
+        ///   or null when not reported. "length" means the reply was cut off by the token limit —
+        ///   some models (e.g. certain DeepSeek deployments) truncate mid-sentence this way.
+        /// </summary>
+        public string?          FinishReason { get; init; }
     }
 }

@@ -88,7 +88,7 @@ namespace NpcMemoryService.Core.Services
             ParsedResponse parsed = _parser.Parse(llmResponse.Content);
             session.AddNpcMessage(parsed.Dialogue);
 
-            return NpcChatResult.Success(parsed, llmResponse.Usage);
+            return NpcChatResult.Success(parsed, llmResponse.Usage, llmResponse.FinishReason);
         }
     }
 }
