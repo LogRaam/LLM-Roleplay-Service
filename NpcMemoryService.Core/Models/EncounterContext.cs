@@ -132,6 +132,15 @@ namespace NpcMemoryService.Core.Models
         public bool IsFinalSceneBeat { get; init; }
 
         /// <summary>
+        ///   The asking price (denars) for hiring this NPC into the player's party, when
+        ///   they are a recruitable companion — computed game-side from the same model the
+        ///   vanilla tavern hire uses. Null = not recruitable (a lord, a notable, already
+        ///   in service, or the player's clan has no room): the recruitment section and
+        ///   the join_party action are then not taught at all.
+        /// </summary>
+        public int? CompanionAskingPrice { get; init; }
+
+        /// <summary>
         ///   Produces a natural-language description of this encounter, suitable
         ///   for injection into the LLM system prompt. Returns an empty string
         ///   when all fields are Unknown.

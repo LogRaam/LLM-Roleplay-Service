@@ -111,6 +111,7 @@ namespace NpcMemoryService.Core.Prompts
             AppendCurrentStance(sb, npc);
             AppendPlayerLetters(sb, npc);
             AppendWitnesses(sb, encounterContext);
+            AppendRecruitment(sb, encounterContext);
             // ── Dynamic world state (changes each turn) ──────────────────────────
             AppendWorldState(sb, world);
             AppendEncounterContext(sb, encounterContext);
@@ -767,6 +768,35 @@ namespace NpcMemoryService.Core.Prompts
             }
         }
 
+        /// <summary>
+        ///   Taught only when the game says this NPC is genuinely recruitable
+        ///   (<see cref="EncounterContext.CompanionAskingPrice"/> non-null). Same inline
+        ///   pattern as PRIVATE AUDIENCE: the action exists exactly when it can succeed,
+        ///   so the NPC never agrees to a hire the game would refuse. The game clamps the
+        ///   final price to a band around the vanilla asking price regardless of what is
+        ///   emitted — eloquence negotiates, it never breaks the economy.
+        /// </summary>
+        private static void AppendRecruitment(StringBuilder sb, EncounterContext? context)
+        {
+            if (context?.CompanionAskingPrice is not int asking || asking <= 0) return;
+            int floor = (int) (asking * 0.75f);
+
+            sb.AppendLine("RECRUITMENT — YOU CAN BE HIRED:");
+            sb.AppendLine($"You are open to taking service with a worthy commander. Your asking price is {asking} denars.");
+            sb.AppendLine("If the player asks you to join them — in any wording — negotiate in character: start at");
+            sb.AppendLine($"your asking price; a player who genuinely impresses you may talk you down, but never below");
+            sb.AppendLine($"{floor} denars. You may hold firm, demand more if slighted, or refuse outright if this");
+            sb.AppendLine("commander is not someone you would follow. When you and the player AGREE on a final");
+            sb.AppendLine("price, emit the action alongside your dialogue:");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: join_party");
+            sb.AppendLine("price: <the agreed number of denars>");
+            sb.AppendLine("[/ACTION]");
+            sb.AppendLine("The game then moves you into the player's party and transfers the payment. Emit it ONLY");
+            sb.AppendLine("at the moment of genuine agreement this turn — never speculatively, never twice.");
+            sb.AppendLine();
+        }
+
         private static void AppendEncounterContext(StringBuilder sb, EncounterContext? context)
         {
             if (context == null) return;
@@ -811,6 +841,10 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("above, speak of their parents only in general terms — never make up a name. Likewise, if your");
             sb.AppendLine("current situation above does not state where you are headed, do not fabricate a destination,");
             sb.AppendLine("troop movements, or war plans; speak in general terms rather than naming a specific place.");
+            sb.AppendLine("And never AGREE to perform a concrete deed — entering someone's service, handing over troops");
+            sb.AppendLine("or prisoners, granting land — unless an [ACTION] for it is available in this prompt. Words");
+            sb.AppendLine("the game cannot honor are broken promises: if no action exists for what the player asks,");
+            sb.AppendLine("deflect or refuse in character instead of agreeing.");
             sb.AppendLine();
         }
 
