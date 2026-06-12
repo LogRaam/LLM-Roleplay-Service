@@ -66,7 +66,9 @@ namespace NpcMemoryService.Core.Parsing
 
             return new ParsedResponse {
                 Dialogue = dialogue.Trim(),
-                Narration = string.IsNullOrWhiteSpace(narrationSection) ? null : narrationSection.Trim(),
+                // netstandard2.0 has no NotNullWhen annotation on IsNullOrWhiteSpace,
+                // so the compiler can't see the guard — hence the '!'.
+                Narration = string.IsNullOrWhiteSpace(narrationSection) ? null : narrationSection!.Trim(),
                 Memory = ParseMemory(memorySection),
                 NewEventData = ParseEventData(eventSection),
                 Reputation = ParseReputation(reputationSection),

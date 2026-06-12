@@ -74,6 +74,21 @@ namespace NpcMemoryService.Core.Prompts
         /// </summary>
         public string BehaviorGuidelinesOverride { get; init; } = "";
 
+        /// <summary>Player's real in-game name. Injected so NPCs can address them by name.
+        /// Empty string omits the name line.</summary>
+        public string PlayerName { get; init; } = "";
+
+        /// <summary>Player's clan name. Injected so NPCs can reference their lineage.
+        /// Empty string omits the clan line.</summary>
+        public string PlayerClanName { get; init; } = "";
+
+        /// <summary>
+        ///   When true (default), the [MEMORY] block is included in the response format.
+        ///   The mod sets this false: [MEMORY] data is never consumed by the game, so
+        ///   requiring it on every reply wastes output tokens and adds latency.
+        /// </summary>
+        public bool EnableMemoryBlock { get; init; } = true;
+
         public string BuildSystemPrompt(NpcProfile npc, WorldState world, EncounterContext? encounterContext = null)
         {
             StringBuilder sb = new StringBuilder();
@@ -91,7 +106,7 @@ namespace NpcMemoryService.Core.Prompts
             AppendSocialAttractionInstructions(sb, npc, encounterContext);
             AppendDiscoveredTraits(sb, npc);
             AppendBackgroundContext(sb, npc);
-            AppendHistory(sb, npc);
+            AppendHistory(sb, npc, world.CurrentDay);
             AppendActiveQuests(sb, npc);
             AppendCurrentStance(sb, npc);
             AppendPlayerLetters(sb, npc);
@@ -117,9 +132,22 @@ namespace NpcMemoryService.Core.Prompts
 
         private void AppendPlayerDescription(StringBuilder sb)
         {
-            if (string.IsNullOrWhiteSpace(PlayerDescription)) return;
+            bool hasName   = !string.IsNullOrWhiteSpace(PlayerName);
+            bool hasClan   = !string.IsNullOrWhiteSpace(PlayerClanName);
+            bool hasCustom = !string.IsNullOrWhiteSpace(PlayerDescription);
+            if (!hasName && !hasClan && !hasCustom) return;
+
             sb.AppendLine("THE PLAYER:");
-            sb.AppendLine(PlayerDescription);
+            if (hasName)
+                sb.AppendLine($"Name: {PlayerName} — address them by this name when it feels natural.");
+            sb.AppendLine($"Gender: {(PlayerIsFemale ? "female" : "male")}");
+            if (hasClan)
+                sb.AppendLine($"Clan: {PlayerClanName}");
+            if (hasCustom)
+            {
+                sb.AppendLine();
+                sb.AppendLine(PlayerDescription);
+            }
             sb.AppendLine();
         }
 
@@ -483,9 +511,10 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("Use them sparingly — they should serve the moment, not slow it down.");
             sb.AppendLine();
             var discoverySuffix = AdultLevel != AdultContentLevel.Off ? ", [DISCOVERY]" : "";
+            string memPart = EnableMemoryBlock ? "[MEMORY], " : "";
             sb.AppendLine(EnableReputationBlock
-                ? $"Other sections ([MEMORY], [EVENT], [REPUTATION], [ACTION]{discoverySuffix}) are metadata."
-                : $"Other sections ([MEMORY], [EVENT], [ACTION]{discoverySuffix}) are metadata.");
+                ? $"Other sections ({memPart}[EVENT], [REPUTATION], [ACTION]{discoverySuffix}) are metadata."
+                : $"Other sections ({memPart}[EVENT], [ACTION]{discoverySuffix}) are metadata.");
             sb.AppendLine("Keep them concise. The player came to hear what you have to say.");
             sb.AppendLine();
             sb.AppendLine("─────────────────────────────────────────────");
@@ -706,11 +735,16 @@ namespace NpcMemoryService.Core.Prompts
                 sb.AppendLine();
             }
 
-            if (!context.PrivacyRequested) return;
+            // A captive player does not command the room: the captor's people leave
+            // only at the captor's will, never through a privacy mechanism.
+            if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
 
-            sb.AppendLine("THE PLAYER HAS REQUESTED A PRIVATE AUDIENCE.");
-            sb.AppendLine("Decide whether to grant it based on your character, your relation to the player,");
-            sb.AppendLine("and the nature of the witnesses. A liege, a rival, or a crowded hall changes things.");
+            // Taught whenever witnesses are present — a free-text request ("might we
+            // speak alone?") must work exactly like the Request Private button.
+            sb.AppendLine("PRIVATE AUDIENCE:");
+            sb.AppendLine("If the player asks to speak with you alone — in any wording — decide whether to");
+            sb.AppendLine("clear the room based on your character, your relation to the player, and the");
+            sb.AppendLine("nature of the witnesses. A liege, a rival, or a crowded hall changes things.");
             sb.AppendLine("Signal your decision in an [ACTION] block:");
             sb.AppendLine("[ACTION]");
             sb.AppendLine("type: request_privacy");
@@ -722,8 +756,15 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("result: refused");
             sb.AppendLine("[/ACTION]");
             sb.AppendLine("Explain your decision naturally in [DIALOGUE]. The action block carries the game effect;");
-            sb.AppendLine("your words carry the character.");
+            sb.AppendLine("your words carry the character. Emit it ONLY when the player has actually asked for");
+            sb.AppendLine("privacy this turn — never on your own initiative.");
             sb.AppendLine();
+
+            if (context.PrivacyRequested)
+            {
+                sb.AppendLine("THE PLAYER HAS JUST REQUESTED A PRIVATE AUDIENCE — decide and emit the action THIS TURN.");
+                sb.AppendLine();
+            }
         }
 
         private static void AppendEncounterContext(StringBuilder sb, EncounterContext? context)
@@ -773,7 +814,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
         }
 
-        private static void AppendHistory(StringBuilder sb, NpcProfile npc)
+        private static void AppendHistory(StringBuilder sb, NpcProfile npc, int currentDay)
         {
             sb.AppendLine("YOUR HISTORY WITH THIS PLAYER:");
             if (npc.Events.Count == 0)
@@ -783,11 +824,31 @@ namespace NpcMemoryService.Core.Prompts
                 return;
             }
 
+            // Day numbers are absolute calendar days (5-digit); the model is bad at
+            // subtracting them and invents recency ("three winters ago" for last week).
+            // Spell the elapsed time out so it never has to.
             foreach (NotableEvent? ev in npc.Events)
-                sb.AppendLine($"- Day {ev.gameDay} ({ev.type}): {ev.summary}");
+                sb.AppendLine($"- Day {ev.gameDay} ({ev.type}{RecencySuffix(ev.gameDay, currentDay)}): {ev.summary}");
             sb.AppendLine();
-            sb.AppendLine("Respond as someone who lived through these events. Reference them when relevant.");
+            sb.AppendLine("Respond as someone who lived through these events. Reference them when relevant,");
+            sb.AppendLine("and use the elapsed times given above — do not invent how long ago something was.");
             sb.AppendLine();
+        }
+
+        /// <summary>
+        ///   ", 6 days ago" / ", earlier today" / ", about 2 years ago" — elapsed time in
+        ///   words (Calradian year = 84 days, season = 21). Empty when the stamp is
+        ///   unusable (zero, negative, or in the future).
+        /// </summary>
+        private static string RecencySuffix(int eventDay, int currentDay)
+        {
+            if (eventDay <= 0 || currentDay <= 0 || eventDay > currentDay) return "";
+            int days = currentDay - eventDay;
+            if (days == 0) return ", earlier today";
+            if (days == 1) return ", yesterday";
+            if (days < 21) return $", {days} days ago";
+            if (days < 84) return $", about {days / 21} season(s) ago";
+            return $", about {days / 84} year(s) ago";
         }
 
         /// <summary>
@@ -880,6 +941,7 @@ namespace NpcMemoryService.Core.Prompts
                 ? $"CURRENT WORLD STATE (Day {world.CurrentDay} — {world.Season}):"
                 : $"CURRENT WORLD STATE (Day {world.CurrentDay}):";
             sb.AppendLine(header);
+            sb.AppendLine("(Days are absolute calendar days; the Calradian year is 84 days — 4 seasons of 21.)");
             if (!string.IsNullOrWhiteSpace(world.ActiveConflicts))
                 sb.AppendLine($"Active conflicts: {world.ActiveConflicts}");
             if (!string.IsNullOrWhiteSpace(world.Rumors))
@@ -1288,7 +1350,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
             sb.AppendLine("Rules: name real, plausible targets you would know. Promise only rewards you would");
             sb.AppendLine("truly pay — the figure is fixed now and honored on completion. Offer at most ONE task,");
-            sb.AppendLine("and never while you already have one outstanding (see YOUR QUESTS).");
+            sb.AppendLine("and never while you already have one outstanding (listed under YOUR QUESTS when present).");
             sb.AppendLine();
             sb.AppendLine("When YOUR QUESTS shows a task the player has DONE (proof is listed) and you are");
             sb.AppendLine("satisfied, acknowledge it in [DIALOGUE] and emit:");
@@ -1390,14 +1452,20 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("Your in-character response.");
             sb.AppendLine("[/DIALOGUE]");
             sb.AppendLine();
-            sb.AppendLine("[MEMORY]");
-            sb.AppendLine("topic: brief_topic_keyword");
-            sb.AppendLine("sentiment: your_current_feeling_toward_player");
-            sb.AppendLine("decision: any_decision_reached (omit if none)");
-            sb.AppendLine("[/MEMORY]");
-            sb.AppendLine();
+            if (EnableMemoryBlock)
+            {
+                sb.AppendLine("[MEMORY]");
+                sb.AppendLine("topic: brief_topic_keyword");
+                sb.AppendLine("sentiment: your_current_feeling_toward_player");
+                sb.AppendLine("decision: any_decision_reached (omit if none)");
+                sb.AppendLine("[/MEMORY]");
+                sb.AppendLine();
+            }
             sb.AppendLine("[EVENT]");
-            sb.AppendLine("type: first_meeting|farewell|conflict|collaboration|agreement|flirt|intimacy|betrayal|confrontation|other");
+            // flirt/intimacy event types only exist when romantic content is enabled.
+            sb.AppendLine(AdultLevel != AdultContentLevel.Off
+                ? "type: first_meeting|farewell|conflict|collaboration|agreement|flirt|intimacy|betrayal|confrontation|other"
+                : "type: first_meeting|farewell|conflict|collaboration|agreement|betrayal|confrontation|other");
             sb.AppendLine("summary: One sentence; write so a future you can recall what happened and why it mattered.");
             sb.AppendLine("[/EVENT]");
             sb.AppendLine();
