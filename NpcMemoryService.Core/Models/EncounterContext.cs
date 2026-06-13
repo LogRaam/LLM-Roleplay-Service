@@ -141,6 +141,14 @@ namespace NpcMemoryService.Core.Models
         public int? CompanionAskingPrice { get; init; }
 
         /// <summary>
+        ///   The player's current gold, provided ONLY alongside
+        ///   <see cref="CompanionAskingPrice"/> so a recruitable NPC sizes up the
+        ///   player's means truthfully — refusing to seal a hire the player cannot pay
+        ///   (the game would silently reject it) instead of guessing at their purse.
+        /// </summary>
+        public int? PlayerPurseGold { get; init; }
+
+        /// <summary>
         ///   Produces a natural-language description of this encounter, suitable
         ///   for injection into the LLM system prompt. Returns an empty string
         ///   when all fields are Unknown.

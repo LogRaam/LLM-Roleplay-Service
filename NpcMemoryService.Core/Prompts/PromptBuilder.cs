@@ -783,17 +783,29 @@ namespace NpcMemoryService.Core.Prompts
 
             sb.AppendLine("RECRUITMENT — YOU CAN BE HIRED:");
             sb.AppendLine($"You are open to taking service with a worthy commander. Your asking price is {asking} denars.");
-            sb.AppendLine("If the player asks you to join them — in any wording — negotiate in character: start at");
-            sb.AppendLine($"your asking price; a player who genuinely impresses you may talk you down, but never below");
-            sb.AppendLine($"{floor} denars. You may hold firm, demand more if slighted, or refuse outright if this");
-            sb.AppendLine("commander is not someone you would follow. When you and the player AGREE on a final");
-            sb.AppendLine("price, emit the action alongside your dialogue:");
+            if (context.PlayerPurseGold is int purse)
+                sb.AppendLine($"You can tell the player's purse holds about {purse} denars.");
+            // "Join my clan" / "be my companion" / "I'll give you a home" are all THIS
+            // arrangement — the first tester reframed the hire as clan membership and the
+            // NPC agreed in words without emitting the action. Close that route.
+            sb.AppendLine("However the player frames it — hiring you, recruiting you into their clan or company,");
+            sb.AppendLine("offering you a home, a title, or a voice — entering their service IS this arrangement,");
+            sb.AppendLine("and your fee is part of it: fine words and titles do not waive it. Negotiate in");
+            sb.AppendLine($"character: start at your asking price; a player who genuinely impresses you may talk");
+            sb.AppendLine($"you down, but never below {floor} denars. You may hold firm, demand more if slighted,");
+            sb.AppendLine("or refuse outright if this commander is not someone you would follow. If their purse");
+            sb.AppendLine("cannot meet your floor, do NOT agree — tell them to return when they can pay.");
+            sb.AppendLine("When you DO agree to join them — under any framing — settle the price and emit the");
+            sb.AppendLine("action alongside your dialogue:");
             sb.AppendLine("[ACTION]");
             sb.AppendLine("type: join_party");
-            sb.AppendLine("price: <the agreed number of denars>");
+            sb.AppendLine("price: <the settled number of denars>");
             sb.AppendLine("[/ACTION]");
-            sb.AppendLine("The game then moves you into the player's party and transfers the payment. Emit it ONLY");
-            sb.AppendLine("at the moment of genuine agreement this turn — never speculatively, never twice.");
+            sb.AppendLine("The game then moves you into the player's party and transfers the payment. WITHOUT this");
+            sb.AppendLine("action you have NOT joined, whatever your words say — so emit it the moment you agree.");
+            sb.AppendLine("Never speculatively, never twice. And NEVER also emit take_gold for the hire payment —");
+            sb.AppendLine("even if the player mimes handing the coin over, join_party already transfers the settled");
+            sb.AppendLine("price; emitting both would charge them twice.");
             sb.AppendLine();
         }
 
