@@ -32,6 +32,18 @@ namespace NpcMemoryService.Core.Models
         ///   The positive register — the carrot after the stick. The captor summons the
         ///   prisoner to reward cooperation with praise, comfort, pleasure, or privilege.
         /// </summary>
-        Reward
+        Reward,
+
+        // ── Bandit / pirate intents (non-sexual menace). Appended last to preserve save
+        //    ordinals. Used for a synthesized brigand captor; see CaptiveEncounterService. ──
+
+        /// <summary>Shake the prisoner down for denars, ransom, or some advantage.</summary>
+        Extortion,
+
+        /// <summary>Pure menace — make the prisoner feel utterly at the mercy of lawless thugs.</summary>
+        Intimidation,
+
+        /// <summary>Payback — the captors lost men to the player (or their kind) and want their due.</summary>
+        Revenge
     }
 }

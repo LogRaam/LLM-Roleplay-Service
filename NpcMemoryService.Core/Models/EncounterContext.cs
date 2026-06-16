@@ -132,6 +132,50 @@ namespace NpcMemoryService.Core.Models
         public bool IsFinalSceneBeat { get; init; }
 
         /// <summary>
+        ///   The current dramatic stage of a captive scene, advanced by the host's scene director
+        ///   and injected as a single per-turn directive (Intro → Initiate → Intensify → Climax →
+        ///   Conclude). Steering the STRUCTURE from outside the model — one named beat at a time,
+        ///   with a reminder of what is already done — stops it looping a beat or cramming the arc.
+        /// </summary>
+        public CaptiveSceneStage SceneStage { get; init; } = CaptiveSceneStage.Intro;
+
+        /// <summary>
+        ///   Who is acting this beat: the lead captor, another single member of the band taking
+        ///   their turn, or the remaining members acting on the prisoner together at once.
+        /// </summary>
+        public CaptiveAggressorKind AggressorKind { get; init; } = CaptiveAggressorKind.Lead;
+
+        /// <summary>
+        ///   True when the player just resisted, negotiated, or otherwise intervened: the captor
+        ///   should REACT to it within the current beat rather than ignore it, but the scene's
+        ///   structure still holds.
+        /// </summary>
+        public bool ReactToPlayerIntervention { get; init; }
+
+        /// <summary>
+        ///   True when the captor is a faceless bandit/pirate rather than a named lord.
+        ///   Bandits live apart from the world of nobles: they do NOT know the player's
+        ///   name, clan, or titles. The prompt suppresses the player's identity and lets
+        ///   the bandit only SUSPECT high birth from outward signs (see
+        ///   <see cref="PlayerLooksWealthy"/> / <see cref="PlayerLooksImportant"/>).
+        /// </summary>
+        public bool CaptorIsBandit { get; init; }
+
+        /// <summary>
+        ///   True when the player's gear is rich enough that a captor could guess they are
+        ///   no common traveler (fine armor, a costly mount, a noble's weapons). Only used
+        ///   to shape a bandit captor's suspicion; never reveals the actual name.
+        /// </summary>
+        public bool PlayerLooksWealthy { get; init; }
+
+        /// <summary>
+        ///   True when the player carries enough political weight (high clan standing /
+        ///   influence) that word of someone important may have reached even the wilds —
+        ///   so a bandit might suspect a valuable, ransomable noble without knowing who.
+        /// </summary>
+        public bool PlayerLooksImportant { get; init; }
+
+        /// <summary>
         ///   The asking price (denars) for hiring this NPC into the player's party, when
         ///   they are a recruitable companion — computed game-side from the same model the
         ///   vanilla tavern hire uses. Null = not recruitable (a lord, a notable, already
@@ -141,10 +185,21 @@ namespace NpcMemoryService.Core.Models
         public int? CompanionAskingPrice { get; init; }
 
         /// <summary>
-        ///   The player's current gold, provided ONLY alongside
-        ///   <see cref="CompanionAskingPrice"/> so a recruitable NPC sizes up the
-        ///   player's means truthfully — refusing to seal a hire the player cannot pay
-        ///   (the game would silently reject it) instead of guessing at their purse.
+        ///   Ready-to-inject block describing a marriage the player could seek from THIS NPC's
+        ///   house: the unmarried, suitable kin of the NPC's clan (and the NPC themselves when
+        ///   eligible), built game-side so the NPC names only real, marriageable people. Null
+        ///   when a marriage request does not apply — the NPC is not their clan's head, has no
+        ///   eligible kin, the player is already wed, or this is the player's own clan. When
+        ///   present, the prompt teaches the NPC to grant or withhold the family's blessing.
+        /// </summary>
+        public string? MarriageProspects { get; init; }
+
+        /// <summary>
+        ///   DEPRECATED — intentionally left unfed (always null). It once told a recruitable
+        ///   NPC the player's exact gold so it would not seal an unaffordable hire, but an NPC
+        ///   cannot see the player's liquid coin and naming the sum to the denar broke
+        ///   immersion. Affordability is now enforced by the game bridge at execution time, not
+        ///   foreseen in the prompt. Kept only to preserve the model's shape; do not re-feed it.
         /// </summary>
         public int? PlayerPurseGold { get; init; }
 
@@ -192,6 +247,27 @@ namespace NpcMemoryService.Core.Models
 
             return string.Join(" ", parts);
         }
+    }
+
+    /// <summary>
+    ///   The dramatic beats of a captive scene, walked by the host's scene director. Each captor
+    ///   turn performs exactly one stage; the director advances it so the model cannot loop a beat.
+    /// </summary>
+    public enum CaptiveSceneStage
+    {
+        Intro,      // brought before the captor; intent stated, menace — no physical act yet
+        Initiate,   // the aggression begins — the first act
+        Intensify,  // escalation — a different / harder act, never a repeat
+        Climax,     // the aggressor finishes / reaches satisfaction
+        Conclude    // the scene wraps: prisoner removed, end_conversation
+    }
+
+    /// <summary>Who acts this beat in a (possibly collective) captive scene.</summary>
+    public enum CaptiveAggressorKind
+    {
+        Lead,          // the chief / lead captor
+        AnotherSingle, // another single member of the band takes their turn
+        GroupTogether  // the remaining members act on the prisoner together, at once
     }
 
     public enum PlayerStatusVsNpc

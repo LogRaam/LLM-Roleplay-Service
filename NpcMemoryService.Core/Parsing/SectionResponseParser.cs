@@ -109,7 +109,14 @@ namespace NpcMemoryService.Core.Parsing
             }
 
             // Safety net: drop any residual [DIALOGUE]/[/DIALOGUE] markers that slipped through.
-            return Regex.Replace(body, @"\[/?DIALOGUE\]", "", RegexOptions.IgnoreCase);
+            body = Regex.Replace(body, @"\[/?DIALOGUE\]", "", RegexOptions.IgnoreCase);
+
+            // Weaker models sometimes prefix the line with a stray bracketed label — their own
+            // name, or a tag they invented (e.g. "[Vesha the Crow]"). Legitimate dialogue uses
+            // *asterisks* for action, never [brackets], so strip any short stray bracketed token.
+            body = Regex.Replace(body, @"\[[^\]\n]{1,40}\]", "");
+
+            return body;
         }
 
         /// <summary>Returns the text up to the first recognized section boundary (or all of it).</summary>
@@ -260,7 +267,36 @@ namespace NpcMemoryService.Core.Parsing
                 TargetFaction = NullIfBlank(GetField(fields, "target_faction")),
                 DeadlineDays = deadline,
                 RewardGold = ClampNonNegative(TryParseSignedInt(fields, "reward_gold")),
-                RewardRelation = ClampNonNegative(TryParseSignedInt(fields, "reward_relation"))
+                RewardRelation = ClampNonNegative(TryParseSignedInt(fields, "reward_relation")),
+                Reward = fields.TryGetValue("reward_grant", out var grantStr)
+                    ? ParseRewardGrant(grantStr)
+                    : RewardGrant.None,
+                RequiredValue = ClampNonNegative(TryParseSignedInt(fields, "required_value")),
+                MarriageSpouse = NullIfBlank(GetField(fields, "spouse"))
+            };
+        }
+
+        /// <summary>
+        ///   Maps the LLM's reward-grant token to a <see cref="RewardGrant" />. Returns
+        ///   <see cref="RewardGrant.None" /> for an unrecognized or absent token — an
+        ///   ordinary gold/relation quest.
+        /// </summary>
+        private static RewardGrant ParseRewardGrant(string raw)
+        {
+            var v = raw.TrimStart('#').Trim().ToLowerInvariant();
+
+            if (Enum.TryParse(v, true, out RewardGrant direct)) return direct;
+
+            return v switch {
+                "join_party" or "join" or "recruit" or "take_service"
+                    or "companion" or "service"                      => RewardGrant.JoinParty,
+                "give_item" or "gift_item" or "hand_over_item"        => RewardGrant.GiveItem,
+                "give_troops" or "grant_troops" or "lend_troops"      => RewardGrant.GiveTroops,
+                "marriage_consent" or "marriage" or "marry"
+                    or "consent_marriage" or "betrothal"             => RewardGrant.MarriageConsent,
+                "release_prisoner" or "free_prisoner"
+                    or "hand_over_prisoner"                          => RewardGrant.ReleasePrisoner,
+                _ => RewardGrant.None
             };
         }
 
@@ -326,6 +362,8 @@ namespace NpcMemoryService.Core.Parsing
                     or "give_gold_quest"                             => QuestType.ProvideGold,
                 "scout_army" or "scout" or "spy_army"
                     or "locate_army" or "find_army"                  => QuestType.ScoutArmy,
+                "deliver_items" or "deliver_goods" or "give_items"
+                    or "pay_in_goods" or "barter_items"              => QuestType.DeliverItems,
                 _ => (QuestType?)null
             };
         }

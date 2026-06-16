@@ -10,5 +10,11 @@ namespace NpcMemoryService.Core.Models
         public string? Season           { get; init; }
         public string? ActiveConflicts  { get; init; }
         public string? Rumors           { get; init; }
+
+        /// <summary>
+        ///   The current part of the day (e.g. "morning", "afternoon", "evening", "night"),
+        ///   so a scene's lighting and ambiance match vanilla time. Null when unknown.
+        /// </summary>
+        public string? TimeOfDay        { get; init; }
     }
 }

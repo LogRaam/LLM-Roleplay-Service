@@ -46,6 +46,19 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
         public Func<string>? BaseUrlProvider { get; init; }
 
         /// <summary>
+        ///   Live resolver for the model's reasoning effort, invoked on every request. Returns a
+        ///   keyword the client maps onto OpenRouter's <c>reasoning</c> parameter:
+        ///   <list type="bullet">
+        ///     <item><c>off</c>/<c>none</c>/<c>disabled</c> → <c>reasoning.enabled = false</c>;</item>
+        ///     <item><c>minimal</c>/<c>low</c>/<c>medium</c>/<c>high</c> → <c>reasoning.effort</c>;</item>
+        ///     <item>null/empty/<c>default</c> → omit the field (model default).</item>
+        ///   </list>
+        ///   Lowering or disabling reasoning makes some models (notably Grok) markedly less
+        ///   prone to moralizing refusals on consensual adult fiction.
+        /// </summary>
+        public Func<string?>? ReasoningProvider { get; init; }
+
+        /// <summary>
         ///   Live resolver deciding whether the system prompt is sent as a content array
         ///   carrying the Anthropic-style <c>cache_control: ephemeral</c> breakpoint
         ///   (OpenRouter honors it; some aggregators reject the array form). When it
@@ -62,6 +75,9 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
 
         /// <summary>Resolves the base URL at call time: the live provider first, then the static value.</summary>
         public string ResolveBaseUrl() => BaseUrlProvider?.Invoke() ?? BaseUrl;
+
+        /// <summary>Resolves the reasoning keyword at call time. Null = omit (model default).</summary>
+        public string? ResolveReasoning() => ReasoningProvider?.Invoke();
 
         /// <summary>
         ///   Resolves whether to emit the cacheable system-prompt content array.

@@ -57,6 +57,16 @@ namespace NpcMemoryService.Core.Models
         ///   (troop count, cavalry ratio, notable lords), and report back. Verified by
         ///   proximity to an active army on the campaign map — no battle required.
         /// </summary>
-        ScoutArmy
+        ScoutArmy,
+
+        /// <summary>
+        ///   Hand over goods worth at least a required denar value to the quest giver. The
+        ///   deed of the negotiation framework's item-barter: instead of paying in coin, the
+        ///   player delivers items of equivalent (premium) value. Verified by a hand-over in
+        ///   conversation (the bridge tallies the items' denar value), never by the LLM's
+        ///   word. The required value is computed game-side from the reward's worth.
+        ///   Appended last to preserve the integer ordinals of the values above in old saves.
+        /// </summary>
+        DeliverItems
     }
 }

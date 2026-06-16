@@ -36,5 +36,27 @@ namespace NpcMemoryService.Core.Models
 
         /// <summary>Personal-relation gain the giver promises on completion. Zero when none.</summary>
         public int RewardRelation { get; init; }
+
+        /// <summary>
+        ///   The non-monetary favor the giver offers on completion (the negotiation
+        ///   framework's reward side), or <see cref="RewardGrant.None" /> for an ordinary
+        ///   quest. The consumer validates it can be honored before persisting.
+        /// </summary>
+        public RewardGrant Reward { get; init; } = RewardGrant.None;
+
+        /// <summary>
+        ///   For a <see cref="QuestType.DeliverItems" /> deed whose reward is NOT a
+        ///   computed-value grant: the denar value of goods the giver asks for, in the
+        ///   LLM's words. Ignored (and recomputed game-side) when the reward's worth sets
+        ///   the floor, e.g. paying for a companion's service in kind.
+        /// </summary>
+        public int RequiredValue { get; init; }
+
+        /// <summary>
+        ///   For a <see cref="RewardGrant.MarriageConsent" /> bargain: the name of the intended
+        ///   spouse the blessing covers (the candidate the player asked after), as the LLM wrote
+        ///   it. Resolved and validated game-side. Null for non-marriage bargains.
+        /// </summary>
+        public string? MarriageSpouse { get; init; }
     }
 }

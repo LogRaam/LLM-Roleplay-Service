@@ -63,6 +63,33 @@ namespace NpcMemoryService.Core.Models
         /// <summary>Personal-relation gain granted on completion. Zero when none promised.</summary>
         public int RewardRelation { get; set; }
 
+        /// <summary>
+        ///   The non-monetary favor the giver honors on completion (join the party, consent
+        ///   to a marriage, hand something over) — the negotiation framework's reward side.
+        ///   <see cref="RewardGrant.None" /> for an ordinary gold/relation quest. The bridge
+        ///   validates and executes it; an unsupported grant is declined in-game.
+        /// </summary>
+        public RewardGrant Reward { get; set; } = RewardGrant.None;
+
+        /// <summary>
+        ///   For a <see cref="QuestType.DeliverItems" /> deed: the minimum total denar value
+        ///   of goods the player must hand over. Computed game-side (e.g. twice a companion's
+        ///   hiring price when paying for service in kind), never trusted to the LLM. Zero
+        ///   for non-item deeds.
+        /// </summary>
+        public int RequiredItemValue { get; set; }
+
+        /// <summary>
+        ///   For a <see cref="RewardGrant.MarriageConsent" /> bargain: the hero whose hand the
+        ///   blessing covers — the intended spouse, distinct from the deed's <see cref="TargetHeroId" />
+        ///   (which may name a rival to capture, a town to take, etc.). The blessing is recorded for
+        ///   this person on completion. Null for non-marriage bargains.
+        /// </summary>
+        public string? MarriageSpouseId { get; set; }
+
+        /// <summary>Display name of <see cref="MarriageSpouseId" />.</summary>
+        public string? MarriageSpouseName { get; set; }
+
         /// <summary>Lifecycle state. See <see cref="QuestStatus" />.</summary>
         public QuestStatus Status { get; set; } = QuestStatus.Active;
 

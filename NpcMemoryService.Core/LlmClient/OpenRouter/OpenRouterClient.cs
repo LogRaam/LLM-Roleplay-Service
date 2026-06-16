@@ -199,12 +199,45 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
                     content = msg.Content
                 });
 
-            return new {
-                model = _config.ResolveModel(),
-                messages,
-                temperature = (double) request.Parameters.Creativity,
-                max_tokens = request.Parameters.MaxTokens
+            var payload = new Dictionary<string, object> {
+                ["model"] = _config.ResolveModel() ?? string.Empty,
+                ["messages"] = messages,
+                ["temperature"] = (double) request.Parameters.Creativity,
+                ["max_tokens"] = request.Parameters.MaxTokens
             };
+
+            // OpenRouter reasoning control: lowering or disabling reasoning cuts moralizing
+            // refusals on consensual adult fiction (see OpenRouterConfig.ReasoningProvider).
+            object? reasoning = BuildReasoning(_config.ResolveReasoning());
+            if (reasoning != null) payload["reasoning"] = reasoning;
+
+            return payload;
+        }
+
+        /// <summary>
+        ///   Maps a reasoning keyword to OpenRouter's <c>reasoning</c> object, or null to omit it
+        ///   entirely (the model's default). <c>off/none/disabled</c> turns reasoning off;
+        ///   <c>minimal/low/medium/high</c> sets the effort level.
+        /// </summary>
+        private static object? BuildReasoning(string? setting)
+        {
+            if (string.IsNullOrWhiteSpace(setting)) return null;
+            string keyword = setting!.Trim().ToLowerInvariant();
+            switch (keyword)
+            {
+                case "off":
+                case "none":
+                case "disabled":
+                case "false":
+                    return new {enabled = false};
+                case "minimal":
+                case "low":
+                case "medium":
+                case "high":
+                    return new {effort = keyword};
+                default: // "default" or anything unrecognized → let the model decide
+                    return null;
+            }
         }
 
         #endregion

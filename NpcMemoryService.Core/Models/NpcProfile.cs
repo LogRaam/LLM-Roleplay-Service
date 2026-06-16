@@ -40,6 +40,14 @@ namespace NpcMemoryService.Core.Models
         public string? MemoryDigest { get; set; }
 
         public required string Name { get; init; }
+
+        /// <summary>
+        ///   This NPC's sex, mirrored from the live hero. Stated plainly in the prompt's identity
+        ///   line so the LLM never has to guess pronouns (a female NPC was once narrated as "his").
+        ///   Refreshed each session, so profiles created before this field are corrected on load.
+        /// </summary>
+        public bool IsFemale { get; set; }
+
         public string? Personality { get; set; }
 
         /// <summary>
