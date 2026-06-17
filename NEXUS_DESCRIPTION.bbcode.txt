@@ -224,4 +224,9 @@ CompressionResult c = await compressor.CompressAsync(npc);
 [size=4][b]License & support[/b][/size]
 See the bundled documentation ([b]DESIGN.md[/b] for architecture notes; the ConsoleRunner for a working example). Questions, bug reports, and integration feedback are welcome in the [b]Posts[/b] tab. If you ship something with it, I'd love to hear about it.
 
+[size=4][b]Source code & contributing[/b][/size]
+[b]Public repository:[/b] [url=https://github.com/LogRaam/LLM-Roleplay-Service]github.com/LogRaam/LLM-Roleplay-Service[/url]
+
+The source is public to read, study, and learn from. [b]Pull requests can be opened only by approved contributors[/b] — unsolicited PRs from the general public are not accepted. That said, [b]I am open to new contributions[/b]: if you'd like to help shape the SDK, just get in touch (here in the [b]Posts[/b] tab or on GitHub) and we'll discuss how to get you set up.
+
 [center][i]Built for, and proven by, [b]Calradia Remembers[/b].[/i][/center]
