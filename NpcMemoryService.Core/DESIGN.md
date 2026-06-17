@@ -5,7 +5,7 @@ limitations of the NpcMemoryService SDK. It is intended for project maintainers,
 modders who consume the library, and future contributors evaluating extensions.
 
 It is **not** an API reference (the code carries that responsibility through XML
-documentation) nor a usage guide (see `README.md`).
+documentation) nor a usage guide (see the repository `README.md`).
 
 ---
 
@@ -113,6 +113,36 @@ the `save` command triggers it.
 
 The `JsonFileNpcMemoryStore` implementation uses temp-file + rename for atomic
 commits, and prunes orphan files for removed profiles.
+
+### 2.6.1. Resilient single-blob serialization
+
+`JsonFileNpcMemoryStore` gets crash-isolation for free: one file per NPC means a
+corrupt or un-round-trippable profile costs at most that one file. Consumers that
+persist every profile as a **single blob** — a game's native save slot
+(Bannerlord's `IDataStore`), a config string, a database column — have no such
+natural isolation: one bad profile in the blob can make the entire memory
+unreadable, which for a save-embedded store means a campaign that won't load.
+
+`ResilientProfileBundle` (in `Storage`) is the engine-agnostic kernel for that case:
+
+- **`Serialize`** proves each profile survives a full serialize→deserialize
+  round-trip *before* including it; any that cannot is dropped and reported through
+  a `DroppedProfileHandler` callback. The returned document is always valid.
+- **`Deserialize`** parses the outer document as raw tokens, then materializes each
+  entry individually; a single malformed entry is skipped and reported through a
+  `SkippedProfileHandler`. A malformed *outer* document still throws, leaving the
+  recovery decision to the consumer.
+
+The helper never references a game API. A consumer wraps the string in whatever its
+host save system expects — the Bannerlord store, for instance, encodes it as a
+UTF-8 `byte[]` to dodge the native string-length ceiling and hands that to
+`IDataStore`. The fragile part is written and tested once in the SDK; each store
+keeps only its own thin bridge.
+
+This pattern was extracted from the Bannerlord store after a production bug where
+the native string serializer corrupted saves past ~65535 bytes once many NPCs were
+remembered. The `byte[]` bridge solved the size ceiling; this helper is the
+reusable resilience layer that travels with it.
 
 ### 2.7. Prompt caching via section ordering
 

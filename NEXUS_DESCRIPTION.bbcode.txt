@@ -1,0 +1,227 @@
+[center][size=6][b]NpcMemoryService — LLM Memory & Roleplay SDK[/b][/size]
+[size=4][i]Give your NPCs a memory. Let your players talk to them.[/i][/size]
+[line][/center]
+
+[size=5][b]A) What is this?[/b][/size]
+
+[b]NpcMemoryService[/b] is a modding SDK (a C# library, not a playable mod) that lets you wire a Large Language Model — Grok, Claude, GPT, Llama, and many others — into your game so that NPCs can [b]hold real conversations[/b] with the player and, crucially, [b]remember those conversations across the entire campaign[/b].
+
+Most LLM-driven NPC mods share one structural flaw: the model has no durable recollection between encounters, so every conversation resets the character. The differentiator of this SDK is [b]memory that persists across the whole campaign[/b] and [b]shapes the LLM's behaviour at every single dialogue turn[/b]. Talk to a lord today, betray him next week, and he will greet you accordingly — months of game-time later.
+
+[i](How that memory is stored is up to you — the SDK ships a ready-made store and never touches your game's own save format. See "Persistence" below.)[/i]
+
+This is the same engine that powers my Bannerlord mod [b]Calradia Remembers[/b]. I extracted and packaged the reusable core so other modders can build on it instead of reinventing it.
+
+[line]
+
+[size=5][b]B) Why it exists — a quality tool for modders[/b][/size]
+
+Building LLM integration that actually feels good is a lot of unglamorous work: a stable response protocol, tolerant parsing, prompt assembly, prompt caching to keep costs sane, persistence that survives a crash mid-conversation, and memory that doesn't grow without bound. Getting that wrong gives you NPCs that contradict themselves, blow up your token bill, or corrupt saves.
+
+The goal of this SDK is to hand modders a [b]production-grade, battle-tested foundation[/b] for two things:
+
+[list]
+[*][b]Memory[/b] — persistent, semantically rich, per-NPC recollection that is injected into the model on every turn and compacted automatically as it grows.
+[*][b]Conversation[/b] — clean orchestration of a dialogue turn end-to-end (build prompt → call model → parse → update state), with a structured output protocol that lets the LLM both [i]speak[/i] and [i]drive game logic[/i].
+[/list]
+
+Everything is designed around real-world failure modes I hit shipping a live mod — token limits, save corruption from oversized memory blobs, provider quirks, models inventing characters — and the safeguards for them are already baked in.
+
+[line]
+
+[size=5][b]C) Engine-agnostic — not just for Bannerlord[/b][/size]
+
+Although I built this SDK to power a Mount & Blade II: Bannerlord mod, [b]the core has zero dependency on any game engine, UI toolkit, or DI container[/b].
+
+[list]
+[*]The core library targets [b].NET Standard 2.0[/b], so it loads in Bannerlord's .NET Framework runtime, in modern .NET, and in Unity-class environments alike.
+[*]Its only dependency is [b]Newtonsoft.Json 13.0.1[/b] (the exact version Bannerlord already ships, so there's no binding conflict — and nothing exotic for other hosts).
+[*]All game-specific concepts (what an "action" does, how reputation changes, what a scene looks like) are [b]defined by you, the consumer[/b], not hard-coded by the SDK.
+[/list]
+
+If your game (or your engine, or your standalone tool) can make an HTTP call and run C#, [b]it can use this SDK[/b]. A visual novel, an RPG, a tabletop companion app, a Unity project — the memory and conversation core does not care.
+
+[line]
+
+[size=5][b]D) What you can do with it[/b][/size]
+
+[b]Persistent, per-NPC memory[/b]
+[list]
+[*]Each NPC carries a profile with long-term [b]notable events[/b] in natural language ("The player betrayed me at Sargot"), surfaced to the model every turn.
+[*]A per-NPC [b]reputation/opinion score[/b], distinct from any clan- or faction-level standing.
+[*][b]Discovered traits[/b] — facts an NPC gradually reveals about themselves as they open up, de-duplicated automatically.
+[*][b]Background context[/b] — a prose summary that preserves the gist of older memories after they're compressed away.
+[*]Memory is serialized to JSON and flushed to storage whenever you choose — typically when the host game saves.
+[/list]
+
+[b]Full conversation orchestration[/b]
+[list]
+[*]One call — [b]ChatAsync[/b] — runs an entire dialogue turn: assembles the system prompt from the NPC's identity + memory + world state, calls the model, parses the reply, and updates the running session.
+[*]Per-encounter [b]chat sessions[/b] that reset cleanly at the end of an encounter, while long-term memory persists.
+[*][b]Encounter context[/b] injection for volatile, per-meeting state (current war, player standing, time since you last met) without baking it into the persistent profile.
+[/list]
+
+[b]A structured response protocol that does more than talk[/b]
+The model replies in tolerant, bracketed sections, each parsed into typed data:
+[list]
+[*][b][DIALOGUE][/b] — what the NPC says.
+[*][b][NARRATION][/b] — second-person scene narration of physical actions/events.
+[*][b][EVENT][/b] — a significant moment to commit to long-term memory.
+[*][b][REPUTATION][/b] — a change in how the NPC feels about the player.
+[*][b][ACTION][/b] — a command to your game engine (see below).
+[*][b][QUEST] / [QUEST_COMPLETE] / [QUEST_ABANDON][/b] — informal quests the NPC offers, acknowledges as done, or recognises you abandoned.
+[*][b][WITNESS_REACTION][/b] — visible reactions from other characters present.
+[/list]
+Missing sections degrade to null, malformed sections are skipped, sibling sections survive — a flaky model never breaks your turn.
+
+[b]Narrative-to-mechanical bridge (game actions)[/b]
+[list]
+[*]The [b][ACTION][/b] channel lets the LLM request concrete changes in your world — imprison the player, hand over gold, gift an item, start a fight, schedule a follow-up.
+[*][b]You define the action vocabulary[/b] in plain language; the model only emits actions you told it exist. Unknown actions are ignored gracefully.
+[*]Multiple actions per turn are allowed, each with a free-form parameter bag — extend your vocabulary without ever touching the SDK.
+[/list]
+
+[b]Letters & correspondence[/b]
+[list]
+[*]NPCs can send the player letters; the player can write back. In-transit, delivered, and replied states are all tracked and injected into the prompt at the right moment.
+[/list]
+
+[b]Optional romantic / relationship layer[/b]
+[list]
+[*]An opt-in romantic profile (orientation, preferences, status) with a configurable adult-content level — disabled entirely if you don't want it.
+[/list]
+
+[b]Cost & performance engineering[/b]
+[list]
+[*][b]Prompt caching[/b] by design: prompt sections are ordered most-stable-first to maximise provider prefix-cache hits (observed [b]90–95% of prompt tokens served from cache[/b] after the first turn with Grok).
+[*][b]LLM-driven memory compression[/b]: when an NPC's history grows large, the model identifies superseded events and folds them into a background summary — with a safety net that [i]always[/i] preserves first meetings, recent events, and narratively critical moments (betrayals, intimacy, agreements, partings).
+[/list]
+
+[b]Persistence — bring your own save system[/b]
+[list]
+[*]The SDK [b]never reads or writes your game's native save file[/b]. All persistence sits behind one interface, [b]INpcMemoryStore[/b], with just two hooks: load (on game load) and commit (on game save).
+[*]It ships with a ready-to-use [b]JSON file store[/b] — one file per NPC — that works in any host out of the box, on any platform.
+[*]Want the memory embedded inside your game's own save instead (as the Bannerlord mod does)? Implement [b]INpcMemoryStore[/b] yourself and point [b]CommitAsync[/b] at your save event — nothing else in the SDK changes. This is what keeps the core fully engine-agnostic.
+[/list]
+
+[b]Crash-safe persistence[/b]
+[list]
+[*]Unit-of-Work store: in-memory working set, explicit commit. A crash mid-conversation leaves [b]no partial state[/b] on disk.
+[*]The bundled JSON store writes each profile to a temp file and atomically renames it into place, so an interrupted save can never corrupt existing data; it also prunes orphaned profiles.
+[/list]
+
+[b]Provider flexibility[/b]
+[list]
+[*]Ships with an [b]OpenRouter[/b] adapter, giving you access to dozens of models (xAI Grok, Anthropic Claude, OpenAI GPT, Meta Llama, and more) behind a single API key.
+[*]An anti-corruption layer ([b]ILlmClient[/b]) isolates the rest of the system from any provider, so adding a local model (e.g. Ollama) or a new vendor means writing one small adapter — nothing else changes.
+[/list]
+
+[line]
+
+[size=5][b]E) Tutorial — getting started[/b][/size]
+
+[b]1. Add the library[/b]
+Reference [b]NpcMemoryService.Core[/b] (and Newtonsoft.Json 13.0.1) from your mod project. The included [b]ConsoleRunner[/b] project is a complete, runnable reference harness — its [i]Main()[/i] shows the full wiring described below.
+
+[b]2. Get an API key[/b]
+Create an [b]OpenRouter[/b] account, generate an API key, and expose it to your game however you prefer (environment variable, config file, in-game settings menu). [b]Never hard-code or commit your key.[/b]
+
+[b]3. Wire up the services (once, at startup)[/b]
+[code]
+// --- LLM provider ---
+var llmConfig = new OpenRouterConfig
+{
+    ApiKey = GetYourApiKeySomehow(),
+    Model  = "x-ai/grok-4.20"   // any OpenRouter model id
+};
+var http      = new HttpClient();
+var llmClient = new OpenRouterClient(http, llmConfig);
+
+// --- Parsing + prompt assembly ---
+var parser = new SectionResponseParser();
+var promptBuilder = new PromptBuilder
+{
+    // Tell the model which game actions it may request.
+    // YOU decide what each one means in your game.
+    ActionVocabulary = new List&lt;GameActionDefinition&gt;
+    {
+        new() { Type = "imprison",   Description = "Take the player prisoner." },
+        new() { Type = "give_money", Description = "Give denars to the player.",
+                Parameters = new[] { "amount" } },
+        // ...add as many as your game supports
+    }
+};
+
+// --- Orchestration + persistence ---
+var chatService = new NpcChatService(llmClient, parser, promptBuilder);
+var store       = new JsonFileNpcMemoryStore(
+                      new JsonFileStoreConfig { Directory = "npc-data" });
+await store.InitializeAsync();
+[/code]
+
+[b]4. Load (or create) an NPC and run a turn[/b]
+[code]
+NpcProfile npc = store.Get("npc_raganvad") ?? new NpcProfile
+{
+    Id          = "npc_raganvad",
+    Name        = "Raganvad",
+    Faction     = "Sturgia",
+    Clan        = "Vagiroving",
+    Personality = "Proud, honorable Sturgian king. Values loyalty above all."
+};
+
+var world   = new WorldState { CurrentDay = 142,
+                               ActiveConflicts = "At war with the Western Empire." };
+var session = new ChatSession();   // one per encounter
+
+NpcChatResult result = await chatService.ChatAsync(
+    npc, world, session, "My king, I've come to pledge my sword.");
+
+if (result.IsSuccess)
+{
+    ParsedResponse r = result.Response!;
+    Display(npc.Name, r.Dialogue);          // show what he says
+
+    // Execute any actions the model requested:
+    foreach (GameAction a in r.Actions)
+        ExecuteInYourGame(a);                // a.Type + a.Parameters
+
+    // Commit memory/reputation/event to the profile (in memory only):
+    npc.ApplyConversationResult(r, world.CurrentDay);
+    store.Set(npc);
+}
+[/code]
+
+[b]5. End the encounter & persist[/b]
+[code]
+// When the model emits a Farewell event, the encounter is over:
+if (result.Response?.NewEventData?.Type == NotableEventType.Farewell)
+    session = new ChatSession();   // clear per-encounter history; memory persists
+
+// Call this from your game's SAVE event to flush memory to storage:
+await store.CommitAsync();
+[/code]
+
+[b]6. (Optional) Compress memory as it grows[/b]
+[code]
+var compressor = new LlmMemoryCompressor(llmClient);
+CompressionResult c = await compressor.CompressAsync(npc);
+// Apply c.KeptEvents + c.BackgroundSummary back onto the profile.
+// Critical events are preserved automatically.
+[/code]
+
+[b]That's the whole loop.[/b] Map [b][ACTION][/b] directives to your engine's API, feed live game state into [b]WorldState[/b]/[b]EncounterContext[/b], hook [b]CommitAsync[/b] to your save system — and your NPCs now remember.
+
+[line]
+
+[size=4][b]Requirements[/b][/size]
+[list]
+[*].NET Standard 2.0-compatible host (Bannerlord, modern .NET, etc.)
+[*]Newtonsoft.Json 13.0.1
+[*]An OpenRouter API key (or your own ILlmClient adapter)
+[/list]
+
+[size=4][b]License & support[/b][/size]
+See the bundled documentation ([b]DESIGN.md[/b] for architecture notes; the ConsoleRunner for a working example). Questions, bug reports, and integration feedback are welcome in the [b]Posts[/b] tab. If you ship something with it, I'd love to hear about it.
+
+[center][i]Built for, and proven by, [b]Calradia Remembers[/b].[/i][/center]

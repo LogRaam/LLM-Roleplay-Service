@@ -45,7 +45,7 @@ namespace NpcMemoryService.ConsoleRunner
                 ApiKey = Environment.GetEnvironmentVariable("OPENROUTER_API_KEY")
                          ?? throw new InvalidOperationException(
                              "Set the OPENROUTER_API_KEY environment variable."),
-                Model  = "x-ai/grok-4.3"
+                Model  = "x-ai/grok-4.20"
             };
 
             var storeConfig = new JsonFileStoreConfig
