@@ -61,5 +61,13 @@ namespace NpcMemoryService.Core.Models
 
       /// <summary>Sprint 12d — true when the reply courier was destroyed in transit.</summary>
       public bool IsLost { get; set; }
+
+      /// <summary>
+      ///   True once an <see cref="LetterReason.AwaitingReply"/> follow-up has been
+      ///   queued for this unanswered letter. Stored on the original letter so the guard
+      ///   survives even when the follow-up placeholder is later removed (LLM failure or
+      ///   session-reload orphan cleanup).
+      /// </summary>
+      public bool FollowUpSent { get; set; }
    }
 }
