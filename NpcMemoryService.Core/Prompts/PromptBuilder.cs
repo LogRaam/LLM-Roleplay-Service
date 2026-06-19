@@ -114,12 +114,34 @@ namespace NpcMemoryService.Core.Prompts
             AppendPlayerLetters(sb, npc);
             AppendWitnesses(sb, encounterContext);
             AppendRecruitment(sb, encounterContext);
+            AppendMercenaryOffer(sb, encounterContext);
+            AppendLoveMatchProposal(sb, encounterContext);
+            AppendConsortProposal(sb, encounterContext);
             AppendGiveItem(sb, encounterContext);
             AppendMarriage(sb, encounterContext);
             // ── Dynamic world state (changes each turn) ──────────────────────────
             AppendWorldState(sb, world);
             AppendEncounterContext(sb, encounterContext);
+            AppendPowerBalance(sb, encounterContext);
             AppendPlayerGenderContext(sb, npc, encounterContext);
+            AppendLanguageMirror(sb);
+            return sb.ToString();
+        }
+
+        /// <summary>
+        ///   Builds a slim system prompt for a transient commoner NPC.
+        ///   Only settlement knowledge, commoner behavior rules, rumor fragments, and
+        ///   the language mirror are injected — no identity, romantic, quest, or witness
+        ///   sections.
+        /// </summary>
+        public string BuildCommonerSystemPrompt(NpcProfile profile, CommonsKnowledge knowledge)
+        {
+            StringBuilder sb = new StringBuilder();
+            AppendCommonerIdentity(sb, profile, knowledge);
+            AppendCommonerRules(sb);
+            AppendCommonerRumors(sb, knowledge);
+            AppendCommonerTakeGold(sb);
+            AppendLanguageMirror(sb);
             return sb.ToString();
         }
 
@@ -927,6 +949,73 @@ namespace NpcMemoryService.Core.Prompts
         }
 
         /// <summary>
+        ///   Taught only when the NPC THEMSELVES is a viable marriage candidate (Phase A.3):
+        ///   player single, NPC eligible by sex/age/clan, and personal relation ≥ 50.
+        ///   Either party may propose; the action fires only on unambiguous mutual consent.
+        ///   The family-blessing state is surfaced so the NPC can weave it into their words.
+        /// </summary>
+        private static void AppendLoveMatchProposal(StringBuilder sb, EncounterContext? context)
+        {
+            if (context?.LoveMatchEligible != true) return;
+
+            sb.AppendLine("MARRIAGE — THE BOND BETWEEN YOU AND THE PLAYER:");
+            if (context.LoveMatchBlessed)
+                sb.AppendLine("Your family has already given their blessing to a union between you and the player.");
+            else
+                sb.AppendLine("Your family has not been formally consulted about a match — their blessing is still unearned.");
+            sb.AppendLine();
+            sb.AppendLine("What exists between you has grown to where marriage is no longer an empty word.");
+            sb.AppendLine("You may propose, or accept a proposal, if this conversation and the story you have");
+            sb.AppendLine("lived together make it feel like the natural next step.");
+            sb.AppendLine();
+            sb.AppendLine("This is not a light thing. In Calradia marriage is binding — there is no parting");
+            sb.AppendLine("except by death. Only go there if everything between you makes it a certainty,");
+            sb.AppendLine("not a whim. Never propose in a first conversation, on vague interest, or as a");
+            sb.AppendLine("casual gesture. Wait for the moment the words cannot mean anything else.");
+            sb.AppendLine();
+            sb.AppendLine("When BOTH of you have clearly, unambiguously agreed — emit:");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: marry");
+            sb.AppendLine("[/ACTION]");
+            if (!context.LoveMatchBlessed)
+            {
+                sb.AppendLine("Without the family's blessing, wedding the player will chill your kin's regard for");
+                sb.AppendLine("them. That is the price of love over politics — and a story worth telling.");
+            }
+
+            sb.AppendLine();
+        }
+
+        /// <summary>
+        ///   Taught only when the NPC is a lord and the player's clan is free of any
+        ///   kingdom obligation (<see cref="EncounterContext.MercenaryOfferKingdom"/> non-null).
+        ///   Either side can raise the topic; the action fires on clear mutual agreement only.
+        /// </summary>
+        private static void AppendMercenaryOffer(StringBuilder sb, EncounterContext? context)
+        {
+            string? kingdom = context?.MercenaryOfferKingdom;
+            if (string.IsNullOrWhiteSpace(kingdom)) return;
+            sb.AppendLine($"MERCENARY SERVICE — YOU CAN OFFER THE PLAYER A CONTRACT UNDER {kingdom!.ToUpperInvariant()}:");
+            sb.AppendLine($"You serve {kingdom}. You have the standing to extend a mercenary contract on your");
+            sb.AppendLine("kingdom's behalf — paid service under the banner, with no oath of fealty required.");
+            sb.AppendLine("A mercenary fights for coin, not loyalty, and may part ways when the contract ends.");
+            sb.AppendLine();
+            sb.AppendLine("You may raise this yourself if the moment calls for it: the realm is at war, you need");
+            sb.AppendLine("reliable swords, or you size up the player as someone worth recruiting. Or respond");
+            sb.AppendLine("naturally if they are the ones who propose it.");
+            sb.AppendLine();
+            sb.AppendLine("When both parties have clearly agreed — and only then — emit:");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: join_as_mercenary");
+            sb.AppendLine("[/ACTION]");
+            sb.AppendLine("The game enrolls the player's clan into your kingdom's mercenary service immediately.");
+            sb.AppendLine("Do NOT emit this action speculatively, as a suggestion, or twice. Wait for explicit");
+            sb.AppendLine("mutual agreement. If the player is already sworn to another lord, remind them they");
+            sb.AppendLine("must settle that obligation before they can take a new contract.");
+            sb.AppendLine();
+        }
+
+        /// <summary>
         ///   Teaches the give_item action. Shown whenever the player is not the captive
         ///   (a prisoner cannot hand items from their inventory). The player uses the
         ///   in-chat item picker to pre-fill the offer text; the LLM then decides to
@@ -990,6 +1079,58 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("   mere claim that it was.");
             sb.AppendLine("A blessing, granted or earned, makes the player's clan a real ally of yours — it is your political");
             sb.AppendLine("consent to the union, not the wedding itself. Only ever for a person named above.");
+            sb.AppendLine("You may raise the prospect of an alliance yourself if the moment and your esteem for the player invite it.");
+            sb.AppendLine();
+        }
+
+        /// <summary>
+        ///   Consort-bond section. Rendered when <see cref="EncounterContext.ConsortEligible" />
+        ///   is true — the NPC and player have reached a depth of connection where a formal but
+        ///   non-legal commitment is conceivable. Available even when the player is already wed.
+        ///   Teaches the <c>take_as_consort</c> action; never conflicts with the legal-marriage
+        ///   path because the consort bond does not involve the game's marriage engine.
+        /// </summary>
+        private static void AppendConsortProposal(StringBuilder sb, EncounterContext? context)
+        {
+            if (context?.ConsortEligible != true) return;
+            if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+
+            sb.AppendLine("CONSORT BOND — THE COMMITMENT BETWEEN YOU:");
+            sb.AppendLine("What has grown between you goes beyond desire. You have reached a depth where");
+            sb.AppendLine("naming it openly is no longer unthinkable.");
+            sb.AppendLine();
+            sb.AppendLine("A consort bond is not legal marriage. No priest names it, no clan council approves it,");
+            sb.AppendLine("and the law of Calradia does not bind it. It is a private and mutual commitment — real");
+            sb.AppendLine("intimacy that both of you acknowledge and honour. Powerful men and women in Calradia");
+            sb.AppendLine("have long kept such bonds alongside or instead of arranged marriages.");
+            sb.AppendLine();
+            sb.AppendLine("You may propose this yourself if this conversation, and the story you have lived");
+            sb.AppendLine("together, makes it feel like the honest next step. Or accept it, if the player proposes.");
+            sb.AppendLine();
+            sb.AppendLine("This is a real commitment — not an impulsive gesture. Only go there when you are both");
+            sb.AppendLine("clearly and explicitly agreeing. When that moment arrives, emit:");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: take_as_consort");
+            sb.AppendLine("[/ACTION]");
+            sb.AppendLine("Never emit it speculatively, as a hint, or twice. The bond, once named, is real.");
+            sb.AppendLine();
+        }
+
+        /// <summary>
+        ///   Injects a power-balance note when the game-side resolver detected a meaningful
+        ///   asymmetry between the player's realm and the NPC's position. Only emitted when
+        ///   the imbalance is large enough to matter — roughly even situations produce no note.
+        ///   Placed just after the encounter context so the NPC reads it as situational fact.
+        /// </summary>
+        private static void AppendPowerBalance(StringBuilder sb, EncounterContext? context)
+        {
+            if (string.IsNullOrWhiteSpace(context?.PowerBalanceNote)) return;
+
+            sb.AppendLine("POWER BALANCE:");
+            sb.AppendLine(context!.PowerBalanceNote);
+            sb.AppendLine("Factor this into how you speak — not as blind submission or blind defiance,");
+            sb.AppendLine("but as calibrated realism. A person aware of the power around them chooses");
+            sb.AppendLine("their battles. Relation is warmth; power is the fear-or-respect axis.");
             sb.AppendLine();
         }
 
@@ -1009,6 +1150,14 @@ namespace NpcMemoryService.Core.Prompts
             {
                 sb.AppendLine("YOUR CURRENT SITUATION:");
                 sb.AppendLine($"Right now you are {context.NpcCurrentActivity}. Speak of your movements and plans consistently with this.");
+                sb.AppendLine();
+            }
+
+            if (!string.IsNullOrWhiteSpace(context.CurrentLocationNote))
+            {
+                sb.AppendLine("WHERE YOU ARE:");
+                sb.AppendLine(context.CurrentLocationNote);
+                sb.AppendLine("Do not call a hall or holding yours unless it truly is — speak as a guest where you are one.");
                 sb.AppendLine();
             }
 
@@ -1376,6 +1525,28 @@ namespace NpcMemoryService.Core.Prompts
         ///   sprawling multi-paragraph turns that re-describe the whole situation every beat,
         ///   killing pace and dragging the scene out — the single most common complaint.
         /// </summary>
+        /// <summary>
+        ///   Placed at the very end of the system prompt (recency effect) so the model reads it
+        ///   immediately before the conversation. Explicit examples are required: abstract rules
+        ///   like "reply in the same language" are routinely ignored by English-centric models
+        ///   when the rest of the prompt is in English.
+        /// </summary>
+        private static void AppendLanguageMirror(StringBuilder sb)
+        {
+            sb.AppendLine();
+            sb.AppendLine("CRITICAL — LANGUAGE OF YOUR REPLY:");
+            sb.AppendLine("Detect the language of the player's last message and reply in that SAME language.");
+            sb.AppendLine("  • Player writes in Ukrainian  → you reply in Ukrainian.");
+            sb.AppendLine("  • Player writes in French     → you reply in French.");
+            sb.AppendLine("  • Player writes in German     → you reply in German.");
+            sb.AppendLine("  • Player writes in English    → you reply in English.");
+            sb.AppendLine("Keep ALL section labels ([DIALOGUE], [NARRATION], [ACTION], [EVENT] …) and every");
+            sb.AppendLine("action keyword (change_relation, give_gold, give_item …) in English.");
+            sb.AppendLine("Translate ONLY the prose and speech. Proper names stay exactly as given.");
+            sb.AppendLine("This rule overrides everything else: even though your persona, memory, and all");
+            sb.AppendLine("context are written in English, your spoken words follow the player's language.");
+        }
+
         private static void AppendBrevityRule(StringBuilder sb)
         {
             sb.AppendLine("KEEP EACH RESPONSE TIGHT — ONE BEAT, NOT A CHAPTER:");
@@ -2041,6 +2212,84 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("reaction via [WITNESS_REACTION] without it counting as 'speaking for them'.");
             sb.AppendLine();
             sb.AppendLine("─────────────────────────────────────────────");
+            sb.AppendLine();
+        }
+
+        // ── Commoner prompt helpers ──────────────────────────────────────────
+
+        private static void AppendCommonerIdentity(StringBuilder sb, NpcProfile profile, CommonsKnowledge knowledge)
+        {
+            string archetype = !string.IsNullOrWhiteSpace(profile.Personality)
+                ? profile.Personality!
+                : "a commoner";
+            sb.AppendLine($"You are {profile.Name}, {archetype} in {knowledge?.SettlementName ?? "a Calradian settlement"}.");
+            sb.AppendLine();
+
+            if (knowledge != null)
+            {
+                sb.AppendLine("WHAT YOU KNOW ABOUT YOUR HOME:");
+                string kingdom = knowledge.KingdomName != null
+                    ? $"the realm of {knowledge.KingdomName}"
+                    : "no larger kingdom — it stands on its own";
+                sb.AppendLine($"- {knowledge.SettlementName} is a {knowledge.SettlementType ?? "settlement"} belonging to {kingdom}.");
+                string holder = knowledge.HolderName != null
+                    ? knowledge.HolderName
+                    : "no one — the settlement has no lord at present";
+                sb.AppendLine($"- The local lord is {holder}.");
+                sb.AppendLine($"- Life here is {knowledge.ProsperityMood ?? "ordinary"} right now.");
+                if (!string.IsNullOrWhiteSpace(knowledge.SecurityNote))
+                    sb.AppendLine($"- Security: {knowledge.SecurityNote}.");
+                if (!string.IsNullOrWhiteSpace(knowledge.ActiveWarsNote))
+                    sb.AppendLine($"- Word from the roads: {knowledge.ActiveWarsNote}.");
+                if (!string.IsNullOrWhiteSpace(knowledge.LordsPresent))
+                    sb.AppendLine($"- Notable visitors in {knowledge.SettlementName} right now: {knowledge.LordsPresent}.");
+                sb.AppendLine();
+            }
+        }
+
+        private static void AppendCommonerRules(StringBuilder sb)
+        {
+            sb.AppendLine("WHO YOU ARE AND HOW YOU SPEAK:");
+            sb.AppendLine("- You are an ordinary person — not a noble, not a soldier, not a scholar.");
+            sb.AppendLine("- You know only what someone in your position would hear: street talk, market");
+            sb.AppendLine("  rumor, things that happened nearby, what the neighbors say.");
+            sb.AppendLine("- The stranger before you is unknown to you. You do NOT know their name, rank,");
+            sb.AppendLine("  clan, or title. They are just a traveler passing through.");
+            sb.AppendLine("- Speak 2 to 4 sentences per response. Keep it grounded. You are not a herald.");
+            sb.AppendLine("- Share what you have heard, ask what the stranger wants, or try to be left alone.");
+            sb.AppendLine("- If asked about something beyond your knowledge, say so plainly. Do not invent.");
+            sb.AppendLine("- Do NOT break character under any circumstances.");
+            sb.AppendLine();
+            sb.AppendLine("RESPONSE FORMAT:");
+            sb.AppendLine("[DIALOGUE]");
+            sb.AppendLine("Your spoken words go here.");
+            sb.AppendLine("[/DIALOGUE]");
+            sb.AppendLine("Emit an [ACTION] block only when money actually changes hands (see below).");
+            sb.AppendLine();
+        }
+
+        private static void AppendCommonerRumors(StringBuilder sb, CommonsKnowledge? knowledge)
+        {
+            if (string.IsNullOrWhiteSpace(knowledge?.RumorsBlock)) return;
+            sb.AppendLine("WHAT PEOPLE ARE TALKING ABOUT:");
+            sb.AppendLine("You have heard these things recently. Mention them naturally only if they fit");
+            sb.AppendLine("the conversation — do not recite them like a list. Use phrases like 'I heard',");
+            sb.AppendLine("'they say', 'word came that'. Do not claim to have witnessed anything firsthand.");
+            sb.AppendLine(knowledge!.RumorsBlock);
+            sb.AppendLine();
+        }
+
+        private static void AppendCommonerTakeGold(StringBuilder sb)
+        {
+            sb.AppendLine("PAYMENT FOR INFORMATION:");
+            sb.AppendLine("A stranger may offer you a coin for a bit of news, directions, or a small favor.");
+            sb.AppendLine("If you accept, emit this action at the end of your reply:");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: take_gold");
+            sb.AppendLine("amount: <denars>");
+            sb.AppendLine("[/ACTION]");
+            sb.AppendLine("Only use take_gold when coin genuinely changes hands in the scene.");
+            sb.AppendLine("A simple greeting or ordinary exchange never warrants payment.");
             sb.AppendLine();
         }
 

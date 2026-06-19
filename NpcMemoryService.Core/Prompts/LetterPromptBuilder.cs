@@ -63,12 +63,12 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
          AppendRecentHistory(sb, npc);
          sb.AppendLine();
-         sb.AppendLine("Decide whether this letter warrants a written reply.");
-         sb.AppendLine("Consider: does it raise something personal, important, or requiring an answer?");
-         sb.AppendLine("Would your character actually write back, or simply act on it in person next time?");
+         sb.AppendLine("A courier letter is a deliberate act — it deserves a written reply.");
+         sb.AppendLine("Reply unless the letter is entirely nonsensical, in a language you cannot read,");
+         sb.AppendLine("or so offensive that your character would refuse all contact. PASS should be rare.");
          sb.AppendLine();
-         sb.AppendLine("If you choose NOT to reply, write \"PASS: [one sentence reason]\" in [DIALOGUE].");
-         sb.AppendLine("If you choose to reply, start [DIALOGUE] with exactly:");
+         sb.AppendLine("If you truly will NOT reply, write \"PASS: [one sentence reason]\" in [DIALOGUE].");
+         sb.AppendLine("Otherwise, start [DIALOGUE] with exactly:");
          sb.AppendLine("  DELAY: N");
          sb.AppendLine("where N is the days you would wait before sending (1=urgent, 2-3=normal, 4-7=considered).");
          sb.AppendLine("Leave one blank line, then write your reply letter in 2-3 paragraphs.");
@@ -92,6 +92,18 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
          sb.AppendLine($"Original occasion: {DescribeReason(originalReason)}");
          sb.AppendLine();
+
+         bool isRomanticReply = originalReason == LetterReason.RomanticCorrespondence
+                                || originalReason == LetterReason.AwaitingReply
+                                || originalReason == LetterReason.SpouseCorrespondence;
+         if (isRomanticReply)
+         {
+            sb.AppendLine("You had been anxiously awaiting this reply. Let the relief and warmth show —");
+            sb.AppendLine("this answer matters to you. React to what they actually said before continuing");
+            sb.AppendLine("your own thoughts. Do not open with a generic pleasantry.");
+            sb.AppendLine();
+         }
+
          sb.AppendLine("Write your reply letter in 2–3 paragraphs. Stay in character.");
          sb.AppendLine($"Address {playerName} by name. Do not use modern expressions.");
          sb.AppendLine("Write ONLY the letter body in [DIALOGUE]. No section headers, no meta-text.");
@@ -129,6 +141,7 @@ namespace NpcMemoryService.Core.Prompts
          LetterReason.Blackmail             => "You know the player has a secret and you intend to use it unless they pay handsomely. The tone should be veiled menace.",
          LetterReason.BirthAnnouncement     => "You have just given birth to the player's child. Write to inform him — the tone depends on your relationship: tender if you love him, matter-of-fact if it was an arrangement, conflicted if it is a secret. Mention the child's name and sex.",
          LetterReason.ChildSupportRequest   => "Some weeks have passed since you informed the player of your child. You are now asking him to help provide financially for the child's upbringing. Be specific about what you need and why. The tone should reflect your character and your relationship.",
+         LetterReason.AwaitingReply         => "You wrote a personal letter to the player some days ago and have received no reply. Write again — impatient, longing, or quietly wounded — asking if your letter arrived and why they have not answered. Let your nature dictate the tone: a bold character may demand an answer; a tender one may confess they have read the silence as rejection.",
          _                                  => "You have a matter of personal importance to communicate."
       };
    }

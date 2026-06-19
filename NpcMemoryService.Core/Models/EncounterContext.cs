@@ -44,6 +44,14 @@ namespace NpcMemoryService.Core.Models
         public string? NpcCurrentActivity { get; init; }
 
         /// <summary>
+        ///   Where this conversation takes place and who holds it — e.g. "You are in Pravend, a town
+        ///   held by Derthert's clan; it is not your own holding, you are here as a visitor." Stops
+        ///   an NPC from claiming another lord's hall as their own (tester report). Null when the
+        ///   conversation is not in a settlement, or ownership is unknown.
+        /// </summary>
+        public string? CurrentLocationNote { get; init; }
+
+        /// <summary>
         ///   Name of the player's current spouse, or null if the player is single or widowed.
         ///   Used to inject the player's marital status into the NPC's consent section so the
         ///   NPC can react according to their own character — refusing to enable infidelity,
@@ -183,6 +191,50 @@ namespace NpcMemoryService.Core.Models
         ///   the join_party action are then not taught at all.
         /// </summary>
         public int? CompanionAskingPrice { get; init; }
+
+        /// <summary>
+        ///   Name of the kingdom the NPC belongs to when the player is free (not already
+        ///   sworn to any kingdom) and the NPC is a lord who could extend a mercenary
+        ///   contract on the kingdom's behalf. Null when the player is already in a kingdom,
+        ///   the NPC has no kingdom, or the NPC is not a lord. When non-null, the prompt
+        ///   teaches the NPC the join_as_mercenary action.
+        /// </summary>
+        public string? MercenaryOfferKingdom { get; init; }
+
+        /// <summary>
+        ///   True when the NPC THEMSELVES is a viable marriage candidate for the player:
+        ///   player is single, NPC is of the right sex, adult, within age gap, unmarried,
+        ///   from a different clan, AND the personal relation is deep enough (≥50).
+        ///   When true, <see cref="AppendLoveMatchProposal"/> teaches the <c>marry</c> action.
+        /// </summary>
+        public bool LoveMatchEligible { get; init; }
+
+        /// <summary>
+        ///   True when the family's formal blessing has already been granted for a marriage
+        ///   between the player and this NPC (A.2 was completed). Used to inform the prompt
+        ///   so the NPC can reference the blessing (or note its absence) in their dialogue.
+        ///   Only meaningful when <see cref="LoveMatchEligible"/> is true.
+        /// </summary>
+        public bool LoveMatchBlessed { get; init; }
+
+        /// <summary>
+        ///   A pre-computed prose note describing the power differential between the player's
+        ///   realm and this NPC's position — fief counts, war state, and who holds the
+        ///   stronger hand. Null when the balance is roughly even, the context cannot be
+        ///   determined, or neither party belongs to a kingdom. When non-null, the prompt
+        ///   teaches the NPC to factor this imbalance into how they speak: not servility,
+        ///   but calibrated realism. Relation is warmth; power is the fear/respect axis.
+        /// </summary>
+        public string? PowerBalanceNote { get; init; }
+
+        /// <summary>
+        ///   True when the NPC and the player share a deep enough romantic bond (≥ Intimate,
+        ///   reputation ≥ 60) that they could form a consort bond — a committed partnership
+        ///   that is real but not recognised by Calradian law. Available whether or not the
+        ///   player is already wed. When true, the prompt teaches the <c>take_as_consort</c>
+        ///   action alongside (or instead of) the legal-marriage path.
+        /// </summary>
+        public bool ConsortEligible { get; init; }
 
         /// <summary>
         ///   Ready-to-inject block describing a marriage the player could seek from THIS NPC's

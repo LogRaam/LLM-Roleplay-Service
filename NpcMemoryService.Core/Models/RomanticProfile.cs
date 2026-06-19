@@ -78,6 +78,15 @@ namespace NpcMemoryService.Core.Models
 
         public RomanticStatus Status { get; set; } = RomanticStatus.None;
 
+        /// <summary>
+        ///   True when the player and this NPC have explicitly formed a consort bond via
+        ///   the <c>take_as_consort</c> action. A consort is a committed partner whose
+        ///   bond is real but not recognised by Calradian law — no clan merger, no
+        ///   inheritance implications. Distinct from the native <c>Hero.Spouse</c> link.
+        ///   Once set, <see cref="Status"/> is <see cref="RomanticStatus.Committed"/>.
+        /// </summary>
+        public bool IsConsort { get; set; }
+
         // ── Compatibility ─────────────────────────────────────────────────────
 
         /// <summary>

@@ -79,6 +79,15 @@ namespace NpcMemoryService.Core.Models
       ///   NPC is replying to a letter the player sent via courier. The LLM decides
       ///   whether to write at all; if so, a visible reply courier travels to the player.
       /// </summary>
-      PlayerLetterReply
+      PlayerLetterReply,
+
+      // ── Sprint 23 ───────────────────────────────────────────────────────────
+
+      /// <summary>
+      ///   The NPC sent a romantic letter but received no reply after several days.
+      ///   They write again — impatient, longing, or a little wounded — asking whether
+      ///   the player received their first letter and why they have not answered.
+      /// </summary>
+      AwaitingReply
    }
 }

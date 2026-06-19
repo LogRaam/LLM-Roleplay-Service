@@ -16,5 +16,12 @@ namespace NpcMemoryService.Core.Prompts
     public interface IPromptBuilder
     {
         string BuildSystemPrompt(NpcProfile npc, WorldState world, EncounterContext? encounterContext = null);
+
+        /// <summary>
+        ///   Builds a slim system prompt for a transient commoner NPC.
+        ///   Omits all NPC-specific identity, romantic, quest, and witness sections;
+        ///   only settlement knowledge and basic behavior rules are injected.
+        /// </summary>
+        string BuildCommonerSystemPrompt(NpcProfile profile, CommonsKnowledge knowledge);
     }
 }

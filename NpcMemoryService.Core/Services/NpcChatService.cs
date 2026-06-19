@@ -90,5 +90,45 @@ namespace NpcMemoryService.Core.Services
 
             return NpcChatResult.Success(parsed, llmResponse.Usage, llmResponse.FinishReason);
         }
+
+        /// <summary>
+        ///   Sends the player's message to a transient commoner NPC and returns
+        ///   a structured response. Uses <see cref="IPromptBuilder.BuildCommonerSystemPrompt"/>
+        ///   instead of the full NPC prompt — no events, no memory, no quests.
+        ///   The session is updated with the new turn; callers must NOT persist
+        ///   the synthetic profile to the store.
+        /// </summary>
+        public async Task<NpcChatResult> ChatCommonerAsync(
+            NpcProfile profile,
+            CommonsKnowledge knowledge,
+            ChatSession session,
+            string playerMessage,
+            CancellationToken ct = default)
+        {
+            session.AddPlayerMessage(playerMessage);
+
+            var systemPrompt = PromptBuilder.BuildCommonerSystemPrompt(profile, knowledge);
+
+            LlmRequest request = new LlmRequest {
+                SystemPrompt = systemPrompt,
+                Messages     = session.Messages,
+                Parameters   = ChatParameters
+            };
+
+            LlmResponse llmResponse = await _llmClient
+                                            .CompleteAsync(request, ct)
+                                            .ConfigureAwait(false);
+
+            if (!llmResponse.IsSuccess)
+            {
+                session.RollbackLastMessage();
+                return NpcChatResult.Failure(llmResponse.ErrorMessage ?? "Unknown LLM error.");
+            }
+
+            ParsedResponse parsed = _parser.Parse(llmResponse.Content);
+            session.AddNpcMessage(parsed.Dialogue);
+
+            return NpcChatResult.Success(parsed, llmResponse.Usage, llmResponse.FinishReason);
+        }
     }
 }
