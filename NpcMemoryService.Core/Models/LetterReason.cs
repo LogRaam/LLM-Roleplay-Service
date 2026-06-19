@@ -88,6 +88,16 @@ namespace NpcMemoryService.Core.Models
       ///   They write again — impatient, longing, or a little wounded — asking whether
       ///   the player received their first letter and why they have not answered.
       /// </summary>
-      AwaitingReply
+      AwaitingReply,
+
+      // ── Sprint 24 (jealousy) ─────────────────────────────────────────────────
+
+      /// <summary>
+      ///   A jealous party — the wronged spouse of someone the player courted, the player's
+      ///   own slighted spouse, a rival suitor, or a spurned admirer — writes to confront,
+      ///   warn, or threaten the player over a romantic act. Tone and severity scale with the
+      ///   writer's stake and their culture's view of exclusivity vs. shared partners.
+      /// </summary>
+      JealousThreat
    }
 }

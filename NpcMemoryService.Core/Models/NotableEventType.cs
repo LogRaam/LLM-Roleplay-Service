@@ -23,6 +23,15 @@ namespace NpcMemoryService.Core.Models
         ///   of a captive scene — not emitted by the LLM in an [EVENT] block. Added last to
         ///   preserve the serialized ordinal values of existing saves.
         /// </summary>
-        Captivity
+        Captivity,
+
+        /// <summary>
+        ///   A grievance this NPC holds because of a romantic act by the player involving
+        ///   someone they had a stake in (a spouse wronged, a rival suitor who lost the one
+        ///   they wanted, a co-partner outranked). Recorded by the mod's jealousy system —
+        ///   not emitted by the LLM — so the NPC stays cold and can reference it later.
+        ///   Added last to preserve the serialized ordinal values of existing saves.
+        /// </summary>
+        Jealousy
     }
 }
