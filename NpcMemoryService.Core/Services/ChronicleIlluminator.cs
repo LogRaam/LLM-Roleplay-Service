@@ -34,13 +34,18 @@ namespace NpcMemoryService.Core.Services
          Creativity = 0.7f
       };
 
+      /// <summary>
+      ///   Rewrites <paramref name="deeds"/> into chronicler prose. When <paramref name="continuationOf"/>
+      ///   is supplied (the tail of an existing illuminated chronicle), the model continues seamlessly
+      ///   from it and covers ONLY the new deeds — so a living chronicle can be extended cheaply.
+      /// </summary>
       public async Task<string?> IlluminateAsync(
-         string playerName, string deeds, string styleGuidance, CancellationToken ct = default)
+         string playerName, string deeds, string styleGuidance, string? continuationOf = null, CancellationToken ct = default)
       {
          if (string.IsNullOrWhiteSpace(deeds)) return null;
 
          var request = new LlmRequest {
-            SystemPrompt = BuildSystemPrompt(playerName, styleGuidance),
+            SystemPrompt = BuildSystemPrompt(playerName, styleGuidance, continuationOf),
             Messages     = [new LlmMessage(MessageRole.User, deeds)],
             Parameters   = Parameters
          };
@@ -52,7 +57,7 @@ namespace NpcMemoryService.Core.Services
          return response.Content.Trim();
       }
 
-      private static string BuildSystemPrompt(string playerName, string styleGuidance)
+      private static string BuildSystemPrompt(string playerName, string styleGuidance, string? continuationOf)
       {
          var sb = new StringBuilder();
          sb.AppendLine($"You are a court chronicler writing the life of {playerName}, a lord of Calradia.");
@@ -62,6 +67,16 @@ namespace NpcMemoryService.Core.Services
          sb.AppendLine("may weave a run of them into a single paragraph. Keep the dates legible in the prose.");
          sb.AppendLine("Invent NO events that are not in the list. Period-appropriate language only; no modern");
          sb.AppendLine("words, no preamble, no headings, no commentary — write only the chronicle itself.");
+
+         if (!string.IsNullOrWhiteSpace(continuationOf))
+         {
+            sb.AppendLine();
+            sb.AppendLine("You are CONTINUING an existing chronicle. Its most recent lines read:");
+            sb.AppendLine($"«{continuationOf!.Trim()}»");
+            sb.AppendLine("Pick up seamlessly from there, in the same voice and tense. Do NOT restate what is");
+            sb.AppendLine("already written — chronicle ONLY the new deeds listed below, as the next passage.");
+         }
+
          if (!string.IsNullOrWhiteSpace(styleGuidance))
          {
             sb.AppendLine();
