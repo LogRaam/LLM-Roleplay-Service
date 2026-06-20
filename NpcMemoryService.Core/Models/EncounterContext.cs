@@ -247,6 +247,15 @@ namespace NpcMemoryService.Core.Models
         public string? MarriageProspects { get; init; }
 
         /// <summary>
+        ///   Pre-formatted "what you've heard" block — recent world happenings this NPC would
+        ///   plausibly know of (their faction, their region, recency), drawn from the world-event
+        ///   store (v1.2). One line each, prefixed "- ". Null when nothing relevant has reached
+        ///   them. Injected as hearsay so the NPC can reference current events without claiming
+        ///   firsthand knowledge.
+        /// </summary>
+        public string? WorldRumorsBlock { get; init; }
+
+        /// <summary>
         ///   DEPRECATED — intentionally left unfed (always null). It once told a recruitable
         ///   NPC the player's exact gold so it would not seal an unaffordable hire, but an NPC
         ///   cannot see the player's liquid coin and naming the sum to the denar broke

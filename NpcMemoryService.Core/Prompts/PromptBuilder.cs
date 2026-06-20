@@ -1146,6 +1146,17 @@ namespace NpcMemoryService.Core.Prompts
                 sb.AppendLine();
             }
 
+            if (!string.IsNullOrWhiteSpace(context.WorldRumorsBlock))
+            {
+                sb.AppendLine("WHAT YOU'VE HEARD (news that has reached you):");
+                sb.AppendLine("These are things word has brought to you — battles, sieges, marriages, deaths,");
+                sb.AppendLine("wars. Mention them only if they naturally fit the conversation, as hearsay ('I");
+                sb.AppendLine("heard', 'word came that'), never as a list. Do not claim to have witnessed any of");
+                sb.AppendLine("them firsthand unless your own memories say you were there.");
+                sb.AppendLine(context.WorldRumorsBlock);
+                sb.AppendLine();
+            }
+
             if (!string.IsNullOrWhiteSpace(context.NpcCurrentActivity))
             {
                 sb.AppendLine("YOUR CURRENT SITUATION:");
