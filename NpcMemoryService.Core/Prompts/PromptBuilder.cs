@@ -1152,7 +1152,9 @@ namespace NpcMemoryService.Core.Prompts
                 sb.AppendLine("These are things word has brought to you — battles, sieges, marriages, deaths,");
                 sb.AppendLine("wars. Mention them only if they naturally fit the conversation, as hearsay ('I");
                 sb.AppendLine("heard', 'word came that'), never as a list. Do not claim to have witnessed any of");
-                sb.AppendLine("them firsthand unless your own memories say you were there.");
+                sb.AppendLine("them firsthand unless your own memories say you were there. An item marked '(heard");
+                sb.AppendLine("secondhand)' you hold loosely; one marked '(a distant, unverified rumour)' you");
+                sb.AppendLine("repeat with real doubt — you may have the details wrong, and you say so.");
                 sb.AppendLine(context.WorldRumorsBlock);
                 sb.AppendLine();
             }
