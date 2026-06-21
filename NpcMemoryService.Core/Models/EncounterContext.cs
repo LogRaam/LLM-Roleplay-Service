@@ -211,6 +211,23 @@ namespace NpcMemoryService.Core.Models
         public bool LordRecruitEligible { get; init; }
 
         /// <summary>
+        ///   When this NPC is secretly plotting against a rival and could draw the player in as a
+        ///   discreet agent, the target's name; null otherwise. When set, the prompt teaches the
+        ///   <c>scheme_assist</c> action so the NPC may sound the player out, and the host re-checks
+        ///   eligibility before the player's help is applied. Only set for a still-secret plot whose
+        ///   plotter trusts the player and is not aimed at the player's own ally.
+        /// </summary>
+        public string? SchemeAgentTargetName { get; init; }
+
+        /// <summary>
+        ///   True when a still-secret scheme is aimed at THIS NPC — the player may warn them of it.
+        ///   The NPC has no firm knowledge of the plot; the prompt teaches <c>scheme_heed</c> so they
+        ///   can act ONLY on a credible warning from the player, never volunteer paranoia. On heed the
+        ///   host drags the scheme into the light, giving the target a chance to counter it.
+        /// </summary>
+        public bool SchemeTargetsThisNpc { get; init; }
+
+        /// <summary>
         ///   True when the NPC THEMSELVES is a viable marriage candidate for the player:
         ///   player is single, NPC is of the right sex, adult, within age gap, unmarried,
         ///   from a different clan, AND the personal relation is deep enough (≥50).

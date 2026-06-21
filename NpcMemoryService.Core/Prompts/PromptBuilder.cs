@@ -116,6 +116,8 @@ namespace NpcMemoryService.Core.Prompts
             AppendRecruitment(sb, encounterContext);
             AppendMercenaryOffer(sb, encounterContext);
             AppendLordRecruitment(sb, encounterContext);
+            AppendSchemeRecruitment(sb, encounterContext);
+            AppendSchemeWarning(sb, encounterContext);
             AppendLoveMatchProposal(sb, encounterContext);
             AppendConsortProposal(sb, encounterContext);
             AppendGiveItem(sb, encounterContext);
@@ -1042,6 +1044,58 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("[/ACTION]");
             sb.AppendLine("The game moves you into the player's clan immediately. Never emit it speculatively, as a");
             sb.AppendLine("hint, or twice. If you are not yet ready to take so grave a step, say so and emit nothing.");
+            sb.AppendLine();
+        }
+
+        /// <summary>
+        ///   Scheme-agent section. Rendered only when the host confirms this NPC is secretly plotting
+        ///   against a rival and could enlist the player (<see cref="EncounterContext.SchemeAgentTargetName"/>
+        ///   non-null). The NPC may sound the player out and, on clear agreement, emit
+        ///   <c>scheme_assist</c>; the host re-checks and advances the plot.
+        /// </summary>
+        private static void AppendSchemeRecruitment(StringBuilder sb, EncounterContext? context)
+        {
+            string? target = context?.SchemeAgentTargetName;
+            if (string.IsNullOrWhiteSpace(target)) return;
+            if (context!.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+
+            sb.AppendLine($"A QUIET PROPOSITION — YOUR PLOT AGAINST {target!.ToUpperInvariant()}:");
+            sb.AppendLine($"You are secretly working to bring {target} low, and you trust this player enough to");
+            sb.AppendLine("consider drawing them in as a discreet agent — someone to carry a word, plant a doubt,");
+            sb.AppendLine("or lend a hand where you cannot be seen. This is delicate: raise it obliquely, feel out");
+            sb.AppendLine("their loyalties first, and never blurt it to someone who would run to your rival.");
+            sb.AppendLine();
+            sb.AppendLine("If, and only if, the player clearly agrees to help you against " + target + ", emit:");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: scheme_assist");
+            sb.AppendLine("[/ACTION]");
+            sb.AppendLine("Their help advances your scheme markedly. Never emit it speculatively, before they have");
+            sb.AppendLine("agreed, or more than once. If they refuse or seem loyal to your rival, let the matter drop.");
+            sb.AppendLine();
+        }
+
+        /// <summary>
+        ///   Scheme-warning section. Rendered only when the host confirms a secret plot is aimed at
+        ///   THIS NPC (<see cref="EncounterContext.SchemeTargetsThisNpc"/>). The NPC must NOT volunteer
+        ///   suspicion — they only act on a credible warning from the player, emitting
+        ///   <c>scheme_heed</c>, after which the host exposes the plot so they can counter it.
+        /// </summary>
+        private static void AppendSchemeWarning(StringBuilder sb, EncounterContext? context)
+        {
+            if (context?.SchemeTargetsThisNpc != true) return;
+            if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+
+            sb.AppendLine("IF THE PLAYER WARNS YOU OF A PLOT AGAINST YOU:");
+            sb.AppendLine("You have NO firm knowledge that anyone is moving against you — do NOT raise the idea");
+            sb.AppendLine("yourself, accuse anyone unprompted, or act paranoid. But if the player warns you, in");
+            sb.AppendLine("this conversation, that a specific person is plotting against you, weigh it against your");
+            sb.AppendLine("trust in them and what you know. If you find the warning credible and decide to heed it,");
+            sb.AppendLine("emit alongside your reply:");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: scheme_heed");
+            sb.AppendLine("[/ACTION]");
+            sb.AppendLine("This puts you on your guard and brings the plot into the open, giving you a chance to");
+            sb.AppendLine("counter it. Only emit it once, and only when the player has actually warned you this turn.");
             sb.AppendLine();
         }
 
