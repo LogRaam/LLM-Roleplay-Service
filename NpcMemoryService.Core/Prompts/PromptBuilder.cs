@@ -118,6 +118,7 @@ namespace NpcMemoryService.Core.Prompts
             AppendLordRecruitment(sb, encounterContext);
             AppendSchemeRecruitment(sb, encounterContext);
             AppendSchemeWarning(sb, encounterContext);
+            AppendInterception(sb, encounterContext);
             AppendLoveMatchProposal(sb, encounterContext);
             AppendConsortProposal(sb, encounterContext);
             AppendGiveItem(sb, encounterContext);
@@ -1096,6 +1097,21 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("[/ACTION]");
             sb.AppendLine("This puts you on your guard and brings the plot into the open, giving you a chance to");
             sb.AppendLine("counter it. Only emit it once, and only when the player has actually warned you this turn.");
+            sb.AppendLine();
+        }
+
+        /// <summary>
+        ///   Interception opener. Rendered only on the first turn of a conversation the NPC began by
+        ///   riding out to the player (<see cref="EncounterContext.InterceptionReason"/> non-null):
+        ///   a directive to open on that footing instead of waiting on the player.
+        /// </summary>
+        private static void AppendInterception(StringBuilder sb, EncounterContext? context)
+        {
+            string? reason = context?.InterceptionReason;
+            if (string.IsNullOrWhiteSpace(reason)) return;
+
+            sb.AppendLine("THIS MEETING — YOU SOUGHT THE PLAYER OUT:");
+            sb.AppendLine(reason);
             sb.AppendLine();
         }
 

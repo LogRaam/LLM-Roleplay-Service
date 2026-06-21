@@ -228,6 +228,14 @@ namespace NpcMemoryService.Core.Models
         public bool SchemeTargetsThisNpc { get; init; }
 
         /// <summary>
+        ///   Set on the FIRST turn of a conversation the NPC initiated by riding out to intercept the
+        ///   player: a directive to open on that footing (a territorial challenge, or a reaction to
+        ///   fresh news) rather than waiting on the player. Null in an ordinary conversation. Consumed
+        ///   by the host so it only colours the opening turn.
+        /// </summary>
+        public string? InterceptionReason { get; init; }
+
+        /// <summary>
         ///   True when the NPC THEMSELVES is a viable marriage candidate for the player:
         ///   player is single, NPC is of the right sex, adult, within age gap, unmarried,
         ///   from a different clan, AND the personal relation is deep enough (≥50).
