@@ -26,6 +26,12 @@ _ReSharper*/
 project.lock.json
 project.assets.json
 
+# NCrunch (per-user test runner artifacts)
+.NCrunch_*/
+_NCrunch_*/
+*.ncrunchsolution
+*.ncrunchproject
+
 # OS
 Thumbs.db
 .DS_Store
