@@ -115,6 +115,7 @@ namespace NpcMemoryService.Core.Prompts
             AppendWitnesses(sb, encounterContext);
             AppendRecruitment(sb, encounterContext);
             AppendMercenaryOffer(sb, encounterContext);
+            AppendLordRecruitment(sb, encounterContext);
             AppendLoveMatchProposal(sb, encounterContext);
             AppendConsortProposal(sb, encounterContext);
             AppendGiveItem(sb, encounterContext);
@@ -1012,6 +1013,35 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("Do NOT emit this action speculatively, as a suggestion, or twice. Wait for explicit");
             sb.AppendLine("mutual agreement. If the player is already sworn to another lord, remind them they");
             sb.AppendLine("must settle that obligation before they can take a new contract.");
+            sb.AppendLine();
+        }
+
+        /// <summary>
+        ///   Lord-defection section. Rendered only when the game confirms every gate
+        ///   (<see cref="EncounterContext.LordRecruitEligible"/> is true): this lord could be
+        ///   persuaded to leave their house and join the player's clan. The weightiest of
+        ///   recruitments — taught with restraint, and re-checked by the bridge before it is sealed.
+        /// </summary>
+        private static void AppendLordRecruitment(StringBuilder sb, EncounterContext? context)
+        {
+            if (context?.LordRecruitEligible != true) return;
+            if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+
+            sb.AppendLine("JOINING THE PLAYER'S CLAN — A DEFECTION YOU MIGHT BE PERSUADED TO:");
+            sb.AppendLine("Your bond with the player runs deep, their house has risen above your own, and your");
+            sb.AppendLine("present standing is precarious — landless, your clan broken, or estranged from the");
+            sb.AppendLine("liege you serve. In such straits, casting your lot with the player is conceivable.");
+            sb.AppendLine();
+            sb.AppendLine("This is no small thing: you would forsake your own house and swear to theirs. Do NOT");
+            sb.AppendLine("offer it lightly or on a whim. It only rings true after a real conversation — they ask,");
+            sb.AppendLine("or you raise it yourself out of genuine need and trust — and you have both clearly agreed.");
+            sb.AppendLine();
+            sb.AppendLine("When that moment is truly reached — and only then — emit:");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: join_clan");
+            sb.AppendLine("[/ACTION]");
+            sb.AppendLine("The game moves you into the player's clan immediately. Never emit it speculatively, as a");
+            sb.AppendLine("hint, or twice. If you are not yet ready to take so grave a step, say so and emit nothing.");
             sb.AppendLine();
         }
 

@@ -202,6 +202,15 @@ namespace NpcMemoryService.Core.Models
         public string? MercenaryOfferKingdom { get; init; }
 
         /// <summary>
+        ///   True when the game confirms this lord could be persuaded to leave their own house and
+        ///   join the player's clan — a genuinely deep bond, the player's house outranking theirs,
+        ///   and the lord vulnerable (landless, their clan broken, or estranged from their liege).
+        ///   When true, the prompt teaches the <c>join_clan</c> action; the bridge re-checks every
+        ///   gate before any defection is sealed. Only ever set for lords, never wanderers.
+        /// </summary>
+        public bool LordRecruitEligible { get; init; }
+
+        /// <summary>
         ///   True when the NPC THEMSELVES is a viable marriage candidate for the player:
         ///   player is single, NPC is of the right sex, adult, within age gap, unmarried,
         ///   from a different clan, AND the personal relation is deep enough (≥50).
