@@ -40,6 +40,7 @@ namespace NpcMemoryService.Core.Parsing
         private const string QuestCompleteTag = "QUEST_COMPLETE";
         private const string QuestTag = "QUEST";
         private const string ReputationTag = "REPUTATION";
+        private const string StanceTag = "STANCE";
         private const string WitnessReactionTag = "WITNESS_REACTION";
         private const string SentimentKey = "sentiment";
         private const string SummaryKey = "summary";
@@ -57,6 +58,7 @@ namespace NpcMemoryService.Core.Parsing
             var memorySection = ExtractSection(rawResponse, MemoryTag);
             var eventSection = ExtractSection(rawResponse, EventTag);
             var reputationSection = ExtractSection(rawResponse, ReputationTag);
+            var stanceSection = ExtractSection(rawResponse, StanceTag);
             var discoverySection = ExtractSection(rawResponse, DiscoveryTag);
             var questSection = ExtractSection(rawResponse, QuestTag);
             var questCompleteSection = ExtractSection(rawResponse, QuestCompleteTag);
@@ -72,6 +74,7 @@ namespace NpcMemoryService.Core.Parsing
                 Memory = ParseMemory(memorySection),
                 NewEventData = ParseEventData(eventSection),
                 Reputation = ParseReputation(reputationSection),
+                StanceShift = ParseStanceShift(stanceSection),
                 Actions = actions,
                 Discovery = ParseDiscovery(discoverySection),
                 QuestGiven = ParseQuestProposal(questSection),
@@ -122,7 +125,7 @@ namespace NpcMemoryService.Core.Parsing
         /// <summary>Returns the text up to the first recognized section boundary (or all of it).</summary>
         private static string TrimAtFirstSection(string text)
         {
-            const string pattern = @"\[(?:/DIALOGUE|NARRATION|MEMORY|EVENT|REPUTATION|ACTION|DISCOVERY|QUEST_COMPLETE|QUEST_ABANDON|QUEST|WITNESS_REACTION)\]";
+            const string pattern = @"\[(?:/DIALOGUE|NARRATION|MEMORY|EVENT|REPUTATION|STANCE|ACTION|DISCOVERY|QUEST_COMPLETE|QUEST_ABANDON|QUEST|WITNESS_REACTION)\]";
             Match match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
 
             return match.Success
@@ -136,7 +139,7 @@ namespace NpcMemoryService.Core.Parsing
         /// </summary>
         private static string ExtractDialogueFallback(string text)
         {
-            var pattern = @"\[(?:NARRATION|MEMORY|EVENT|REPUTATION|ACTION|DISCOVERY|QUEST_COMPLETE|QUEST_ABANDON|QUEST|WITNESS_REACTION)\]";
+            var pattern = @"\[(?:NARRATION|MEMORY|EVENT|REPUTATION|STANCE|ACTION|DISCOVERY|QUEST_COMPLETE|QUEST_ABANDON|QUEST|WITNESS_REACTION)\]";
             Match match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
 
             return match.Success
@@ -448,6 +451,20 @@ namespace NpcMemoryService.Core.Parsing
             fields.TryGetValue(DecisionKey, out var decision);
 
             return new ConversationMemory(topic, sentiment, decision);
+        }
+
+        private static StanceShiftData? ParseStanceShift(string? section)
+        {
+            if (string.IsNullOrWhiteSpace(section)) return null;
+            Dictionary<string, string> fields = ParseKeyValueLines(section!);
+
+            int trust   = TryParseSignedInt(fields, "trust")   ?? 0;
+            int respect = TryParseSignedInt(fields, "respect") ?? 0;
+            int fear    = TryParseSignedInt(fields, "fear")    ?? 0;
+
+            if (trust == 0 && respect == 0 && fear == 0) return null;
+
+            return new StanceShiftData { Trust = trust, Respect = respect, Fear = fear };
         }
 
         private static ReputationDelta? ParseReputation(string? section)

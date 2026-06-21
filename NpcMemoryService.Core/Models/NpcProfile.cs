@@ -78,6 +78,26 @@ namespace NpcMemoryService.Core.Models
         public double? LastRelationGainHour { get; set; }
 
         /// <summary>
+        ///   Stance axis — the NPC's faith in the player's word and deals (−100..+100). Part of the
+        ///   multi-axis posture toward the player; Affection is mirrored from
+        ///   <see cref="ReputationWithPlayer" />. Moved weakly by words and strongly by proven deeds
+        ///   (the consumer's StanceGate). Defaults to 0 (neutral) on profiles from older saves.
+        /// </summary>
+        public int StanceTrust { get; set; }
+
+        /// <summary>Stance axis — esteem for the player's worth and prowess (−100..+100).</summary>
+        public int StanceRespect { get; set; }
+
+        /// <summary>Stance axis — intimidation by the player (0..+100); fades over time.</summary>
+        public int StanceFear { get; set; }
+
+        /// <summary>
+        ///   Campaign-time hour of the last accepted spoken stance-round, so spoken influence on the
+        ///   stance axes can be rate-limited. Null = none yet. Game-agnostic: the SDK only stores it.
+        /// </summary>
+        public double? StanceLastWordHour { get; set; }
+
+        /// <summary>
         ///   Formatted description of the NPC's key in-game relationships:
         ///   liege, friends, enemies, family. Built from live game state and
         ///   refreshed on every session launch — not a stable identity field.

@@ -236,6 +236,14 @@ namespace NpcMemoryService.Core.Models
         public string? InterceptionReason { get; init; }
 
         /// <summary>
+        ///   The NPC's posture toward the player, as one line per axis that is not neutral (warmth,
+        ///   trust, respect, fear), pre-composed by the consumer's StanceDescriptor. Null when the NPC
+        ///   is wholly neutral. Injected so the NPC speaks in keeping with every axis at once — they
+        ///   may dislike the player yet respect and fear them.
+        /// </summary>
+        public string? StanceNote { get; init; }
+
+        /// <summary>
         ///   True when the NPC THEMSELVES is a viable marriage candidate for the player:
         ///   player is single, NPC is of the right sex, adult, within age gap, unmarried,
         ///   from a different clan, AND the personal relation is deep enough (≥50).

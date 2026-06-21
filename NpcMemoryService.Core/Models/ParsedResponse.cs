@@ -25,6 +25,13 @@ namespace NpcMemoryService.Core.Models
         public ReputationDelta? Reputation { get; init; }
 
         /// <summary>
+        ///   The spoken shifts to trust/respect/fear the NPC signalled this exchange (a
+        ///   <c>[STANCE]</c> block). Null when none. The consumer caps and rate-limits them — words
+        ///   only colour a standing; proven deeds move it far more.
+        /// </summary>
+        public StanceShiftData? StanceShift { get; init; }
+
+        /// <summary>
         /// Game-world actions requested by the LLM (zero or more).
         /// Consumers (game mods) interpret and execute these.
         /// </summary>

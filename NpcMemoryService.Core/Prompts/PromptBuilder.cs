@@ -111,6 +111,7 @@ namespace NpcMemoryService.Core.Prompts
             AppendHistory(sb, npc, world.CurrentDay);
             AppendActiveQuests(sb, npc);
             AppendCurrentStance(sb, npc);
+            AppendStanceNote(sb, encounterContext);
             AppendPlayerLetters(sb, npc);
             AppendWitnesses(sb, encounterContext);
             AppendRecruitment(sb, encounterContext);
@@ -1097,6 +1098,23 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("[/ACTION]");
             sb.AppendLine("This puts you on your guard and brings the plot into the open, giving you a chance to");
             sb.AppendLine("counter it. Only emit it once, and only when the player has actually warned you this turn.");
+            sb.AppendLine();
+        }
+
+        /// <summary>
+        ///   Posture block. Rendered when the consumer supplies a non-neutral stance
+        ///   (<see cref="EncounterContext.StanceNote"/>): how the NPC regards the player across warmth,
+        ///   trust, respect, and fear at once, so their tone reflects the whole picture rather than a
+        ///   single like/dislike. Read-only colour — it does not tell the NPC how to feel, only how
+        ///   they already do.
+        /// </summary>
+        private static void AppendStanceNote(StringBuilder sb, EncounterContext? context)
+        {
+            string? note = context?.StanceNote;
+            if (string.IsNullOrWhiteSpace(note)) return;
+
+            sb.AppendLine("HOW YOU REGARD THE PLAYER (let this colour your tone, not dictate your words):");
+            sb.AppendLine(note);
             sb.AppendLine();
         }
 
@@ -2290,6 +2308,20 @@ namespace NpcMemoryService.Core.Prompts
                 : "type: first_meeting|farewell|conflict|collaboration|agreement|betrayal|confrontation|other");
             sb.AppendLine("summary: One sentence; write so a future you can recall what happened and why it mattered.");
             sb.AppendLine("[/EVENT]");
+            sb.AppendLine();
+
+            sb.AppendLine("OPTIONAL — [STANCE]: how THIS exchange shifted your standing toward the player, beyond mere liking.");
+            sb.AppendLine("Emit ONLY when the conversation genuinely moved one of these, and each only by a SMALL amount (−2..+2):");
+            sb.AppendLine("- trust: up when they are honest or keep their word in talk; down when they lie, evade, or break a promise.");
+            sb.AppendLine("- respect: up when they impress you (wit, resolve, knowledge, bearing); down when they show weakness or folly.");
+            sb.AppendLine("- fear: up at a credible threat or menace; down as they reassure or disarm you.");
+            sb.AppendLine("[STANCE]");
+            sb.AppendLine("trust: +N or -N");
+            sb.AppendLine("respect: +N or -N");
+            sb.AppendLine("fear: +N or -N");
+            sb.AppendLine("[/STANCE]");
+            sb.AppendLine("Omit any line that did not change, and the whole block if nothing did. WORDS only nudge — a real");
+            sb.AppendLine("change of heart is earned by DEEDS, not talk, so keep these small and honest.");
             sb.AppendLine();
 
             if (EnableReputationBlock)
