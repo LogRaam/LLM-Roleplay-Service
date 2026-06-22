@@ -162,6 +162,13 @@ namespace NpcMemoryService.Core.Models
         public string? Trait { get; set; }
 
         /// <summary>
+        ///   Optional player-authored backstory: roleplay flavor only (color, not behavior — conduct
+        ///   stays driven by traits). Synced from the host's character-overrides file before each
+        ///   prompt, so it is never authoritative state and never goes stale in the save.
+        /// </summary>
+        public string? AuthoredBackstory { get; set; }
+
+        /// <summary>
         ///   Applies memory, reputation, and event (if any) from a parsed response
         ///   in a single call. The current game day is required to timestamp events.
         /// </summary>
