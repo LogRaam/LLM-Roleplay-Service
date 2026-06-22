@@ -108,6 +108,7 @@ namespace NpcMemoryService.Core.Prompts
             AppendIntimacyConsentRules(sb, npc, encounterContext);
             AppendSocialAttractionInstructions(sb, npc, encounterContext);
             AppendDiscoveredTraits(sb, npc);
+            AppendInheritedNote(sb, npc);
             AppendBackgroundContext(sb, npc);
             AppendHistory(sb, npc, world.CurrentDay);
             AppendActiveQuests(sb, npc);
@@ -697,6 +698,21 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("draw on it for who you are and how you speak, but your CONDUCT still follows your");
             sb.AppendLine("traits and the guidelines above; it makes no claim about how you behave):");
             sb.AppendLine(npc.AuthoredBackstory);
+            sb.AppendLine();
+        }
+
+        private static void AppendInheritedNote(StringBuilder sb, NpcProfile npc)
+        {
+            if (string.IsNullOrWhiteSpace(npc.InheritedFromName)) return;
+
+            string kin = string.IsNullOrWhiteSpace(npc.InheritedKinship) ? "kin" : npc.InheritedKinship!;
+            sb.AppendLine("A NEW GENERATION — IMPORTANT:");
+            sb.AppendLine($"The person before you now is the HEIR of {npc.InheritedFromName}, their {kin}, who has died.");
+            sb.AppendLine($"Everything recorded below was your history with {npc.InheritedFromName} — NOT with the heir.");
+            sb.AppendLine("You inherit the standing, debts, alliances, and grudges of that history toward their HOUSE:");
+            sb.AppendLine($"refer to what their {kin} did ('your {kin} once helped me at…', 'your {kin}'s broken word still");
+            sb.AppendLine("stings'), and let it colour how you receive the heir. But speak to them as the new person they");
+            sb.AppendLine($"are — your relationship with THEM begins now. Never address the heir as though they were {npc.InheritedFromName}.");
             sb.AppendLine();
         }
 

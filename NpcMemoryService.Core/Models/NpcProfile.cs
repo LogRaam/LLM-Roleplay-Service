@@ -169,6 +169,16 @@ namespace NpcMemoryService.Core.Models
         public string? AuthoredBackstory { get; set; }
 
         /// <summary>
+        ///   Dynastic succession: when the player died and an heir took over, the name of the deceased
+        ///   predecessor whose history this profile now records. Null in normal play. When set, the
+        ///   prompt frames the recorded events as INHERITED — the NPC deals with the heir, not the dead.
+        /// </summary>
+        public string? InheritedFromName { get; set; }
+
+        /// <summary>The kinship word for <see cref="InheritedFromName"/> as seen from the heir (e.g. "father").</summary>
+        public string? InheritedKinship { get; set; }
+
+        /// <summary>
         ///   Applies memory, reputation, and event (if any) from a parsed response
         ///   in a single call. The current game day is required to timestamp events.
         /// </summary>
