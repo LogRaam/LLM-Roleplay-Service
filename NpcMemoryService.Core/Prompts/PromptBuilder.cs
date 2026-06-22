@@ -124,6 +124,7 @@ namespace NpcMemoryService.Core.Prompts
             AppendLoveMatchProposal(sb, encounterContext);
             AppendConsortProposal(sb, encounterContext);
             AppendGiveItem(sb, encounterContext);
+            AppendDeliverPrisoner(sb, encounterContext);
             AppendMarriage(sb, encounterContext);
             // ── Dynamic world state (changes each turn) ──────────────────────────
             AppendWorldState(sb, world);
@@ -1171,6 +1172,43 @@ namespace NpcMemoryService.Core.Prompts
         }
 
         /// <summary>
+        ///   Teaches the prisoner deed: a lord may demand an enemy captive as the price of a favor, and
+        ///   accepts the hand-over with the give_prisoner action. Skipped for a captive player (no party,
+        ///   no prisoners). The list of lords the player currently holds is injected when present so the
+        ///   NPC can demand one they already have (hand over now) or name one to capture (a deferred task).
+        /// </summary>
+        private static void AppendDeliverPrisoner(StringBuilder sb, EncounterContext? context)
+        {
+            if (context?.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+
+            sb.AppendLine("PRISONERS — IF YOU WANT AN ENEMY CAPTIVE:");
+            if (!string.IsNullOrWhiteSpace(context?.HeldLordPrisoners))
+            {
+                sb.AppendLine("The player currently holds these lord captives:");
+                sb.AppendLine(context!.HeldLordPrisoners);
+                sb.AppendLine("If one of them is an enemy of yours you would want handed over, you may demand them as");
+                sb.AppendLine("the price of a favor.");
+            }
+            sb.AppendLine("When a captive an enemy lord would serve your ends, you may, IN CHARACTER, set a prisoner");
+            sb.AppendLine("bargain: name a specific enemy lord (or any lord of an enemy faction), and what you grant in");
+            sb.AppendLine("return. If the player already holds them it is a hand-over now; if not, it is a task to");
+            sb.AppendLine("capture and bring them. Issue it as a bargain the game will track and verify:");
+            sb.AppendLine("[QUEST]");
+            sb.AppendLine("type: deliver_prisoner");
+            sb.AppendLine("target_hero: <the named lord>   (OR target_faction: <an enemy faction, for any of its lords>)");
+            sb.AppendLine("reward_grant: join_party   (omit for an ordinary gold/relation reward)");
+            sb.AppendLine("description: what you ask for and offer, in your voice");
+            sb.AppendLine("[/QUEST]");
+            sb.AppendLine("When the player actually HANDS the matching captive to you this turn, accept it by emitting:");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: give_prisoner");
+            sb.AppendLine("[/ACTION]");
+            sb.AppendLine("The game then transfers that prisoner and honors your bargain. Only emit give_prisoner when the");
+            sb.AppendLine("player has an OUTSTANDING prisoner bargain with you and holds the captive — never speculatively.");
+            sb.AppendLine();
+        }
+
+        /// <summary>
         ///   Marriage-request section. Rendered only when <see cref="EncounterContext.MarriageProspects" />
         ///   is supplied (this NPC heads their clan and has marriageable kin), teaching the NPC to grant or
         ///   withhold the family's blessing for a match the player asks after.
@@ -1453,6 +1491,8 @@ namespace NpcMemoryService.Core.Prompts
             QuestType.DeliverLetter   => "deliver_letter",
             QuestType.ProvideGold     => "provide_gold",
             QuestType.ScoutArmy       => "scout_army",
+            QuestType.DeliverItems    => "deliver_items",
+            QuestType.DeliverPrisoner => "deliver_prisoner",
             _                         => t.ToString().ToLowerInvariant()
         };
 

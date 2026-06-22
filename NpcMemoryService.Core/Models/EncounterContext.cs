@@ -193,6 +193,14 @@ namespace NpcMemoryService.Core.Models
         public int? CompanionAskingPrice { get; init; }
 
         /// <summary>
+        ///   A prompt-ready list of the LORD captives the player currently holds (name + faction),
+        ///   or null/empty when they hold none. Lets a lord demand a captive as the price of a favor:
+        ///   a match the player already holds is an immediate hand-over, one they do not is a
+        ///   capture-and-deliver task. Drives the deliver_prisoner / give_prisoner teaching.
+        /// </summary>
+        public string? HeldLordPrisoners { get; init; }
+
+        /// <summary>
         ///   Name of the kingdom the NPC belongs to when the player is free (not already
         ///   sworn to any kingdom) and the NPC is a lord who could extend a mercenary
         ///   contract on the kingdom's behalf. Null when the player is already in a kingdom,

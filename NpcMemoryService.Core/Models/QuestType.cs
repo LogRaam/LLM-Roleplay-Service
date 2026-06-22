@@ -67,6 +67,15 @@ namespace NpcMemoryService.Core.Models
         ///   word. The required value is computed game-side from the reward's worth.
         ///   Appended last to preserve the integer ordinals of the values above in old saves.
         /// </summary>
-        DeliverItems
+        DeliverItems,
+
+        /// <summary>
+        ///   Hand over a captive the player holds to the quest giver — a specific enemy lord, or any
+        ///   lord of an enemy faction. The negotiation framework's prisoner deed: when the player
+        ///   already holds a match it is an immediate hand-over; when not, it is a capture-and-deliver
+        ///   task. Verified by a real prisoner transfer in conversation, never by the LLM's word.
+        ///   Appended last to preserve the integer ordinals above in old saves.
+        /// </summary>
+        DeliverPrisoner
     }
 }

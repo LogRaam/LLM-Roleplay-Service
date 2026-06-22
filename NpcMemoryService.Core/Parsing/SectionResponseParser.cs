@@ -367,6 +367,8 @@ namespace NpcMemoryService.Core.Parsing
                     or "locate_army" or "find_army"                  => QuestType.ScoutArmy,
                 "deliver_items" or "deliver_goods" or "give_items"
                     or "pay_in_goods" or "barter_items"              => QuestType.DeliverItems,
+                "deliver_prisoner" or "hand_over_prisoner" or "bring_prisoner"
+                    or "deliver_captive"                             => QuestType.DeliverPrisoner,
                 _ => (QuestType?)null
             };
         }
