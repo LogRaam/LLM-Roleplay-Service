@@ -76,6 +76,14 @@ namespace NpcMemoryService.Core.Models
         ///   task. Verified by a real prisoner transfer in conversation, never by the LLM's word.
         ///   Appended last to preserve the integer ordinals above in old saves.
         /// </summary>
-        DeliverPrisoner
+        DeliverPrisoner,
+
+        /// <summary>
+        ///   Declare war, as the player's own faction, on a faction the giver names. The negotiation
+        ///   framework's player-declared-war deed: self-balancing, since the player takes on the war's
+        ///   consequences. Verified by a WarDeclared event with the PLAYER's faction as the aggressor
+        ///   against the demanded faction — never by being attacked. Appended last for save ordinals.
+        /// </summary>
+        DeclareWar
     }
 }

@@ -369,6 +369,8 @@ namespace NpcMemoryService.Core.Parsing
                     or "pay_in_goods" or "barter_items"              => QuestType.DeliverItems,
                 "deliver_prisoner" or "hand_over_prisoner" or "bring_prisoner"
                     or "deliver_captive"                             => QuestType.DeliverPrisoner,
+                "declare_war" or "declare_war_on" or "go_to_war"
+                    or "make_war"                                    => QuestType.DeclareWar,
                 _ => (QuestType?)null
             };
         }

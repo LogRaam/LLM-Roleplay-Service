@@ -1493,6 +1493,7 @@ namespace NpcMemoryService.Core.Prompts
             QuestType.ScoutArmy       => "scout_army",
             QuestType.DeliverItems    => "deliver_items",
             QuestType.DeliverPrisoner => "deliver_prisoner",
+            QuestType.DeclareWar      => "declare_war",
             _                         => t.ToString().ToLowerInvariant()
         };
 
@@ -2203,6 +2204,8 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("- provide_gold (no target needed): the player owes you financial support — they must give you denars in conversation. This quest is issued by the game, not by you; only emit [QUEST_COMPLETE] once the player has actually paid (the deed is shown as done in YOUR QUESTS).");
             sb.AppendLine("- scout_army (target_faction or target_hero): get close to an enemy army, observe its strength, and report back. Use target_hero to name the army's leader, or target_faction to accept any army of that faction.");
             sb.AppendLine("- deliver_items (no target needed): the player must hand you goods worth at least a denar value, in conversation — the barter alternative to coin. Used in a bargain (see CONDITIONAL BARGAINS below); the game sets and enforces the required value.");
+            sb.AppendLine("- deliver_prisoner (target_hero or target_faction): the player hands you an enemy captive — a named lord, or any lord of an enemy faction. If they already hold a match it is handed over now; otherwise it is a capture-and-deliver task. Verified by a real prisoner transfer.");
+            sb.AppendLine("- declare_war (target_faction): the player declares war, as their OWN faction, on a faction you name — one you have cause to want struck, and that the player is not already at war with. A heavy ask; offer only for a great reward (often your own service). Verified ONLY when the PLAYER's faction is the one that declares — never when they are merely attacked.");
             sb.AppendLine();
             sb.AppendLine("[QUEST]");
             sb.AppendLine("type: one token from the list above");
