@@ -132,6 +132,7 @@ namespace NpcMemoryService.Core.Prompts
             AppendDeliverPrisoner(sb, encounterContext);
             AppendPrisonerFreedomBargain(sb, encounterContext);
             AppendPrisonerRescueBargain(sb, encounterContext);
+            AppendCompanionMissionOffer(sb, encounterContext);
             AppendMarriage(sb, encounterContext);
             // ── Dynamic world state (changes each turn) ──────────────────────────
             AppendWorldState(sb, world);
@@ -1235,6 +1236,28 @@ namespace NpcMemoryService.Core.Prompts
         ///   captive lord may bargain for their own freedom, offering a reward worth more than the ransom,
         ///   and the deal is sealed with the free_prisoner action. Shown nowhere else.
         /// </summary>
+        /// <summary>
+        ///   Taught only to one of the player's OWN companions who can be sent (CanGatherNews): if the
+        ///   player asks them to ride out and bring back word of the realm, they may agree and emit the
+        ///   gather_news action. The companion returns days later with a report — they do not invent news now.
+        /// </summary>
+        private static void AppendCompanionMissionOffer(StringBuilder sb, EncounterContext? context)
+        {
+            if (context?.CanGatherNews != true) return;
+
+            sb.AppendLine("THE PLAYER MAY SEND YOU FOR NEWS (only as a topic THE PLAYER raises):");
+            sb.AppendLine("You are one of the player's own companions. If the player asks you to GO and bring back word of");
+            sb.AppendLine("the realm — the latest news, what is stirring across Calradia, tidings from the roads — you may");
+            sb.AppendLine("agree to ride out and gather it. When you accept, emit the action:");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: gather_news");
+            sb.AppendLine("[/ACTION]");
+            sb.AppendLine("The game then sends you off; you return after some days with what you learned. Only emit");
+            sb.AppendLine("gather_news when the player actually asks you to go and you agree to go — never on your own, never");
+            sb.AppendLine("for any other errand. Do NOT invent the news now in your reply; you bring it back later.");
+            sb.AppendLine();
+        }
+
         private static void AppendPrisonerFreedomBargain(StringBuilder sb, EncounterContext? context)
         {
             if (context?.PlayerStatus != PlayerStatusVsNpc.NpcIsCaptive) return;

@@ -326,6 +326,13 @@ namespace NpcMemoryService.Core.Models
         public string? PlayerDeedsHeard { get; init; }
 
         /// <summary>
+        ///   True when this NPC is one of the player's own companions, in the party, free of an errand and
+        ///   skilled enough to be sent — so the gather_news offer (dispatch them to bring back word of the
+        ///   realm) is taught. The game bridge re-validates every guard before actually dispatching.
+        /// </summary>
+        public bool CanGatherNews { get; init; }
+
+        /// <summary>
         ///   DEPRECATED — intentionally left unfed (always null). It once told a recruitable
         ///   NPC the player's exact gold so it would not seal an unaffordable hire, but an NPC
         ///   cannot see the player's liquid coin and naming the sum to the denar broke
