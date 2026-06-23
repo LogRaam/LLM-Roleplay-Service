@@ -130,6 +130,7 @@ namespace NpcMemoryService.Core.Prompts
             AppendConsortProposal(sb, encounterContext);
             AppendGiveItem(sb, encounterContext);
             AppendDeliverPrisoner(sb, encounterContext);
+            AppendPrisonerFreedomBargain(sb, encounterContext);
             AppendMarriage(sb, encounterContext);
             // ── Dynamic world state (changes each turn) ──────────────────────────
             AppendWorldState(sb, world);
@@ -1225,6 +1226,33 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("[/ACTION]");
             sb.AppendLine("The game then transfers that prisoner and honors your bargain. Only emit give_prisoner when the");
             sb.AppendLine("player has an OUTSTANDING prisoner bargain with you and holds the captive — never speculatively.");
+            sb.AppendLine();
+        }
+
+        /// <summary>
+        ///   Taught only when the PLAYER holds this NPC prisoner (NpcIsCaptive) and comes to speak: the
+        ///   captive lord may bargain for their own freedom, offering a reward worth more than the ransom,
+        ///   and the deal is sealed with the free_prisoner action. Shown nowhere else.
+        /// </summary>
+        private static void AppendPrisonerFreedomBargain(StringBuilder sb, EncounterContext? context)
+        {
+            if (context?.PlayerStatus != PlayerStatusVsNpc.NpcIsCaptive) return;
+
+            sb.AppendLine("YOU ARE THE PLAYER'S PRISONER:");
+            sb.AppendLine("The player holds you captive and has come to your cell to speak. If you want your freedom,");
+            sb.AppendLine("you may BARGAIN for it — in character, weighing your pride against your plight. Offer something");
+            sb.AppendLine("worth more than the ransom they could already claim for you: your lasting goodwill, a sum of");
+            sb.AppendLine("gold once you are free, or — only if your house is broken or your cause truly lost and you");
+            sb.AppendLine("would genuinely change sides — your SERVICE in their clan. Stay true to who you are: a proud");
+            sb.AppendLine("lord may refuse to grovel and would sooner wait for ransom; a desperate or pragmatic one bargains.");
+            sb.AppendLine("When you and the player AGREE on terms and they consent to free you, emit the action alongside");
+            sb.AppendLine("the reward you promised:");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: free_prisoner");
+            sb.AppendLine("[/ACTION]");
+            sb.AppendLine("Pair it with what you offered — change_relation for goodwill, give_gold for a ransom you pay, or");
+            sb.AppendLine("join_clan if you swear yourself to them. The game then sets you free. Only emit free_prisoner");
+            sb.AppendLine("once terms are struck AND the player agrees to release you — never unilaterally, never to escape.");
             sb.AppendLine();
         }
 
