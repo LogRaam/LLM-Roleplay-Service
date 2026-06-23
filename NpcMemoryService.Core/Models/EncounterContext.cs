@@ -317,6 +317,15 @@ namespace NpcMemoryService.Core.Models
         public string? WorldRumorsBlock { get; init; }
 
         /// <summary>
+        ///   Pre-formatted "what is said of you" block — deeds of the PLAYER's that word has carried to
+        ///   this NPC, attributed to the very person they are speaking with, each tagged with how it lands
+        ///   on them ("(this cut against you or your own)" / "(this served your side)"). Null when none
+        ///   have reached them. The influence loop: the world reflects the player's own acts back at them.
+        ///   Distinct from <see cref="WorldRumorsBlock"/>, which is third-party news the player is not in.
+        /// </summary>
+        public string? PlayerDeedsHeard { get; init; }
+
+        /// <summary>
         ///   DEPRECATED — intentionally left unfed (always null). It once told a recruitable
         ///   NPC the player's exact gold so it would not seal an unaffordable hire, but an NPC
         ///   cannot see the player's liquid coin and naming the sum to the denar broke

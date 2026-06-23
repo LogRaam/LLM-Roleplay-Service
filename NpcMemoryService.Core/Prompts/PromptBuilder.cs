@@ -1402,6 +1402,21 @@ namespace NpcMemoryService.Core.Prompts
                 sb.AppendLine();
             }
 
+            if (!string.IsNullOrWhiteSpace(context.PlayerDeedsHeard))
+            {
+                sb.AppendLine("WHAT IS SAID OF THE ONE BEFORE YOU (deeds word lays at their feet):");
+                sb.AppendLine("These are NOT rumours of strangers — they are deeds reputed of the very person you are");
+                sb.AppendLine("speaking with now. You did not witness them; word reached you. Let them colour how you");
+                sb.AppendLine("regard them THIS conversation — never recite them as a list. A deed marked '(this cut");
+                sb.AppendLine("against you or your own)' breeds wariness, resentment, even fear; one marked '(this");
+                sb.AppendLine("served your side)' earns respect or gratitude. You may allude to what you have heard,");
+                sb.AppendLine("hedged as hearsay ('they say you…', 'word reached me that…'), and you may have a detail");
+                sb.AppendLine("wrong. This is reputation, not proof: your standing is moved only by what you yourself");
+                sb.AppendLine("have seen or lived — but reputation still shapes how warily or warmly you open.");
+                sb.AppendLine(context.PlayerDeedsHeard);
+                sb.AppendLine();
+            }
+
             if (!string.IsNullOrWhiteSpace(context.NpcCurrentActivity))
             {
                 sb.AppendLine("YOUR CURRENT SITUATION:");
