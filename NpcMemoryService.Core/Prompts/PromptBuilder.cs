@@ -95,7 +95,7 @@ namespace NpcMemoryService.Core.Prompts
             // ── Permission preamble — highest framing weight (read first) ────────
             AppendAdultFramingPreamble(sb);
             // ── Static prefix — identical for every NPC in the session ──────────
-            AppendFormatInstructions(sb);
+            AppendFormatInstructions(sb, encounterContext);
             AppendDialogueStyle(sb);
             AppendBehaviorGuidelines(sb);
             AppendWorldDescription(sb);
@@ -111,7 +111,11 @@ namespace NpcMemoryService.Core.Prompts
             AppendInheritedNote(sb, npc);
             AppendBackgroundContext(sb, npc);
             AppendHistory(sb, npc, world.CurrentDay);
-            AppendActiveQuests(sb, npc);
+            // A captor holding the player prisoner is not a quest-giver: listing the player's tasks
+            // here let a bandit captor mistake a "clear the bandits" quest for one HE gave, and torture
+            // the prisoner for "failing" it. Quests have no place in a captive scene.
+            if (encounterContext?.PlayerStatus != PlayerStatusVsNpc.Captive)
+                AppendActiveQuests(sb, npc);
             AppendCurrentStance(sb, npc);
             AppendStanceNote(sb, encounterContext);
             AppendPlayerLetters(sb, npc);
@@ -2331,7 +2335,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
         }
 
-        private void AppendFormatInstructions(StringBuilder sb)
+        private void AppendFormatInstructions(StringBuilder sb, EncounterContext? context)
         {
             sb.AppendLine("RESPONSE FORMAT (always follow):");
             sb.AppendLine("Structure every response using the sections below.");
@@ -2405,7 +2409,10 @@ namespace NpcMemoryService.Core.Prompts
 
             AppendActionInstructions(sb);
             AppendDiscoveryInstructions(sb);
-            AppendQuestInstructions(sb);
+            // Don't teach quest-issuance to a captor either — a torture scene is not the place to hand
+            // out errands, and the vocabulary itself fed the captor's confusion about quests.
+            if (context?.PlayerStatus != PlayerStatusVsNpc.Captive)
+                AppendQuestInstructions(sb);
             sb.AppendLine("Stay in character at all times. Never break the fourth wall.");
             sb.AppendLine("If the player's history conflicts with a stated stance, the history wins.");
             sb.AppendLine();
