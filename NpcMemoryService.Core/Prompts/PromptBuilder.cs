@@ -133,6 +133,7 @@ namespace NpcMemoryService.Core.Prompts
             AppendPrisonerFreedomBargain(sb, encounterContext);
             AppendPrisonerRescueBargain(sb, encounterContext);
             AppendCompanionMissionOffer(sb, encounterContext);
+            AppendCompanionNewsReport(sb, encounterContext);
             AppendMarriage(sb, encounterContext);
             // ── Dynamic world state (changes each turn) ──────────────────────────
             AppendWorldState(sb, world);
@@ -1241,6 +1242,24 @@ namespace NpcMemoryService.Core.Prompts
         ///   player asks them to ride out and bring back word of the realm, they may agree and emit the
         ///   gather_news action. The companion returns days later with a report — they do not invent news now.
         /// </summary>
+        /// <summary>
+        ///   Taught on the homecoming turn, when this companion has just returned from a news errand: the
+        ///   pre-built directive in <see cref="EncounterContext.CompanionNewsReport"/> already carries the
+        ///   town and the news; here we only frame how to deliver it — in their own voice, woven in.
+        /// </summary>
+        private static void AppendCompanionNewsReport(StringBuilder sb, EncounterContext? context)
+        {
+            string? report = context?.CompanionNewsReport;
+            if (string.IsNullOrWhiteSpace(report)) return;
+
+            sb.AppendLine("YOU HAVE JUST RETURNED FROM AN ERRAND FOR THE PLAYER:");
+            sb.AppendLine(report);
+            sb.AppendLine("Open by reporting back — tell it in your own voice, coloured by the road and by who you are,");
+            sb.AppendLine("woven into the conversation. Do NOT recite it as a bare list, and do not invent beyond what is");
+            sb.AppendLine("given here; if you gathered little, say so plainly.");
+            sb.AppendLine();
+        }
+
         private static void AppendCompanionMissionOffer(StringBuilder sb, EncounterContext? context)
         {
             if (context?.CanGatherNews != true) return;

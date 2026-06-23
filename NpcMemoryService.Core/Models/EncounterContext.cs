@@ -333,6 +333,13 @@ namespace NpcMemoryService.Core.Models
         public bool CanGatherNews { get; init; }
 
         /// <summary>
+        ///   Set on the first conversation after this companion has RETURNED from a news errand: a ready
+        ///   directive + the news they gathered, for them to deliver in their own voice. Consumed once (the
+        ///   host clears it after this build), so it colours only the homecoming exchange. Null otherwise.
+        /// </summary>
+        public string? CompanionNewsReport { get; init; }
+
+        /// <summary>
         ///   DEPRECATED — intentionally left unfed (always null). It once told a recruitable
         ///   NPC the player's exact gold so it would not seal an unaffordable hire, but an NPC
         ///   cannot see the player's liquid coin and naming the sum to the denar broke
