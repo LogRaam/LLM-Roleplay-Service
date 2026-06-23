@@ -1264,16 +1264,23 @@ namespace NpcMemoryService.Core.Prompts
         {
             if (context?.CanGatherNews != true) return;
 
-            sb.AppendLine("THE PLAYER MAY SEND YOU FOR NEWS (only as a topic THE PLAYER raises):");
-            sb.AppendLine("You are one of the player's own companions. If the player asks you to GO and bring back word of");
-            sb.AppendLine("the realm — the latest news, what is stirring across Calradia, tidings from the roads — you may");
-            sb.AppendLine("agree to ride out and gather it. When you accept, emit the action:");
+            sb.AppendLine("THE PLAYER MAY SEND YOU ON AN ERRAND (only when THE PLAYER asks you to GO):");
+            sb.AppendLine("You are one of the player's own companions. If the player asks you to ride out and do one of");
+            sb.AppendLine("these for them, you may agree — and emit the action below with the matching 'errand':");
+            sb.AppendLine("  - news  : bring back word of the realm — the latest tidings");
+            sb.AppendLine("  - scout : spy out a town or lord — its strength, holdings, whereabouts");
+            sb.AppendLine("  - steal : lift coin from a place");
+            sb.AppendLine("  - trade : turn a profit at market");
+            sb.AppendLine("  - envoy : take the measure of a faction's mood");
             sb.AppendLine("[ACTION]");
             sb.AppendLine("type: gather_news");
+            sb.AppendLine("errand: scout");
+            sb.AppendLine("about: a faction, culture, town, or lord the player named (omit if they left it open)");
             sb.AppendLine("[/ACTION]");
-            sb.AppendLine("The game then sends you off; you return after some days with what you learned. Only emit");
-            sb.AppendLine("gather_news when the player actually asks you to go and you agree to go — never on your own, never");
-            sb.AppendLine("for any other errand. Do NOT invent the news now in your reply; you bring it back later.");
+            sb.AppendLine("The game sends you off; you leave the party, ride there, and return after some days with the");
+            sb.AppendLine("result. Pick the 'errand' that fits what they asked (default to news if they simply want word of");
+            sb.AppendLine("the world). Only emit this when the player actually asks you to GO and you agree — never on your");
+            sb.AppendLine("own, never for any other request. Do NOT invent the result now; you bring it back later.");
             sb.AppendLine();
         }
 
