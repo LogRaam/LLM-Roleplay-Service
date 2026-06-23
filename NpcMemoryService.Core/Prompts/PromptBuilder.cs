@@ -131,6 +131,7 @@ namespace NpcMemoryService.Core.Prompts
             AppendGiveItem(sb, encounterContext);
             AppendDeliverPrisoner(sb, encounterContext);
             AppendPrisonerFreedomBargain(sb, encounterContext);
+            AppendPrisonerRescueBargain(sb, encounterContext);
             AppendMarriage(sb, encounterContext);
             // ── Dynamic world state (changes each turn) ──────────────────────────
             AppendWorldState(sb, world);
@@ -1253,6 +1254,33 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("Pair it with what you offered — change_relation for goodwill, give_gold for a ransom you pay, or");
             sb.AppendLine("join_clan if you swear yourself to them. The game then sets you free. Only emit free_prisoner");
             sb.AppendLine("once terms are struck AND the player agrees to release you — never unilaterally, never to escape.");
+            sb.AppendLine();
+        }
+
+        /// <summary>
+        ///   Taught only when this NPC is a captive of SOMEONE ELSE (NpcIsPrisonerOfAnother) and the player
+        ///   visits their cell: the captive may bargain to be broken out — a rescue deed the player must
+        ///   earn by actually freeing them in battle. The reward is fixed at issue and paid once free.
+        /// </summary>
+        private static void AppendPrisonerRescueBargain(StringBuilder sb, EncounterContext? context)
+        {
+            if (context?.NpcIsPrisonerOfAnother != true) return;
+
+            string captor = string.IsNullOrWhiteSpace(context.NpcCaptorName) ? "your captors" : context.NpcCaptorName!;
+            sb.AppendLine("YOU ARE A PRISONER (held by someone else):");
+            sb.AppendLine($"You are held captive by {captor}, and the player has come to your cell. You cannot free");
+            sb.AppendLine("yourself — but THEY could, by defeating your captor in the field or storming this place. If");
+            sb.AppendLine("you want out, you may BARGAIN for a rescue: offer a reward worth the risk — gold once you are");
+            sb.AppendLine("free, and your lasting goodwill. Stay true to who you are: a proud lord may scorn such help,");
+            sb.AppendLine("a desperate one pleads. When you and the player strike a deal, set the rescue task:");
+            sb.AppendLine("[QUEST]");
+            sb.AppendLine("type: rescue_prisoner");
+            sb.AppendLine("reward_gold: N (a sum you pay once freed, 0 if none)");
+            sb.AppendLine("reward_relation: N (the goodwill you promise)");
+            sb.AppendLine("description: your plea and your offer, in your own voice");
+            sb.AppendLine("[/QUEST]");
+            sb.AppendLine("Do NOT name a target — the rescue is YOU; the game knows it. The deed is honoured ONLY when the");
+            sb.AppendLine("player actually frees you in battle, never on a promise. Offer it only if it suits who you are.");
             sb.AppendLine();
         }
 

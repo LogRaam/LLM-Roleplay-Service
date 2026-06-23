@@ -201,6 +201,17 @@ namespace NpcMemoryService.Core.Models
         public string? HeldLordPrisoners { get; init; }
 
         /// <summary>
+        ///   True when this NPC is a captive of someone OTHER than the player (a lord held in an enemy
+        ///   dungeon the player is visiting). Lets the captive bargain to be broken out — a rescue deed,
+        ///   verified when the player actually frees them. Distinct from PlayerStatus.NpcIsCaptive (which
+        ///   is the player's OWN captive, handled by the immediate free_prisoner bargain).
+        /// </summary>
+        public bool NpcIsPrisonerOfAnother { get; init; }
+
+        /// <summary>Display name of the faction holding this NPC captive, for the rescue bargain. Null when free.</summary>
+        public string? NpcCaptorName { get; init; }
+
+        /// <summary>
         ///   Name of the kingdom the NPC belongs to when the player is free (not already
         ///   sworn to any kingdom) and the NPC is a lord who could extend a mercenary
         ///   contract on the kingdom's behalf. Null when the player is already in a kingdom,
