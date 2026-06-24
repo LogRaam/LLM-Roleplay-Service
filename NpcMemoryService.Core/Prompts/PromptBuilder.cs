@@ -135,6 +135,7 @@ namespace NpcMemoryService.Core.Prompts
             AppendCompanionMissionOffer(sb, encounterContext);
             AppendCompanionNewsReport(sb, encounterContext);
             AppendCompanionMoodNote(sb, encounterContext);
+            AppendCompanionCampNote(sb, encounterContext);
             AppendMarriage(sb, encounterContext);
             // ── Dynamic world state (changes each turn) ──────────────────────────
             AppendWorldState(sb, world);
@@ -1282,6 +1283,23 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("[ACTION]");
             sb.AppendLine("type: reassure_companion");
             sb.AppendLine("[/ACTION]");
+            sb.AppendLine();
+        }
+
+        /// <summary>
+        ///   Taught when this companion feels strongly about a FELLOW companion: the directive in
+        ///   <see cref="EncounterContext.CompanionCampNote"/> names the camp friendship or feud and invites
+        ///   them to raise it with the player — naturally, only if it fits, never forced.
+        /// </summary>
+        private static void AppendCompanionCampNote(StringBuilder sb, EncounterContext? context)
+        {
+            string? note = context?.CompanionCampNote;
+            if (string.IsNullOrWhiteSpace(note)) return;
+
+            sb.AppendLine("AMONG YOUR FELLOW COMPANIONS:");
+            sb.AppendLine(note);
+            sb.AppendLine("You MAY bring this up with the player if the moment fits — a word of praise or a");
+            sb.AppendLine("complaint about riding together — in your own voice. Never invent more than this.");
             sb.AppendLine();
         }
 

@@ -347,6 +347,13 @@ namespace NpcMemoryService.Core.Models
         public string? CompanionMoodNote { get; init; }
 
         /// <summary>
+        ///   Set when talking to one of the player's companions who feels strongly (warmly or bitterly)
+        ///   about ANOTHER of the player's companions — a one-line directive inviting them to bring that
+        ///   camp friendship or feud up with the player. Null when they hold no strong opinion of a peer.
+        /// </summary>
+        public string? CompanionCampNote { get; init; }
+
+        /// <summary>
         ///   DEPRECATED — intentionally left unfed (always null). It once told a recruitable
         ///   NPC the player's exact gold so it would not seal an unaffordable hire, but an NPC
         ///   cannot see the player's liquid coin and naming the sum to the denar broke
