@@ -1276,6 +1276,12 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("Let this colour the exchange in your own voice — a grievance raised, a coolness, a");
             sb.AppendLine("warning — woven in naturally, true to who you are. Do not recite it; do not invent");
             sb.AppendLine("rewards or threats beyond what is given here.");
+            sb.AppendLine("If the player SINCERELY makes it right this exchange — a real apology, a promise of better,");
+            sb.AppendLine("a gift, a genuine kindness — you may soften, and emit the action below to reflect being a");
+            sb.AppendLine("little appeased. Only for a true effort to mend things, never for empty words:");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: reassure_companion");
+            sb.AppendLine("[/ACTION]");
             sb.AppendLine();
         }
 
