@@ -68,8 +68,16 @@ namespace NpcMemoryService.Core.Services
 
             var systemPrompt = PromptBuilder.BuildSystemPrompt(npc, world, encounterContext);
 
+            // Prompt-cache split: everything up to the per-turn "CURRENT ENCOUNTER" block is stable within a
+            // conversation (identity, persona, instructions) and makes the cacheable prefix; the dynamic tail
+            // (encounter, rumours, names) is sent fresh. So the cache breakpoint survives the day/encounter
+            // changing each turn instead of invalidating the whole system prompt.
+            int splitAt = systemPrompt.IndexOf("CURRENT ENCOUNTER:", System.StringComparison.Ordinal);
+            string? stablePrefix = splitAt > 0 ? systemPrompt.Substring(0, splitAt) : null;
+
             LlmRequest request = new LlmRequest {
                 SystemPrompt = systemPrompt,
+                StableSystemPrompt = stablePrefix,
                 Messages = session.Messages,
                 Parameters = ChatParameters
             };

@@ -167,29 +167,43 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
         ///   (providers that reject the array form, e.g. NanoGPT), it is sent as a
         ///   plain OpenAI string — the maximally-portable form.
         /// </summary>
+        /// <summary>
+        ///   Builds the system message. With caching off, a plain OpenAI string (maximally portable). With
+        ///   caching on and a stable prefix supplied, two text blocks — the stable prefix carrying the
+        ///   <c>cache_control: ephemeral</c> breakpoint, then the per-turn dynamic tail sent fresh — so the
+        ///   cache survives the encounter/day changing each turn. Without a split, the whole prompt is the
+        ///   cached block (prior behaviour). Anthropic/OpenRouter honour the array form; others ignore it.
+        /// </summary>
+        private object BuildSystemMessage(LlmRequest request)
+        {
+            if (!_config.ResolveUseSystemPromptCaching())
+                return new { role = "system", content = request.SystemPrompt };
+
+            string? stable = request.StableSystemPrompt;
+            if (!string.IsNullOrEmpty(stable)
+                && request.SystemPrompt.Length > stable!.Length
+                && request.SystemPrompt.StartsWith(stable, System.StringComparison.Ordinal))
+            {
+                return new {
+                    role = "system",
+                    content = new object[] {
+                        new { type = "text", text = stable, cache_control = new {type = "ephemeral"} },
+                        new { type = "text", text = request.SystemPrompt.Substring(stable.Length) }
+                    }
+                };
+            }
+
+            return new {
+                role = "system",
+                content = new object[] {
+                    new { type = "text", text = request.SystemPrompt, cache_control = new {type = "ephemeral"} }
+                }
+            };
+        }
+
         private object ToWireFormat(LlmRequest request)
         {
-            var messages = new List<object> {
-                _config.ResolveUseSystemPromptCaching()
-                    // Content array enables the cache_control breakpoint.
-                    // Anthropic/OpenRouter honor it; others ignore it.
-                    ? (object) new {
-                        role = "system",
-                        content = new object[] {
-                            new {
-                                type = "text",
-                                text = request.SystemPrompt,
-                                cache_control = new {type = "ephemeral"}
-                            }
-                        }
-                    }
-                    // Plain string system content — accepted by every OpenAI-compatible
-                    // endpoint, no caching extension.
-                    : new {
-                        role = "system",
-                        content = request.SystemPrompt
-                    }
-            };
+            var messages = new List<object> { BuildSystemMessage(request) };
 
             foreach (LlmMessage msg in request.Messages)
                 messages.Add(new {
