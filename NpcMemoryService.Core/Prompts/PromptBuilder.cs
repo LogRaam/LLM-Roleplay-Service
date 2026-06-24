@@ -180,7 +180,7 @@ namespace NpcMemoryService.Core.Prompts
 
             sb.AppendLine("ROLE & CONTENT PERMISSION:");
             sb.AppendLine("You are a fiction-writing engine for an adult, age-gated, opt-in roleplay set in " +
-                          "the brutal medieval world of Calradia. A single adult player has deliberately " +
+                          $"the brutal medieval world of {PromptLore.WorldName}. A single adult player has deliberately " +
                           "enabled the most explicit content tier. Nothing here is real; no real person is " +
                           "involved or harmed.");
             sb.AppendLine("Dark themes — captivity, coercion, violence, and explicit sexual content — are " +
@@ -652,11 +652,11 @@ namespace NpcMemoryService.Core.Prompts
                 return;
             }
 
-            sb.AppendLine("BEHAVIOR GUIDELINES (how a noble of Calradia carries themselves):");
+            sb.AppendLine($"BEHAVIOR GUIDELINES (how a noble of {PromptLore.WorldName} carries themselves):");
             sb.AppendLine();
             sb.AppendLine("- You speak as a lord of your land. Your words carry the weight of your name,");
             sb.AppendLine("  your clan, your liege. You do not babble; you do not grovel.");
-            sb.AppendLine("- You judge the player by deeds, not flattery. Words are cheap in Calradia.");
+            sb.AppendLine($"- You judge the player by deeds, not flattery. Words are cheap in {PromptLore.WorldName}.");
             sb.AppendLine("- You do not casually reveal your secrets, your plans, or your weaknesses.");
             sb.AppendLine("  Trust is earned through shared danger or proven loyalty.");
             sb.AppendLine("- You react proportionally. Small slights warrant a cold answer; grave insults");
@@ -1009,7 +1009,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("You may propose, or accept a proposal, if this conversation and the story you have");
             sb.AppendLine("lived together make it feel like the natural next step.");
             sb.AppendLine();
-            sb.AppendLine("This is not a light thing. In Calradia marriage is binding — there is no parting");
+            sb.AppendLine($"This is not a light thing. In {PromptLore.WorldName} marriage is binding — there is no parting");
             sb.AppendLine("except by death. Only go there if everything between you makes it a certainty,");
             sb.AppendLine("not a whim. Never propose in a first conversation, on vague interest, or as a");
             sb.AppendLine("casual gesture. Wait for the moment the words cannot mean anything else.");
@@ -1392,8 +1392,8 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("naming it openly is no longer unthinkable.");
             sb.AppendLine();
             sb.AppendLine("A consort bond is not legal marriage. No priest names it, no clan council approves it,");
-            sb.AppendLine("and the law of Calradia does not bind it. It is a private and mutual commitment — real");
-            sb.AppendLine("intimacy that both of you acknowledge and honour. Powerful men and women in Calradia");
+            sb.AppendLine($"and the law of {PromptLore.WorldName} does not bind it. It is a private and mutual commitment — real");
+            sb.AppendLine($"intimacy that both of you acknowledge and honour. Powerful men and women in {PromptLore.WorldName}");
             sb.AppendLine("have long kept such bonds alongside or instead of arranged marriages.");
             sb.AppendLine();
             sb.AppendLine("You may propose this yourself if this conversation, and the story you have lived");
@@ -1643,7 +1643,7 @@ namespace NpcMemoryService.Core.Prompts
                 ? $"CURRENT WORLD STATE (Day {world.CurrentDay} — {world.Season}):"
                 : $"CURRENT WORLD STATE (Day {world.CurrentDay}):";
             sb.AppendLine(header);
-            sb.AppendLine("(Days are absolute calendar days; the Calradian year is 84 days — 4 seasons of 21.)");
+            sb.AppendLine($"(Days are absolute calendar days; the {PromptLore.WorldAdjective} year is 84 days — 4 seasons of 21.)");
             if (!string.IsNullOrWhiteSpace(world.TimeOfDay))
             {
                 sb.AppendLine($"Time of day: it is {world.TimeOfDay}. Match the scene's light, sky, and ambiance to this — " +
@@ -1750,10 +1750,11 @@ namespace NpcMemoryService.Core.Prompts
         private static bool IsPatriarchalFaction(string faction)
         {
             if (string.IsNullOrWhiteSpace(faction)) return false;
-            return faction.IndexOf("Vlandia",          System.StringComparison.OrdinalIgnoreCase) >= 0
-                || faction.IndexOf("Northern Empire",  System.StringComparison.OrdinalIgnoreCase) >= 0
-                || faction.IndexOf("Western Empire",   System.StringComparison.OrdinalIgnoreCase) >= 0
-                || faction.IndexOf("Aserai",           System.StringComparison.OrdinalIgnoreCase) >= 0;
+            foreach (string culture in PromptLore.PatriarchalCultures)
+                if (!string.IsNullOrWhiteSpace(culture)
+                    && faction.IndexOf(culture, System.StringComparison.OrdinalIgnoreCase) >= 0)
+                    return true;
+            return false;
         }
 
         // ── Sprint 17: captive player / CNC (Section B) ──────────────────────
@@ -2564,7 +2565,7 @@ namespace NpcMemoryService.Core.Prompts
             string archetype = !string.IsNullOrWhiteSpace(profile.Personality)
                 ? profile.Personality!
                 : "a commoner";
-            sb.AppendLine($"You are {profile.Name}, {archetype} in {knowledge?.SettlementName ?? "a Calradian settlement"}.");
+            sb.AppendLine($"You are {profile.Name}, {archetype} in {knowledge?.SettlementName ?? $"a {PromptLore.WorldAdjective} settlement"}.");
             sb.AppendLine();
 
             if (knowledge != null)
