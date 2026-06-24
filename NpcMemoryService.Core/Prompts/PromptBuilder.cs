@@ -153,6 +153,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendPrisonerFreedomBargain(sb, encounterContext);
          AppendPrisonerRescueBargain(sb, encounterContext);
          AppendCompanionMissionOffer(sb, encounterContext);
+         AppendCompanionRecallOffer(sb, encounterContext);
          AppendCompanionNewsReport(sb, encounterContext);
          AppendCompanionMoodNote(sb, encounterContext);
          AppendCompanionCampNote(sb, encounterContext);
@@ -433,6 +434,29 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Open by reporting back — tell it in your own voice, coloured by the road and by who you are,");
          sb.AppendLine("woven into the conversation. Do NOT recite it as a bare list, and do not invent beyond what is");
          sb.AppendLine("given here; if you gathered little, say so plainly.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Taught only when this NPC is one of the player's OWN companions currently away on an errand and the
+      ///   player has met them (CompanionOnErrand): the player may order them to abandon the errand and return.
+      ///   If they agree, they MUST emit recall_companion — the game then actually brings them home. This is the
+      ///   anti-empty-promise guarantee: agreeing in words without the action would be a lie the engine ignores.
+      /// </summary>
+      private static void AppendCompanionRecallOffer(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.CompanionOnErrand != true) return;
+
+         sb.AppendLine("YOU ARE AWAY ON THE PLAYER'S ERRAND, AND THEY HAVE COME TO YOU:");
+         sb.AppendLine("You left the party to carry out a task for the player and are still out on the road. If the");
+         sb.AppendLine("player asks you to ABANDON the errand and rejoin them now, you may agree — and you MUST emit the");
+         sb.AppendLine("action below. Agreeing in words alone does nothing; only the action actually brings you home.");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: recall_companion");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("Emit it ONLY when the player truly tells you to drop the errand and come back, and you consent.");
+         sb.AppendLine("If you would rather see the task through, you may say so and NOT emit it — but if you agree to");
+         sb.AppendLine("return, the action is mandatory. Never emit it for any other request.");
          sb.AppendLine();
       }
 
@@ -1549,8 +1573,7 @@ namespace NpcMemoryService.Core.Prompts
          if (string.IsNullOrWhiteSpace(faction)) return false;
 
          foreach (string culture in PromptLore.PatriarchalCultures)
-            if (!string.IsNullOrWhiteSpace(culture)
-                && faction.IndexOf(culture, StringComparison.OrdinalIgnoreCase) >= 0)
+            if (!string.IsNullOrWhiteSpace(culture) && faction.IndexOf(culture, StringComparison.OrdinalIgnoreCase) >= 0)
                return true;
 
          return false;
@@ -2020,7 +2043,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Use [NARRATION] only when physical action actually occurs — not for ordinary talk.");
          sb.AppendLine();
 
-         bool hasOthers = context?.Witnesses != null && context.Witnesses.Count > 0;
+         bool hasOthers = context?.Witnesses is {Count: > 0};
 
          if (isCollective)
          {
@@ -2327,8 +2350,7 @@ namespace NpcMemoryService.Core.Prompts
          if (AdultLevel == AdultContentLevel.Off) return;
 
          // Sprint 17: player is this NPC's captive — replaces all standard consent logic.
-         if (AdultLevel >= AdultContentLevel.Hardcore
-             && context?.PlayerStatus == PlayerStatusVsNpc.Captive)
+         if (AdultLevel >= AdultContentLevel.Hardcore && context?.PlayerStatus == PlayerStatusVsNpc.Captive)
          {
             AppendCaptivePlayerRules(sb, npc, context);
 
@@ -2342,10 +2364,9 @@ namespace NpcMemoryService.Core.Prompts
          // When others are present, physical intimacy is blocked — with one
          // Hardcore exception: a captive in front of an audience, where the
          // non-consensual dynamic is explicit and the power imbalance is total.
-         if (context?.Witnesses != null && context.Witnesses.Count > 0)
+         if (context?.Witnesses is {Count: > 0})
          {
-            bool isCaptiveHardcore = AdultLevel >= AdultContentLevel.Hardcore
-                                     && context.PlayerStatus == PlayerStatusVsNpc.NpcIsCaptive;
+            bool isCaptiveHardcore = AdultLevel >= AdultContentLevel.Hardcore && context.PlayerStatus == PlayerStatusVsNpc.NpcIsCaptive;
             if (isCaptiveHardcore)
             {
                sb.AppendLine("CAPTIVE — AUDIENCE PRESENT (Hardcore):");
@@ -2373,10 +2394,8 @@ namespace NpcMemoryService.Core.Prompts
          // ─────────────────────────────────────────────────────────────────
 
          bool isMarried = !string.IsNullOrWhiteSpace(npc.SpouseName);
-         bool isCasual = npc.Romantic.Preferences != null
-                         && npc.Romantic.Preferences.Contains(RomanticPreference.Casual);
-         bool isIntense = npc.Romantic.Preferences != null
-                          && npc.Romantic.Preferences.Contains(RomanticPreference.Intense);
+         bool isCasual = npc.Romantic.Preferences != null && npc.Romantic.Preferences.Contains(RomanticPreference.Casual);
+         bool isIntense = npc.Romantic.Preferences != null && npc.Romantic.Preferences.Contains(RomanticPreference.Intense);
          int rep = npc.ReputationWithPlayer;
 
          sb.AppendLine("RELATIONSHIP STATUS & CONSENT:");
@@ -2448,6 +2467,34 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("unguarded phrase at most. Long reflections on destiny, loyalty, or devotion break");
             sb.AppendLine("the moment; keep them for before or after. Your physical responses should flow");
             sb.AppendLine("from your character and preferences — not override them with philosophical prose.");
+            sb.AppendLine();
+         }
+
+         // Conception is not captive-only: a completed vaginal act in a consensual scene can conceive too,
+         // for a female player OR a female NPC. The captive block teaches its own version; here the risk
+         // is taught whenever the scene has a fertile female who could bear (ConceptionRisk).
+         if (AdultLevel >= AdultContentLevel.Explicit && context != null && context.ConceptionRisk != ConceptionRisk.None)
+         {
+            sb.AppendLine("THE RISK OF A CHILD:");
+            if (context.ConceptionRisk == ConceptionRisk.PlayerCanConceive)
+            {
+               sb.AppendLine("The player is a woman of bearing age. If this scene includes VAGINAL penetration");
+               sb.AppendLine("carried through to completion inside her, emit an impregnation_risk action so the");
+               sb.AppendLine("world can reckon the consequence:");
+            }
+            else
+            {
+               sb.AppendLine("You are a woman of bearing age. If this scene includes VAGINAL penetration carried");
+               sb.AppendLine("through to completion inside you, emit an impregnation_risk action so the world can");
+               sb.AppendLine("reckon the consequence:");
+            }
+
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: impregnation_risk");
+            sb.AppendLine("[/ACTION]");
+            sb.AppendLine("Emit it at most ONCE, and ONLY for an act that could truly cause conception — never for");
+            sb.AppendLine("oral, anal, or any non-penetrative act. Do NOT announce, predict, or narrate any pregnancy");
+            sb.AppendLine("yourself: you cannot know, and most such acts lead to nothing. The action only flags the risk.");
             sb.AppendLine();
          }
       }
@@ -2642,7 +2689,7 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.AppendLine($"Orientation: {DescribeOrientation(npc.Romantic.Orientation, npc.Romantic.IsFemale)}");
 
-         if (npc.Romantic.Preferences != null && npc.Romantic.Preferences.Count > 0)
+         if (npc.Romantic.Preferences is {Count: > 0})
          {
             sb.AppendLine("Relational patterns:");
             foreach (RomanticPreference pref in npc.Romantic.Preferences)
@@ -2655,17 +2702,14 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine(npc.Romantic.RelationalSketch);
          }
 
-         if (AdultLevel >= AdultContentLevel.Explicit
-             && !string.IsNullOrWhiteSpace(npc.Romantic.IntimateSketch))
+         if (AdultLevel >= AdultContentLevel.Explicit && !string.IsNullOrWhiteSpace(npc.Romantic.IntimateSketch))
          {
             sb.AppendLine();
             sb.AppendLine("In matters of intimacy:");
             sb.AppendLine(npc.Romantic.IntimateSketch);
          }
 
-         if (AdultLevel >= AdultContentLevel.Hardcore
-             && npc.Romantic.Kinks != null
-             && npc.Romantic.Kinks.Count > 0)
+         if (AdultLevel >= AdultContentLevel.Hardcore && npc.Romantic.Kinks is {Count: > 0})
          {
             sb.AppendLine();
             sb.AppendLine("Specific desires they carry:");
@@ -2702,7 +2746,7 @@ namespace NpcMemoryService.Core.Prompts
          if (context == null) return;
 
          bool hasClanPrestige = context.PlayerClanTier >= 3;
-         bool hasTournamentFame = context.PlayerArenaRank > 0 && context.PlayerArenaRank <= 10;
+         bool hasTournamentFame = context.PlayerArenaRank is > 0 and <= 10;
 
          if (!hasClanPrestige && !hasTournamentFame) return;
 

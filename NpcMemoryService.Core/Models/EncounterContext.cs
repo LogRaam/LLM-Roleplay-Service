@@ -20,7 +20,7 @@ namespace NpcMemoryService.Core.Models
    public sealed class EncounterContext
    {
       /// <summary>An empty context (all fields Unknown). Use when no game state is available.</summary>
-      public static EncounterContext Empty { get; } = new EncounterContext();
+      public static EncounterContext Empty { get; } = new();
 
       /// <summary>
       ///   Who is acting this beat: the lead captor, another single member of the band taking
@@ -81,6 +81,22 @@ namespace NpcMemoryService.Core.Models
       ///   host clears it after this build), so it colours only the homecoming exchange. Null otherwise.
       /// </summary>
       public string? CompanionNewsReport { get; init; }
+
+      /// <summary>
+      ///   True when THIS NPC is one of the player's own companions currently AWAY on an errand (the player has
+      ///   ridden out and met them on the road / in a town). It lets the LLM accept an order to abandon the
+      ///   errand and come home — emitting the recall_companion action. The game bridge then actually brings
+      ///   them back: a verified deed, never a hollow "yes, I'll return" that the engine ignores.
+      /// </summary>
+      public bool CompanionOnErrand { get; init; }
+
+      /// <summary>
+      ///   Which party, if either, could conceive from a completed vaginal act this scene — drives the
+      ///   impregnation_risk teaching OUTSIDE captivity (consensual intimacy), for both a female player and a
+      ///   female NPC. None when the pairing is same-sex or neither is a fertile female. The captive path
+      ///   teaches conception separately (it is always the captive female player who conceives).
+      /// </summary>
+      public ConceptionRisk ConceptionRisk { get; init; }
 
       /// <summary>
       ///   True when the NPC and the player share a deep enough romantic bond (≥ Intimate,
@@ -483,5 +499,13 @@ namespace NpcMemoryService.Core.Models
       Tavern,
       Dungeon,
       Battlefield
+   }
+
+   /// <summary>Which party, if any, could conceive from a completed vaginal act in the current scene.</summary>
+   public enum ConceptionRisk
+   {
+      None,
+      PlayerCanConceive,
+      NpcCanConceive
    }
 }
