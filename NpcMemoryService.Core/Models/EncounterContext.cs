@@ -317,6 +317,14 @@ namespace NpcMemoryService.Core.Models
         public string? WorldRumorsBlock { get; init; }
 
         /// <summary>
+        ///   The single greatest realm-level happening the NPC has heard of right now — a war declared, a
+        ///   peace struck — phrased as the talk of the whole realm. CR's light take on "kingdom statements":
+        ///   the big news everyone is abuzz with, distinct from the personal/local <see cref="WorldRumorsBlock"/>.
+        ///   Null when no such realm event has reached them.
+        /// </summary>
+        public string? RealmNewsLine { get; init; }
+
+        /// <summary>
         ///   Pre-formatted "what is said of you" block — deeds of the PLAYER's that word has carried to
         ///   this NPC, attributed to the very person they are speaking with, each tagged with how it lands
         ///   on them ("(this cut against you or your own)" / "(this served your side)"). Null when none

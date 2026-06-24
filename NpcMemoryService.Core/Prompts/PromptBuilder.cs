@@ -1509,6 +1509,15 @@ namespace NpcMemoryService.Core.Prompts
                 sb.AppendLine();
             }
 
+            if (!string.IsNullOrWhiteSpace(context.RealmNewsLine))
+            {
+                sb.AppendLine("THE TALK OF ALL THE REALM:");
+                sb.AppendLine(context.RealmNewsLine);
+                sb.AppendLine("This is the great news of the moment — you may bring it up as the weighty matter it is,");
+                sb.AppendLine("as anyone of standing would, with your own reading of what it means.");
+                sb.AppendLine();
+            }
+
             if (!string.IsNullOrWhiteSpace(context.WorldRumorsBlock))
             {
                 sb.AppendLine("WHAT YOU'VE HEARD (news that has reached you):");
