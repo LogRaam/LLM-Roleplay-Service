@@ -354,6 +354,19 @@ namespace NpcMemoryService.Core.Models
         public string? CompanionCampNote { get; init; }
 
         /// <summary>
+        ///   Negotiation Phase 3 (adult-gated): true when this NPC is the exploiter archetype who may offer
+        ///   the female player a favour in exchange for intimacy (a man of low scruple, unrelated). Off by
+        ///   default; the prompt section double-checks the adult tier.
+        /// </summary>
+        public bool IntimacyBargainEligible { get; init; }
+
+        /// <summary>
+        ///   Phase 3: true when this NPC already HOLDS such leverage over the player from a past
+        ///   transaction — he remembers, and may press for more on the same terms.
+        /// </summary>
+        public bool IntimacyLeverageActive { get; init; }
+
+        /// <summary>
         ///   DEPRECATED — intentionally left unfed (always null). It once told a recruitable
         ///   NPC the player's exact gold so it would not seal an unaffordable hire, but an NPC
         ///   cannot see the player's liquid coin and naming the sum to the denar broke

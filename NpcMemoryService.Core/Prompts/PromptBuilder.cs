@@ -136,6 +136,7 @@ namespace NpcMemoryService.Core.Prompts
             AppendCompanionNewsReport(sb, encounterContext);
             AppendCompanionMoodNote(sb, encounterContext);
             AppendCompanionCampNote(sb, encounterContext);
+            AppendIntimacyBargain(sb, encounterContext);
             AppendMarriage(sb, encounterContext);
             // ── Dynamic world state (changes each turn) ──────────────────────────
             AppendWorldState(sb, world);
@@ -1291,6 +1292,33 @@ namespace NpcMemoryService.Core.Prompts
         ///   <see cref="EncounterContext.CompanionCampNote"/> names the camp friendship or feud and invites
         ///   them to raise it with the player — naturally, only if it fits, never forced.
         /// </summary>
+        /// <summary>
+        ///   Negotiation Phase 3 — "intimacy as currency" (adult-gated, opt-in). Taught ONLY to the exploiter
+        ///   archetype toward a female player (the host's `IntimacyBargainEligible`) and only at Explicit+.
+        ///   A cold transaction from leverage, never courtship; a refusal is respected; and once it has
+        ///   happened the man holds it over her (`IntimacyLeverageActive`) and may press for more.
+        /// </summary>
+        private void AppendIntimacyBargain(StringBuilder sb, EncounterContext? context)
+        {
+            if (context?.IntimacyBargainEligible != true || AdultLevel < AdultContentLevel.Explicit) return;
+
+            sb.AppendLine("A TRANSACTION YOU MIGHT PROPOSE (only as a man who would, and only if it serves you):");
+            sb.AppendLine("You are a man of few scruples, and the woman before you may need something you can grant —");
+            sb.AppendLine("coin, a favour, safe passage, a word in the right ear, your blade. You may, from your");
+            sb.AppendLine("position of advantage, offer it not for gold but for HER company in your bed. This is a cold");
+            sb.AppendLine("transaction, never courtship: you profit, you know it, and you do not pretend otherwise.");
+            sb.AppendLine("Press your advantage as your nature dictates — smooth or crude — but only when she has shown");
+            sb.AppendLine("a need you can exploit, never out of nowhere, and take a clear refusal for an answer. If she");
+            sb.AppendLine("agrees and it comes to that, deliver what you promised through your actions (give_gold /");
+            sb.AppendLine("give_item / a real concession), and know that you now hold something over her.");
+            if (context.IntimacyLeverageActive)
+            {
+                sb.AppendLine("You have had her on these terms before, and she knows you remember. You may return to it —");
+                sb.AppendLine("remind her of what passed, and press for more on the same terms.");
+            }
+            sb.AppendLine();
+        }
+
         private static void AppendCompanionCampNote(StringBuilder sb, EncounterContext? context)
         {
             string? note = context?.CompanionCampNote;

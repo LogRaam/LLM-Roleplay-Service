@@ -105,6 +105,13 @@ namespace NpcMemoryService.Core.Models
         public int Happiness { get; set; } = 60;
 
         /// <summary>
+        ///   Negotiation Phase 3: set once a cynical man has had the female player in a leveraged
+        ///   transaction (intimacy traded for a favour). He remembers it and may press the advantage in
+        ///   later talks. Adult-gated and only ever set for the exploiter archetype; false for everyone else.
+        /// </summary>
+        public bool IntimacyLeverageHeld { get; set; }
+
+        /// <summary>
         ///   Formatted description of the NPC's key in-game relationships:
         ///   liege, friends, enemies, family. Built from live game state and
         ///   refreshed on every session launch — not a stable identity field.
