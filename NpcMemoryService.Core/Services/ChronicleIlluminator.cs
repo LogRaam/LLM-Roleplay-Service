@@ -1,6 +1,4 @@
 // Code written by Gabriel Mailhot, 19/06/2026.
-// v1.2 chronicle: one-shot LLM pass that rewrites a bare list of dated deeds into flowing
-// chronicler-voice prose. Mirrors the summarizer pattern (ILlmClient.CompleteAsync).
 
 #region
 
@@ -29,33 +27,40 @@ namespace NpcMemoryService.Core.Services
          _llmClient = llmClient;
       }
 
-      public LlmParameters Parameters { get; init; } = new LlmParameters {
-         MaxTokens  = 1200,
+      public LlmParameters Parameters { get; init; } = new() {
+         MaxTokens = 1200,
          Creativity = 0.7f
       };
 
       /// <summary>
-      ///   Rewrites <paramref name="deeds"/> into chronicler prose. When <paramref name="continuationOf"/>
+      ///   Rewrites <paramref name="deeds" /> into chronicler prose. When <paramref name="continuationOf" />
       ///   is supplied (the tail of an existing illuminated chronicle), the model continues seamlessly
       ///   from it and covers ONLY the new deeds — so a living chronicle can be extended cheaply.
       /// </summary>
       public async Task<string?> IlluminateAsync(
-         string playerName, string deeds, string styleGuidance, string? continuationOf = null, CancellationToken ct = default)
+         string playerName,
+         string deeds,
+         string styleGuidance,
+         string? continuationOf = null,
+         CancellationToken ct = default)
       {
          if (string.IsNullOrWhiteSpace(deeds)) return null;
 
          var request = new LlmRequest {
             SystemPrompt = BuildSystemPrompt(playerName, styleGuidance, continuationOf),
-            Messages     = [new LlmMessage(MessageRole.User, deeds)],
-            Parameters   = Parameters
+            Messages = [new LlmMessage(MessageRole.User, deeds)],
+            Parameters = Parameters
          };
 
          LlmResponse? response = await _llmClient.CompleteAsync(request, ct).ConfigureAwait(false);
-         if (response == null || !response.IsSuccess || string.IsNullOrWhiteSpace(response.Content))
+
+         if (response is not {IsSuccess: true} || string.IsNullOrWhiteSpace(response.Content))
             return null;
 
          return response.Content.Trim();
       }
+
+      #region private
 
       private static string BuildSystemPrompt(string playerName, string styleGuidance, string? continuationOf)
       {
@@ -83,7 +88,10 @@ namespace NpcMemoryService.Core.Services
             sb.AppendLine("STYLE GUIDANCE (write in this voice):");
             sb.AppendLine(styleGuidance.Trim());
          }
+
          return sb.ToString();
       }
+
+      #endregion
    }
 }

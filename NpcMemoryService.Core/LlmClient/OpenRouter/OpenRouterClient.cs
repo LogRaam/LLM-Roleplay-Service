@@ -85,8 +85,7 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          }
       }
 
-      private static LlmResponse Failure(string message) =>
-         new LlmResponse {Content = string.Empty, IsSuccess = false, ErrorMessage = message};
+      private static LlmResponse Failure(string message) => new() {Content = string.Empty, IsSuccess = false, ErrorMessage = message};
 
       private static bool IsLengthTruncated(string? finishReason)
          => string.Equals(finishReason, "length", StringComparison.OrdinalIgnoreCase);
@@ -121,9 +120,7 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
 
                // Cached token counts when reported by the provider.
                // OpenRouter normalizes these into the usage block.
-               int? cachedRead = ReadIntOrNull(usageEl["cache_read_input_tokens"])
-                                 ?? ReadIntOrNull(usageEl["cached_tokens"])
-                                 ?? ReadIntOrNull(usageEl["prompt_tokens_details"]?["cached_tokens"]);
+               int? cachedRead = ReadIntOrNull(usageEl["cache_read_input_tokens"]) ?? ReadIntOrNull(usageEl["cached_tokens"]) ?? ReadIntOrNull(usageEl["prompt_tokens_details"]?["cached_tokens"]);
 
                usage = new LlmUsage(prompt, completion) {
                   CachedPromptTokens = cachedRead
@@ -179,9 +176,7 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
 
          string? stable = request.StableSystemPrompt;
 
-         if (!string.IsNullOrEmpty(stable)
-             && request.SystemPrompt.Length > stable!.Length
-             && request.SystemPrompt.StartsWith(stable, StringComparison.Ordinal))
+         if (!string.IsNullOrEmpty(stable) && request.SystemPrompt.Length > stable!.Length && request.SystemPrompt.StartsWith(stable, StringComparison.Ordinal))
             return new {
                role = "system",
                content = new object[] {

@@ -1,4 +1,4 @@
-// Code written by Gabriel Mailhot, 24/05/2026.
+// Code written by Gabriel Mailhot, 18/06/2026.
 
 #region
 
@@ -8,101 +8,96 @@ using System.Collections.Generic;
 
 namespace NpcMemoryService.Core.Models
 {
-    /// <summary>
-    ///   Romantic and sexual profile attached to an <see cref="NpcProfile"/>.
-    ///
-    ///   Layered design (each layer optional, surfaced according to
-    ///   <see cref="AdultContentLevel"/>):
-    ///
-    ///   - Layer 1 — <see cref="ArchetypeName"/> + <see cref="RelationalSketch"/>
-    ///       Derived from the NPC's Bannerlord traits. Describes how this
-    ///       person courts, what they value in attachment, fidelity stance,
-    ///       emotional rhythm. Safe for all adult levels &gt;= Mature.
-    ///
-    ///   - Layer 2 — <see cref="Orientation"/> + <see cref="IsFemale"/>
-    ///       Determined once at profile creation. Gates whether the player
-    ///       is even a viable romantic target.
-    ///
-    ///   - Layer 3 — <see cref="Preferences"/>
-    ///       Relational dynamics (dominant, possessive, monogamous, etc.).
-    ///       Always safe to surface at Mature level and above.
-    ///
-    ///   - Layer 4 — <see cref="IntimateSketch"/> + <see cref="Kinks"/>
-    ///       <see cref="IntimateSketch"/> surfaces at Explicit and above.
-    ///       <see cref="Kinks"/> surface only at Hardcore.
-    ///
-    ///   The mutable state — <see cref="AttractionToPlayer"/> and
-    ///   <see cref="Status"/> — evolves through conversations.
-    /// </summary>
-    public sealed class RomanticProfile
-    {
-        // ── Layer 1: derived from traits (set at creation) ───────────────
+   /// <summary>
+   ///   Romantic and sexual profile attached to an <see cref="NpcProfile" />.
+   ///   Layered design (each layer optional, surfaced according to
+   ///   <see cref="AdultContentLevel" />):
+   ///   - Layer 1 — <see cref="ArchetypeName" /> + <see cref="RelationalSketch" />
+   ///   Derived from the NPC's Bannerlord traits. Describes how this
+   ///   person courts, what they value in attachment, fidelity stance,
+   ///   emotional rhythm. Safe for all adult levels &gt;= Mature.
+   ///   - Layer 2 — <see cref="Orientation" /> + <see cref="IsFemale" />
+   ///   Determined once at profile creation. Gates whether the player
+   ///   is even a viable romantic target.
+   ///   - Layer 3 — <see cref="Preferences" />
+   ///   Relational dynamics (dominant, possessive, monogamous, etc.).
+   ///   Always safe to surface at Mature level and above.
+   ///   - Layer 4 — <see cref="IntimateSketch" /> + <see cref="Kinks" />
+   ///   <see cref="IntimateSketch" /> surfaces at Explicit and above.
+   ///   <see cref="Kinks" /> surface only at Hardcore.
+   ///   The mutable state — <see cref="AttractionToPlayer" /> and
+   ///   <see cref="Status" /> — evolves through conversations.
+   /// </summary>
+   public sealed class RomanticProfile
+   {
+      // ── Layer 1: derived from traits (set at creation) ───────────────
 
-        public string ArchetypeName { get; init; } = "";
+      public string ArchetypeName { get; init; } = "";
 
-        /// <summary>
-        ///   Always-safe sketch of how this NPC approaches romance — courting
-        ///   patterns, fidelity stance, what they value. No explicit content.
-        /// </summary>
-        public string RelationalSketch { get; init; } = "";
+      // ── Mutable state ─────────────────────────────────────────────────
 
-        /// <summary>
-        ///   Intimate sketch surfaced at <see cref="AdultContentLevel.Explicit"/>
-        ///   and above. Describes the texture of physical closeness, the
-        ///   dynamics they seek, their patterns of vulnerability.
-        /// </summary>
-        public string IntimateSketch { get; init; } = "";
+      /// <summary>
+      ///   Attraction toward the player. Separate from
+      ///   <see cref="NpcProfile.ReputationWithPlayer" />: an NPC may
+      ///   respect the player without desiring them, or the reverse.
+      ///   Clamped to [-100, 100].
+      /// </summary>
+      public int AttractionToPlayer { get; set; }
 
-        // ── Layer 2: orientation (set at creation) ───────────────────────
+      /// <summary>
+      ///   Intimate sketch surfaced at <see cref="AdultContentLevel.Explicit" />
+      ///   and above. Describes the texture of physical closeness, the
+      ///   dynamics they seek, their patterns of vulnerability.
+      /// </summary>
+      public string IntimateSketch { get; init; } = "";
 
-        public SexualOrientation Orientation { get; init; } = SexualOrientation.Heterosexual;
-        public bool IsFemale { get; init; }
+      /// <summary>
+      ///   True when the player and this NPC have explicitly formed a consort bond via
+      ///   the <c>take_as_consort</c> action. A consort is a committed partner whose
+      ///   bond is real but not recognised by Calradian law — no clan merger, no
+      ///   inheritance implications. Distinct from the native <c>Hero.Spouse</c> link.
+      ///   Once set, <see cref="Status" /> is <see cref="RomanticStatus.Committed" />.
+      /// </summary>
+      public bool IsConsort { get; set; }
 
-        // ── Layer 3: preferences (set at creation) ───────────────────────
+      public bool IsFemale { get; init; }
 
-        public List<RomanticPreference> Preferences { get; init; } = new List<RomanticPreference>();
+      // ── Layer 4: kinks (set at creation, Hardcore only) ──────────────
 
-        // ── Layer 4: kinks (set at creation, Hardcore only) ──────────────
+      public List<Kink> Kinks { get; init; } = new();
 
-        public List<Kink> Kinks { get; init; } = new List<Kink>();
+      // ── Layer 2: orientation (set at creation) ───────────────────────
 
-        // ── Mutable state ─────────────────────────────────────────────────
+      public SexualOrientation Orientation { get; init; } = SexualOrientation.Heterosexual;
 
-        /// <summary>
-        ///   Attraction toward the player. Separate from
-        ///   <see cref="NpcProfile.ReputationWithPlayer"/>: an NPC may
-        ///   respect the player without desiring them, or the reverse.
-        ///   Clamped to [-100, 100].
-        /// </summary>
-        public int AttractionToPlayer { get; set; }
+      // ── Layer 3: preferences (set at creation) ───────────────────────
 
-        public RomanticStatus Status { get; set; } = RomanticStatus.None;
+      public List<RomanticPreference> Preferences { get; init; } = new();
 
-        /// <summary>
-        ///   True when the player and this NPC have explicitly formed a consort bond via
-        ///   the <c>take_as_consort</c> action. A consort is a committed partner whose
-        ///   bond is real but not recognised by Calradian law — no clan merger, no
-        ///   inheritance implications. Distinct from the native <c>Hero.Spouse</c> link.
-        ///   Once set, <see cref="Status"/> is <see cref="RomanticStatus.Committed"/>.
-        /// </summary>
-        public bool IsConsort { get; set; }
+      /// <summary>
+      ///   Always-safe sketch of how this NPC approaches romance — courting
+      ///   patterns, fidelity stance, what they value. No explicit content.
+      /// </summary>
+      public string RelationalSketch { get; init; } = "";
 
-        // ── Compatibility ─────────────────────────────────────────────────────
+      public RomanticStatus Status { get; set; } = RomanticStatus.None;
 
-        /// <summary>
-        ///   Returns true when the player is within this NPC's attraction.
-        ///   Single authoritative location for the orientation × player-gender rule —
-        ///   all callers (PromptBuilder, HeroProfileMapper diagnostic) delegate here.
-        /// </summary>
-        public bool IsCompatibleWith(bool playerIsFemale)
-            => Orientation switch {
-                SexualOrientation.Heterosexual => playerIsFemale != IsFemale,
-                SexualOrientation.BiCurious    => true,
-                SexualOrientation.Bisexual     => true,
-                SexualOrientation.Homosexual   => playerIsFemale == IsFemale,
-                SexualOrientation.Pansexual    => true,
-                SexualOrientation.Asexual      => false,
-                _                              => false
-            };
-    }
+      // ── Compatibility ─────────────────────────────────────────────────────
+
+      /// <summary>
+      ///   Returns true when the player is within this NPC's attraction.
+      ///   Single authoritative location for the orientation × player-gender rule —
+      ///   all callers (PromptBuilder, HeroProfileMapper diagnostic) delegate here.
+      /// </summary>
+      public bool IsCompatibleWith(bool playerIsFemale)
+         => Orientation switch {
+            SexualOrientation.Heterosexual => playerIsFemale != IsFemale,
+            SexualOrientation.BiCurious => true,
+            SexualOrientation.Bisexual => true,
+            SexualOrientation.Homosexual => playerIsFemale == IsFemale,
+            SexualOrientation.Pansexual => true,
+            SexualOrientation.Asexual => false,
+            _ => false
+         };
+   }
 }

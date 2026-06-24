@@ -1,4 +1,4 @@
-// Code written by Gabriel Mailhot, 11/05/2026.
+// Code written by Gabriel Mailhot, 07/06/2026.
 
 #region
 
@@ -35,7 +35,7 @@ namespace NpcMemoryService.Core.Compression
       /// <summary>Below this event count, compression is a no-op.</summary>
       public int MinEventsForCompression { get; init; } = 12;
 
-      public LlmParameters Parameters { get; init; } = new LlmParameters {
+      public LlmParameters Parameters { get; init; } = new() {
          MaxTokens = 400,
          Creativity = 0.2f // deterministic; we want consistent decisions
       };
