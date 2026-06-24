@@ -98,6 +98,13 @@ namespace NpcMemoryService.Core.Models
         public double? StanceLastWordHour { get; set; }
 
         /// <summary>
+        ///   Companion HAPPINESS — their satisfaction IN the player's service (0..100), distinct from the
+        ///   stance axes (their regard FOR the player). Only meaningful for the player's own companions.
+        ///   Defaults to 60 (the neutral baseline), so a freshly-met or older-save profile reads as content.
+        /// </summary>
+        public int Happiness { get; set; } = 60;
+
+        /// <summary>
         ///   Formatted description of the NPC's key in-game relationships:
         ///   liege, friends, enemies, family. Built from live game state and
         ///   refreshed on every session launch — not a stable identity field.
