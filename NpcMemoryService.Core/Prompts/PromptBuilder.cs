@@ -134,6 +134,7 @@ namespace NpcMemoryService.Core.Prompts
             AppendPrisonerRescueBargain(sb, encounterContext);
             AppendCompanionMissionOffer(sb, encounterContext);
             AppendCompanionNewsReport(sb, encounterContext);
+            AppendCompanionMoodNote(sb, encounterContext);
             AppendMarriage(sb, encounterContext);
             // ── Dynamic world state (changes each turn) ──────────────────────────
             AppendWorldState(sb, world);
@@ -1257,6 +1258,24 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("Open by reporting back — tell it in your own voice, coloured by the road and by who you are,");
             sb.AppendLine("woven into the conversation. Do NOT recite it as a bare list, and do not invent beyond what is");
             sb.AppendLine("given here; if you gathered little, say so plainly.");
+            sb.AppendLine();
+        }
+
+        /// <summary>
+        ///   Taught when this companion has grown unhappy in the player's service: the directive in
+        ///   <see cref="EncounterContext.CompanionMoodNote"/> (built by the host from the happiness band)
+        ///   tells them how restless they are and invites them to voice it — naturally, in their own words.
+        /// </summary>
+        private static void AppendCompanionMoodNote(StringBuilder sb, EncounterContext? context)
+        {
+            string? note = context?.CompanionMoodNote;
+            if (string.IsNullOrWhiteSpace(note)) return;
+
+            sb.AppendLine("YOUR CONTENTMENT IN THE PLAYER'S SERVICE:");
+            sb.AppendLine(note);
+            sb.AppendLine("Let this colour the exchange in your own voice — a grievance raised, a coolness, a");
+            sb.AppendLine("warning — woven in naturally, true to who you are. Do not recite it; do not invent");
+            sb.AppendLine("rewards or threats beyond what is given here.");
             sb.AppendLine();
         }
 

@@ -340,6 +340,13 @@ namespace NpcMemoryService.Core.Models
         public string? CompanionNewsReport { get; init; }
 
         /// <summary>
+        ///   Set when talking to one of the player's OWN companions who has grown unhappy in their service:
+        ///   a ready directive for them to voice their discontent (and, at the worst, that they mean to
+        ///   leave). Null when the companion is content or this is not one of the player's companions.
+        /// </summary>
+        public string? CompanionMoodNote { get; init; }
+
+        /// <summary>
         ///   DEPRECATED — intentionally left unfed (always null). It once told a recruitable
         ///   NPC the player's exact gold so it would not seal an unaffordable hire, but an NPC
         ///   cannot see the player's liquid coin and naming the sum to the denar broke
