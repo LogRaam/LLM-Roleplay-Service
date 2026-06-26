@@ -98,6 +98,16 @@ namespace NpcMemoryService.Core.Models
       ///   warn, or threaten the player over a romantic act. Tone and severity scale with the
       ///   writer's stake and their culture's view of exclusivity vs. shared partners.
       /// </summary>
-      JealousThreat
+      JealousThreat,
+
+      // ── Bastards ─────────────────────────────────────────────────────────────
+
+      /// <summary>
+      ///   The mother of the player's hidden bastard writes — but not to extort (that is
+      ///   <see cref="Blackmail" />). Her tone follows her disposition: a fond woman longs for him and the
+      ///   child, a wronged one writes coldly, a pragmatic one asks for the child's keep. Added last to
+      ///   preserve the serialized ordinals of existing saves.
+      /// </summary>
+      BastardMotherNote
    }
 }
