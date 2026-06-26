@@ -155,6 +155,17 @@ namespace NpcMemoryService.Core.Models
       public bool IntimacyLeverageActive { get; init; }
 
       /// <summary>
+      ///   Set when this NPC is the mother of a still-hidden bastard of the player's, to one of
+      ///   "mercenary" / "longing" / "resentful" / "pragmatic" — her disposition toward him. The prompt
+      ///   teaches her to raise the child in that register (extort, long, reproach, or ask for its keep).
+      ///   Null when she is not such a mother. Adult-gated by the prompt section.
+      /// </summary>
+      public string? BastardMotherTone { get; init; }
+
+      /// <summary>The gold a mercenary bastard-mother would demand for her silence (0 otherwise) — for the prompt.</summary>
+      public int BastardBlackmailDemand { get; init; }
+
+      /// <summary>
       ///   True when the player is the NPC's captive AND the witnesses present are
       ///   active participants rather than bystanders (Sprint 17 collective captive scene).
       ///   Causes the prompt to instruct the NPC to involve the witnesses explicitly.

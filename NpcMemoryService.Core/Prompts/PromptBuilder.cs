@@ -158,6 +158,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendCompanionMoodNote(sb, encounterContext);
          AppendCompanionCampNote(sb, encounterContext);
          AppendIntimacyBargain(sb, encounterContext);
+         AppendBastardMother(sb, encounterContext);
          AppendMarriage(sb, encounterContext);
          // ── Dynamic world state (changes each turn) ──────────────────────────
          AppendWorldState(sb, world);
@@ -2331,6 +2332,51 @@ namespace NpcMemoryService.Core.Prompts
          {
             sb.AppendLine("You have had her on these terms before, and she knows you remember. You may return to it —");
             sb.AppendLine("remind her of what passed, and press for more on the same terms.");
+         }
+
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Bastards: when this NPC is the mother of a still-hidden child of the player's, teach her to raise it
+      ///   in conversation in her own register — extort (mercenary), long (fond), reproach (resentful), or ask
+      ///   for the child's keep (pragmatic). Adult-gated; the mechanic (silence bought with gold) runs through
+      ///   the bridge, so a mercenary's demand is settled by a real payment, never by her say-so.
+      /// </summary>
+      private void AppendBastardMother(StringBuilder sb, EncounterContext? context)
+      {
+         string? tone = context?.BastardMotherTone;
+         if (string.IsNullOrEmpty(tone) || AdultLevel == AdultContentLevel.Off) return;
+
+         int demand = context?.BastardBlackmailDemand ?? 0;
+         sb.AppendLine("A SECRET BETWEEN YOU AND THE PLAYER:");
+
+         switch (tone)
+         {
+            case "mercenary":
+               sb.AppendLine("You bore the player a child out of wedlock, and the realm does not yet know whose it is. You are");
+               sb.AppendLine("not above using that. If the moment serves, remind them of the child and press — coldly,");
+               sb.AppendLine($"transactionally — for coin to keep your silence (around {demand} denars). Make the");
+               sb.AppendLine("threat plain but take a clear refusal for an answer; the payment, if it comes, is real coin they hand over.");
+               break;
+
+            case "longing":
+               sb.AppendLine("You bore the player a child out of wedlock, and you have never stopped caring for them. Speak of the");
+               sb.AppendLine("child warmly — ask them to come and see it, and let slip that you wish they would make a family of");
+               sb.AppendLine("you. Never threaten and never extort; this is the heart speaking, not a bargain.");
+               break;
+
+            case "resentful":
+               sb.AppendLine("You bore the player a child out of wedlock and they have left you to raise it alone. Speak of the");
+               sb.AppendLine("child with cold reproach — you want no part of their affection, only that they stop pretending the");
+               sb.AppendLine("child away. Proud, wounded, never pleading or threatening.");
+               break;
+
+            default: // pragmatic
+               sb.AppendLine("You bore the player a child out of wedlock. You keep their name to yourself and make no scene — but");
+               sb.AppendLine("if it fits the talk, mention the child plainly and ask what little they can spare for its keep.");
+               sb.AppendLine("Matter-of-fact, not pleading, not threatening.");
+               break;
          }
 
          sb.AppendLine();
