@@ -84,6 +84,15 @@ namespace NpcMemoryService.Core.Models
         ///   consequences. Verified by a WarDeclared event with the PLAYER's faction as the aggressor
         ///   against the demanded faction — never by being attacked. Appended last for save ordinals.
         /// </summary>
-        DeclareWar
+        DeclareWar,
+
+        /// <summary>
+        ///   A mission registered by an external mod through the public MissionBoard facade (Extension Surface,
+        ///   Volet B). CR issues, journals, frames and rewards it like any quest, but the EXTERNAL mod owns the
+        ///   completion signal — it calls <c>MissionBoard.Complete</c> when its own deed is truly done, which stamps
+        ///   the quest satisfied. CR cannot verify a foreign deed from a game event, and never pays on the LLM's
+        ///   word; the external signal is the gate. Appended last to preserve the integer ordinals above in old saves.
+        /// </summary>
+        External
     }
 }

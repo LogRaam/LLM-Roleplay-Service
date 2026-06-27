@@ -90,6 +90,19 @@ namespace NpcMemoryService.Core.Models
         /// <summary>Display name of <see cref="MarriageSpouseId" />.</summary>
         public string? MarriageSpouseName { get; set; }
 
+        /// <summary>
+        ///   For a <see cref="QuestType.External" /> mission: the registering mod's stable mission id. CR
+        ///   matches the external completion/abandon signal back to this quest by this id, and rejects a
+        ///   duplicate registration carrying it. Null for native quests.
+        /// </summary>
+        public string? ExternalId { get; set; }
+
+        /// <summary>
+        ///   For a <see cref="QuestType.External" /> mission: the registering mod's source tag (attribution,
+        ///   and the evidence line when CR stamps the mission done on that mod's signal). Null for native quests.
+        /// </summary>
+        public string? ExternalSourceMod { get; set; }
+
         /// <summary>Lifecycle state. See <see cref="QuestStatus" />.</summary>
         public QuestStatus Status { get; set; } = QuestStatus.Active;
 
