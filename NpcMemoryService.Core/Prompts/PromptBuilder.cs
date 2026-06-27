@@ -1302,7 +1302,8 @@ namespace NpcMemoryService.Core.Prompts
 
          if (string.IsNullOrWhiteSpace(note)) return;
 
-         sb.AppendLine("HOW YOU REGARD THE PLAYER (let this colour your tone, not dictate your words):");
+         sb.AppendLine("HOW YOU REGARD THE PLAYER (let this shape your manner — and when a feeling runs strong,");
+         sb.AppendLine("such as fear or contempt, let it weigh on what you DARE do and say, not merely your tone):");
          sb.AppendLine(note);
          sb.AppendLine();
       }
@@ -2350,6 +2351,10 @@ namespace NpcMemoryService.Core.Prompts
 
          int demand = context?.BastardBlackmailDemand ?? 0;
          sb.AppendLine("A SECRET BETWEEN YOU AND THE PLAYER:");
+         sb.AppendLine("You once lay with the player in the flesh, and their child came of it — this truly happened, it is");
+         sb.AppendLine("established FACT. So you are NOT strangers: do not greet them as one, and never deny that your paths");
+         sb.AppendLine("have crossed before. The bond holds even if you are now wed to another or publicly above reproach —");
+         sb.AppendLine("let it shape how you meet them now, and do not let your respectable face bury it.");
 
          switch (tone)
          {
