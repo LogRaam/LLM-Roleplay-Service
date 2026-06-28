@@ -131,8 +131,19 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          }
          catch (Exception ex)
          {
-            return Failure($"Failed to parse response: {ex.Message}");
+            return Failure($"Failed to parse response: {ex.Message}. The endpoint did not return a single JSON " +
+                           $"object (a streaming or non-OpenAI response?). Body began with: {Snippet(json)}");
          }
+      }
+
+      /// <summary>A short, single-line excerpt of a raw body, for diagnosing a non-JSON response.</summary>
+      private static string Snippet(string? body)
+      {
+         if (string.IsNullOrEmpty(body)) return "(empty)";
+
+         string oneLine = body!.Replace("\r", " ").Replace("\n", " ").Trim();
+
+         return oneLine.Length <= 160 ? oneLine : oneLine.Substring(0, 160) + "…";
       }
 
       private static int? ReadIntOrNull(JToken? token)
@@ -235,7 +246,10 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
             ["model"] = _config.ResolveModel() ?? string.Empty,
             ["messages"] = messages,
             ["temperature"] = (double) request.Parameters.Creativity,
-            ["max_tokens"] = request.Parameters.MaxTokens
+            ["max_tokens"] = request.Parameters.MaxTokens,
+            // Explicitly non-streaming: we parse one JSON object, not an SSE "data: ..." chunk stream. Some
+            // OpenAI-compatible providers (e.g. Chub) stream by default, which would arrive as unparseable text.
+            ["stream"] = false
          };
 
          // OpenRouter reasoning control: lowering or disabling reasoning cuts moralizing

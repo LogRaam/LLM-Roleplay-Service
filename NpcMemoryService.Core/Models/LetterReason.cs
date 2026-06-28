@@ -123,6 +123,16 @@ namespace NpcMemoryService.Core.Models
       ///   A lord who holds the player in genuine regard writes unbidden to offer friendship, aid, or a
       ///   promise to warn them of anything moving against them. Added last to preserve old-save ordinals.
       /// </summary>
-      StanceFavor
+      StanceFavor,
+
+      // ── Companion retention ──────────────────────────────────────────────────
+
+      /// <summary>
+      ///   A companion who grew unhappy in the player's service, asked repeatedly for an audience, and was
+      ///   refused each time, writes a final farewell: they tried to speak with the player and could not, and
+      ///   so they have left. The companion departs when this letter arrives. Added last to preserve old-save
+      ///   ordinals.
+      /// </summary>
+      CompanionFarewell
    }
 }

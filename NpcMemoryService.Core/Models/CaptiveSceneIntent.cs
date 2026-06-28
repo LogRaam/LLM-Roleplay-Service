@@ -44,6 +44,16 @@ namespace NpcMemoryService.Core.Models
         Intimidation,
 
         /// <summary>Payback — the captors lost men to the player (or their kind) and want their due.</summary>
-        Revenge
+        Revenge,
+
+        // ── Lord reckoning (non-sexual). Appended last to preserve save ordinals. ──
+
+        /// <summary>
+        ///   A lord ENEMY who commissioned the abduction confronts their new prisoner: a reckoning, not a sex
+        ///   scene. They reproach the player from their own history and grievances, make plain that the player is
+        ///   now their captive and that their fate will be decided later, and warn of worse should the player keep
+        ///   crossing their clan. The player learns WHY they were taken. Non-sexual at every adult level.
+        /// </summary>
+        Reckoning
     }
 }

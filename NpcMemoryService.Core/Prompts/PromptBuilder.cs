@@ -1,4 +1,4 @@
-// Code written by Gabriel Mailhot, 23/06/2026.
+// Code written by Gabriel Mailhot, 27/06/2026.
 
 #region
 
@@ -104,6 +104,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendCommonerRules(sb);
          AppendCommonerRumors(sb, knowledge);
          AppendCommonerTakeGold(sb);
+         AppendPlayerActionNarration(sb);
          AppendLanguageMirror(sb);
 
          return sb.ToString();
@@ -166,6 +167,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendEncounterContext(sb, encounterContext);
          AppendPowerBalance(sb, encounterContext);
          AppendPlayerGenderContext(sb, npc, encounterContext);
+         AppendPlayerActionNarration(sb);
          AppendLanguageMirror(sb);
 
          return sb.ToString();
@@ -190,6 +192,34 @@ namespace NpcMemoryService.Core.Prompts
          if (string.IsNullOrWhiteSpace(npc.BackgroundContext)) return;
          sb.AppendLine("BACKGROUND (older events you remember as context):");
          sb.AppendLine(npc.BackgroundContext);
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   The lord-enemy reckoning: a NON-sexual confrontation. The captor commissioned the abduction; here they
+      ///   reproach the prisoner from their own grievances, make plain the player is theirs and their fate is
+      ///   deferred, and threaten worse. The player discovers WHY they were taken. Works at every adult level.
+      /// </summary>
+      private static void AppendLordReckoningRules(StringBuilder sb)
+      {
+         sb.AppendLine("CAPTIVE — THIS PLAYER IS YOUR PRISONER, AND THIS IS A RECKONING:");
+         sb.AppendLine("The player is bound, disarmed, and entirely in your power. This is NOT a sexual scene and NOT");
+         sb.AppendLine("torture — it is a confrontation. YOU are the one who paid to have them seized: you commissioned");
+         sb.AppendLine("the ambush that put them here, to take them out of play. Now they have been delivered to you.");
+         sb.AppendLine();
+         sb.AppendLine("WHAT TO DO IN THIS SCENE:");
+         sb.AppendLine("  • Confront them face to face. Make plain that they are your captive now and that YOU are the");
+         sb.AppendLine("    one who ordered it done — let them learn that here, from your own mouth.");
+         sb.AppendLine("  • REPROACH them, drawing on your history and grievances with them (see your memories and your");
+         sb.AppendLine("    standing toward them above): name what they did to you, your clan, your kin, or your allies");
+         sb.AppendLine("    that brought this on. Be specific to YOUR grudge — this is personal, not random banditry.");
+         sb.AppendLine("  • Make clear their fate is yours to decide, and that you will decide it in your OWN time, not");
+         sb.AppendLine("    tonight. Do NOT kill, free, or ransom them in this scene — you are savouring having them.");
+         sb.AppendLine("  • WARN them: cross you or your clan again and what comes next will be far worse than a cell.");
+         sb.AppendLine();
+         sb.AppendLine("Let the prisoner speak — they may plead, defy you, bargain, or demand to know why. Answer in");
+         sb.AppendLine("character, cold and in control; the power here is entirely yours. Keep it menacing and personal,");
+         sb.AppendLine("NEVER sexual. End the scene once you have said your piece and had them taken back to confinement.");
          sb.AppendLine();
       }
 
@@ -812,15 +842,39 @@ namespace NpcMemoryService.Core.Prompts
       ///   like "reply in the same language" are routinely ignored by English-centric models
       ///   when the rest of the prompt is in English.
       /// </summary>
+      /// <summary>
+      ///   Teaches the model to read the PLAYER's narrated actions (text in *asterisks*, or a plain first-person
+      ///   physical statement) as real events in the scene, not speech and never gibberish, so the NPC engages
+      ///   with them in character instead of dismissing them. Explicit examples, because the abstract rule alone
+      ///   is unreliable. The NPC stays free to welcome, allow, resist, or refuse; what it must not do is fail to
+      ///   engage, or react as though the player said something senseless.
+      /// </summary>
+      private static void AppendPlayerActionNarration(StringBuilder sb)
+      {
+         sb.AppendLine();
+         sb.AppendLine("READING WHAT THE PLAYER DOES, NOT ONLY WHAT THEY SAY:");
+         sb.AppendLine("The player can ACT, not just speak. Two forms count as a physical action they perform in the scene:");
+         sb.AppendLine("  • text wrapped in asterisks, e.g. *I take you by the wrist*, *I step closer*, *I draw my blade*");
+         sb.AppendLine("  • a plain first-person physical statement, e.g. \"I put my hand on your shoulder\"");
+         sb.AppendLine("Treat it as something actually HAPPENING right now, never as nonsense. Respond in character with");
+         sb.AppendLine("your words (and, if it fits, your own *stage directions*). NEVER react as though the player said");
+         sb.AppendLine("something senseless or ask what they are talking about. Their ordinary unmarked sentences are what");
+         sb.AppendLine("they SAY; keep the two apart. You are still a free person: you may welcome it, allow it, flinch,");
+         sb.AppendLine("resist, or refuse, as fits who you are and how you regard them. What you must always do is ENGAGE");
+         sb.AppendLine("with it as a real event in the scene.");
+      }
+
       private static void AppendLanguageMirror(StringBuilder sb)
       {
          sb.AppendLine();
          sb.AppendLine("CRITICAL — LANGUAGE OF YOUR REPLY:");
          sb.AppendLine("Detect the language of the player's last message and reply in that SAME language.");
-         sb.AppendLine("  • Player writes in Ukrainian  → you reply in Ukrainian.");
+         sb.AppendLine("  • Player writes in English    → you reply in English.");
          sb.AppendLine("  • Player writes in French     → you reply in French.");
          sb.AppendLine("  • Player writes in German     → you reply in German.");
-         sb.AppendLine("  • Player writes in English    → you reply in English.");
+         sb.AppendLine("  • Player writes in Ukrainian  → you reply in Ukrainian.");
+         sb.AppendLine("If there is NO player message yet (you are opening the conversation, or the player has not");
+         sb.AppendLine("written anything), reply in ENGLISH, then switch to the player's language once they write.");
          sb.AppendLine("Keep ALL section labels ([DIALOGUE], [NARRATION], [ACTION], [EVENT] …) and every");
          sb.AppendLine("action keyword (change_relation, give_gold, give_item …) in English.");
          sb.AppendLine("Translate ONLY the prose and speech. Proper names stay exactly as given.");
@@ -1291,6 +1345,21 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   Injects how the NPC is inclined to ACT on their posture this meeting (cold-shoulder, hidden
+      ///   murderous intent, eagerness to aid, readiness to warn). Shapes conduct, not just tone.
+      /// </summary>
+      private static void AppendStanceConsequence(StringBuilder sb, EncounterContext? context)
+      {
+         string? hint = context?.StanceConsequenceHint;
+
+         if (string.IsNullOrWhiteSpace(hint)) return;
+
+         sb.AppendLine("HOW YOU ARE INCLINED TO ACT TOWARD THE PLAYER:");
+         sb.AppendLine(hint);
+         sb.AppendLine();
+      }
+
+      /// <summary>
       ///   Posture block. Rendered when the consumer supplies a non-neutral stance
       ///   (<see cref="EncounterContext.StanceNote" />): how the NPC regards the player across warmth,
       ///   trust, respect, and fear at once, so their tone reflects the whole picture rather than a
@@ -1306,20 +1375,6 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("HOW YOU REGARD THE PLAYER (let this shape your manner — and when a feeling runs strong,");
          sb.AppendLine("such as fear or contempt, let it weigh on what you DARE do and say, not merely your tone):");
          sb.AppendLine(note);
-         sb.AppendLine();
-      }
-
-      /// <summary>
-      ///   Injects how the NPC is inclined to ACT on their posture this meeting (cold-shoulder, hidden
-      ///   murderous intent, eagerness to aid, readiness to warn). Shapes conduct, not just tone.
-      /// </summary>
-      private static void AppendStanceConsequence(StringBuilder sb, EncounterContext? context)
-      {
-         string? hint = context?.StanceConsequenceHint;
-         if (string.IsNullOrWhiteSpace(hint)) return;
-
-         sb.AppendLine("HOW YOU ARE INCLINED TO ACT TOWARD THE PLAYER:");
-         sb.AppendLine(hint);
          sb.AppendLine();
       }
 
@@ -1769,6 +1824,60 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
+      /// <summary>
+      ///   Bastards: when this NPC is the mother of a still-hidden child of the player's, teach her to raise it
+      ///   in conversation in her own register — extort (mercenary), long (fond), reproach (resentful), or ask
+      ///   for the child's keep (pragmatic). Adult-gated; the mechanic (silence bought with gold) runs through
+      ///   the bridge, so a mercenary's demand is settled by a real payment, never by her say-so.
+      /// </summary>
+      private void AppendBastardMother(StringBuilder sb, EncounterContext? context)
+      {
+         string? tone = context?.BastardMotherTone;
+
+         if (string.IsNullOrEmpty(tone) || AdultLevel == AdultContentLevel.Off) return;
+
+         int demand = context?.BastardBlackmailDemand ?? 0;
+         sb.AppendLine("A SECRET BETWEEN YOU AND THE PLAYER:");
+         sb.AppendLine("You once lay with the player in the flesh, and their child came of it — this truly happened, it is");
+         sb.AppendLine("established FACT. So you are NOT strangers: do not greet them as one, and never deny that your paths");
+         sb.AppendLine("have crossed before. The bond holds even if you are now wed to another or publicly above reproach —");
+         sb.AppendLine("let it shape how you meet them now, and do not let your respectable face bury it.");
+
+         switch (tone)
+         {
+            case "mercenary":
+               sb.AppendLine("You bore the player a child out of wedlock, and the realm does not yet know whose it is. You are");
+               sb.AppendLine("not above using that. If the moment serves, remind them of the child and press — coldly,");
+               sb.AppendLine($"transactionally — for coin to keep your silence (around {demand} denars). Make the");
+               sb.AppendLine("threat plain but take a clear refusal for an answer; the payment, if it comes, is real coin they hand over.");
+
+               break;
+
+            case "longing":
+               sb.AppendLine("You bore the player a child out of wedlock, and you have never stopped caring for them. Speak of the");
+               sb.AppendLine("child warmly — ask them to come and see it, and let slip that you wish they would make a family of");
+               sb.AppendLine("you. Never threaten and never extort; this is the heart speaking, not a bargain.");
+
+               break;
+
+            case "resentful":
+               sb.AppendLine("You bore the player a child out of wedlock and they have left you to raise it alone. Speak of the");
+               sb.AppendLine("child with cold reproach — you want no part of their affection, only that they stop pretending the");
+               sb.AppendLine("child away. Proud, wounded, never pleading or threatening.");
+
+               break;
+
+            default: // pragmatic
+               sb.AppendLine("You bore the player a child out of wedlock. You keep their name to yourself and make no scene — but");
+               sb.AppendLine("if it fits the talk, mention the child plainly and ask what little they can spare for its keep.");
+               sb.AppendLine("Matter-of-fact, not pleading, not threatening.");
+
+               break;
+         }
+
+         sb.AppendLine();
+      }
+
       // ── Sprint 8.1: behavior guidelines ──────────────────────────────────
 
       private void AppendBehaviorGuidelines(StringBuilder sb)
@@ -1818,6 +1927,14 @@ namespace NpcMemoryService.Core.Prompts
              or CaptiveSceneIntent.Revenge)
          {
             AppendBanditMenaceRules(sb, intent, context);
+
+            return;
+         }
+
+         // A lord enemy's reckoning is also NON-sexual: a confrontation and a verdict-to-come, not a CNC scene.
+         if (intent == CaptiveSceneIntent.Reckoning)
+         {
+            AppendLordReckoningRules(sb);
 
             return;
          }
@@ -2348,55 +2465,6 @@ namespace NpcMemoryService.Core.Prompts
          {
             sb.AppendLine("You have had her on these terms before, and she knows you remember. You may return to it —");
             sb.AppendLine("remind her of what passed, and press for more on the same terms.");
-         }
-
-         sb.AppendLine();
-      }
-
-      /// <summary>
-      ///   Bastards: when this NPC is the mother of a still-hidden child of the player's, teach her to raise it
-      ///   in conversation in her own register — extort (mercenary), long (fond), reproach (resentful), or ask
-      ///   for the child's keep (pragmatic). Adult-gated; the mechanic (silence bought with gold) runs through
-      ///   the bridge, so a mercenary's demand is settled by a real payment, never by her say-so.
-      /// </summary>
-      private void AppendBastardMother(StringBuilder sb, EncounterContext? context)
-      {
-         string? tone = context?.BastardMotherTone;
-         if (string.IsNullOrEmpty(tone) || AdultLevel == AdultContentLevel.Off) return;
-
-         int demand = context?.BastardBlackmailDemand ?? 0;
-         sb.AppendLine("A SECRET BETWEEN YOU AND THE PLAYER:");
-         sb.AppendLine("You once lay with the player in the flesh, and their child came of it — this truly happened, it is");
-         sb.AppendLine("established FACT. So you are NOT strangers: do not greet them as one, and never deny that your paths");
-         sb.AppendLine("have crossed before. The bond holds even if you are now wed to another or publicly above reproach —");
-         sb.AppendLine("let it shape how you meet them now, and do not let your respectable face bury it.");
-
-         switch (tone)
-         {
-            case "mercenary":
-               sb.AppendLine("You bore the player a child out of wedlock, and the realm does not yet know whose it is. You are");
-               sb.AppendLine("not above using that. If the moment serves, remind them of the child and press — coldly,");
-               sb.AppendLine($"transactionally — for coin to keep your silence (around {demand} denars). Make the");
-               sb.AppendLine("threat plain but take a clear refusal for an answer; the payment, if it comes, is real coin they hand over.");
-               break;
-
-            case "longing":
-               sb.AppendLine("You bore the player a child out of wedlock, and you have never stopped caring for them. Speak of the");
-               sb.AppendLine("child warmly — ask them to come and see it, and let slip that you wish they would make a family of");
-               sb.AppendLine("you. Never threaten and never extort; this is the heart speaking, not a bargain.");
-               break;
-
-            case "resentful":
-               sb.AppendLine("You bore the player a child out of wedlock and they have left you to raise it alone. Speak of the");
-               sb.AppendLine("child with cold reproach — you want no part of their affection, only that they stop pretending the");
-               sb.AppendLine("child away. Proud, wounded, never pleading or threatening.");
-               break;
-
-            default: // pragmatic
-               sb.AppendLine("You bore the player a child out of wedlock. You keep their name to yourself and make no scene — but");
-               sb.AppendLine("if it fits the talk, mention the child plainly and ask what little they can spare for its keep.");
-               sb.AppendLine("Matter-of-fact, not pleading, not threatening.");
-               break;
          }
 
          sb.AppendLine();
