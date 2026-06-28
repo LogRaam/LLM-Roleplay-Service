@@ -395,6 +395,15 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public string? StanceNote { get; init; }
 
+      /// <summary>
+      ///   How the NPC's posture inclines them to ACT toward the player this meeting — composed by the
+      ///   consumer from its stance-consequence policy (cold-shoulder, secret murderous intent, eager to aid,
+      ///   ready to warn of a plot…). Distinct from <see cref="StanceNote" /> (what they feel): this is what
+      ///   they would DO, and it shapes whether they deal, help, stonewall, or stay falsely civil. Null when
+      ///   nothing is warranted.
+      /// </summary>
+      public string? StanceConsequenceHint { get; init; }
+
       public DiplomaticStatus WarStatus { get; init; } = DiplomaticStatus.Unknown;
 
       /// <summary>

@@ -138,6 +138,7 @@ namespace NpcMemoryService.Core.Prompts
             AppendActiveQuests(sb, npc);
          AppendCurrentStance(sb, npc);
          AppendStanceNote(sb, encounterContext);
+         AppendStanceConsequence(sb, encounterContext);
          AppendPlayerLetters(sb, npc);
          AppendWitnesses(sb, encounterContext);
          AppendRecruitment(sb, encounterContext);
@@ -1305,6 +1306,20 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("HOW YOU REGARD THE PLAYER (let this shape your manner — and when a feeling runs strong,");
          sb.AppendLine("such as fear or contempt, let it weigh on what you DARE do and say, not merely your tone):");
          sb.AppendLine(note);
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Injects how the NPC is inclined to ACT on their posture this meeting (cold-shoulder, hidden
+      ///   murderous intent, eagerness to aid, readiness to warn). Shapes conduct, not just tone.
+      /// </summary>
+      private static void AppendStanceConsequence(StringBuilder sb, EncounterContext? context)
+      {
+         string? hint = context?.StanceConsequenceHint;
+         if (string.IsNullOrWhiteSpace(hint)) return;
+
+         sb.AppendLine("HOW YOU ARE INCLINED TO ACT TOWARD THE PLAYER:");
+         sb.AppendLine(hint);
          sb.AppendLine();
       }
 

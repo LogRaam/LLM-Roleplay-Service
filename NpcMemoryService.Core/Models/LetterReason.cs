@@ -108,6 +108,21 @@ namespace NpcMemoryService.Core.Models
       ///   child, a wronged one writes coldly, a pragmatic one asks for the child's keep. Added last to
       ///   preserve the serialized ordinals of existing saves.
       /// </summary>
-      BastardMotherNote
+      BastardMotherNote,
+
+      // ── Stance with teeth ────────────────────────────────────────────────────
+
+      /// <summary>
+      ///   A lord whose posture has hardened into OPEN enmity writes unbidden — a cold word of displeasure, or
+      ///   a bold lord's open challenge to settle things blade to blade. (Secret hatred — a schemer, a would-be
+      ///   assassin — does NOT write; it would tip its hand.) Added last to preserve old-save ordinals.
+      /// </summary>
+      StanceHostility,
+
+      /// <summary>
+      ///   A lord who holds the player in genuine regard writes unbidden to offer friendship, aid, or a
+      ///   promise to warn them of anything moving against them. Added last to preserve old-save ordinals.
+      /// </summary>
+      StanceFavor
    }
 }

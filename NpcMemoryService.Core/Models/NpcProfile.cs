@@ -176,6 +176,12 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public double? StanceLastWordHour { get; set; }
 
+      /// <summary>
+      ///   Game-day this NPC last acted on their stance toward the player unbidden (a hostile or favourable
+      ///   letter), so "stance with teeth" rate-limits how often one lord reaches out. 0 = never. Game-agnostic.
+      /// </summary>
+      public int StanceLastConsequenceDay { get; set; }
+
       /// <summary>Stance axis — esteem for the player's worth and prowess (−100..+100).</summary>
       public int StanceRespect { get; set; }
 
