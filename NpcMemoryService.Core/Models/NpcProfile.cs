@@ -182,6 +182,13 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public int StanceLastConsequenceDay { get; set; }
 
+      /// <summary>
+      ///   Game-day this NPC armed an attempt on the player's life (a town ambush), or 0 when none is laid.
+      ///   Set when the stance hardens to murderous intent; cleared once the ambush springs or is called off.
+      ///   Game-agnostic: the SDK only stores it.
+      /// </summary>
+      public int StanceAmbushArmedDay { get; set; }
+
       /// <summary>Stance axis — esteem for the player's worth and prowess (−100..+100).</summary>
       public int StanceRespect { get; set; }
 
