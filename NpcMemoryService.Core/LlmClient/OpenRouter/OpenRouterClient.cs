@@ -94,6 +94,11 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
 
       private static LlmResponse ParseResponse(string json)
       {
+         // Some endpoints stream the reply (SSE) even when we ask for a single object; rebuild it into the
+         // standard envelope first so the rest of this method is unchanged. A non-streamed body passes through.
+         if (ChatResponseTransformer.TryNormalizeStreamedResponse(json, out string normalized))
+            json = normalized;
+
          try
          {
             JObject root = JObject.Parse(json);
