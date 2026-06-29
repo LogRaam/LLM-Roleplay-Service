@@ -173,6 +173,13 @@ namespace NpcMemoryService.Core.Models
       public bool IsCollectiveCaptiveScene { get; init; }
 
       /// <summary>
+      ///   True when the PLAYER is the captor and the NPC is their prisoner in a deliberate captor scene (the
+      ///   inverse of the captive scene). The player directs; the NPC reacts as a captive of their own nature.
+      ///   Drives <c>AppendPlayerCaptorSceneRules</c>; the player's intent is carried by <see cref="CaptiveIntent" />.
+      /// </summary>
+      public bool IsCaptorScene { get; init; }
+
+      /// <summary>
       ///   True on the final beat of a captive scene continuation (mirrors
       ///   <see cref="IsLastWitnessExchange" /> for the 15C loop). When set, the prompt
       ///   instructs the NPC to bring the scene to a definitive conclusion this turn —
