@@ -166,14 +166,6 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
       }
 
       /// <summary>
-      ///   Translates our <see cref="LlmRequest" /> into the provider's
-      ///   OpenAI-compatible format. When system-prompt caching is enabled
-      ///   (OpenRouter), the system message is a content array marking a
-      ///   cacheable prefix via <c>cache_control: ephemeral</c>. When disabled
-      ///   (providers that reject the array form, e.g. NanoGPT), it is sent as a
-      ///   plain OpenAI string — the maximally-portable form.
-      /// </summary>
-      /// <summary>
       ///   Builds the system message. With caching off, a plain OpenAI string (maximally portable). With
       ///   caching on and a stable prefix supplied, two text blocks — the stable prefix carrying the
       ///   <c>cache_control: ephemeral</c> breakpoint, then the per-turn dynamic tail sent fresh — so the
@@ -244,6 +236,14 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          }
       }
 
+      /// <summary>
+      ///   Translates our <see cref="LlmRequest" /> into the provider's
+      ///   OpenAI-compatible format. When system-prompt caching is enabled
+      ///   (OpenRouter), the system message is a content array marking a
+      ///   cacheable prefix via <c>cache_control: ephemeral</c>. When disabled
+      ///   (providers that reject the array form, e.g. NanoGPT), it is sent as a
+      ///   plain OpenAI string — the maximally-portable form.
+      /// </summary>
       private object ToWireFormat(LlmRequest request)
       {
          var messages = new List<object> {BuildSystemMessage(request)};
@@ -259,12 +259,17 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          var payload = new Dictionary<string, object> {
             ["model"] = _config.ResolveModel() ?? string.Empty,
             ["messages"] = messages,
-            ["temperature"] = (double) request.Parameters.Creativity,
-            ["max_tokens"] = request.Parameters.MaxTokens,
             // Explicitly non-streaming: we parse one JSON object, not an SSE "data: ..." chunk stream. Some
             // OpenAI-compatible providers (e.g. Chub) stream by default, which would arrive as unparseable text.
             ["stream"] = false
          };
+
+         // The OpenAI reasoning models (gpt-5*, o1/o3/o4*), reached directly, reject "max_tokens" (they want
+         // "max_completion_tokens") and refuse a custom "temperature". The host's policy decides the shape;
+         // aggregators (OpenRouter/NanoGPT) normalize, so for them this stays the classic max_tokens+temperature.
+         ChatParameterOptions options = _config.ResolveParameterOptions();
+         payload[options.UseMaxCompletionTokens ? "max_completion_tokens" : "max_tokens"] = request.Parameters.MaxTokens;
+         if (options.IncludeTemperature) payload["temperature"] = (double) request.Parameters.Creativity;
 
          // OpenRouter reasoning control: lowering or disabling reasoning cuts moralizing
          // refusals on consensual adult fiction (see OpenRouterConfig.ReasoningProvider).

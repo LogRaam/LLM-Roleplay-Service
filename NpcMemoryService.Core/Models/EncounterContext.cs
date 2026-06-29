@@ -126,6 +126,14 @@ namespace NpcMemoryService.Core.Models
       public int DaysSinceLastMeeting { get; init; } = -1;
 
       /// <summary>
+      ///   A prompt-ready note of how long it has been since the NPC last saw the player (host-resolved via
+      ///   <c>MeetingGapDescriber</c>), or null when the gap is too short or unknown to be worth remarking on.
+      ///   Surfaced only for a genuinely long absence, with restraint guidance, so NPCs stop opening every
+      ///   conversation with the elapsed time (a short gap is unremarkable when the player travels the map fast).
+      /// </summary>
+      public string? MeetingGapNote { get; init; }
+
+      /// <summary>
       ///   A prompt-ready list of the LORD captives the player currently holds (name + faction),
       ///   or null/empty when they hold none. Lets a lord demand a captive as the price of a favor:
       ///   a match the player already holds is an immediate hand-over, one they do not is a
@@ -477,9 +485,8 @@ namespace NpcMemoryService.Core.Models
             case PlayerStatusVsNpc.Free: /* default, no special note */ break;
          }
 
-         if (DaysSinceLastMeeting == 0) parts.Add("You met the player earlier today.");
-         else if (DaysSinceLastMeeting == 1) parts.Add("You last saw the player yesterday.");
-         else if (DaysSinceLastMeeting > 1) parts.Add($"You last saw the player {DaysSinceLastMeeting} days ago.");
+         // The time-since-last-meeting note is rendered separately (PromptBuilder.AppendEncounterContext) with
+         // its own restraint guidance, and only for a long-enough gap — see EncounterContext.MeetingGapNote.
 
          return string.Join(" ", parts);
       }

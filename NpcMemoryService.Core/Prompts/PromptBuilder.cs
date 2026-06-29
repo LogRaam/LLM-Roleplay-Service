@@ -618,6 +618,16 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         // Time apart, surfaced only for a genuinely long absence (host-gated) and with restraint — short gaps
+         // are unremarkable when the player travels the map fast, and NPCs were opening every chat on the count.
+         if (!string.IsNullOrWhiteSpace(context.MeetingGapNote))
+         {
+            sb.AppendLine(context.MeetingGapNote);
+            sb.AppendLine("You are aware of the time apart, but remark on it only if it genuinely fits the moment —");
+            sb.AppendLine("do not open with it or dwell on how many days, seasons, or years it has been.");
+            sb.AppendLine();
+         }
+
          if (!string.IsNullOrWhiteSpace(context.RealmNewsLine))
          {
             sb.AppendLine("THE TALK OF ALL THE REALM:");

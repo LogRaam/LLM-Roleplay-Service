@@ -80,6 +80,14 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
         /// <summary>The fallback per-request timeout (seconds) when no provider is set — generous for large prompts.</summary>
         public const int DefaultTimeoutSeconds = 120;
 
+        /// <summary>
+        ///   Live resolver for the chat-completion parameter shape, invoked on every request — lets a host
+        ///   send <c>max_completion_tokens</c> (and drop <c>temperature</c>) for an OpenAI reasoning model
+        ///   reached directly, without rebuilding the client. Null = <see cref="ChatParameterOptions.Standard" />
+        ///   (the classic, maximally-portable shape), preserving the historical behaviour.
+        /// </summary>
+        public Func<ChatParameterOptions>? ParameterOptionsProvider { get; init; }
+
         /// <summary>Resolves the key at call time: the live provider first, then the static key.</summary>
         public string? ResolveApiKey() => ApiKeyProvider?.Invoke() ?? ApiKey;
 
@@ -96,6 +104,12 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
 
         /// <summary>Resolves the model at call time: the live provider first, then the static value.</summary>
         public string? ResolveModel() => ModelProvider?.Invoke() ?? Model;
+
+        /// <summary>
+        ///   Resolves the chat-completion parameter shape at call time. The live provider wins; with none set,
+        ///   the classic shape (<c>max_tokens</c> + <c>temperature</c>).
+        /// </summary>
+        public ChatParameterOptions ResolveParameterOptions() => ParameterOptionsProvider?.Invoke() ?? ChatParameterOptions.Standard;
 
         /// <summary>Resolves the base URL at call time: the live provider first, then the static value.</summary>
         public string ResolveBaseUrl() => BaseUrlProvider?.Invoke() ?? BaseUrl;
