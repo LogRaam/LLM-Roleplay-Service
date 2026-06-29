@@ -67,8 +67,32 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
         /// </summary>
         public Func<bool>? UseSystemPromptCachingProvider { get; init; }
 
+        /// <summary>
+        ///   Live resolver for the per-request timeout in seconds, invoked on every request — lets a host
+        ///   raise it for slow local models (or a long prompt that makes a reasoning model think past the
+        ///   default) from an options menu without rebuilding the client. The client enforces it with a
+        ///   linked <see cref="System.Threading.CancellationTokenSource" />, independent of the HttpClient's
+        ///   own timeout (which the host should set high so THIS governs). Null/out-of-range falls back to
+        ///   <see cref="DefaultTimeoutSeconds" />.
+        /// </summary>
+        public Func<int>? TimeoutSecondsProvider { get; init; }
+
+        /// <summary>The fallback per-request timeout (seconds) when no provider is set — generous for large prompts.</summary>
+        public const int DefaultTimeoutSeconds = 120;
+
         /// <summary>Resolves the key at call time: the live provider first, then the static key.</summary>
         public string? ResolveApiKey() => ApiKeyProvider?.Invoke() ?? ApiKey;
+
+        /// <summary>
+        ///   Resolves the per-request timeout in seconds, clamped to a sane window [15, 600] so a careless
+        ///   host value can neither time out instantly nor hang for many minutes. The live provider wins.
+        /// </summary>
+        public int ResolveTimeoutSeconds()
+        {
+            int s = TimeoutSecondsProvider?.Invoke() ?? DefaultTimeoutSeconds;
+            if (s <= 0) s = DefaultTimeoutSeconds;
+            return s < 15 ? 15 : s > 600 ? 600 : s;
+        }
 
         /// <summary>Resolves the model at call time: the live provider first, then the static value.</summary>
         public string? ResolveModel() => ModelProvider?.Invoke() ?? Model;

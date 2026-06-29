@@ -206,10 +206,17 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
 
       private async Task<LlmResponse> SendOnceAsync(LlmRequest request, CancellationToken ct)
       {
+         // Enforce the timeout ourselves with a linked source, independent of HttpClient.Timeout (which the
+         // host sets high so this governs). A long prompt on a slow/reasoning model is the usual cause of the
+         // "A task was canceled" the player sees at the HttpClient default — now it is configurable + named.
+         int timeoutSeconds = _config.ResolveTimeoutSeconds();
+         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+         timeoutCts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
+
          try
          {
             using HttpRequestMessage httpRequest = BuildHttpRequest(request);
-            using HttpResponseMessage? httpResponse = await _httpClient.SendAsync(httpRequest, ct)
+            using HttpResponseMessage? httpResponse = await _httpClient.SendAsync(httpRequest, timeoutCts.Token)
                                                                        .ConfigureAwait(false);
 
             string? responseJson = await httpResponse.Content
@@ -220,9 +227,16 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
 
             return ParseResponse(responseJson);
          }
+         catch (OperationCanceledException) when (ct.IsCancellationRequested)
+         {
+            throw; // the CALLER cancelled (the chat closed or was replaced) — propagate as before
+         }
          catch (OperationCanceledException)
          {
-            throw;
+            // OUR timeout fired (or HttpClient's) rather than a caller cancellation — turn it into a clear,
+            // actionable failure instead of the opaque "A task was canceled".
+            return Failure($"The model did not respond within {timeoutSeconds}s. Try a faster model, a shorter " +
+                           "message, or raise 'LLM Response Timeout' in Mods -> Mod Options -> Calradia Remembers.");
          }
          catch (Exception ex)
          {
