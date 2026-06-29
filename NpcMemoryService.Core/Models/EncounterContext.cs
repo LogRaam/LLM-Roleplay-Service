@@ -204,6 +204,16 @@ namespace NpcMemoryService.Core.Models
       public bool IsWitnessExchangeTurn { get; init; }
 
       /// <summary>
+      ///   Set ONLY when the player's last message asks where to find a companion to recruit,
+      ///   so the NPC answers with REAL wanderers instead of inventing one. A bulleted list of
+      ///   actual hireable wanderers and where they are (host-gathered) when any are known; an
+      ///   empty string when the player asked but the NPC truly knows of none about (the prompt
+      ///   then sends them to the taverns); null when the player did not ask, so the section is
+      ///   skipped entirely and costs no tokens.
+      /// </summary>
+      public string? KnownWanderers { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could be persuaded to leave their own house and
       ///   join the player's clan — a genuinely deep bond, the player's house outranking theirs,
       ///   and the lord vulnerable (landless, their clan broken, or estranged from their liege).

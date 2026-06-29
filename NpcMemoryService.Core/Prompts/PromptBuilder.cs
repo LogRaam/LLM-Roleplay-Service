@@ -687,6 +687,31 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         // Grounded answer to "where do I find a companion?" — names ONE REAL wanderer the host
+         // gathered, so the NPC stops inventing one (e.g. a fictitious "Oros"). Only one: a person
+         // would not know the comings and goings of every wanderer in the land. Injected only when
+         // the player actually asks, so it costs nothing in an ordinary conversation.
+         if (context.KnownWanderers != null)
+         {
+            sb.AppendLine("A WANDERER FOR HIRE YOU KNOW OF:");
+            sb.AppendLine("The player wants to know where to find a companion to take into their service.");
+            if (context.KnownWanderers.Length == 0)
+            {
+               sb.AppendLine("You know of no particular wanderer about just now.");
+            }
+            else
+            {
+               sb.AppendLine("One wanderer you have heard of:");
+               sb.AppendLine(context.KnownWanderers);
+            }
+
+            sb.AppendLine("If you name a wanderer, name only this one, by their real name and place. Never invent a");
+            sb.AppendLine("companion's name, nor a place to find one, and do not claim to know of others you were not told of.");
+            sb.AppendLine("Companions for hire are usually found drinking in the taverns of towns, waiting on work; if you");
+            sb.AppendLine("truly know of none, say so plainly and send the player to the taverns.");
+            sb.AppendLine();
+         }
+
          // Anti-confabulation guard — the primary fix for invented parent names and made-up
          // troop movements. It holds even when the data feeds above are absent (the player
          // often has no parent Hero objects, and a destination cannot always be read).
