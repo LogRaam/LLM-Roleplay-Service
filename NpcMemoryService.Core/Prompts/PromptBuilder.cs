@@ -2038,11 +2038,37 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
+      /// <summary>
+      ///   The voice/perspective contract shared by EVERY captive scene (reckoning, bandit menace, CNC): the
+      ///   captor's [DIALOGUE] is speech and visible deeds only — never their private thoughts — and the
+      ///   [NARRATION] is a NEUTRAL narrator writing from the PLAYER's perspective, because the player is the one
+      ///   living this. Without it the captor narrates the whole scene from its own head, which reads wrong: the
+      ///   prisoner cannot see the lord think, and this is the prisoner's story, not the lord's.
+      /// </summary>
+      private static void AppendCaptiveVoiceAndPerspective(StringBuilder sb)
+      {
+         sb.AppendLine("VOICE & PERSPECTIVE (governs this whole scene):");
+         sb.AppendLine("This is the PRISONER's story — the human player is the one living it, not you. Keep two voices");
+         sb.AppendLine("strictly apart:");
+         sb.AppendLine("  • [DIALOGUE] is YOUR voice as the captor: ONLY what you say aloud, plus the actions you visibly");
+         sb.AppendLine("    take. You may speak and you may describe what you DO — but NEVER write your own private");
+         sb.AppendLine("    thoughts, feelings, motives, or inner reasoning. The prisoner cannot read your mind; reveal");
+         sb.AppendLine("    your state only through words, tone, and deeds, never through narrated interiority.");
+         sb.AppendLine("  • [NARRATION] is a NEUTRAL narrator — NOT you, and never taking your side. Write it in the");
+         sb.AppendLine("    SECOND PERSON, addressing the player as 'you', from the PRISONER's perspective: what is done");
+         sb.AppendLine("    to them, what they see and hear, what their body feels. The narrator never voices your");
+         sb.AppendLine("    thoughts and never narrates the scene from your point of view.");
+         sb.AppendLine("Put speech in [DIALOGUE]; put physical action and what the prisoner experiences in [NARRATION].");
+         sb.AppendLine();
+      }
+
       private void AppendCaptivePlayerRules(StringBuilder sb, NpcProfile npc, EncounterContext? context)
       {
          bool isCollective = context?.IsCollectiveCaptiveScene ?? false;
          CaptiveSceneIntent intent = context?.CaptiveIntent ?? CaptiveSceneIntent.Interrogation;
          int relation = npc?.ReputationWithPlayer ?? 0;
+
+         AppendCaptiveVoiceAndPerspective(sb);
 
          // Bandit/pirate menace intents are NON-sexual: a thug shaking down, threatening, or
          // avenging — a different scene from the CNC framing below.
