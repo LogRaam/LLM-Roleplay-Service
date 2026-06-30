@@ -78,6 +78,15 @@ namespace NpcMemoryService.Core.Prompts
       public bool PlayerIsFemale { get; init; }
 
       /// <summary>
+      ///   Free-form instructions loaded from <c>post_history_instructions.txt</c>, injected at the VERY END of
+      ///   the system prompt (after every other section, highest recency) — the analog of a SillyTavern-style
+      ///   "post-history instructions" / jailbreak field. Because it is read last, it carries the strongest
+      ///   steer; modders use it for RP framing, tone overrides, or censorship-bypass preambles. Empty string →
+      ///   section omitted, and nothing changes from the stock prompt.
+      /// </summary>
+      public string PostHistoryInstructions { get; init; } = "";
+
+      /// <summary>
       ///   Player's real in-game name. Injected so NPCs can address them by name.
       ///   Empty string omits the name line.
       /// </summary>
@@ -106,6 +115,8 @@ namespace NpcMemoryService.Core.Prompts
          AppendCommonerTakeGold(sb);
          AppendPlayerActionNarration(sb);
          AppendLanguageMirror(sb);
+         // Last of all (highest recency) — the modder's own post-history instructions, if any.
+         AppendPostHistoryInstructions(sb);
 
          return sb.ToString();
       }
@@ -169,6 +180,8 @@ namespace NpcMemoryService.Core.Prompts
          AppendPlayerGenderContext(sb, npc, encounterContext);
          AppendPlayerActionNarration(sb);
          AppendLanguageMirror(sb);
+         // Last of all (highest recency) — the modder's own post-history instructions, if any.
+         AppendPostHistoryInstructions(sb);
 
          return sb.ToString();
       }
@@ -3039,6 +3052,19 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("WORLD:");
          sb.AppendLine(WorldDescription);
          sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Appends the modder's <c>post_history_instructions.txt</c> verbatim at the very end of the system
+      ///   prompt — the highest-recency position, read immediately before the conversation. Empty → nothing is
+      ///   added (the stock prompt is unchanged). The text is emitted as-is, with no CR-imposed framing, so a
+      ///   modder controls it completely.
+      /// </summary>
+      private void AppendPostHistoryInstructions(StringBuilder sb)
+      {
+         if (string.IsNullOrWhiteSpace(PostHistoryInstructions)) return;
+         sb.AppendLine();
+         sb.AppendLine(PostHistoryInstructions);
       }
 
       private bool IsPlayerCompatible(RomanticProfile romantic)
