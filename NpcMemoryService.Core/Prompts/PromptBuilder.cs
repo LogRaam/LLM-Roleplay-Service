@@ -169,6 +169,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendCompanionRecallOffer(sb, encounterContext);
          AppendCompanionNewsReport(sb, encounterContext);
          AppendCompanionMoodNote(sb, encounterContext);
+         AppendCompanionAudience(sb, encounterContext);
          AppendCompanionCampNote(sb, encounterContext);
          AppendIntimacyBargain(sb, encounterContext);
          AppendBastardMother(sb, encounterContext);
@@ -450,6 +451,51 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: reassure_companion");
          sb.AppendLine("[/ACTION]");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Taught when THIS companion asked the player for the private audience that opened this conversation
+      ///   (<see cref="EncounterContext.CompanionAudience" />). A grievance leans on the mood note above; a
+      ///   retirement gets its own surface: the companion voices their war-weariness, and the outcome is the
+      ///   player's to decide in the talk — grant their leave (the <c>retire</c> action makes it real) or persuade
+      ///   them to stay. This is where a war-weary veteran can be talked into "one more campaign".
+      /// </summary>
+      private static void AppendCompanionAudience(StringBuilder sb, EncounterContext? context)
+      {
+         CompanionAudienceReason reason = context?.CompanionAudience ?? CompanionAudienceReason.None;
+         if (reason == CompanionAudienceReason.None) return;
+
+         sb.AppendLine("YOU ASKED THE PLAYER FOR THIS PRIVATE AUDIENCE:");
+
+         if (reason == CompanionAudienceReason.Grievance)
+         {
+            sb.AppendLine("You sought this word because you are unhappy in their service (see YOUR CONTENTMENT above).");
+            sb.AppendLine("OPEN the conversation by raising it yourself — plainly, or with hurt, or with restraint, true");
+            sb.AppendLine("to who you are. Hear them out; if they truly make it right, soften and emit reassure_companion.");
+            sb.AppendLine();
+
+            return;
+         }
+
+         // Retirement.
+         bool landed = context!.AudienceRetirementIsLanded;
+         sb.AppendLine("You sought this word because the long years of war have worn you down, and you wish to lay down");
+         sb.AppendLine(landed
+            ? "the sword: to STEP BACK FROM THE FIELD and see to your own holdings, while remaining of their clan."
+            : "the sword and RETIRE from their service entirely, with no ill will between you.");
+         sb.AppendLine("OPEN the conversation by voicing it yourself, respectfully — you are war-weary, not mutinous, and");
+         sb.AppendLine("you have served them faithfully. How this ends is THEIRS to decide, here, in the talk:");
+         sb.AppendLine("  • If they GRANT your leave — a blessing, an honest 'you have earned your rest' — accept it with");
+         sb.AppendLine("    dignity and emit the action below to make it real.");
+         sb.AppendLine("  • If they ask you to STAY and give a REAL reason — a heartfelt appeal, a promise, genuine respect,");
+         sb.AppendLine("    one last need they name — you MAY relent and stay on, and emit NOTHING. Be persuadable, but not");
+         sb.AppendLine("    a pushover: empty flattery or a curt refusal does not move a tired veteran.");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: retire");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("Emit `retire` ONLY when the player has clearly granted your retirement this conversation — never for");
+         sb.AppendLine("any other request, and never once you have agreed to stay.");
          sb.AppendLine();
       }
 

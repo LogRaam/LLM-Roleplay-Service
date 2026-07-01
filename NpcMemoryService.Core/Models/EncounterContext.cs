@@ -76,6 +76,21 @@ namespace NpcMemoryService.Core.Models
       public string? CompanionMoodNote { get; init; }
 
       /// <summary>
+      ///   Why this companion asked the player for a private audience (the popup's "Let us speak of it" opened a
+      ///   real conversation). <see cref="CompanionAudienceReason.None" /> for an ordinary talk. Drives the
+      ///   companion's opening turn and, for <see cref="CompanionAudienceReason.Retirement" />, the in-chat surface
+      ///   that lets the player grant their leave (the <c>retire</c> action) or persuade them to stay.
+      /// </summary>
+      public CompanionAudienceReason CompanionAudience { get; init; }
+
+      /// <summary>
+      ///   Only meaningful with <see cref="CompanionAudience" /> = Retirement: true when this companion is LANDED
+      ///   (a governor or party-leader), so their retirement is to STEP BACK from the field and tend their
+      ///   holdings while remaining in the clan; false when landless, so it is to leave the player's service.
+      /// </summary>
+      public bool AudienceRetirementIsLanded { get; init; }
+
+      /// <summary>
       ///   Set on the first conversation after this companion has RETURNED from a news errand: a ready
       ///   directive + the news they gathered, for them to deliver in their own voice. Consumed once (the
       ///   host clears it after this build), so it colours only the homecoming exchange. Null otherwise.

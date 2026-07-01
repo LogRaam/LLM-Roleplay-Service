@@ -72,6 +72,21 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public int Happiness { get; set; } = 60;
 
+      /// <summary>
+      ///   Companion WAR-WEARINESS — the accumulated toll of war (0..100), a SEPARATE axis from happiness: it
+      ///   climbs with wounds and captures rather than drifting like a mood, and a spent veteran wants an
+      ///   honorable retirement. Only meaningful for the player's own companions. Defaults to 0 (untouched by war),
+      ///   so a freshly-met or older-save profile reads as fresh.
+      /// </summary>
+      public int WarWeariness { get; set; } = 0;
+
+      /// <summary>
+      ///   True once a war-weary LANDED companion (a governor / party leader) has asked to step back from the
+      ///   FIELD to tend their fief and the player granted it: they stay in the clan but should not be marched to
+      ///   war. The host reasserts this if the player re-adds them to a party. Defaults false.
+      /// </summary>
+      public bool SteppedBackFromWar { get; set; } = false;
+
       public required string Id { get; init; }
 
       /// <summary>
