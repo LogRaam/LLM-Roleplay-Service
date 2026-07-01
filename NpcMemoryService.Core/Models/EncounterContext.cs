@@ -181,6 +181,28 @@ namespace NpcMemoryService.Core.Models
       public bool IsCollectiveCaptiveScene { get; init; }
 
       /// <summary>
+      ///   When set, the captive scene's VICTIM is this named companion of the player (held alongside them), not
+      ///   the player themselves: the captor torments the companion to break the watching, bound player. Null for
+      ///   the ordinary player-as-victim scene. Drives <c>AppendCaptiveCompanionRules</c>.
+      /// </summary>
+      public string? CaptiveVictimName { get; init; }
+
+      /// <summary>
+      ///   Only meaningful with <see cref="CaptiveVictimName" /> set: true when the captor is forcing the PLAYER to
+      ///   harm their own companion (coerced perpetrator), false when the player is a restrained witness to the
+      ///   captor's men doing it. Either way, refusal escalates the cruelty rather than ending the scene.
+      /// </summary>
+      public bool PlayerCoercedAgainstCompanion { get; init; }
+
+      /// <summary>
+      ///   Only meaningful with <see cref="CaptiveVictimName" /> set: true when the captive companion is a woman,
+      ///   false when a man. Lets the prompt refer to the victim with the correct pronouns throughout, instead of
+      ///   the model defaulting them to the player's gender (a reported bug — the victim's sex was confused with
+      ///   the player's).
+      /// </summary>
+      public bool CaptiveVictimIsFemale { get; init; }
+
+      /// <summary>
       ///   True when the PLAYER is the captor and the NPC is their prisoner in a deliberate captor scene (the
       ///   inverse of the captive scene). The player directs; the NPC reacts as a captive of their own nature.
       ///   Drives <c>AppendPlayerCaptorSceneRules</c>; the player's intent is carried by <see cref="CaptiveIntent" />.

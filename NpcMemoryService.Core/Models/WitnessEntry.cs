@@ -25,6 +25,14 @@ namespace NpcMemoryService.Core.Models
       public bool IsPlayerCompanion { get; init; }
 
       /// <summary>
+      ///   True when this "witness" is in fact the captive-scene VICTIM — a companion held alongside the player
+      ///   whom the captor torments. They are present and voiced (portrait + <c>[WITNESS_REACTION]</c>), but they
+      ///   are not one of the captor's men: the host excludes them from the aggressor / audience tallies, and the
+      ///   prompt frames them as the bound victim with a voice of their own, not a bystander adjusting their candor.
+      /// </summary>
+      public bool IsCaptiveVictim { get; init; }
+
+      /// <summary>
       ///   Bannerlord <c>Hero.StringId</c> — used by the mod to resolve the witness's
       ///   portrait when displaying <c>[WITNESS_REACTION]</c> messages in the chat window.
       ///   Null for manually seeded console witnesses.

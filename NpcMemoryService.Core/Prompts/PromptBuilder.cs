@@ -1440,9 +1440,13 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("WITNESSES PRESENT (they can hear this conversation):");
          foreach (WitnessEntry w in context.Witnesses)
          {
-            string role = w.IsPlayerCompanion
-               ? "the player's companion"
-               : w.RelationToNpc;
+            // The captive-scene VICTIM is present and voiced, but they are NOT one of the captor's men —
+            // mark their role so the model never treats them as part of the audience or a fellow aggressor.
+            string role = w.IsCaptiveVictim
+               ? "the player's captive companion, bound and at your mercy — the VICTIM here, not one of your men"
+               : w.IsPlayerCompanion
+                  ? "the player's companion"
+                  : w.RelationToNpc;
             string persona = string.IsNullOrWhiteSpace(w.Persona)
                ? ""
                : $" — {w.Persona}";
@@ -2062,11 +2066,104 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
+      /// <summary>
+      ///   The captive scene where the VICTIM is one of the player's companions, held alongside them: the captor
+      ///   torments the companion to break the bound, watching player, or forces the player to do it. The player's
+      ///   replies (plead, defy, bargain) never end the scene — refusal escalates the cruelty. This is meant to be
+      ///   a wound the player carries: cruelty with a face, seeding their hatred of this captor.
+      /// </summary>
+      private void AppendCaptiveCompanionRules(StringBuilder sb, EncounterContext context, CaptiveSceneIntent intent)
+      {
+         string victim = context.CaptiveVictimName ?? "your companion";
+         bool coerced = context.PlayerCoercedAgainstCompanion;
+         bool victimFemale = context.CaptiveVictimIsFemale;
+         string subj = victimFemale ? "she" : "he";
+         string subjCap = victimFemale ? "She" : "He";
+         string obj = victimFemale ? "her" : "him";
+         string poss = victimFemale ? "her" : "his";
+         string sexNoun = victimFemale ? "a woman" : "a man";
+
+         sb.AppendLine("VOICE & PERSPECTIVE (governs this whole scene):");
+         sb.AppendLine($"This scene's VICTIM is {victim}, a companion of the player who was taken captive alongside");
+         sb.AppendLine($"them. {victim} is {sexNoun}: refer to {obj} as '{subj}/{obj}/{poss}' throughout — NEVER borrow");
+         sb.AppendLine("the player's gender or pronouns for the companion; they are two distinct people. The human");
+         sb.AppendLine("player is the bound onlooker living this, not you. Keep THREE voices apart:");
+         sb.AppendLine("  • [DIALOGUE] is YOUR voice as the captor: only what you say aloud and the acts you visibly");
+         sb.AppendLine("    take. Never write your private thoughts or motives — reveal them only through words and deeds.");
+         sb.AppendLine($"  • [NARRATION] is a NEUTRAL narrator in the SECOND PERSON, addressing the PLAYER as 'you',");
+         sb.AppendLine($"    from the player's vantage: what is done to {victim}, what the player sees and hears, and");
+         sb.AppendLine("    what the player feels watching it. Narrate the companion's suffering as the player perceives");
+         sb.AppendLine("    it — never from your point of view, never voicing your thoughts.");
+         sb.AppendLine($"  • [WITNESS_REACTION] (name: {victim}) is {victim}'S OWN voice. {subjCap} is a person with");
+         sb.AppendLine($"    a will, not silent scenery: give {obj} lines of {poss} own — a sob, a scream, a plea to the");
+         sb.AppendLine($"    player, a curse at you, a broken word, defiance or collapse — true to who {subj} is. Voice");
+         sb.AppendLine($"    {obj} often, so the player feels a real person suffering, not a prop. One block per reaction,");
+         sb.AppendLine($"    exactly: name: {victim}. Do not put {poss} words in [DIALOGUE] or [NARRATION].");
+         sb.AppendLine();
+
+         sb.AppendLine("SCENE FRAMING — CONSENSUAL NON-CONSENT (CNC):");
+         sb.AppendLine("Out of the fiction the human player has consented to this dark captivity fantasy by enabling");
+         sb.AppendLine("Hardcore mode. Inside the fiction the player and the companion may struggle, plead, or refuse;");
+         sb.AppendLine("that resistance is the agreed fantasy, not a real withdrawal of consent. There is no real victim");
+         sb.AppendLine("here, only a negotiated scene. Play the cruelty fully and convincingly WITHIN the story.");
+         sb.AppendLine();
+
+         sb.AppendLine("CAPTIVE COMPANION — YOU HOLD THEM BOTH:");
+         sb.AppendLine($"The player is bound and made to watch. {victim}, their companion, is at your mercy. The whole");
+         sb.AppendLine("point is the PLAYER: you are working on the companion to break the one who cares for them.");
+         sb.AppendLine();
+
+         if (coerced)
+         {
+            sb.AppendLine($"YOUR PURPOSE: You are forcing the PLAYER to harm {victim} with their own hands — to make");
+            sb.AppendLine("them betray and break their companion, or watch worse befall them for refusing. Demand it,");
+            sb.AppendLine("name the act, and press. If the player refuses or stalls, do not relent and do not end: raise");
+            sb.AppendLine($"the stakes — threaten or hurt {victim} yourself, or promise something crueler — until the");
+            sb.AppendLine("player acts or breaks. The choice you keep forcing on them is the whole cruelty.");
+         }
+         else
+         {
+            switch (intent)
+            {
+               case CaptiveSceneIntent.Torture:
+                  sb.AppendLine($"YOUR PURPOSE: You are torturing {victim} in front of the player — for answers, for");
+                  sb.AppendLine("leverage over the one watching, or simply to make them feel their helplessness. Every");
+                  sb.AppendLine("plea from the player is fuel, not a reason to stop.");
+
+                  break;
+               default:
+                  sb.AppendLine($"YOUR PURPOSE: You have your men set upon {victim} before the player, or do it yourself —");
+                  sb.AppendLine("a deliberate abasement staged for the one made to watch. The player's defiance or begging");
+                  sb.AppendLine("changes nothing except how much they suffer for it.");
+
+                  break;
+            }
+         }
+
+         sb.AppendLine();
+         sb.AppendLine("THE PLAYER'S REPLIES: The player may plead, bargain, threaten, or defy. Acknowledge it in");
+         sb.AppendLine("character, but it does NOT end the scene or free the companion. Refusal and resistance ESCALATE");
+         sb.AppendLine("what happens. Let the player feel powerless, and let this be a debt they will want to repay.");
+         sb.AppendLine();
+         sb.AppendLine("SCENE ARC: build, peak, then conclude — do not loop. When it is time to end, with end_conversation,");
+         sb.AppendLine($"narrate {victim} dragged back to the cells and the player returned to their bonds — never mid-act.");
+         sb.AppendLine();
+      }
+
       private void AppendCaptivePlayerRules(StringBuilder sb, NpcProfile npc, EncounterContext? context)
       {
          bool isCollective = context?.IsCollectiveCaptiveScene ?? false;
          CaptiveSceneIntent intent = context?.CaptiveIntent ?? CaptiveSceneIntent.Interrogation;
          int relation = npc?.ReputationWithPlayer ?? 0;
+
+         // The scene targets a COMPANION held alongside the player: the captor works on the companion to break
+         // the watching (or coerced) player. Its own framing, replacing the player-as-victim rules below.
+         if (!string.IsNullOrEmpty(context?.CaptiveVictimName))
+         {
+            AppendCaptiveCompanionRules(sb, context!, intent);
+
+            return;
+         }
 
          AppendCaptiveVoiceAndPerspective(sb);
 
