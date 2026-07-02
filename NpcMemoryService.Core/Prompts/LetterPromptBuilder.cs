@@ -22,11 +22,29 @@ namespace NpcMemoryService.Core.Prompts
    /// </summary>
    public static class LetterPromptBuilder
    {
+      // A letter carries no encounter context, so the writer is not told where they currently are.
+      // Left to itself the model invents a location from the most salient memory (the last town it
+      // saw named), and writes as if still there long after both parties have marched off to war.
+      // This guard stops that confident, stale claim: keep the setting unstated unless it is certain.
+      private const string LocationGuard =
+         "You are writing from wherever you presently are, which may well be on the march, at war, or " +
+         "travelling. Do NOT state or assume a specific place that you or the player are in, and do NOT " +
+         "treat a town named in an old memory as where either of you is now. When in doubt, leave the " +
+         "letter's setting unstated rather than name a stale location.";
+
+      // When the host knows where the writer currently is, ground the letter there and forbid drifting to
+      // a remembered town; when it does not (null/blank), fall back to the guard against naming any place.
+      private static string WhereaboutsLine(string whereabouts)
+         => string.IsNullOrWhiteSpace(whereabouts)
+            ? LocationGuard
+            : $"You are presently {whereabouts.Trim()}. If your letter mentions where you are, it is there and " +
+              "nowhere else; never place yourself in a town merely because an old memory named it.";
+
       /// <summary>
       ///   Builds the trigger message for an NPC-initiated letter (no player reply).
       /// </summary>
       public static string BuildInitialLetterMessage(
-         NpcProfile npc, LetterReason reason, string triggerContext, string playerName)
+         NpcProfile npc, LetterReason reason, string triggerContext, string playerName, string whereabouts = null)
       {
          var sb = new StringBuilder();
          sb.AppendLine("[LETTER GENERATION — INTERNAL INSTRUCTION, DO NOT INCLUDE IN YOUR RESPONSE]");
@@ -41,6 +59,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Write the letter now, in your own voice. This is correspondence,");
          sb.AppendLine("not a face-to-face conversation. Keep it to 2-3 paragraphs.");
          sb.AppendLine($"Address {playerName} by name. Do not use modern expressions.");
+         sb.AppendLine(WhereaboutsLine(whereabouts));
          sb.AppendLine("Write ONLY the letter body in [DIALOGUE]. Do not emit [EVENT], [ACTION], [STANCE], or any");
          sb.AppendLine("section other than the letter text. No section headers, no meta-text.");
          return sb.ToString();
@@ -53,7 +72,7 @@ namespace NpcMemoryService.Core.Prompts
       ///   waits before dispatching the courier — 1 (urgent) to 7 (considered).
       /// </summary>
       public static string BuildPlayerLetterReplyDecisionMessage(
-         NpcProfile npc, string playerLetterContent, string playerName)
+         NpcProfile npc, string playerLetterContent, string playerName, string whereabouts = null)
       {
          var sb = new StringBuilder();
          sb.AppendLine("[PLAYER LETTER RECEIVED — INTERNAL INSTRUCTION, DO NOT INCLUDE IN YOUR RESPONSE]");
@@ -73,6 +92,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("where N is the days you would wait before sending (1=urgent, 2-3=normal, 4-7=considered).");
          sb.AppendLine("Leave one blank line, then write your reply letter in 2-3 paragraphs.");
          sb.AppendLine($"Address {playerName} by name. Period-appropriate language only.");
+         sb.AppendLine(WhereaboutsLine(whereabouts));
          sb.AppendLine($"Write your reply in the SAME language as the quoted letter from {playerName} above, not the");
          sb.AppendLine("language of this internal instruction.");
          sb.AppendLine("Write ONLY the letter body after the DELAY line. Do not emit [EVENT], [ACTION], [STANCE], or");
@@ -89,7 +109,7 @@ namespace NpcMemoryService.Core.Prompts
       ///   Builds the trigger message for an NPC reply to the player's response.
       /// </summary>
       public static string BuildReplyLetterMessage(
-         NpcProfile npc, string playerReply, LetterReason originalReason, string playerName)
+         NpcProfile npc, string playerReply, LetterReason originalReason, string playerName, string whereabouts = null)
       {
          var sb = new StringBuilder();
          sb.AppendLine("[LETTER REPLY GENERATION — INTERNAL INSTRUCTION, DO NOT INCLUDE IN YOUR RESPONSE]");
@@ -114,6 +134,7 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.AppendLine("Write your reply letter in 2-3 paragraphs. Stay in character.");
          sb.AppendLine($"Address {playerName} by name. Do not use modern expressions.");
+         sb.AppendLine(WhereaboutsLine(whereabouts));
          sb.AppendLine($"Write the letter in the same language as the quoted letter from {playerName} above, not the");
          sb.AppendLine("language of this internal instruction.");
          sb.AppendLine("Write ONLY the letter body in [DIALOGUE]. Do not emit [EVENT], [ACTION], [STANCE], or any");
