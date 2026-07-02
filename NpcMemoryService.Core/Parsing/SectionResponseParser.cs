@@ -123,8 +123,11 @@ namespace NpcMemoryService.Core.Parsing
 
          // Weaker models sometimes prefix the line with a stray bracketed label — their own
          // name, or a tag they invented (e.g. "[Vesha the Crow]"). Legitimate dialogue uses
-         // *asterisks* for action, never [brackets], so strip any short stray bracketed token.
-         body = Regex.Replace(body, @"\[[^\]\n]{1,40}\]", "");
+         // *asterisks* for action, never [brackets] as a speaker label, so strip only a
+         // LEADING bracketed token (after optional whitespace), at most once. A bracketed
+         // token elsewhere in the body (e.g. a quoted "[unreadable]" in prose) is dialogue
+         // content and must survive.
+         body = Regex.Replace(body, @"^\s*\[[^\]\n]{1,40}\]", "");
 
          return body;
       }

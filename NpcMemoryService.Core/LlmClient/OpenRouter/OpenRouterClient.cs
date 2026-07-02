@@ -43,15 +43,50 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
       {
          LlmResponse response = await SendOnceAsync(request, ct).ConfigureAwait(false);
 
-         // One retry when the provider cut the reply off by output length. Some models
-         // (notably certain DeepSeek deployments) truncate a reply mid-sentence; a fresh
-         // generation usually completes. Bounded to a single retry so a model that always
-         // truncates cannot loop or double-bill indefinitely.
-         if (response.IsSuccess && IsLengthTruncated(response.FinishReason))
+         // One retry when the provider cut the reply off by output length, OR returned an empty
+         // reply outright. Some models (notably certain DeepSeek deployments) truncate a reply
+         // mid-sentence; a fresh generation usually completes. Reasoning models (MiMo, GLM, R1...)
+         // can also return an empty content with finish_reason "stop" when the template closes on
+         // reasoning alone; an empty chat reply is never legitimate, so it earns the same retry.
+         // Bounded to a single retry so a model that always truncates cannot loop or double-bill.
+         if (response.IsSuccess && (IsLengthTruncated(response.FinishReason) || string.IsNullOrWhiteSpace(response.Content)))
          {
-            LlmResponse retry = await SendOnceAsync(request, ct).ConfigureAwait(false);
+            // An EMPTY reply means a reasoning model spent the whole completion budget thinking
+            // (or closed on reasoning alone) and never wrote any text. Retry with double the
+            // budget so there is room for prose after the thinking; a truncated-but-present
+            // reply keeps the original budget (a fresh roll usually lands shorter).
+            bool thinkingAteBudget = string.IsNullOrWhiteSpace(response.Content);
+            LlmRequest retryRequest = thinkingAteBudget
+               ? new LlmRequest {
+                  Messages = request.Messages,
+                  Parameters = new LlmParameters {
+                     MaxTokens = request.Parameters.MaxTokens * 2,
+                     Creativity = request.Parameters.Creativity
+                  },
+                  StableSystemPrompt = request.StableSystemPrompt,
+                  SystemPrompt = request.SystemPrompt
+               }
+               : request;
 
-            if (retry.IsSuccess) return retry; // prefer the retry even if also truncated — it's no worse
+            LlmResponse retry = await SendOnceAsync(retryRequest, ct).ConfigureAwait(false);
+
+            if (retry.IsSuccess && !string.IsNullOrEmpty(retry.Content))
+               // Prefer the retry even if also truncated — it's no worse. Stamped WasRetried so the
+               // host can log real retry frequency (token counts alone cannot reveal it).
+               return new LlmResponse {
+                  Content = retry.Content,
+                  IsSuccess = true,
+                  Usage = retry.Usage,
+                  FinishReason = retry.FinishReason,
+                  WasRetried = true
+               };
+
+            if (!thinkingAteBudget) return response; // original had text; keep it over a failed retry
+
+            return Failure("The model spent its entire reply budget on internal reasoning twice and produced " +
+                           "no text (reasoning models such as MiMo or GLM think at length before writing). " +
+                           "Lower the Reasoning Effort in Mod Options, or use a model that reasons less." +
+                           (retry.ErrorMessage != null ? $" Last error: {retry.ErrorMessage}" : string.Empty));
          }
 
          return response;
@@ -92,7 +127,7 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
 
       // ── Response parsing ──────────────────────────────────────────────────
 
-      private static LlmResponse ParseResponse(string json)
+      internal static LlmResponse ParseResponse(string json)
       {
          // Some endpoints stream the reply (SSE) even when we ask for a single object; rebuild it into the
          // standard envelope first so the rest of this method is unchanged. A non-streamed body passes through.
@@ -106,10 +141,30 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
             // Preserve the original contract: a body without choices[0].message.content
             // is a failure, not a silent empty success — an unexpected API error body
             // would otherwise read as an empty reply.
-            JToken? contentToken = root["choices"]?[0]?["message"]?["content"];
+            JToken? message = root["choices"]?[0]?["message"];
+            JToken? contentToken = message?["content"];
 
             if (contentToken == null || contentToken.Type == JTokenType.Null)
+            {
+               // A reasoning model (MiMo, GLM, R1...) can spend the entire completion budget
+               // "thinking": the body then carries the reasoning text but a null content, with
+               // finish_reason "length". Surface that as an EMPTY length-truncated success so
+               // CompleteAsync's bigger-budget retry fires. Only a body with neither content
+               // nor reasoning (an API error envelope) stays the original hard failure.
+               string reasoningText = message?["reasoning"]?.Value<string>()
+                                      ?? message?["reasoning_content"]?.Value<string>()
+                                      ?? string.Empty;
+               var cutReason = root["choices"]?[0]?["finish_reason"]?.Value<string>();
+
+               if (reasoningText.Length > 0 && IsLengthTruncated(cutReason))
+                  return new LlmResponse {Content = string.Empty, IsSuccess = true, FinishReason = cutReason};
+
+               if (reasoningText.Length > 0)
+                  return Failure($"The model produced only reasoning text and no reply (finish_reason: {cutReason ?? "unknown"}). " +
+                                 "Lower the Reasoning Effort in Mod Options, or use a model that reasons less.");
+
                return Failure("Response contained no message content.");
+            }
 
             string content = contentToken.Value<string>() ?? string.Empty;
 

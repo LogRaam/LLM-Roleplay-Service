@@ -73,7 +73,7 @@ namespace NpcMemoryService.Core.Services
          // conversation (identity, persona, instructions) and makes the cacheable prefix; the dynamic tail
          // (encounter, rumours, names) is sent fresh. So the cache breakpoint survives the day/encounter
          // changing each turn instead of invalidating the whole system prompt.
-         int splitAt = systemPrompt.IndexOf("CURRENT ENCOUNTER:", StringComparison.Ordinal);
+         int splitAt = systemPrompt.IndexOf(NpcMemoryService.Core.Prompts.PromptBuilder.EncounterSectionHeading, StringComparison.Ordinal);
          string? stablePrefix = splitAt > 0
             ? systemPrompt.Substring(0, splitAt)
             : null;
@@ -99,7 +99,7 @@ namespace NpcMemoryService.Core.Services
          ParsedResponse parsed = _parser.Parse(llmResponse.Content);
          session.AddNpcMessage(parsed.Dialogue);
 
-         return NpcChatResult.Success(parsed, llmResponse.Usage, llmResponse.FinishReason);
+         return NpcChatResult.Success(parsed, llmResponse.Usage, llmResponse.FinishReason, llmResponse.WasRetried);
       }
 
       /// <summary>
@@ -140,7 +140,7 @@ namespace NpcMemoryService.Core.Services
          ParsedResponse parsed = _parser.Parse(llmResponse.Content);
          session.AddNpcMessage(parsed.Dialogue);
 
-         return NpcChatResult.Success(parsed, llmResponse.Usage, llmResponse.FinishReason);
+         return NpcChatResult.Success(parsed, llmResponse.Usage, llmResponse.FinishReason, llmResponse.WasRetried);
       }
    }
 }

@@ -23,8 +23,11 @@ namespace NpcMemoryService.Core.Services
       public ParsedResponse? Response { get; private init; }
       public LlmUsage? Usage { get; private init; }
 
+      /// <summary>True when this turn's reply came from the client's bounded second attempt (see <see cref="LlmResponse.WasRetried" />).</summary>
+      public bool WasRetried { get; private init; }
+
       public static NpcChatResult Failure(string errorMessage) => new() {IsSuccess = false, ErrorMessage = errorMessage};
 
-      public static NpcChatResult Success(ParsedResponse response, LlmUsage? usage, string? finishReason = null) => new() {IsSuccess = true, Response = response, Usage = usage, FinishReason = finishReason};
+      public static NpcChatResult Success(ParsedResponse response, LlmUsage? usage, string? finishReason = null, bool wasRetried = false) => new() {IsSuccess = true, Response = response, Usage = usage, FinishReason = finishReason, WasRetried = wasRetried};
    }
 }

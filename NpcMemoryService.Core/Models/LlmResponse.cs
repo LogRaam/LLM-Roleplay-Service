@@ -36,5 +36,13 @@ namespace NpcMemoryService.Core.Models
         ///   some models (e.g. certain DeepSeek deployments) truncate mid-sentence this way.
         /// </summary>
         public string?          FinishReason { get; init; }
+
+        /// <summary>
+        ///   True when this reply came from the bounded second attempt (the first one was empty or
+        ///   length-truncated). Surfaced so the host can log real retry frequency: usage token counts
+        ///   alone cannot distinguish a retry from a single reply whose completion count includes
+        ///   reasoning tokens.
+        /// </summary>
+        public bool             WasRetried   { get; init; }
     }
 }

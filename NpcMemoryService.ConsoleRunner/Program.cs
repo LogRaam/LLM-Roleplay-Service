@@ -221,7 +221,9 @@ namespace NpcMemoryService.ConsoleRunner
             Console.WriteLine($"\n{s.Npc.Name}: {response.Dialogue}");
 
             // Apply to in-memory state only — no I/O until 'save'.
-            s.Npc.ApplyConversationResult(response, s.World.CurrentDay);
+            // ProfileMutator.Apply is the single authoritative mutation path (shared with the
+            // mod), so this runner exercises the same behaviour testers see in-game.
+            ProfileMutator.Apply(s.Npc, response, s.World.CurrentDay);
             s.Store.Set(s.Npc);
 
             if (s.ShowDebug)
@@ -278,7 +280,7 @@ namespace NpcMemoryService.ConsoleRunner
             for (int i = 0; i < npc.Events.Count; i++)
             {
                 var ev = npc.Events[i];
-                Console.WriteLine($"  [{i}] Day {ev.GameDay} ({ev.Type}): {ev.Summary}");
+                Console.WriteLine($"  [{i}] Day {ev.gameDay} ({ev.type}): {ev.summary}");
             }
 
             if (!string.IsNullOrWhiteSpace(npc.BackgroundContext))

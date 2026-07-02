@@ -3,6 +3,7 @@
 #region
 
 using System.Collections.Generic;
+using NpcMemoryService.Core.Prompts;
 
 #endregion
 
@@ -19,6 +20,13 @@ namespace NpcMemoryService.Core.Models
    /// </summary>
    public sealed class EncounterContext
    {
+      /// <summary>
+      ///   How aggressively to trim the system prompt for a small / short-context model (the "Compact prompt"
+      ///   option). <see cref="LeanPromptLevel.Full" /> (default) sends everything; <see cref="LeanPromptLevel.Lean" />
+      ///   drops the heavy flavour/context sections so the prompt fits a ~4k–8k context and the model still replies.
+      /// </summary>
+      public LeanPromptLevel LeanLevel { get; init; }
+
       /// <summary>An empty context (all fields Unknown). Use when no game state is available.</summary>
       public static EncounterContext Empty { get; } = new();
 
@@ -539,7 +547,23 @@ namespace NpcMemoryService.Core.Models
       Initiate, // the aggression begins — the first act
       Intensify, // escalation — a different / harder act, never a repeat
       Climax, // the aggressor finishes / reaches satisfaction
-      Conclude // the scene wraps: prisoner removed, end_conversation
+      Conclude, // the scene wraps: prisoner removed, end_conversation
+
+      // ── Appended 01/07/2026 for director arc variety (see CaptiveSceneArcPolicy in the mod).
+      //    Transient per-turn scene state, never persisted, but still appended at the end. ──
+
+      /// <summary>
+      ///   Between Intro and the physical act: the captor circles, inspects, closes distance, and
+      ///   builds dread through word, gaze, and the smallest touch, without beginning the act proper.
+      /// </summary>
+      RisingTension,
+
+      /// <summary>
+      ///   After the final Climax, before Conclude: nothing new starts; the beat lingers on the
+      ///   immediate consequence (the prisoner's state, parting words, any mark left, the room going
+      ///   cold again) before they are sent back.
+      /// </summary>
+      Aftermath
    }
 
    /// <summary>Who acts this beat in a (possibly collective) captive scene.</summary>

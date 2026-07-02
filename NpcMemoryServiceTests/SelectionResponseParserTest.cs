@@ -234,5 +234,37 @@ namespace NpcMemoryServiceTests
          var result = _parser.Parse("   \n  \t ");
          result.Dialogue.Should().BeEmpty();
       }
+
+      // ---------- Bracket-scrub anchoring (leading label only) ----------
+
+      [Test]
+      public void Leading_stray_bracketed_label_is_stripped()
+      {
+         var raw = "[DIALOGUE]\n[Vesha the Crow] Bonjour, voyageur.\n[/DIALOGUE]";
+
+         var result = _parser.Parse(raw);
+
+         result.Dialogue.Should().Be("Bonjour, voyageur.");
+      }
+
+      [Test]
+      public void Mid_dialogue_bracketed_token_is_preserved()
+      {
+         var raw = "[DIALOGUE]\nHe signed it \"[unreadable]\" and left.\n[/DIALOGUE]";
+
+         var result = _parser.Parse(raw);
+
+         result.Dialogue.Should().Be("He signed it \"[unreadable]\" and left.");
+      }
+
+      [Test]
+      public void Only_the_first_leading_bracketed_token_is_stripped()
+      {
+         var raw = "[DIALOGUE]\n[Vesha] [still bracketed] rest of line.\n[/DIALOGUE]";
+
+         var result = _parser.Parse(raw);
+
+         result.Dialogue.Should().Be("[still bracketed] rest of line.");
+      }
    }
 }

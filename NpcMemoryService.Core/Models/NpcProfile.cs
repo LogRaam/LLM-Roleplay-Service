@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using NpcMemoryService.Core.Services;
 
 #endregion
 
@@ -225,11 +226,18 @@ namespace NpcMemoryService.Core.Models
       ///   Applies memory, reputation, and event (if any) from a parsed response
       ///   in a single call. The current game day is required to timestamp events.
       /// </summary>
+      /// <remarks>
+      ///   Obsolete: this overlapped with <see cref="ProfileMutator.Apply" /> (which also
+      ///   clamps reputation, guards duplicate FirstMeeting events, and advances the romantic
+      ///   arc) via a second, divergent path. Delegates to it now so both paths behave
+      ///   identically; still persists the memory digest, which <see cref="ProfileMutator" />
+      ///   deliberately does not (the memory section is descriptive-only there).
+      /// </remarks>
+      [Obsolete("Use ProfileMutator.Apply(profile, response, gameDay) directly instead.")]
       public void ApplyConversationResult(ParsedResponse response, int gameDay)
       {
          if (response.Memory != null) ApplyMemoryUpdate(response.Memory);
-         if (response.Reputation != null) ApplyReputationDelta(response.Reputation);
-         if (response.NewEventData != null) ApplyNotableEvent(response.NewEventData, gameDay);
+         ProfileMutator.Apply(this, response, gameDay);
       }
 
       // ── Tell Don't Ask ────────────────────────────────────────────────────
@@ -246,16 +254,16 @@ namespace NpcMemoryService.Core.Models
       }
 
       /// <summary>Stamps a parsed event with the current game day and records it.</summary>
+      [Obsolete("Use ProfileMutator.ApplyNotableEvent(profile, type, summary, gameDay) instead " +
+                "(adds the duplicate-FirstMeeting guard).")]
       public void ApplyNotableEvent(ParsedEventData data, int gameDay)
-      {
-         Events.Add(new NotableEvent(gameDay, data.Type, data.Summary));
-      }
+         => ProfileMutator.ApplyNotableEvent(this, data.Type, data.Summary, gameDay);
 
+      [Obsolete("Use ProfileMutator.ApplyReputationDelta(profile, delta) instead (adds the [-100, 100] clamp).")]
       public void ApplyReputationDelta(ReputationDelta delta)
       {
          if (!delta.ClanDelta.HasValue) return;
-         int updated = ReputationWithPlayer + delta.ClanDelta.Value;
-         ReputationWithPlayer = Math.Max(-100, Math.Min(100, updated));
+         ProfileMutator.ApplyReputationDelta(this, delta.ClanDelta.Value);
       }
    }
 }

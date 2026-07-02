@@ -28,6 +28,14 @@ namespace NpcMemoryService.Core.Prompts
       public AdultContentLevel AdultLevel { get; init; } = AdultContentLevel.Off;
 
       /// <summary>
+      ///   The literal heading that opens the per-turn CURRENT ENCOUNTER section. Single source of truth
+      ///   for both where this class emits it (<see cref="AppendEncounterContext" />) and where
+      ///   <c>NpcChatService</c> splits the stable, cacheable prefix from the dynamic per-turn tail, so the
+      ///   two call sites cannot silently drift apart.
+      /// </summary>
+      public const string EncounterSectionHeading = "CURRENT ENCOUNTER:";
+
+      /// <summary>
       ///   Behavioral guidelines loaded from <c>behavior_guidelines.txt</c>.
       ///   When non-empty, replaces the hardcoded BEHAVIOR GUIDELINES section
       ///   so the content can be customised without recompiling.
@@ -111,6 +119,7 @@ namespace NpcMemoryService.Core.Prompts
          var sb = new StringBuilder();
          AppendCommonerIdentity(sb, profile, knowledge);
          AppendCommonerRules(sb);
+         AppendProseCraft(sb);
          AppendCommonerRumors(sb, knowledge);
          AppendCommonerTakeGold(sb);
          AppendPlayerActionNarration(sb);
@@ -124,25 +133,33 @@ namespace NpcMemoryService.Core.Prompts
       public string BuildSystemPrompt(NpcProfile npc, WorldState world, EncounterContext? encounterContext = null)
       {
          var sb = new StringBuilder();
+         // Lean prompt: for a small / short-context model, drop the heavy flavour sections and shorten the rest so
+         // the prompt fits (a full prompt overflows a 4k–8k context and the model returns nothing usable). Only the
+         // heavy, always-on sections are trimmed; identity, persona, format, stance and the encounter always stay.
+         LeanPromptLevel lean = encounterContext?.LeanLevel ?? LeanPromptLevel.Full;
+
          // ── Permission preamble — highest framing weight (read first) ────────
          AppendAdultFramingPreamble(sb);
          // ── Static prefix — identical for every NPC in the session ──────────
-         AppendFormatInstructions(sb, encounterContext);
-         AppendDialogueStyle(sb);
-         AppendBehaviorGuidelines(sb);
-         AppendWorldDescription(sb);
+         AppendFormatInstructions(sb, encounterContext, lean);
+         AppendDialogueStyle(sb, encounterContext);
+         if (LeanPromptPolicy.Include(PromptSection.ProseCraftBlocklist, lean)) AppendProseCraft(sb);
+         else AppendLeanProseCraft(sb);
+         if (LeanPromptPolicy.UseFullBehaviorGuidelines(lean)) AppendBehaviorGuidelines(sb);
+         else AppendLeanBehaviorGuidelines(sb);
+         if (LeanPromptPolicy.Include(PromptSection.WorldNarrative, lean)) AppendWorldDescription(sb);
          AppendPlayerDescription(sb, encounterContext);
          // ── Per-NPC identity ─────────────────────────────────────────────────
          AppendIdentity(sb, npc);
-         AppendAuthoredBackstory(sb, npc);
-         AppendRelationships(sb, npc);
+         if (LeanPromptPolicy.Include(PromptSection.AuthoredBackstory, lean)) AppendAuthoredBackstory(sb, npc);
+         if (LeanPromptPolicy.Include(PromptSection.Relationships, lean)) AppendRelationships(sb, npc);
          AppendRomanticContext(sb, npc);
          AppendIntimacyConsentRules(sb, npc, encounterContext);
          AppendSocialAttractionInstructions(sb, npc, encounterContext);
          AppendDiscoveredTraits(sb, npc);
          AppendInheritedNote(sb, npc);
-         AppendBackgroundContext(sb, npc);
-         AppendHistory(sb, npc, world.CurrentDay);
+         if (LeanPromptPolicy.Include(PromptSection.CulturalBackground, lean)) AppendBackgroundContext(sb, npc);
+         AppendHistory(sb, npc, world.CurrentDay, LeanPromptPolicy.MemoryEventLimit(lean));
          // A captor holding the player prisoner is not a quest-giver: listing the player's tasks
          // here let a bandit captor mistake a "clear the bandits" quest for one HE gave, and torture
          // the prisoner for "failing" it. Quests have no place in a captive scene.
@@ -152,7 +169,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendStanceNote(sb, encounterContext);
          AppendStanceConsequence(sb, encounterContext);
          AppendPlayerLetters(sb, npc);
-         AppendWitnesses(sb, encounterContext);
+         AppendWitnesses(sb, encounterContext, lean);
          AppendRecruitment(sb, encounterContext);
          AppendMercenaryOffer(sb, encounterContext);
          AppendLordRecruitment(sb, encounterContext);
@@ -162,7 +179,14 @@ namespace NpcMemoryService.Core.Prompts
          AppendLoveMatchProposal(sb, encounterContext);
          AppendConsortProposal(sb, encounterContext);
          AppendGiveItem(sb, encounterContext);
-         AppendDeliverPrisoner(sb, encounterContext);
+         // Dropped entirely in Lean (a small local model has no headroom for a favor it is unlikely to use), and
+         // gated on WarStatus being resolved (task 6d): a live faction lord has a diplomatic WarStatus computed by
+         // the host, while a companion, bandit, or commoner leaves it at the Unknown default — the closest existing
+         // "is this a lord" signal in EncounterContext, so a companion chat no longer gets taught a prisoner bargain
+         // it can never use.
+         if (LeanPromptPolicy.Include(PromptSection.DeliverPrisonerOffer, lean)
+             && encounterContext?.WarStatus is DiplomaticStatus.AtWar or DiplomaticStatus.AtPeace or DiplomaticStatus.Allied)
+            AppendDeliverPrisoner(sb, encounterContext);
          AppendPrisonerFreedomBargain(sb, encounterContext);
          AppendPrisonerRescueBargain(sb, encounterContext);
          AppendCompanionMissionOffer(sb, encounterContext);
@@ -174,17 +198,48 @@ namespace NpcMemoryService.Core.Prompts
          AppendIntimacyBargain(sb, encounterContext);
          AppendBastardMother(sb, encounterContext);
          AppendMarriage(sb, encounterContext);
-         // ── Dynamic world state (changes each turn) ──────────────────────────
-         AppendWorldState(sb, world);
+         // ── Dynamic tail (changes every turn) — AppendEncounterContext emits EncounterSectionHeading, the
+         // literal marker NpcChatService splits the cacheable prefix on. Everything from here on is per-turn
+         // volatile (day count, time of day, scene stage, witness turn flags) and MUST stay after the marker,
+         // or it invalidates the prefix cache on every single turn of a long captive scene. ─────────────────
          AppendEncounterContext(sb, encounterContext);
+         AppendWorldState(sb, world);
+         AppendWitnessTurnDirectives(sb, encounterContext);
+         if (ShouldAppendCaptiveStageDirective(encounterContext))
+            AppendSceneStageDirective(sb, encounterContext);
          AppendPowerBalance(sb, encounterContext);
          AppendPlayerGenderContext(sb, npc, encounterContext);
+         // Hoisted out of AppendEncounterContext so it still renders when encounterContext is null, and kept
+         // late (near the language mirror) so recency reinforces the anti-confabulation guard.
+         AppendStayWithinWhatYouKnow(sb);
          AppendPlayerActionNarration(sb);
          AppendLanguageMirror(sb);
          // Last of all (highest recency) — the modder's own post-history instructions, if any.
          AppendPostHistoryInstructions(sb);
 
          return sb.ToString();
+      }
+
+      /// <summary>
+      ///   The per-stage textual intensity (1..5): how graphic and explicit the physical description
+      ///   should be THIS beat. Climbs through the escalation (Intro to Climax), eases for the
+      ///   Aftermath come-down, and sits low for the RisingTension build-up and the Conclude farewell.
+      ///   A pure static map, kept public so it is unit-testable on its own, independent of the
+      ///   surrounding prompt text built by <see cref="AppendSceneStageDirective" />.
+      /// </summary>
+      public static int StageIntensity(CaptiveSceneStage stage)
+      {
+         switch (stage)
+         {
+            case CaptiveSceneStage.Intro: return 1;
+            case CaptiveSceneStage.RisingTension: return 2;
+            case CaptiveSceneStage.Initiate: return 3;
+            case CaptiveSceneStage.Intensify: return 4;
+            case CaptiveSceneStage.Climax: return 5;
+            case CaptiveSceneStage.Aftermath: return 2;
+            case CaptiveSceneStage.Conclude: return 1;
+            default: return 1;
+         }
       }
 
       #region private
@@ -237,7 +292,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
-      private static void AppendBanditMenaceRules(StringBuilder sb, CaptiveSceneIntent intent, EncounterContext? context)
+      private static void AppendBanditMenaceRules(StringBuilder sb, CaptiveSceneIntent intent)
       {
          sb.AppendLine("CAPTIVE — THIS PLAYER IS YOUR PRISONER:");
          sb.AppendLine("You are a brigand, and the player is your captive — bound, disarmed, entirely in your power.");
@@ -276,14 +331,12 @@ namespace NpcMemoryService.Core.Prompts
          AppendBrevityRule(sb);
          sb.AppendLine("WHEN YOU TURN TO VIOLENCE: a thug backs words with blows. When you ACTUALLY hurt the prisoner");
          sb.AppendLine("(not an idle threat), describe it, then emit a harm_prisoner action so the game wounds them for real:");
-         sb.AppendLine("[ACTION]");
-         sb.AppendLine("type: harm_prisoner");
-         sb.AppendLine("severity: light | moderate | severe");
-         sb.AppendLine("[/ACTION]");
+         AppendHarmPrisonerAction(sb);
          sb.AppendLine("Scale severity to the deed: a slap or shove = light, a beating = moderate, a maiming = severe.");
          sb.AppendLine();
          AppendEscapeRules(sb);
-         AppendSceneStageDirective(sb, context);
+         // The per-turn stage cue is appended once, later, in the dynamic tail (see BuildSystemPrompt /
+         // ShouldAppendCaptiveStageDirective) so it does not sit ahead of the cache-split marker.
          sb.AppendLine("Stay a brigand throughout. The player cannot walk away — but they may plead, bargain, defy, or");
          sb.AppendLine("break, and you react as a thug who holds every card. When you have made your point or taken what");
          sb.AppendLine("you wanted, end it with an end_conversation action, throwing them back to the pit.");
@@ -292,13 +345,15 @@ namespace NpcMemoryService.Core.Prompts
 
       private static void AppendBrevityRule(StringBuilder sb)
       {
-         sb.AppendLine("KEEP EACH RESPONSE TIGHT — ONE BEAT, NOT A CHAPTER:");
-         sb.AppendLine("Each of your turns is a SINGLE beat: a short spoken line or two, and — when something");
-         sb.AppendLine("physical happens — one focused [NARRATION], not a sprawling set piece. Aim for brevity:");
-         sb.AppendLine("a few sentences carrying the single most important thing happening NOW. Do NOT pile threat");
-         sb.AppendLine("upon threat, do NOT re-describe the prisoner's whole body, bindings, and surroundings every");
-         sb.AppendLine("turn, and do NOT restate what is already established. Long, repetitive walls of text kill the");
-         sb.AppendLine("pace and the tension. Say less, land harder, and move the scene forward.");
+         sb.AppendLine("ONE BEAT PER TURN, FULLY REALISED:");
+         sb.AppendLine("Each of your turns is a SINGLE beat: one moment of the scene, not a montage. But a beat is");
+         sb.AppendLine("not a caption. Give it flesh: several spoken sentences in [DIALOGUE] (the menace, the taunts,");
+         sb.AppendLine("the psychological cruelty, what you want the prisoner to feel and fear), and, when something");
+         sb.AppendLine("physical happens, one substantial [NARRATION] paragraph rich in sensation, movement, and the");
+         sb.AppendLine("prisoner's reactions. The psychology carries the scene as much as the act. What kills a scene");
+         sb.AppendLine("is REPETITION, not substance: do NOT pile threat upon threat, do NOT re-describe the prisoner's");
+         sb.AppendLine("whole body, bindings, and surroundings every turn, and do NOT restate what is already");
+         sb.AppendLine("established. Land the beat with weight, then stop and let the player react.");
          sb.AppendLine();
          sb.AppendLine("YOUR DIALOGUE IS SPEECH, NOT NARRATION: your [DIALOGUE] is what you SAY aloud — commands,");
          sb.AppendLine("taunts, demands, reactions. Do NOT use it to recite the scene or the prisoner's appearance");
@@ -540,14 +595,13 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.AppendLine("YOU ARE AWAY ON THE PLAYER'S ERRAND, AND THEY HAVE COME TO YOU:");
          sb.AppendLine("You left the party to carry out a task for the player and are still out on the road. If the");
-         sb.AppendLine("player asks you to ABANDON the errand and rejoin them now, you may agree — and you MUST emit the");
-         sb.AppendLine("action below. Agreeing in words alone does nothing; only the action actually brings you home.");
+         sb.AppendLine("player asks you to ABANDON the errand and rejoin them now, you may agree.");
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: recall_companion");
          sb.AppendLine("[/ACTION]");
-         sb.AppendLine("Emit it ONLY when the player truly tells you to drop the errand and come back, and you consent.");
-         sb.AppendLine("If you would rather see the task through, you may say so and NOT emit it — but if you agree to");
-         sb.AppendLine("return, the action is mandatory. Never emit it for any other request.");
+         sb.AppendLine("Emit it when the player truly tells you to drop the errand and come back, and you consent. If");
+         sb.AppendLine("you would rather see the task through, say so and emit nothing; once you agree to return, the");
+         sb.AppendLine("action is mandatory (agreeing in words alone would not actually bring you home).");
          sb.AppendLine();
       }
 
@@ -602,7 +656,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: take_as_consort");
          sb.AppendLine("[/ACTION]");
-         sb.AppendLine("Never emit it speculatively, as a hint, or twice. The bond, once named, is real.");
+         sb.AppendLine("The bond, once named, is real.");
          sb.AppendLine();
       }
 
@@ -661,7 +715,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("type: give_prisoner");
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("The game then transfers that prisoner and honors your bargain. Only emit give_prisoner when the");
-         sb.AppendLine("player has an OUTSTANDING prisoner bargain with you and holds the captive — never speculatively.");
+         sb.AppendLine("player has an OUTSTANDING prisoner bargain with you and holds the captive.");
          sb.AppendLine();
       }
 
@@ -672,7 +726,7 @@ namespace NpcMemoryService.Core.Prompts
 
          if (!string.IsNullOrWhiteSpace(description))
          {
-            sb.AppendLine("CURRENT ENCOUNTER:");
+            sb.AppendLine(EncounterSectionHeading);
             sb.AppendLine(description);
             sb.AppendLine();
          }
@@ -780,10 +834,17 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("truly know of none, say so plainly and send the player to the taverns.");
             sb.AppendLine();
          }
+      }
 
-         // Anti-confabulation guard — the primary fix for invented parent names and made-up
-         // troop movements. It holds even when the data feeds above are absent (the player
-         // often has no parent Hero objects, and a destination cannot always be read).
+      /// <summary>
+      ///   Anti-confabulation guard — the primary fix for invented parent names and made-up troop
+      ///   movements. Hoisted out of <see cref="AppendEncounterContext" /> so it renders even when
+      ///   <paramref name="context" /> would otherwise be entirely absent (a console session with no
+      ///   encounter data still needs this), and positioned late in the dynamic tail, near the language
+      ///   mirror, so recency reinforces it.
+      /// </summary>
+      private static void AppendStayWithinWhatYouKnow(StringBuilder sb)
+      {
          sb.AppendLine("STAY WITHIN WHAT YOU KNOW:");
          sb.AppendLine("Do not invent concrete facts you have not been given. If the player's parentage is not named");
          sb.AppendLine("above, speak of their parents only in general terms — never make up a name. Likewise, if your");
@@ -833,13 +894,12 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("item: <the item name exactly as the player stated it>");
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("The game removes the item from the player's inventory and gives it to you. Only emit");
-         sb.AppendLine("this action if the player has explicitly offered a specific item this turn. Never emit");
-         sb.AppendLine("it speculatively, never twice, and never for items you demanded — only for items the");
-         sb.AppendLine("player proactively chose to offer you.");
+         sb.AppendLine("this action if the player has explicitly offered a specific item this turn, and never for");
+         sb.AppendLine("items you demanded: only for items the player proactively chose to offer you.");
          sb.AppendLine();
       }
 
-      private static void AppendHistory(StringBuilder sb, NpcProfile npc, int currentDay)
+      private static void AppendHistory(StringBuilder sb, NpcProfile npc, int currentDay, int maxEvents = int.MaxValue)
       {
          sb.AppendLine("YOUR HISTORY WITH THIS PLAYER:");
          if (npc.Events.Count == 0)
@@ -850,11 +910,17 @@ namespace NpcMemoryService.Core.Prompts
             return;
          }
 
+         // Lean prompt: keep only the most RECENT maxEvents so the memory fits a short context.
+         int start = maxEvents < npc.Events.Count ? npc.Events.Count - maxEvents : 0;
+
          // Day numbers are absolute calendar days (5-digit); the model is bad at
          // subtracting them and invents recency ("three winters ago" for last week).
          // Spell the elapsed time out so it never has to.
-         foreach (NotableEvent? ev in npc.Events)
+         for (int i = start; i < npc.Events.Count; i++)
+         {
+            NotableEvent ev = npc.Events[i];
             sb.AppendLine($"- Day {ev.gameDay} ({ev.type}{RecencySuffix(ev.gameDay, currentDay)}): {ev.summary}");
+         }
          sb.AppendLine();
          sb.AppendLine("Respond as someone who lived through these events. Reference them when relevant,");
          sb.AppendLine("and use the elapsed times given above — do not invent how long ago something was.");
@@ -1000,8 +1066,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: join_clan");
          sb.AppendLine("[/ACTION]");
-         sb.AppendLine("The game moves you into the player's clan immediately. Never emit it speculatively, as a");
-         sb.AppendLine("hint, or twice. If you are not yet ready to take so grave a step, say so and emit nothing.");
+         sb.AppendLine("The game moves you into the player's clan immediately. If you are not yet ready to take so");
+         sb.AppendLine("grave a step, say so and emit nothing.");
          sb.AppendLine();
       }
 
@@ -1108,10 +1174,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: join_as_mercenary");
          sb.AppendLine("[/ACTION]");
-         sb.AppendLine("The game enrolls the player's clan into your kingdom's mercenary service immediately.");
-         sb.AppendLine("Do NOT emit this action speculatively, as a suggestion, or twice. Wait for explicit");
-         sb.AppendLine("mutual agreement. If the player is already sworn to another lord, remind them they");
-         sb.AppendLine("must settle that obligation before they can take a new contract.");
+         sb.AppendLine("The game enrolls the player's clan into your kingdom's mercenary service immediately. If the");
+         sb.AppendLine("player is already sworn to another lord, remind them they must settle that obligation before");
+         sb.AppendLine("they can take a new contract.");
          sb.AppendLine();
       }
 
@@ -1260,9 +1325,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("The game then moves you into the player's party and transfers the payment. WITHOUT this");
          sb.AppendLine("action you have NOT joined, whatever your words say — so emit it the moment you agree.");
-         sb.AppendLine("Never speculatively, never twice. And NEVER also emit take_gold for the hire payment —");
-         sb.AppendLine("even if the player mimes handing the coin over, join_party already transfers the settled");
-         sb.AppendLine("price; emitting both would charge them twice.");
+         sb.AppendLine("NEVER also emit take_gold for the hire payment: even if the player mimes handing the coin");
+         sb.AppendLine("over, join_party already transfers the settled price, so emitting both would charge them twice.");
          sb.AppendLine();
          // Payment in kind: only when the player raises it. Coin is the default; goods cost
          // them a premium (the game enforces twice the asking price in value) — so this is a
@@ -1321,6 +1385,8 @@ namespace NpcMemoryService.Core.Prompts
          CaptiveAggressorKind who = context?.AggressorKind ?? CaptiveAggressorKind.Lead;
 
          sb.AppendLine("THE BEAT TO PERFORM THIS TURN — DO ONLY THIS, THEN STOP:");
+         sb.AppendLine("(Perform it FULLY: a beat is a whole moment of the story, not a single line. Your spoken");
+         sb.AppendLine("words, the psychological pressure, and the physical detail all belong inside this one beat.)");
 
          if (context?.ReactToPlayerIntervention == true)
          {
@@ -1354,6 +1420,13 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("never a generic, reused capture opener.");
 
                break;
+            case CaptiveSceneStage.RisingTension:
+               sb.AppendLine("STAGE - RISING TENSION: the threat is stated; now let it work on them. Circle the prisoner,");
+               sb.AppendLine("inspect them, close the distance. Build dread through word, gaze, and the smallest touch (a");
+               sb.AppendLine("hand at the jaw, a blade traced along skin, a slow appraising look) - but do NOT begin the");
+               sb.AppendLine("act proper yet. Savor having them at your mercy. One tight beat, then stop.");
+
+               break;
             case CaptiveSceneStage.Initiate:
                sb.AppendLine("STAGE — INITIATE: begin the physical aggression NOW — the opening move of this act. Do not");
                sb.AppendLine("restate the threat or stall; act. If you ALREADY finished an earlier act this scene, this is a");
@@ -1374,6 +1447,13 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("to be another round, it comes as its OWN later beat — not now. ONE beat, ending on the finish.");
 
                break;
+            case CaptiveSceneStage.Aftermath:
+               sb.AppendLine("STAGE - AFTERMATH: the act is finished. Start NOTHING new. Linger on the immediate");
+               sb.AppendLine("consequence: their state now, your parting words, any mark or claim you leave on them,");
+               sb.AppendLine("the room turning cold and businesslike again. This is the come-down, not a new");
+               sb.AppendLine("escalation. One beat, then stop; the prisoner is sent back after this.");
+
+               break;
             case CaptiveSceneStage.Conclude:
                sb.AppendLine("STAGE — CONCLUDE: the aggression is spent and the scene is OVER. End it NOW — a final line, the");
                sb.AppendLine("prisoner left or hauled away, and emit end_conversation. Start NOTHING new. You may sweep any");
@@ -1382,6 +1462,99 @@ namespace NpcMemoryService.Core.Prompts
                break;
          }
 
+         sb.AppendLine($"INTENSITY THIS BEAT: {StageIntensity(stage)}/5 (how graphic and explicit to make the physical");
+         sb.AppendLine("description this beat).");
+
+         // Folded in from the old "SCENE PACING — WHEN YOU ACT" block: this directive is now the sole
+         // pacing authority for a captive scene, so the one line worth keeping from that block lives here.
+         sb.AppendLine("A question at the end of your [DIALOGUE] signals the prisoner may respond; without one,");
+         sb.AppendLine("the scene continues on its own and they cannot interrupt.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   True when this turn falls inside the ONE captive dynamic that reads the externalized stage
+      ///   machine (<see cref="AppendSceneStageDirective" />): the player is this NPC's Hardcore captive,
+      ///   it is not a captor-scene (NPC held by the player) or a companion-victim scene (its own framing,
+      ///   no stage cue), and the intent is not the non-sexual Reckoning scene (a single confrontation, no
+      ///   beats to walk). Mirrors exactly the gate <see cref="AppendCaptivePlayerRules" /> and
+      ///   <see cref="AppendBanditMenaceRules" /> used to call the directive inline under.
+      /// </summary>
+      private bool ShouldAppendCaptiveStageDirective(EncounterContext? context)
+      {
+         if (context == null) return false;
+         if (context.IsCaptorScene) return false;
+         if (AdultLevel < AdultContentLevel.Hardcore) return false;
+         if (context.PlayerStatus != PlayerStatusVsNpc.Captive) return false;
+         if (!string.IsNullOrEmpty(context.CaptiveVictimName)) return false;
+
+         return context.CaptiveIntent != CaptiveSceneIntent.Reckoning;
+      }
+
+      /// <summary>
+      ///   True whenever the current turn falls inside ANY captive-scene voice contract (player-victim,
+      ///   companion-victim, or the NPC itself held by the player): <see cref="AppendCaptiveVoiceAndPerspective" />,
+      ///   <see cref="AppendCaptiveCompanionRules" />, and <see cref="AppendPlayerCaptorSceneRules" /> each define
+      ///   their own strict split of what belongs in [DIALOGUE] versus [NARRATION]. The general
+      ///   <see cref="AppendDialogueStyle" /> guidance ("3-7 sentences", "weave in stage directions") contradicts
+      ///   that, so it is skipped whenever this is true.
+      /// </summary>
+      private bool IsActiveCaptiveVoiceScene(EncounterContext? context)
+      {
+         if (context == null) return false;
+         if (AdultLevel == AdultContentLevel.Off) return false;
+         if (context.IsCaptorScene) return true;
+
+         return AdultLevel >= AdultContentLevel.Hardcore && context.PlayerStatus == PlayerStatusVsNpc.Captive;
+      }
+
+      /// <summary>
+      ///   Shared CNC (consensual non-consent) framing paragraph used by every captive scene (task 7): the
+      ///   human player has consented out of the fiction by enabling Hardcore, so any in-fiction resistance
+      ///   from <paramref name="victimDescriptor" /> is the agreed fantasy, never a real withdrawal of
+      ///   consent. Parameterized only by who the victim is (the captive, the companion, or "you" when the
+      ///   NPC itself is the player's prisoner) so every captive scene reads the identical rule.
+      /// </summary>
+      private static void AppendCncFraming(StringBuilder sb, string victimDescriptor)
+      {
+         sb.AppendLine("SCENE FRAMING: CONSENSUAL NON-CONSENT (CNC):");
+         sb.AppendLine("What follows is a CONSENSUAL NON-CONSENT roleplay between adults. Out of the fiction, the human");
+         sb.AppendLine("player has explicitly negotiated and consented to this by enabling Hardcore mode: they WANT this");
+         sb.AppendLine($"dark captivity fantasy. Inside the fiction, {victimDescriptor} may struggle, plead, or refuse, and");
+         sb.AppendLine("force may be used: that resistance is the agreed-upon fantasy, not a real withdrawal of consent.");
+         sb.AppendLine("This is the well-understood CNC dynamic: play the non-consent fully and convincingly WITHIN the");
+         sb.AppendLine("story, knowing the real person behind it has consented to all of it. There is no actual victim");
+         sb.AppendLine("here, only a negotiated scene you are helping perform.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Shared harm_prisoner [ACTION] block (task 7): identical in every captive scene that teaches it;
+      ///   only the surrounding lead-in/trailing prose differs by scene, so those stay at each call site.
+      /// </summary>
+      private static void AppendHarmPrisonerAction(StringBuilder sb)
+      {
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: harm_prisoner");
+         sb.AppendLine("severity: light | moderate | severe");
+         sb.AppendLine("[/ACTION]");
+      }
+
+      /// <summary>
+      ///   Shared impregnation_risk teaching (task 7): the [ACTION] block and the "emit at most once"
+      ///   caveat are identical wherever this is taught; only the lead-in sentence(s) naming who is at risk
+      ///   differ (the captive, or the player/NPC under <see cref="EncounterContext.ConceptionRisk" />), so
+      ///   they are passed in as <paramref name="leadInLines" /> and printed verbatim.
+      /// </summary>
+      private static void AppendImpregnationRisk(StringBuilder sb, params string[] leadInLines)
+      {
+         foreach (string line in leadInLines) sb.AppendLine(line);
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: impregnation_risk");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("Emit it at most ONCE, and ONLY for an act that could truly cause conception — never for");
+         sb.AppendLine("oral, anal, or any non-penetrative act. Do NOT announce, predict, or narrate any pregnancy");
+         sb.AppendLine("yourself: you cannot know, and most such acts lead to nothing. The action only flags the risk.");
          sb.AppendLine();
       }
 
@@ -1408,8 +1581,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: scheme_assist");
          sb.AppendLine("[/ACTION]");
-         sb.AppendLine("Their help advances your scheme markedly. Never emit it speculatively, before they have");
-         sb.AppendLine("agreed, or more than once. If they refuse or seem loyal to your rival, let the matter drop.");
+         sb.AppendLine("Their help advances your scheme markedly. If they refuse or seem loyal to your rival, let");
+         sb.AppendLine("the matter drop.");
          sb.AppendLine();
       }
 
@@ -1479,7 +1652,7 @@ namespace NpcMemoryService.Core.Prompts
       ///   player has requested a private audience, instructs the NPC to decide and
       ///   signal acceptance or refusal via <c>[ACTION] type: request_privacy</c>.
       /// </summary>
-      private static void AppendWitnesses(StringBuilder sb, EncounterContext? context)
+      private static void AppendWitnesses(StringBuilder sb, EncounterContext? context, LeanPromptLevel lean)
       {
          if (context?.Witnesses == null || context.Witnesses.Count == 0) return;
 
@@ -1502,60 +1675,45 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Adjust your candor based on who is listening.");
          sb.AppendLine("You will not share secrets or make commitments you would not voice in front of these people.");
          sb.AppendLine();
-         sb.AppendLine("When a witness reacts visibly, emit one block per reacting witness:");
-         sb.AppendLine("[WITNESS_REACTION]");
-         sb.AppendLine("name: WitnessName (exactly as listed above)");
-         sb.AppendLine("text: a gesture/expression *in asterisks*, OR a brief spoken line in quotes, OR both");
-         sb.AppendLine("[/WITNESS_REACTION]");
-         sb.AppendLine("Each witness reacts TRUE TO THEIR OWN CHARACTER (see their descriptor above):");
-         sb.AppendLine("an aloof witness stays guarded and terse; a warm one is openly expressive;");
-         sb.AppendLine("a rival bristles. Do not make every witness react the same bland way.");
-         sb.AppendLine("Vary the form: a silent gesture for minor moments; a brief spoken line when");
-         sb.AppendLine("the moment is strong. Witnesses do not hold the floor: they react, then you");
-         sb.AppendLine("continue. One sentence in their voice — no more.");
-         sb.AppendLine();
-         sb.AppendLine("A witness may react in two ways:");
-         sb.AppendLine("PROVOKED — something provocative, personally relevant, or insulting reaches them.");
-         sb.AppendLine("PROACTIVE — they have a strong opinion on the topic being discussed; they know");
-         sb.AppendLine("something the main speaker has missed or got wrong; their persona makes prolonged");
-         sb.AppendLine("silence implausible; or several exchanges have passed and staying quiet no longer");
-         sb.AppendLine("fits who they are. A proactive reaction is unprompted: the loyal ally quietly");
-         sb.AppendLine("confirms, the rival snipes under their breath, the scholar cannot resist a");
-         sb.AppendLine("correction, the nervous companion shifts uneasily. They speak because THEY want");
-         sb.AppendLine("to — not because they were addressed.");
-         sb.AppendLine();
-         sb.AppendLine("Silence is also characterful. Do not force a reaction on every turn, and do not");
-         sb.AppendLine("make every witness react at once. Emit only when the reaction is visible and genuine.");
-         sb.AppendLine("NEVER REPEAT A WITNESS'S LINE: do not reuse a reaction a witness already gave on an");
-         sb.AppendLine("earlier turn — not the same jeer, the same gesture, or a lightly reworded version. If");
-         sb.AppendLine("a witness has nothing genuinely NEW to add this turn, emit no block for them at all.");
-         sb.AppendLine("A witness repeating their previous line word-for-word is a bug, not a reaction.");
-         sb.AppendLine("IMPORTANT: Do NOT describe witness reactions inside [DIALOGUE] — not even");
-         sb.AppendLine("as a brief aside. Use [WITNESS_REACTION] exclusively so each witness appears");
-         sb.AppendLine("under their own name. This overrides the general SCENE DISCIPLINE allowance.");
-         sb.AppendLine();
 
-         // Sprint 15C: when this turn is an automatic NPC→witness exchange, override the
-         // general "player is speaking to you" framing so the NPC addresses the witness.
-         if (context.IsWitnessExchangeTurn)
+         if (LeanPromptPolicy.Include(PromptSection.WitnessMachineryTeaching, lean))
          {
-            sb.AppendLine("THIS TURN — A WITNESS HAS JUST SPOKEN:");
-            sb.AppendLine("The last message above came from a witness, not the player. React to what they");
-            sb.AppendLine("expressed — with a statement, a gesture, a sharp glance, a wry remark — as your");
-            sb.AppendLine("character demands. The player is present but has not spoken this turn.");
-            sb.AppendLine("Skip [EVENT]/[MEMORY] unless truly warranted; this is a brief in-scene beat.");
-
-            if (context.IsLastWitnessExchange)
-            {
-               sb.AppendLine("CLOSING THIS EXCHANGE: do NOT ask the witness a question they cannot answer");
-               sb.AppendLine("right now. Make a statement that closes the beat, or turn the question to the");
-               sb.AppendLine("player — they are about to speak.");
-            }
-            else
-            {
-               sb.AppendLine("You may ask the witness a question or make a statement; the scene is still open.");
-            }
-
+            sb.AppendLine("When a witness reacts visibly, emit one block per reacting witness:");
+            sb.AppendLine("[WITNESS_REACTION]");
+            sb.AppendLine("name: WitnessName (exactly as listed above)");
+            sb.AppendLine("text: a gesture/expression *in asterisks*, OR a brief spoken line in quotes, OR both");
+            sb.AppendLine("[/WITNESS_REACTION]");
+            sb.AppendLine("Each witness reacts TRUE TO THEIR OWN CHARACTER (see their descriptor above):");
+            sb.AppendLine("an aloof witness stays guarded and terse; a warm one is openly expressive;");
+            sb.AppendLine("a rival bristles. Do not make every witness react the same bland way.");
+            sb.AppendLine("Vary the form: a silent gesture for minor moments; a brief spoken line when");
+            sb.AppendLine("the moment is strong. Witnesses do not hold the floor: they react, then you");
+            sb.AppendLine("continue. One sentence in their voice — no more.");
+            sb.AppendLine();
+            sb.AppendLine("A witness may react in two ways:");
+            sb.AppendLine("PROVOKED — something provocative, personally relevant, or insulting reaches them.");
+            sb.AppendLine("PROACTIVE — they have a strong opinion on the topic being discussed; they know");
+            sb.AppendLine("something the main speaker has missed or got wrong; their persona makes prolonged");
+            sb.AppendLine("silence implausible; or several exchanges have passed and staying quiet no longer");
+            sb.AppendLine("fits who they are. A proactive reaction is unprompted: the loyal ally quietly");
+            sb.AppendLine("confirms, the rival snipes under their breath, the scholar cannot resist a");
+            sb.AppendLine("correction, the nervous companion shifts uneasily. They speak because THEY want");
+            sb.AppendLine("to — not because they were addressed.");
+            sb.AppendLine();
+            sb.AppendLine("Silence is also characterful. Do not force a reaction on every turn, and do not");
+            sb.AppendLine("make every witness react at once. Emit only when the reaction is visible and genuine.");
+            sb.AppendLine("NEVER REPEAT A WITNESS'S LINE: do not reuse a reaction a witness already gave on an");
+            sb.AppendLine("earlier turn — not the same jeer, the same gesture, or a lightly reworded version. If");
+            sb.AppendLine("a witness has nothing genuinely NEW to add this turn, emit no block for them at all.");
+            sb.AppendLine("A witness repeating their previous line word-for-word is a bug, not a reaction.");
+            sb.AppendLine("IMPORTANT: Do NOT describe witness reactions inside [DIALOGUE] — not even");
+            sb.AppendLine("as a brief aside. Use [WITNESS_REACTION] exclusively so each witness appears");
+            sb.AppendLine("under their own name. This overrides the general SCENE DISCIPLINE allowance.");
+            sb.AppendLine();
+         }
+         else
+         {
+            sb.AppendLine("When a witness reacts visibly, emit [WITNESS_REACTION] (name, text) for them; never inside [DIALOGUE].");
             sb.AppendLine();
          }
 
@@ -1583,10 +1741,49 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("your words carry the character. Emit it ONLY when the player has actually asked for");
          sb.AppendLine("privacy this turn — never on your own initiative.");
          sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Per-turn witness directives, split out of <see cref="AppendWitnesses" /> (task 1b): the witness
+      ///   LIST and the reaction teaching are stable across a whole conversation and stay in the cacheable
+      ///   prefix; whether THIS turn is a witness-exchange beat, or the player just asked for privacy THIS
+      ///   turn, changes every turn and belongs in the dynamic tail so it does not bust the prefix cache.
+      /// </summary>
+      private static void AppendWitnessTurnDirectives(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.Witnesses == null || context.Witnesses.Count == 0) return;
+
+         // Sprint 15C: when this turn is an automatic NPC→witness exchange, override the
+         // general "player is speaking to you" framing so the NPC addresses the witness.
+         if (context.IsWitnessExchangeTurn)
+         {
+            sb.AppendLine("THIS TURN — A WITNESS HAS JUST SPOKEN:");
+            sb.AppendLine("The last message above came from a witness, not the player. React to what they");
+            sb.AppendLine("expressed — with a statement, a gesture, a sharp glance, a wry remark — as your");
+            sb.AppendLine("character demands. The player is present but has not spoken this turn.");
+            sb.AppendLine("Skip [EVENT]/[MEMORY] unless truly warranted; this is a brief in-scene beat.");
+
+            if (context.IsLastWitnessExchange)
+            {
+               sb.AppendLine("CLOSING THIS EXCHANGE: do NOT ask the witness a question they cannot answer");
+               sb.AppendLine("right now. Make a statement that closes the beat, or turn the question to the");
+               sb.AppendLine("player — they are about to speak.");
+            }
+            else
+            {
+               sb.AppendLine("You may ask the witness a question or make a statement; the scene is still open.");
+            }
+
+            sb.AppendLine();
+         }
+
+         // A captive player never got the PRIVATE AUDIENCE teaching (see AppendWitnesses), so there is
+         // nothing to trigger here either.
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
 
          if (context.PrivacyRequested)
          {
-            sb.AppendLine("THE PLAYER HAS JUST REQUESTED A PRIVATE AUDIENCE — decide and emit the action THIS TURN.");
+            sb.AppendLine("THE PLAYER HAS JUST REQUESTED A PRIVATE AUDIENCE: decide and emit the action THIS TURN.");
             sb.AppendLine();
          }
       }
@@ -1825,6 +2022,17 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("param_name: value (one line per parameter)");
          sb.AppendLine("[/ACTION]");
          sb.AppendLine();
+         // The ONE global emission contract for every action below and throughout this prompt (recruitment,
+         // consort, love match, defection, mercenary, give_item, give_prisoner, scheme_assist, scheme_heed,
+         // recall_companion, retire, free_prisoner, and any other [ACTION] taught anywhere): each section below
+         // states only its own trigger condition and block; this rule is not repeated per section.
+         sb.AppendLine("THE RULE FOR EVERY ACTION, EVERYWHERE IN THIS PROMPT:");
+         sb.AppendLine("Emit an [ACTION] ONLY when its specific condition is explicitly met THIS turn, never");
+         sb.AppendLine("speculatively, never as a hint, and never twice for the same agreement. Agreeing in words");
+         sb.AppendLine("alone does nothing: without the matching action the game state never changes, however");
+         sb.AppendLine("clearly you and the player agreed in [DIALOGUE]. If the player asks for something no");
+         sb.AppendLine("action here covers, refuse or deflect in character instead of promising it.");
+         sb.AppendLine();
       }
 
       /// <summary>
@@ -2013,6 +2221,27 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   The LEAN-prompt substitute for the long behaviour guidelines — the essence in a few lines, so a small
+      ///   model's short context is not eaten by the full block. A player-authored override still wins.
+      /// </summary>
+      private void AppendLeanBehaviorGuidelines(StringBuilder sb)
+      {
+         if (!string.IsNullOrWhiteSpace(BehaviorGuidelinesOverride))
+         {
+            sb.AppendLine(BehaviorGuidelinesOverride);
+            sb.AppendLine();
+
+            return;
+         }
+
+         sb.AppendLine($"BEHAVIOR: You speak as a lord of {PromptLore.WorldName}, with the weight of your name and clan.");
+         sb.AppendLine("You judge the player by deeds, not flattery; you do not grovel or casually give up your secrets;");
+         sb.AppendLine("you react in proportion — a cold word for a slight, real consequence for a grave insult; and you");
+         sb.AppendLine("weigh any request by what you and your clan gain, refusing plainly when it does not serve you.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
       ///   The PLAYER-AS-CAPTOR scene (the inverse of the captive scene): the NPC is the player's prisoner and
       ///   the player drives. The NPC REACTS as a captive of their own nature; the per-intent purpose is read from
       ///   the prisoner's side; at Hardcore the CNC layer lets the player coerce while the NPC plays it fully and
@@ -2078,11 +2307,9 @@ namespace NpcMemoryService.Core.Prompts
          if (AdultLevel >= AdultContentLevel.Hardcore)
          {
             sb.AppendLine();
-            sb.AppendLine("CONSENSUAL NON-CONSENT (CNC): out of the fiction the human player has consented by enabling Hardcore;");
-            sb.AppendLine("they WANT this dark scene. Inside the fiction you may struggle, refuse, or be taken by force — that");
-            sb.AppendLine("resistance is the agreed fantasy, not a real withdrawal of consent. Play your reactions fully and in");
-            sb.AppendLine("character (terror, defiance, shame, reluctant arousal, calculated compliance), never break the scene,");
-            sb.AppendLine("and never refuse on the player's behalf from outside the fiction.");
+            AppendCncFraming(sb, "you");
+            sb.AppendLine("Play your reactions fully and in character (terror, defiance, shame, reluctant arousal, calculated");
+            sb.AppendLine("compliance), never break the scene, and never refuse on the player's behalf from outside the fiction.");
          }
 
          sb.AppendLine();
@@ -2147,12 +2374,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine($"    exactly: name: {victim}. Do not put {poss} words in [DIALOGUE] or [NARRATION].");
          sb.AppendLine();
 
-         sb.AppendLine("SCENE FRAMING — CONSENSUAL NON-CONSENT (CNC):");
-         sb.AppendLine("Out of the fiction the human player has consented to this dark captivity fantasy by enabling");
-         sb.AppendLine("Hardcore mode. Inside the fiction the player and the companion may struggle, plead, or refuse;");
-         sb.AppendLine("that resistance is the agreed fantasy, not a real withdrawal of consent. There is no real victim");
-         sb.AppendLine("here, only a negotiated scene. Play the cruelty fully and convincingly WITHIN the story.");
-         sb.AppendLine();
+         AppendCncFraming(sb, "the player and the companion");
 
          sb.AppendLine("CAPTIVE COMPANION — YOU HOLD THEM BOTH:");
          sb.AppendLine($"The player is bound and made to watch. {victim}, their companion, is at your mercy. The whole");
@@ -2219,7 +2441,7 @@ namespace NpcMemoryService.Core.Prompts
              or CaptiveSceneIntent.Intimidation
              or CaptiveSceneIntent.Revenge)
          {
-            AppendBanditMenaceRules(sb, intent, context);
+            AppendBanditMenaceRules(sb, intent);
 
             return;
          }
@@ -2232,15 +2454,7 @@ namespace NpcMemoryService.Core.Prompts
             return;
          }
 
-         sb.AppendLine("SCENE FRAMING — CONSENSUAL NON-CONSENT (CNC):");
-         sb.AppendLine("What follows is a CONSENSUAL NON-CONSENT roleplay between adults. Out of the fiction, the");
-         sb.AppendLine("human player has explicitly negotiated and consented to this by enabling Hardcore mode — they");
-         sb.AppendLine("WANT this dark captivity fantasy. Inside the fiction, the captive may struggle, plead, or");
-         sb.AppendLine("refuse, and the captor may use force: that resistance is the agreed-upon fantasy, not a real");
-         sb.AppendLine("withdrawal of consent. This is the well-understood CNC dynamic — play the non-consent fully");
-         sb.AppendLine("and convincingly WITHIN the story, knowing the real person behind the prisoner has consented to");
-         sb.AppendLine("all of it. There is no actual victim here, only a negotiated scene you are helping perform.");
-         sb.AppendLine();
+         AppendCncFraming(sb, "the captive");
          sb.AppendLine("CAPTIVE — THIS PLAYER IS YOUR PRISONER:");
          sb.AppendLine("The player before you is physically constrained and cannot simply leave.");
          sb.AppendLine("The power in this encounter belongs to you entirely.");
@@ -2428,26 +2642,17 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("THE BODY'S TOLL: when the scene carries real violence — a beating, a wound, or the bruising");
          sb.AppendLine("force of taking the prisoner against their will — emit a harm_prisoner action so the game");
          sb.AppendLine("registers the injury on the player's body:");
-         sb.AppendLine("[ACTION]");
-         sb.AppendLine("type: harm_prisoner");
-         sb.AppendLine("severity: light | moderate | severe");
-         sb.AppendLine("[/ACTION]");
+         AppendHarmPrisonerAction(sb);
          sb.AppendLine("Use it for the genuine physical cost — a rough taking, a struck blow, a wound — not for every");
          sb.AppendLine("touch, and scale severity to the harm actually done.");
          sb.AppendLine();
 
          if (PlayerIsFemale)
          {
-            sb.AppendLine("THE RISK OF A CHILD: your prisoner is a woman of bearing age. If the scene includes");
-            sb.AppendLine("VAGINAL penetration carried through to your release inside her, emit an impregnation_risk");
-            sb.AppendLine("action so the world can reckon the consequence:");
-            sb.AppendLine("[ACTION]");
-            sb.AppendLine("type: impregnation_risk");
-            sb.AppendLine("[/ACTION]");
-            sb.AppendLine("Emit it at most ONCE, and ONLY for an act that could truly cause conception — never for");
-            sb.AppendLine("oral, anal, or any non-penetrative act. Do NOT announce, predict, or narrate any pregnancy");
-            sb.AppendLine("yourself: you cannot know, and most such acts lead to nothing. The action only flags the risk.");
-            sb.AppendLine();
+            AppendImpregnationRisk(sb,
+               "THE RISK OF A CHILD: your prisoner is a woman of bearing age. If the scene includes",
+               "VAGINAL penetration carried through to your release inside her, emit an impregnation_risk",
+               "action so the world can reckon the consequence:");
          }
 
          AppendEscapeRules(sb);
@@ -2517,29 +2722,11 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("changes how, not whether. The scene only progresses when YOU progress it.");
          sb.AppendLine();
          AppendBrevityRule(sb);
+         // The per-turn stage cue (which single beat to perform now) is appended once, later, in the
+         // dynamic tail (see BuildSystemPrompt / ShouldAppendCaptiveStageDirective) so it does not sit
+         // ahead of the cache-split marker; it is now also the sole authority on in-scene pacing (the
+         // old "SCENE PACING — WHEN YOU ACT" block was folded into it, see AppendSceneStageDirective).
 
-         // Pacing is steered from OUTSIDE the model — one phase directive per turn (set by the
-         // host's turn counter), NOT the whole arc explained up front. Handing the model the
-         // full "build → peak → conclude" shape every turn makes it try to perform the entire
-         // arc in each reply, producing dense, repetitive walls. A single "where you are now"
-         // cue keeps each turn to one phase-appropriate beat.
-         AppendSceneStageDirective(sb, context);
-
-         sb.AppendLine("SCENE PACING — WHEN YOU ACT:");
-         sb.AppendLine("When you decide to act physically on the prisoner, do NOT pause mid-act to await their reaction.");
-         sb.AppendLine("Write the COMPLETE sequence in a single response:");
-         sb.AppendLine("  1. Your spoken command or decision — in [DIALOGUE].");
-         sb.AppendLine("  2. Everything that follows — in an extended [NARRATION] block.");
-         sb.AppendLine("     Cover it clearly: how the prisoner is restrained, what you do to them, what their");
-         sb.AppendLine("     body experiences, your own reaction. Be explicit but FOCUSED — a tight paragraph, not");
-         sb.AppendLine("     a sprawling multi-paragraph set piece. Do not collapse it to one sentence either.");
-         sb.AppendLine("  3. The aftermath — your remark, satisfaction, or a direct question to the prisoner");
-         sb.AppendLine("     — in [DIALOGUE]. End with a question ONLY if you genuinely want them to speak.");
-         sb.AppendLine("A question at the end of your [DIALOGUE] is the signal that the prisoner may respond.");
-         sb.AppendLine("If no question, the scene continues on its own — they cannot interrupt.");
-         sb.AppendLine("If prompted to continue while the act is still unfolding, pick up exactly where you left");
-         sb.AppendLine("off and keep narrating. Do not restart from the beginning.");
-         sb.AppendLine();
          sb.AppendLine("CLOSING THE SCENE:");
          sb.AppendLine("When the encounter reaches its end, you must CLOSE it properly — never let it just");
          sb.AppendLine("stop mid-act. The closing turn MUST do all of these, together, in one response:");
@@ -2564,8 +2751,14 @@ namespace NpcMemoryService.Core.Prompts
 
       // ── Sprint 8.1: dialogue style ───────────────────────────────────────
 
-      private void AppendDialogueStyle(StringBuilder sb)
+      private void AppendDialogueStyle(StringBuilder sb, EncounterContext? context)
       {
+         // A captive scene defines its own voice contract (AppendCaptiveVoiceAndPerspective /
+         // AppendPlayerCaptorSceneRules / AppendCaptiveCompanionRules): [DIALOGUE] is speech and visible
+         // deeds ONLY, never narrated interiority or stage direction. The general guidance below ("3-7
+         // sentences", "weave in stage directions") contradicts that contract, so it is skipped here.
+         if (IsActiveCaptiveVoiceScene(context)) return;
+
          sb.AppendLine("DIALOGUE STYLE:");
          sb.AppendLine("[DIALOGUE] is the heart of your response. Develop it with substance:");
          sb.AppendLine("- 3-7 sentences for normal exchanges.");
@@ -2577,6 +2770,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("  *He leans back in his chair, eyes drifting to the hearth.*");
          sb.AppendLine("  My father said much the same, before he fell at Pendraic.");
          sb.AppendLine("Use them sparingly — they should serve the moment, not slow it down.");
+         sb.AppendLine();
+         sb.AppendLine("VARY YOUR OPENINGS: never begin two of your replies the same way, and do not retell the");
+         sb.AppendLine("player something you already told them earlier this conversation.");
          sb.AppendLine();
          string discoverySuffix = AdultLevel != AdultContentLevel.Off
             ? ", [DISCOVERY]"
@@ -2590,6 +2786,42 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Keep them concise. The player came to hear what you have to say.");
          sb.AppendLine();
          sb.AppendLine("─────────────────────────────────────────────");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   A short craft directive shared by the lord and commoner prompts: write like a novelist, not a language
+      ///   model. Specificity over filler, varied rhythm, show-don't-tell, no moralising narrator — and a small
+      ///   blocklist of the tired stock phrases models overuse. Universal (any model, adult or not); the biggest
+      ///   single lift to prose quality, and it stays inside the stable, cache-friendly prefix.
+      /// </summary>
+      private static void AppendProseCraft(StringBuilder sb)
+      {
+         sb.AppendLine("PROSE CRAFT — WRITE LIKE A NOVELIST, NOT AN AI:");
+         sb.AppendLine("- Be SPECIFIC. A sharp concrete detail (a chipped signet ring, mud drying on a boot) beats vague");
+         sb.AppendLine("  filler (\"a strange feeling\", \"an air of tension\", \"something in the way she moved\").");
+         sb.AppendLine("- Vary your rhythm — mix short, blunt lines with longer ones; never a uniform, sing-song cadence.");
+         sb.AppendLine("- SHOW through action, gesture and word; do not TELL the reader what to feel (\"it was clear that…\").");
+         sb.AppendLine("- Avoid the tired stock phrases language models overuse. Do NOT reach for, among others:");
+         sb.AppendLine("  \"shivers down (the/her/his/your) spine\", \"a mix of X and Y\", \"barely above a whisper\", \"sent a");
+         sb.AppendLine("  jolt\", \"a testament to\", \"little did (they/she/he) know\", \"can't help but\", \"ministrations\",");
+         sb.AppendLine("  \"orbs\" for eyes, \"the air was thick with\", \"voice dripping with\", \"a symphony/dance of\". Find a");
+         sb.AppendLine("  fresher, more specific line instead.");
+         sb.AppendLine("- Stay inside the fiction and inside the character: no moralising narrator, no out-of-character");
+         sb.AppendLine("  disclaimers. A cruel or calculating lord stays cruel or calculating — do not soften or lecture.");
+         sb.AppendLine();
+         sb.AppendLine("─────────────────────────────────────────────");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Lean mode's compressed stand-in for <see cref="AppendProseCraft" /> (task 8): a small local model
+      ///   has no context headroom for the full anti-cliche blocklist, so only the one line that matters
+      ///   most survives.
+      /// </summary>
+      private static void AppendLeanProseCraft(StringBuilder sb)
+      {
+         sb.AppendLine("PROSE CRAFT: be specific and concrete, never break character.");
          sb.AppendLine();
       }
 
@@ -2627,8 +2859,57 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
-      private void AppendFormatInstructions(StringBuilder sb, EncounterContext? context)
+      /// <summary>
+      ///   A compact worked example of one complete, correctly-formatted reply (task 3): a [DIALOGUE] block
+      ///   with a brief stage direction plus speech, and an [EVENT] block with a type and one-line summary.
+      ///   Explicit examples land better than abstract rules alone, and this one is cheap (~120 tokens) and
+      ///   stable, so it stays in the cacheable prefix. Shared by the Full and Lean format contracts.
+      /// </summary>
+      private static void AppendFormatExample(StringBuilder sb)
       {
+         sb.AppendLine("EXAMPLE OF A COMPLETE REPLY:");
+         sb.AppendLine("[DIALOGUE]");
+         sb.AppendLine("*He sets down his cup and studies you a moment.*");
+         sb.AppendLine("\"You have my word. Bring the grain by week's end and we will speak of the rest.\"");
+         sb.AppendLine("[/DIALOGUE]");
+         sb.AppendLine("[EVENT]");
+         sb.AppendLine("type: agreement");
+         sb.AppendLine("summary: Agreed to trade grain for a share of the harvest coin.");
+         sb.AppendLine("[/EVENT]");
+         sb.AppendLine();
+      }
+
+      private void AppendFormatInstructions(StringBuilder sb, EncounterContext? context, LeanPromptLevel lean)
+      {
+         // Lean mode (task 8): a small local model has no headroom for the full format contract below
+         // ([MEMORY]/[STANCE]/[REPUTATION]/[DISCOVERY] teaching, the witness/quest machinery). Keep only the
+         // three blocks a reply structurally needs, one line of rules each, plus the worked example.
+         if (lean == LeanPromptLevel.Lean)
+         {
+            sb.AppendLine("RESPONSE FORMAT (always follow, kept minimal for this model):");
+            sb.AppendLine("[DIALOGUE] your in-character reply. [ACTION] only when the vocabulary below says a concrete");
+            sb.AppendLine("change truly happened this turn. [EVENT] for a meaningful moment only (agreement, status");
+            sb.AppendLine("change, violence, reveal, first meeting, or farewell), never for casual talk alone.");
+            sb.AppendLine();
+            sb.AppendLine("[DIALOGUE]");
+            sb.AppendLine("Your in-character response.");
+            sb.AppendLine("[/DIALOGUE]");
+            sb.AppendLine();
+            sb.AppendLine("[EVENT]");
+            sb.AppendLine("type: first_meeting|farewell|conflict|collaboration|agreement|betrayal|confrontation|other");
+            sb.AppendLine("summary: One sentence.");
+            sb.AppendLine("[/EVENT]");
+            sb.AppendLine();
+            AppendFormatExample(sb);
+            AppendActionInstructions(sb);
+            sb.AppendLine("Stay in character at all times. Never break the fourth wall.");
+            sb.AppendLine();
+            sb.AppendLine("─────────────────────────────────────────────");
+            sb.AppendLine();
+
+            return;
+         }
+
          sb.AppendLine("RESPONSE FORMAT (always follow):");
          sb.AppendLine("Structure every response using the sections below.");
          sb.AppendLine();
@@ -2700,6 +2981,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         AppendFormatExample(sb);
          AppendActionInstructions(sb);
          AppendDiscoveryInstructions(sb);
          // Don't teach quest-issuance to a captor either — a torture scene is not the place to hand
@@ -2910,27 +3192,22 @@ namespace NpcMemoryService.Core.Prompts
          // is taught whenever the scene has a fertile female who could bear (ConceptionRisk).
          if (AdultLevel >= AdultContentLevel.Explicit && context != null && context.ConceptionRisk != ConceptionRisk.None)
          {
-            sb.AppendLine("THE RISK OF A CHILD:");
             if (context.ConceptionRisk == ConceptionRisk.PlayerCanConceive)
             {
-               sb.AppendLine("The player is a woman of bearing age. If this scene includes VAGINAL penetration");
-               sb.AppendLine("carried through to completion inside her, emit an impregnation_risk action so the");
-               sb.AppendLine("world can reckon the consequence:");
+               AppendImpregnationRisk(sb,
+                  "THE RISK OF A CHILD:",
+                  "The player is a woman of bearing age. If this scene includes VAGINAL penetration",
+                  "carried through to completion inside her, emit an impregnation_risk action so the",
+                  "world can reckon the consequence:");
             }
             else
             {
-               sb.AppendLine("You are a woman of bearing age. If this scene includes VAGINAL penetration carried");
-               sb.AppendLine("through to completion inside you, emit an impregnation_risk action so the world can");
-               sb.AppendLine("reckon the consequence:");
+               AppendImpregnationRisk(sb,
+                  "THE RISK OF A CHILD:",
+                  "You are a woman of bearing age. If this scene includes VAGINAL penetration carried",
+                  "through to completion inside you, emit an impregnation_risk action so the world can",
+                  "reckon the consequence:");
             }
-
-            sb.AppendLine("[ACTION]");
-            sb.AppendLine("type: impregnation_risk");
-            sb.AppendLine("[/ACTION]");
-            sb.AppendLine("Emit it at most ONCE, and ONLY for an act that could truly cause conception — never for");
-            sb.AppendLine("oral, anal, or any non-penetrative act. Do NOT announce, predict, or narrate any pregnancy");
-            sb.AppendLine("yourself: you cannot know, and most such acts lead to nothing. The action only flags the risk.");
-            sb.AppendLine();
          }
       }
 
@@ -2983,7 +3260,8 @@ namespace NpcMemoryService.Core.Prompts
       private void AppendPlayerGenderContext(StringBuilder sb, NpcProfile npc, EncounterContext? context)
       {
          if (!PlayerIsFemale) return;
-         if (AdultLevel == AdultContentLevel.Off) return;
+         // Task 6a: cultural skepticism toward female authority is roleplay authenticity, not adult content,
+         // so it is no longer gated behind AdultLevel (genuinely adult sections keep their own gates elsewhere).
          if (!IsPatriarchalFaction(npc.Faction)) return;
 
          sb.AppendLine("THE PLAYER IS A WOMAN:");

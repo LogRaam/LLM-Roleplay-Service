@@ -12,4 +12,8 @@
          assembly-load failures on some players' setups. -->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Lets the test suite pin internal seams (e.g. OpenRouterClient.ParseResponse) as regression tests. -->
+    <InternalsVisibleTo Include="NpcMemoryServiceTests" />
+  </ItemGroup>
 </Project>

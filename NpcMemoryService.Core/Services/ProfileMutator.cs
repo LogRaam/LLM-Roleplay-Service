@@ -38,19 +38,13 @@ namespace NpcMemoryService.Core.Services
             // Append event when present and non-trivial.
             // An empty or whitespace summary would pollute the history with lines
             // like "Day N (Other):" that carry no information for future prompts.
-            if (response.NewEventData != null
-                && !string.IsNullOrWhiteSpace(response.NewEventData.Summary)
-                && !(response.NewEventData.Type == NotableEventType.FirstMeeting
-                     && profile.Events.Any(e => e.type == NotableEventType.FirstMeeting)))
+            if (response.NewEventData != null && !string.IsNullOrWhiteSpace(response.NewEventData.Summary))
             {
-                profile.Events.Add(new NotableEvent(
-                    gameDay,
-                    response.NewEventData.Type,
-                    response.NewEventData.Summary));
+                ApplyNotableEvent(profile, response.NewEventData.Type, response.NewEventData.Summary, gameDay);
             }
 
             // Adjust reputation when present
-            if (response.Reputation != null) profile.ReputationWithPlayer += response.Reputation.ClanDelta ?? 0;
+            if (response.Reputation != null) ApplyReputationDelta(profile, response.Reputation.ClanDelta ?? 0);
 
             // Advance the romantic arc based on the event type and current trust level.
             if (response.NewEventData != null
@@ -71,6 +65,39 @@ namespace NpcMemoryService.Core.Services
                     GameDay     = gameDay
                 });
             }
+        }
+
+        /// <summary>
+        ///   Appends a <see cref="NotableEvent" /> to the profile, guarded so a second
+        ///   [EVENT FirstMeeting] never duplicates an already-recorded first meeting.
+        ///   Callers with a full <see cref="ParsedResponse" /> should prefer <see cref="Apply" />;
+        ///   this is exposed separately so a single-event caller (e.g. the mod's captivity or
+        ///   jealousy systems, which record events the LLM never emitted) shares the same guard.
+        /// </summary>
+        /// <param name="profile">The NPC whose history is being updated. Must not be null.</param>
+        /// <param name="type">The event's category.</param>
+        /// <param name="summary">Natural-language summary. Callers should pre-check it is non-blank.</param>
+        /// <param name="gameDay">The current game day, used to timestamp the event.</param>
+        public static void ApplyNotableEvent(NpcProfile profile, NotableEventType type, string summary, int gameDay)
+        {
+            if (type == NotableEventType.FirstMeeting
+                && profile.Events.Any(e => e.type == NotableEventType.FirstMeeting))
+                return;
+
+            profile.Events.Add(new NotableEvent(gameDay, type, summary));
+        }
+
+        /// <summary>
+        ///   Adjusts <see cref="NpcProfile.ReputationWithPlayer" /> by <paramref name="delta" />,
+        ///   clamped to [-100, 100] — the single authoritative path for this mutation, so no
+        ///   caller can push the value outside its documented range.
+        /// </summary>
+        /// <param name="profile">The NPC whose reputation is being updated. Must not be null.</param>
+        /// <param name="delta">Signed change to apply, positive or negative.</param>
+        public static void ApplyReputationDelta(NpcProfile profile, int delta)
+        {
+            int updated = profile.ReputationWithPlayer + delta;
+            profile.ReputationWithPlayer = Math.Max(-100, Math.Min(100, updated));
         }
 
         /// <summary>

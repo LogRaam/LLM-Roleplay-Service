@@ -3,7 +3,6 @@
 
 #region
 
-using System.Linq;
 using System.Text;
 using NpcMemoryService.Core.Models;
 
@@ -37,12 +36,13 @@ namespace NpcMemoryService.Core.Prompts
          if (!string.IsNullOrWhiteSpace(triggerContext))
             sb.AppendLine($"Context: {triggerContext}");
          sb.AppendLine();
-         AppendRecentHistory(sb, npc);
-         sb.AppendLine();
-         sb.AppendLine("Write the letter now, in your own voice. This is correspondence —");
-         sb.AppendLine("not a face-to-face conversation. Keep it to 2–3 paragraphs.");
+         // Your recent history with this player is already in the system prompt's own history section
+         // (AppendHistory); repeating a 3-event digest here just to write a letter is redundant.
+         sb.AppendLine("Write the letter now, in your own voice. This is correspondence,");
+         sb.AppendLine("not a face-to-face conversation. Keep it to 2-3 paragraphs.");
          sb.AppendLine($"Address {playerName} by name. Do not use modern expressions.");
-         sb.AppendLine("Write ONLY the letter body in [DIALOGUE]. No section headers, no meta-text.");
+         sb.AppendLine("Write ONLY the letter body in [DIALOGUE]. Do not emit [EVENT], [ACTION], [STANCE], or any");
+         sb.AppendLine("section other than the letter text. No section headers, no meta-text.");
          return sb.ToString();
       }
 
@@ -61,9 +61,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
          sb.AppendLine($"\"{playerLetterContent}\"");
          sb.AppendLine();
-         AppendRecentHistory(sb, npc);
-         sb.AppendLine();
-         sb.AppendLine("A courier letter is a deliberate act — it deserves a written reply.");
+         // Your recent history with this player is already in the system prompt's own history section
+         // (AppendHistory); repeating a 3-event digest here just to decide on a reply is redundant.
+         sb.AppendLine("A courier letter is a deliberate act, and it deserves a written reply.");
          sb.AppendLine("Reply unless the letter is entirely nonsensical, in a language you cannot read,");
          sb.AppendLine("or so offensive that your character would refuse all contact. PASS should be rare.");
          sb.AppendLine();
@@ -73,7 +73,15 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("where N is the days you would wait before sending (1=urgent, 2-3=normal, 4-7=considered).");
          sb.AppendLine("Leave one blank line, then write your reply letter in 2-3 paragraphs.");
          sb.AppendLine($"Address {playerName} by name. Period-appropriate language only.");
-         sb.AppendLine("Write ONLY the letter body after the DELAY line. No section headers.");
+         sb.AppendLine($"Write your reply in the SAME language as the quoted letter from {playerName} above, not the");
+         sb.AppendLine("language of this internal instruction.");
+         sb.AppendLine("Write ONLY the letter body after the DELAY line. Do not emit [EVENT], [ACTION], [STANCE], or");
+         sb.AppendLine("any section other than the letter text. No section headers.");
+         sb.AppendLine();
+         sb.AppendLine("Example output:");
+         sb.AppendLine("DELAY: 3");
+         sb.AppendLine("(blank line, then 2-3 paragraphs of the letter)");
+         sb.AppendLine("Or, to decline: PASS: the message insults my house and I will not dignify it with a reply.");
          return sb.ToString();
       }
 
@@ -104,27 +112,16 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
-         sb.AppendLine("Write your reply letter in 2–3 paragraphs. Stay in character.");
+         sb.AppendLine("Write your reply letter in 2-3 paragraphs. Stay in character.");
          sb.AppendLine($"Address {playerName} by name. Do not use modern expressions.");
-         sb.AppendLine("Write ONLY the letter body in [DIALOGUE]. No section headers, no meta-text.");
+         sb.AppendLine($"Write the letter in the same language as the quoted letter from {playerName} above, not the");
+         sb.AppendLine("language of this internal instruction.");
+         sb.AppendLine("Write ONLY the letter body in [DIALOGUE]. Do not emit [EVENT], [ACTION], [STANCE], or any");
+         sb.AppendLine("section other than the letter text. No section headers, no meta-text.");
          return sb.ToString();
       }
 
       // ── Helpers ─────────────────────────────────────────────────────────────
-
-      private static void AppendRecentHistory(StringBuilder sb, NpcProfile npc)
-      {
-         if (npc.Events == null || npc.Events.Count == 0) return;
-
-         var recent = npc.Events
-            .OrderByDescending(e => e.gameDay)
-            .Take(3)
-            .ToList();
-
-         sb.AppendLine("Your recent history with this player:");
-         foreach (var ev in recent)
-            sb.AppendLine($"- Day {ev.gameDay}: {ev.summary}");
-      }
 
       private static string DescribeReason(LetterReason reason) => reason switch
       {
