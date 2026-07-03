@@ -1387,6 +1387,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("THE BEAT TO PERFORM THIS TURN — DO ONLY THIS, THEN STOP:");
          sb.AppendLine("(Perform it FULLY: a beat is a whole moment of the story, not a single line. Your spoken");
          sb.AppendLine("words, the psychological pressure, and the physical detail all belong inside this one beat.)");
+         sb.AppendLine("STATE YOUR REASON AT MOST ONCE: do not re-litigate your grievances, your shared history with");
+         sb.AppendLine("them, or why you are doing this, beat after beat — that is already established. Each beat is");
+         sb.AppendLine("the PRESENT action and the prisoner's reaction, never a restatement of the past or your motives.");
 
          if (context?.ReactToPlayerIntervention == true)
          {
@@ -1448,10 +1451,14 @@ namespace NpcMemoryService.Core.Prompts
 
                break;
             case CaptiveSceneStage.Aftermath:
-               sb.AppendLine("STAGE - AFTERMATH: the act is finished. Start NOTHING new. Linger on the immediate");
-               sb.AppendLine("consequence: their state now, your parting words, any mark or claim you leave on them,");
-               sb.AppendLine("the room turning cold and businesslike again. This is the come-down, not a new");
-               sb.AppendLine("escalation. One beat, then stop; the prisoner is sent back after this.");
+               sb.AppendLine("STAGE - AFTERMATH: the peak act has ALREADY happened, in an earlier beat. This beat is");
+               sb.AppendLine("AFTERMATH ONLY: do NOT re-perform, replay, or continue the climactic act, and do NOT");
+               sb.AppendLine("reuse its signature phrases or imagery. Start NOTHING new. Linger on the immediate physical");
+               sb.AppendLine("and emotional consequence: their state now, their breath and body settling, your parting");
+               sb.AppendLine("words, any mark or claim you leave on them, the room turning cold and businesslike again.");
+               sb.AppendLine("This is the come-down, not a new escalation. One beat, then stop; the prisoner is sent");
+               sb.AppendLine("back after this. Do NOT emit end_conversation yet: the dismissal and removal to the cell");
+               sb.AppendLine("are their OWN later beat, not this one.");
 
                break;
             case CaptiveSceneStage.Conclude:
@@ -2032,6 +2039,21 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("alone does nothing: without the matching action the game state never changes, however");
          sb.AppendLine("clearly you and the player agreed in [DIALOGUE]. If the player asks for something no");
          sb.AppendLine("action here covers, refuse or deflect in character instead of promising it.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Renders <see cref="EncounterContext.ExtraActionTeachings" /> verbatim, right after the core
+      ///   GAME ACTIONS section, when the host supplied one for this NPC this conversation. This is the
+      ///   generic extension surface: the host (the game mod) already re-checked every guard and wrote
+      ///   its own [ACTION] format block(s), so this method does nothing but place the text. No-op when
+      ///   blank — costs no tokens when no extra verb currently applies.
+      /// </summary>
+      private static void AppendExtraActionTeachings(StringBuilder sb, EncounterContext? context)
+      {
+         if (string.IsNullOrWhiteSpace(context?.ExtraActionTeachings)) return;
+
+         sb.AppendLine(context.ExtraActionTeachings.TrimEnd());
          sb.AppendLine();
       }
 
@@ -2902,6 +2924,8 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
             AppendFormatExample(sb);
             AppendActionInstructions(sb);
+            // ExtraActionTeachings (the extended verb set) is deliberately NOT rendered in Lean mode:
+            // a small / short-context model gets only the minimal action contract above.
             sb.AppendLine("Stay in character at all times. Never break the fourth wall.");
             sb.AppendLine();
             sb.AppendLine("─────────────────────────────────────────────");
@@ -2983,6 +3007,7 @@ namespace NpcMemoryService.Core.Prompts
 
          AppendFormatExample(sb);
          AppendActionInstructions(sb);
+         AppendExtraActionTeachings(sb, context);
          AppendDiscoveryInstructions(sb);
          // Don't teach quest-issuance to a captor either — a torture scene is not the place to hand
          // out errands, and the vocabulary itself fed the captor's confusion about quests.

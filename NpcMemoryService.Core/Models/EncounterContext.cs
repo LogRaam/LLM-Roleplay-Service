@@ -31,6 +31,20 @@ namespace NpcMemoryService.Core.Models
       public static EncounterContext Empty { get; } = new();
 
       /// <summary>
+      ///   ONE generic, host-composed, prompt-ready block of extra action teachings — the extension
+      ///   surface every future conversation-action verb rides on, instead of a dedicated
+      ///   <c>EncounterContext</c> field and a hardcoded <c>PromptBuilder</c> section per verb. The
+      ///   consumer (the game mod) gathers its own eligibility facts, decides which verbs currently
+      ///   apply, and composes their full teaching text (including the <c>[ACTION]</c> format each
+      ///   one expects) into this single string. Rendered verbatim, right after the core GAME ACTIONS
+      ///   section, when non-blank. Null/empty means no extra verb is currently taught.
+      ///   Per-conversation stable (does not change turn to turn for the same NPC), so it sits in the
+      ///   prefix-cacheable region of the prompt. SKIPPED in <see cref="LeanPromptLevel.Lean" />: a
+      ///   small model gets only the minimal action contract, not the extended verb set.
+      /// </summary>
+      public string? ExtraActionTeachings { get; init; }
+
+      /// <summary>
       ///   Who is acting this beat: the lead captor, another single member of the band taking
       ///   their turn, or the remaining members acting on the prisoner together at once.
       /// </summary>
