@@ -851,9 +851,14 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("current situation above does not state where you are headed, do not fabricate a destination,");
          sb.AppendLine("troop movements, or war plans; speak in general terms rather than naming a specific place.");
          sb.AppendLine("And never AGREE to perform a concrete deed — entering someone's service, handing over troops");
-         sb.AppendLine("or prisoners, granting land — unless an [ACTION] for it is available in this prompt. Words");
-         sb.AppendLine("the game cannot honor are broken promises: if no action exists for what the player asks,");
-         sb.AppendLine("deflect or refuse in character instead of agreeing.");
+         sb.AppendLine("or prisoners, granting land, killing a named person, declaring or starting a war, dissolving a");
+         sb.AppendLine("marriage — unless an [ACTION] for it is available in this prompt. Words the game cannot honor");
+         sb.AppendLine("are broken promises: if no action exists for what the player asks, DECLINE");
+         sb.AppendLine("or deflect in character. Do NOT vaguely agree, hedge, or put it off (no \"soon\", \"in time\",");
+         sb.AppendLine("\"consider it done\", \"I will see it done\"): a soft yes with nothing behind it is the same");
+         sb.AppendLine("broken promise. Grave acts especially — a killing, a war, the ending of a marriage — are never");
+         sb.AppendLine("done lightly because someone asked; your station, your kin, and your liege bind you, so you");
+         sb.AppendLine("would refuse outright or name the hard price and conditions, not promise it away.");
          sb.AppendLine();
       }
 
