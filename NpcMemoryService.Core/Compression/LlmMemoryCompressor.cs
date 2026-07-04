@@ -148,7 +148,7 @@ namespace NpcMemoryService.Core.Compression
          sb.AppendLine("HARD RULES (always honor):");
          sb.AppendLine("- ALWAYS keep the FirstMeeting event if present.");
          sb.AppendLine($"- ALWAYS keep the {RecentEventsAlwaysKept} most recent events.");
-         sb.AppendLine("- ALWAYS keep every Betrayal, Intimacy, Confrontation, Agreement, Farewell, and Captivity event.");
+         sb.AppendLine("- ALWAYS keep every Betrayal, Intimacy, Confrontation, Agreement, Farewell, Captivity, and Jealousy event.");
          sb.AppendLine();
          sb.AppendLine("SOFT GUIDANCE:");
          sb.AppendLine("- A series of minor skirmishes followed by a major battle: drop the skirmishes.");
@@ -197,7 +197,10 @@ namespace NpcMemoryService.Core.Compression
                 or NotableEventType.Confrontation
                 or NotableEventType.Agreement
                 or NotableEventType.Farewell
-                or NotableEventType.Captivity) protected_.Add(i);
+                or NotableEventType.Captivity
+                // Grudges pillar: Jealousy is mod-written and rare, and the jealousy backfill (and the
+                // live Jealousy grudge it plants) depends on this NotableEvent surviving compression.
+                or NotableEventType.Jealousy) protected_.Add(i);
          }
 
          return protected_;

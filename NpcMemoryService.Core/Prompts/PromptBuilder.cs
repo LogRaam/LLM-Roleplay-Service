@@ -145,8 +145,8 @@ namespace NpcMemoryService.Core.Prompts
          AppendDialogueStyle(sb, encounterContext);
          if (LeanPromptPolicy.Include(PromptSection.ProseCraftBlocklist, lean)) AppendProseCraft(sb);
          else AppendLeanProseCraft(sb);
-         if (LeanPromptPolicy.UseFullBehaviorGuidelines(lean)) AppendBehaviorGuidelines(sb);
-         else AppendLeanBehaviorGuidelines(sb);
+         if (LeanPromptPolicy.UseFullBehaviorGuidelines(lean)) AppendBehaviorGuidelines(sb, encounterContext);
+         else AppendLeanBehaviorGuidelines(sb, encounterContext);
          if (LeanPromptPolicy.Include(PromptSection.WorldNarrative, lean)) AppendWorldDescription(sb);
          AppendPlayerDescription(sb, encounterContext);
          // ── Per-NPC identity ─────────────────────────────────────────────────
@@ -168,6 +168,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendCurrentStance(sb, npc);
          AppendStanceNote(sb, encounterContext);
          AppendStanceConsequence(sb, encounterContext);
+         AppendGrudgeNote(sb, encounterContext);
          AppendPlayerLetters(sb, npc);
          AppendWitnesses(sb, encounterContext, lean);
          AppendRecruitment(sb, encounterContext);
@@ -1657,6 +1658,26 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
+      /// <summary>
+      ///   Renders <see cref="EncounterContext.GrudgeNote" /> verbatim, when the host supplied one for this
+      ///   NPC this conversation. The Grudges pillar: a resolvable grievance ANCHORED ON A SPECIFIC EVENT,
+      ///   coexisting with (never replacing) the blended regard in <see cref="AppendStanceNote" /> — an NPC
+      ///   may think kindly of the player overall and still nurse one unresolved wound underneath. The host
+      ///   already composed the knownness mirror (named openly vs concealed), so this method does nothing
+      ///   but place the text. No-op when blank.
+      /// </summary>
+      private static void AppendGrudgeNote(StringBuilder sb, EncounterContext? context)
+      {
+         string? note = context?.GrudgeNote;
+
+         if (string.IsNullOrWhiteSpace(note)) return;
+
+         sb.AppendLine("A GRIEVANCE YOU NURSE (separate from your overall regard above, this is one specific,");
+         sb.AppendLine("unresolved wound that colours you even if you otherwise think well of the player):");
+         sb.AppendLine(note);
+         sb.AppendLine();
+      }
+
       // ── Multi-NPC witnesses ──────────────────────────────────────────────
 
       /// <summary>
@@ -2213,8 +2234,20 @@ namespace NpcMemoryService.Core.Prompts
 
       // ── Sprint 8.1: behavior guidelines ──────────────────────────────────
 
-      private void AppendBehaviorGuidelines(StringBuilder sb)
+      private void AppendBehaviorGuidelines(StringBuilder sb, EncounterContext? context)
       {
+         // The station-matched register outranks the global override: a gang leader must never
+         // inherit the lordly voice just because the global file speaks as a noble.
+         if (!string.IsNullOrWhiteSpace(context?.StationGuidelinesOverride))
+         {
+            sb.AppendLine(context!.StationGuidelinesOverride);
+            sb.AppendLine();
+            sb.AppendLine("─────────────────────────────────────────────");
+            sb.AppendLine();
+
+            return;
+         }
+
          if (!string.IsNullOrWhiteSpace(BehaviorGuidelinesOverride))
          {
             sb.AppendLine(BehaviorGuidelinesOverride);
@@ -2251,8 +2284,16 @@ namespace NpcMemoryService.Core.Prompts
       ///   The LEAN-prompt substitute for the long behaviour guidelines — the essence in a few lines, so a small
       ///   model's short context is not eaten by the full block. A player-authored override still wins.
       /// </summary>
-      private void AppendLeanBehaviorGuidelines(StringBuilder sb)
+      private void AppendLeanBehaviorGuidelines(StringBuilder sb, EncounterContext? context)
       {
+         if (!string.IsNullOrWhiteSpace(context?.StationGuidelinesOverride))
+         {
+            sb.AppendLine(context!.StationGuidelinesOverride);
+            sb.AppendLine();
+
+            return;
+         }
+
          if (!string.IsNullOrWhiteSpace(BehaviorGuidelinesOverride))
          {
             sb.AppendLine(BehaviorGuidelinesOverride);

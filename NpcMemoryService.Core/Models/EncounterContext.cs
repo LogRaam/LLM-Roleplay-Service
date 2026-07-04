@@ -488,6 +488,27 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public string? StanceConsequenceHint { get; init; }
 
+      /// <summary>
+      ///   The dominant, resolvable grievance(s) this NPC nurses against the player — the Grudges pillar,
+      ///   coexisting with (not diluted into) <see cref="StanceNote" />'s blended regard. Host-composed
+      ///   (the consumer's GrudgeNarrator, at most a per-NPC cap of dominant grudges joined by newlines),
+      ///   already mirroring the knownness gate: a grudge the NPC KNOWS may be named openly, one they
+      ///   conceal instructs the NPC to stay smooth and never name the true cause. Rendered verbatim, right
+      ///   after <see cref="StanceConsequenceHint" />. Null when the NPC nurses no live grudge worth voicing.
+      ///   Per-conversation stable (does not change turn to turn), so it sits in the prefix-cacheable prefix.
+      /// </summary>
+      public string? GrudgeNote { get; init; }
+
+      /// <summary>
+      ///   A full replacement for the BEHAVIOR GUIDELINES section, matched to the NPC's social station
+      ///   (gang leader, town notable, wanderer...). Host-composed from the station guideline files; when
+      ///   null or blank the builder falls back to the global guidelines override, then to the built-in
+      ///   noble register. Fixes the "gang leader waving guards away from her throne" class of bug: the
+      ///   voice register finally follows the speaker's station, not the lordly default. Per-conversation
+      ///   stable, so it sits in the prefix-cacheable region like the rest of the guidelines.
+      /// </summary>
+      public string? StationGuidelinesOverride { get; init; }
+
       public DiplomaticStatus WarStatus { get; init; } = DiplomaticStatus.Unknown;
 
       /// <summary>
