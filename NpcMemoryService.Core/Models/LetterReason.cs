@@ -133,6 +133,16 @@ namespace NpcMemoryService.Core.Models
       ///   so they have left. The companion departs when this letter arrives. Added last to preserve old-save
       ///   ordinals.
       /// </summary>
-      CompanionFarewell
+      CompanionFarewell,
+
+      // ── Divorce, Phase 2b (the player's own spouse demands) ──────────────────
+
+      /// <summary>
+      ///   The player's own spouse, grown deeply unhappy, writes to announce that they can no longer bear
+      ///   the marriage and mean to press the player to end it when next they speak. The demand itself is
+      ///   then resolved entirely in conversation (accept or refuse, no button). Added last to preserve
+      ///   old-save ordinals.
+      /// </summary>
+      SpouseDivorceDemand
    }
 }

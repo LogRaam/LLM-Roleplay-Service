@@ -521,6 +521,19 @@ namespace NpcMemoryService.Core.Models
       public string? AppreciationNote { get; init; }
 
       /// <summary>
+      ///   Divorce, Phase 2b: set when this NPC is the player's OWN spouse and is currently pressing a
+      ///   divorce demand (host-composed, mirroring <see cref="GrudgeNote" />'s additive-field pattern,
+      ///   with the accept_divorce / decline_divorce teaching folded in rather than routed through
+      ///   <see cref="ExtraActionTeachings" />, since it is a single, stable, per-conversation directive
+      ///   naming exactly one NPC's demand, not a composed set of independently-eligible verbs). Rendered
+      ///   verbatim right after <see cref="ExtraActionTeachings" />; SKIPPED in <see cref="LeanPromptLevel.Lean" />
+      ///   like that field (a small model still gets the demand voiced in dialogue via the NPC's own
+      ///   history/letters, but not the extended [ACTION] contract). Null when this NPC is not the
+      ///   player's demanding spouse.
+      /// </summary>
+      public string? SpouseDivorceDemandNote { get; init; }
+
+      /// <summary>
       ///   A full replacement for the BEHAVIOR GUIDELINES section, matched to the NPC's social station
       ///   (gang leader, town notable, wanderer...). Host-composed from the station guideline files; when
       ///   null or blank the builder falls back to the global guidelines override, then to the built-in

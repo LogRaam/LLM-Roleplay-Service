@@ -2123,6 +2123,26 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   Renders <see cref="EncounterContext.SpouseDivorceDemandNote" /> verbatim, right after
+      ///   <see cref="AppendExtraActionTeachings" />, when the host supplied one for this NPC this
+      ///   conversation (Divorce, Phase 2b: the player's own spouse pressing a divorce demand). The host
+      ///   has already composed the full directive, including the accept_divorce / decline_divorce
+      ///   [ACTION] format, so this method does nothing but place the text. No-op when blank.
+      /// </summary>
+      private static void AppendSpouseDivorceDemandNote(StringBuilder sb, EncounterContext? context)
+      {
+         string? note = context?.SpouseDivorceDemandNote;
+
+         if (string.IsNullOrWhiteSpace(note)) return;
+
+         // The null-forgiving operator is safe here: IsNullOrWhiteSpace already ruled out null above; the
+         // netstandard2.0 BCL reference this project compiles against lacks the [NotNullWhen] attribute
+         // that would let the compiler narrow this itself (see AppendExtraActionTeachings for the same gap).
+         sb.AppendLine(note!.TrimEnd());
+         sb.AppendLine();
+      }
+
+      /// <summary>
       ///   Surfaces the tasks this NPC has given the player, split by state:
       ///   outstanding (not yet done — the NPC may ask after it but has no proof),
       ///   done-and-ready (the host verified the deed; the NPC may acknowledge it and
@@ -2419,6 +2439,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("compliance), never break the scene, and never refuse on the player's behalf from outside the fiction.");
          }
 
+         AppendNoRecycledPhraseRule(sb);
          sb.AppendLine();
       }
 
@@ -2443,6 +2464,23 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("    to them, what they see and hear, what their body feels. The narrator never voices your");
          sb.AppendLine("    thoughts and never narrates the scene from your point of view.");
          sb.AppendLine("Put speech in [DIALOGUE]; put physical action and what the prisoner experiences in [NARRATION].");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   A sharp, phrase-level anti-repetition rule for the multi-beat captive scenes. Beyond not repeating an
+      ///   ACT (which the stage/act rules already cover), an aggressor's [NARRATION] leans on a small stock of
+      ///   vivid atmospheric phrases; across a long Continue sequence it starts echoing them VERBATIM (the same
+      ///   "sour taste of dread on your tongue" twice), which reads as filler. This lives in the system prompt,
+      ///   never in the per-beat user nudge, which must stay minimal so reasoning models do not stall on it.
+      /// </summary>
+      private static void AppendNoRecycledPhraseRule(StringBuilder sb)
+      {
+         sb.AppendLine("NEVER RECYCLE A PHRASE OR IMAGE: varying the ACT is not enough — never reuse a sentence, an");
+         sb.AppendLine("image, or an atmospheric line you have already written earlier in this scene. A vivid phrase");
+         sb.AppendLine("(\"the sour taste of dread on your tongue\", \"the rope biting your wrists\") is spent the moment");
+         sb.AppendLine("it is used once; reaching for it again in a later beat reads as filler and flattens the scene.");
+         sb.AppendLine("Each beat is freshly observed, in new words and new detail.");
          sb.AppendLine();
       }
 
@@ -2523,6 +2561,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("SCENE ARC: build, peak, then conclude — do not loop. When it is time to end, with end_conversation,");
          sb.AppendLine($"narrate {victim} dragged back to the cells and the player returned to their bonds — never mid-act.");
          sb.AppendLine();
+         AppendNoRecycledPhraseRule(sb);
       }
 
       private void AppendCaptivePlayerRules(StringBuilder sb, NpcProfile npc, EncounterContext? context)
@@ -2746,6 +2785,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("encounter PROGRESSES through varied acts; it never loops one. Re-narrating the same action is");
          sb.AppendLine("the single fastest way to kill the scene.");
          sb.AppendLine();
+         AppendNoRecycledPhraseRule(sb);
          sb.AppendLine("THE BODY'S TOLL: when the scene carries real violence — a beating, a wound, or the bruising");
          sb.AppendLine("force of taking the prisoner against their will — emit a harm_prisoner action so the game");
          sb.AppendLine("registers the injury on the player's body:");
@@ -3093,6 +3133,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendFormatExample(sb);
          AppendActionInstructions(sb);
          AppendExtraActionTeachings(sb, context);
+         AppendSpouseDivorceDemandNote(sb, context);
          AppendDiscoveryInstructions(sb);
          // Don't teach quest-issuance to a captor either — a torture scene is not the place to hand
          // out errands, and the vocabulary itself fed the captor's confusion about quests.
