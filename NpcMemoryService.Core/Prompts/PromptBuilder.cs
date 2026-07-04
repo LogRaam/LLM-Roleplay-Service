@@ -2143,6 +2143,23 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   Renders <see cref="EncounterContext.PlayerEndOwnMarriageNote" /> verbatim, right after
+      ///   <see cref="AppendSpouseDivorceDemandNote" />, when the host supplied one for this NPC this
+      ///   conversation (Divorce, Phase 2a: the player themselves choosing to end their own marriage). The
+      ///   host has already composed the full directive, including the end_own_marriage [ACTION] format, so
+      ///   this method does nothing but place the text. No-op when blank.
+      /// </summary>
+      private static void AppendPlayerEndOwnMarriageNote(StringBuilder sb, EncounterContext? context)
+      {
+         string? note = context?.PlayerEndOwnMarriageNote;
+
+         if (string.IsNullOrWhiteSpace(note)) return;
+
+         sb.AppendLine(note!.TrimEnd());
+         sb.AppendLine();
+      }
+
+      /// <summary>
       ///   Surfaces the tasks this NPC has given the player, split by state:
       ///   outstanding (not yet done — the NPC may ask after it but has no proof),
       ///   done-and-ready (the host verified the deed; the NPC may acknowledge it and
@@ -3134,6 +3151,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendActionInstructions(sb);
          AppendExtraActionTeachings(sb, context);
          AppendSpouseDivorceDemandNote(sb, context);
+         AppendPlayerEndOwnMarriageNote(sb, context);
          AppendDiscoveryInstructions(sb);
          // Don't teach quest-issuance to a captor either — a torture scene is not the place to hand
          // out errands, and the vocabulary itself fed the captor's confusion about quests.

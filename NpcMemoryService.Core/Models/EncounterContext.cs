@@ -534,6 +534,19 @@ namespace NpcMemoryService.Core.Models
       public string? SpouseDivorceDemandNote { get; init; }
 
       /// <summary>
+      ///   Divorce, Phase 2a: set when this NPC IS the player's own living spouse, teaching the player-
+      ///   initiated end_own_marriage action (host-composed, same additive-field pattern as
+      ///   <see cref="SpouseDivorceDemandNote" />, folding its own [ACTION] teaching in directly rather than
+      ///   routed through <see cref="ExtraActionTeachings" />). Coexists cleanly with
+      ///   <see cref="SpouseDivorceDemandNote" /> when the spouse is ALSO demanding: both notes may render
+      ///   together, since accepting the spouse's demand and the player choosing to end it themselves are
+      ///   not contradictory. Rendered verbatim right after <see cref="SpouseDivorceDemandNote" />; SKIPPED
+      ///   in <see cref="LeanPromptLevel.Lean" /> like that field. Null when this NPC is not the player's
+      ///   spouse.
+      /// </summary>
+      public string? PlayerEndOwnMarriageNote { get; init; }
+
+      /// <summary>
       ///   A full replacement for the BEHAVIOR GUIDELINES section, matched to the NPC's social station
       ///   (gang leader, town notable, wanderer...). Host-composed from the station guideline files; when
       ///   null or blank the builder falls back to the global guidelines override, then to the built-in
