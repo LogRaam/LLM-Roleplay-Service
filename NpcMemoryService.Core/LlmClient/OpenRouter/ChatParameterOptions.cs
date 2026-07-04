@@ -25,6 +25,6 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
       public bool IncludeTemperature { get; }
 
       /// <summary>The classic, maximally-portable shape: <c>max_tokens</c> plus an explicit <c>temperature</c>.</summary>
-      public static ChatParameterOptions Standard => new ChatParameterOptions(useMaxCompletionTokens: false, includeTemperature: true);
+      public static ChatParameterOptions Standard => new(false, true);
    }
 }

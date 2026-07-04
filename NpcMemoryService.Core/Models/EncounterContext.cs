@@ -500,6 +500,27 @@ namespace NpcMemoryService.Core.Models
       public string? GrudgeNote { get; init; }
 
       /// <summary>
+      ///   Grudges pillar tone arbiter: a short clause appended right after the CURRENT STANCE regard line
+      ///   (<see cref="NpcProfile.ReputationWithPlayer" />) when the dominant live grudge's tone ruling is
+      ///   Tempered or Dominates, pointing the LLM at <see cref="GrudgeNote" /> before it even reaches it.
+      ///   Host-composed (the consumer's GrudgeToneArbiter); null when no live grudge shadows the regard at
+      ///   all, so the regard line renders exactly as before. Per-conversation stable, like <see cref="GrudgeNote" />.
+      /// </summary>
+      public string? RegardShadowNote { get; init; }
+
+      /// <summary>
+      ///   The Appreciations pillar's positive mirror of <see cref="GrudgeNote" />: the dominant LIVE
+      ///   kindness(es) this NPC feels toward the player, host-composed (the consumer's
+      ///   AppreciationNarrator, at most a per-NPC cap joined by newlines), each one already TARNISHED by
+      ///   the holder's own dominant live grudge (a fresh grievance sours a standing warmth — see
+      ///   AppreciationPolicy.TarnishedMagnitude) before rendering, so a line that tarnishes to zero is
+      ///   dropped rather than shown at full warmth. Rendered right after <see cref="GrudgeNote" />. Null
+      ///   when the NPC feels no live kindness worth voicing this turn. Per-conversation stable, like
+      ///   <see cref="GrudgeNote" />.
+      /// </summary>
+      public string? AppreciationNote { get; init; }
+
+      /// <summary>
       ///   A full replacement for the BEHAVIOR GUIDELINES section, matched to the NPC's social station
       ///   (gang leader, town notable, wanderer...). Host-composed from the station guideline files; when
       ///   null or blank the builder falls back to the global guidelines override, then to the built-in

@@ -166,9 +166,11 @@ namespace NpcMemoryService.Core.Prompts
          if (encounterContext?.PlayerStatus != PlayerStatusVsNpc.Captive)
             AppendActiveQuests(sb, npc);
          AppendCurrentStance(sb, npc);
+         AppendRegardShadowNote(sb, encounterContext);
          AppendStanceNote(sb, encounterContext);
          AppendStanceConsequence(sb, encounterContext);
          AppendGrudgeNote(sb, encounterContext);
+         AppendAppreciationNote(sb, encounterContext);
          AppendPlayerLetters(sb, npc);
          AppendWitnesses(sb, encounterContext, lean);
          AppendRecruitment(sb, encounterContext);
@@ -1666,6 +1668,23 @@ namespace NpcMemoryService.Core.Prompts
       ///   already composed the knownness mirror (named openly vs concealed), so this method does nothing
       ///   but place the text. No-op when blank.
       /// </summary>
+      /// <summary>
+      ///   Places <see cref="EncounterContext.RegardShadowNote" /> right after the CURRENT STANCE regard
+      ///   line, when the host supplied one for this NPC this conversation. The Grudges pillar's tone
+      ///   arbiter: a short clause pointing at <see cref="AppendGrudgeNote" /> below, before the LLM even
+      ///   reaches it, so a strong grievance is never read as an afterthought to stated warmth. No-op when
+      ///   blank.
+      /// </summary>
+      private static void AppendRegardShadowNote(StringBuilder sb, EncounterContext? context)
+      {
+         string? note = context?.RegardShadowNote;
+
+         if (string.IsNullOrWhiteSpace(note)) return;
+
+         sb.AppendLine(note);
+         sb.AppendLine();
+      }
+
       private static void AppendGrudgeNote(StringBuilder sb, EncounterContext? context)
       {
          string? note = context?.GrudgeNote;
@@ -1674,6 +1693,26 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.AppendLine("A GRIEVANCE YOU NURSE (separate from your overall regard above, this is one specific,");
          sb.AppendLine("unresolved wound that colours you even if you otherwise think well of the player):");
+         sb.AppendLine(note);
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Renders <see cref="EncounterContext.AppreciationNote" /> verbatim, when the host supplied one
+      ///   for this NPC this conversation. The Appreciations pillar: the positive mirror of
+      ///   <see cref="AppendGrudgeNote" />, placed immediately after it so a live grievance and a lingering
+      ///   kindness can both colour the same NPC without one silently overwriting the other. The host has
+      ///   already applied the TARNISH (a live grudge souring a standing warmth) before composing this
+      ///   note, so this method does nothing but place the text. No-op when blank.
+      /// </summary>
+      private static void AppendAppreciationNote(StringBuilder sb, EncounterContext? context)
+      {
+         string? note = context?.AppreciationNote;
+
+         if (string.IsNullOrWhiteSpace(note)) return;
+
+         sb.AppendLine("A KINDNESS YOU REMEMBER (separate from your overall regard above, this is a specific");
+         sb.AppendLine("debt of warmth that colours you even if you otherwise think ill of the player):");
          sb.AppendLine(note);
          sb.AppendLine();
       }
@@ -1932,13 +1971,13 @@ namespace NpcMemoryService.Core.Prompts
          _ => ""
       };
 
-      private static string DescribePersonalRegard(int value) => value switch {
-         >= 30 => "You trust and care for this player deeply.",
-         >= 10 => "You think well of this player.",
-         >= -9 => "Your personal feelings toward this player are neutral.",
-         >= -29 => "You personally distrust this player.",
-         _ => "You personally resent this player."
-      };
+      /// <summary>
+      ///   Delegates to <see cref="RegardBands" /> (the ONE canonical banding of
+      ///   <c>NpcProfile.ReputationWithPlayer</c>, first established by the encyclopedia's "Personal
+      ///   regard" row) so this line can never again disagree with what the player sees on the hero's
+      ///   encyclopedia page.
+      /// </summary>
+      private static string DescribePersonalRegard(int value) => RegardBands.Describe(value);
 
       private static string DescribePreference(RomanticPreference p) => p switch {
          RomanticPreference.Dominant => "Dominant — leads in the relationship dynamic.",
