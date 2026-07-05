@@ -247,6 +247,38 @@ namespace NpcMemoryService.Core.Models
       public bool IsCaptorScene { get; init; }
 
       /// <summary>
+      ///   Stance mechanical behaviour-gating (increment 1, Fear): true when the held captive is frightened
+      ///   enough of the player, per the consumer's coercion gate, that a freedom bargain should ask for
+      ///   notably harsher terms than pride alone would allow. Only meaningful alongside
+      ///   <see cref="PlayerStatusVsNpc.NpcIsCaptive" />; the consumer computes this from the SAME pure
+      ///   policy the game bridge re-checks before actually releasing the captive, so the prompt's ask and
+      ///   the bridge's law never disagree. This is advice only: the bridge still re-validates everything
+      ///   and plants the hidden grudge on an actual yield. Default false.
+      /// </summary>
+      public bool CaptiveFearCoerced { get; init; }
+
+      /// <summary>
+      ///   Captivity release (2026-07-05): true when the captor could be TALKED into freeing the captive
+      ///   player (a disposed, non-vendetta captor, per <c>CaptorReleasePolicy</c>). Teaches the captor the
+      ///   release_player action; the bridge re-validates and makes the freeing real. Default false.
+      /// </summary>
+      public bool CaptorAllowsPersuasionRelease { get; init; }
+
+      /// <summary>
+      ///   Captivity release (2026-07-05): true when the captor would accept a RANSOM in gold for the
+      ///   player's freedom (any non-vendetta captor). Reserved for the ransom path; the gold handling is a
+      ///   follow-up, so the current increment teaches persuasion release only. Default false.
+      /// </summary>
+      public bool CaptorAllowsRansomRelease { get; init; }
+
+      /// <summary>
+      ///   Native/vanilla quests (from the game's own quest journal) that THIS NPC gave the player and are
+      ///   still open, prebuilt into a prompt note by the host (the SDK cannot read the engine quest manager).
+      ///   Stops the NPC acting baffled about a task they themselves set outside CR dialogue. Null when none.
+      /// </summary>
+      public string NativeQuestNote { get; init; }
+
+      /// <summary>
       ///   True on the final beat of a captive scene continuation (mirrors
       ///   <see cref="IsLastWitnessExchange" /> for the 15C loop). When set, the prompt
       ///   instructs the NPC to bring the scene to a definitive conclusion this turn —
@@ -371,6 +403,16 @@ namespace NpcMemoryService.Core.Models
       ///   whether the player is a credible prospect for an official match (marriage).
       /// </summary>
       public int PlayerClanTier { get; init; } = 0;
+
+      /// <summary>
+      ///   The total troop count in the player's own party right now (companions and hero party members
+      ///   are counted separately by the game; this is the rank-and-file roster). 0 = not provided, meaning
+      ///   either the count is unknown or this speaker would have no plausible way to know it. Fed ONLY to
+      ///   speakers who would actually know the figure (the player's own companions / clan party members) so
+      ///   a stranger or an enemy is never handed an exact metagame troop count. Fixes a reported
+      ///   hallucination: companions confidently inventing how many soldiers the player leads.
+      /// </summary>
+      public int PlayerPartyTroopCount { get; init; } = 0;
 
       /// <summary>
       ///   Pre-formatted "what is said of you" block — deeds of the PLAYER's that word has carried to

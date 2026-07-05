@@ -164,7 +164,10 @@ namespace NpcMemoryService.Core.Prompts
          // here let a bandit captor mistake a "clear the bandits" quest for one HE gave, and torture
          // the prisoner for "failing" it. Quests have no place in a captive scene.
          if (encounterContext?.PlayerStatus != PlayerStatusVsNpc.Captive)
+         {
             AppendActiveQuests(sb, npc);
+            AppendNativeQuestNote(sb, encounterContext);
+         }
          AppendCurrentStance(sb, npc);
          AppendRegardShadowNote(sb, encounterContext);
          AppendStanceNote(sb, encounterContext);
@@ -802,6 +805,15 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         // Only ever non-zero for a speaker who would plausibly know it (the player's own companions /
+         // party members — see EncounterContextBuilder.ResolvePlayerPartyTroopCount); everyone else gets
+         // 0 and this stays silent rather than handing out a metagame number.
+         if (context.PlayerPartyTroopCount > 0)
+         {
+            sb.AppendLine($"The player currently leads {context.PlayerPartyTroopCount} soldiers in their party.");
+            sb.AppendLine();
+         }
+
          var kin = new List<string>();
          if (!string.IsNullOrWhiteSpace(context.PlayerFatherName)) kin.Add($"father {context.PlayerFatherName}");
          if (!string.IsNullOrWhiteSpace(context.PlayerMotherName)) kin.Add($"mother {context.PlayerMotherName}");
@@ -879,6 +891,29 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("type: escape_attempt");
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("The outcome is resolved and narrated for you the moment you emit this. Never pre-empt it.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Teaches that the captor MAY choose to free the player, and how to make it real. Only appended
+      ///   when the host's gate (<c>CaptorReleasePolicy</c>) has judged this captor open to it, so a
+      ///   vendetta-holding or nemesis captor is never even taught the option. The prompt PROPOSES (the
+      ///   captor decides in character); the bridge re-validates and applies the real freeing at scene close.
+      /// </summary>
+      private void AppendCaptorReleaseRule(StringBuilder sb, EncounterContext? context)
+      {
+         bool persuasion = context?.CaptorAllowsPersuasionRelease ?? false;
+         if (!persuasion) return;
+
+         sb.AppendLine("SETTING THE PRISONER FREE — ONLY IF YOU GENUINELY CHOOSE TO:");
+         sb.AppendLine("You hold this prisoner and owe them nothing, yet you are not incapable of letting them go.");
+         sb.AppendLine("If they truly sway you (a plea, a bargain, a reason you accept as their captor), you MAY");
+         sb.AppendLine("decide to free them. Never do this lightly, and never on a first breath. When, and ONLY when,");
+         sb.AppendLine("you have truly resolved to release this prisoner, emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: release_player");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The game frees them the moment you emit this. Speak your parting in character.");
          sb.AppendLine();
       }
 
@@ -1284,6 +1319,15 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Pair it with what you offered — change_relation for goodwill, give_gold for a ransom you pay, or");
          sb.AppendLine("join_clan if you swear yourself to them. The game then sets you free. Only emit free_prisoner");
          sb.AppendLine("once terms are struck AND the player agrees to release you — never unilaterally, never to escape.");
+
+         if (context.CaptiveFearCoerced)
+         {
+            sb.AppendLine("You are gripped by real fear of the player, and it has broken your resolve more than pride would");
+            sb.AppendLine("like. To win your freedom, offer a notably LARGER sum of gold or accept harsher terms than you");
+            sb.AppendLine("would ever grant a captor you did not fear. Play this in character: outwardly you may still show");
+            sb.AppendLine("some composure, but inwardly you resent being cowed rather than persuaded.");
+         }
+
          sb.AppendLine();
       }
 
@@ -2214,6 +2258,20 @@ namespace NpcMemoryService.Core.Prompts
       ///   be granted — this is what stops roleplay-only success. No-op unless
       ///   <see cref="EnableQuests" /> is set or the NPC has no quests.
       /// </summary>
+      /// <summary>
+      ///   Renders the host-built <see cref="EncounterContext.NativeQuestNote" /> (native/vanilla quests THIS
+      ///   NPC gave the player, from the game's own journal), so the giver never acts baffled about a task
+      ///   they set outside CR dialogue. Distinct from <see cref="AppendActiveQuests" /> (CR's own quests).
+      /// </summary>
+      private void AppendNativeQuestNote(StringBuilder sb, EncounterContext? context)
+      {
+         string note = context?.NativeQuestNote;
+         if (string.IsNullOrWhiteSpace(note)) return;
+
+         sb.AppendLine(note);
+         sb.AppendLine();
+      }
+
       private void AppendActiveQuests(StringBuilder sb, NpcProfile npc)
       {
          if (!EnableQuests) return;
@@ -2397,6 +2455,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("- If the player asks for something — a favor, a marriage, an alliance, a coin —");
          sb.AppendLine("  consider what YOU gain, what your clan gains, what your liege would think.");
          sb.AppendLine("  Refuse plainly when it does not serve you. Accept only when it does.");
+         sb.AppendLine($"- {PromptLore.WorldName} has its own faiths, its own gods and legends, its own history.");
+         sb.AppendLine("  Never speak of Earth's own religions, deities, saints, or historical figures and places");
+         sb.AppendLine("  (no Christ, no Rome, no Napoleon and the like); swear by and reference only this world's own.");
          sb.AppendLine();
          sb.AppendLine("─────────────────────────────────────────────");
          sb.AppendLine();
@@ -2428,6 +2489,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("You judge the player by deeds, not flattery; you do not grovel or casually give up your secrets;");
          sb.AppendLine("you react in proportion — a cold word for a slight, real consequence for a grave insult; and you");
          sb.AppendLine("weigh any request by what you and your clan gain, refusing plainly when it does not serve you.");
+         sb.AppendLine($"{PromptLore.WorldName} has its own faiths and history: never reference Earth's own religions,");
+         sb.AppendLine("deities, saints, or historical figures and places.");
          sb.AppendLine();
       }
 
@@ -2643,6 +2706,7 @@ namespace NpcMemoryService.Core.Prompts
          }
 
          AppendCaptiveVoiceAndPerspective(sb);
+         AppendCaptorReleaseRule(sb, context);
 
          // Bandit/pirate menace intents are NON-sexual: a thug shaking down, threatening, or
          // avenging — a different scene from the CNC framing below.
