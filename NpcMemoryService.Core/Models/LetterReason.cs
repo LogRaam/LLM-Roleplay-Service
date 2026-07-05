@@ -143,6 +143,16 @@ namespace NpcMemoryService.Core.Models
       ///   then resolved entirely in conversation (accept or refuse, no button). Added last to preserve
       ///   old-save ordinals.
       /// </summary>
-      SpouseDivorceDemand
+      SpouseDivorceDemand,
+
+      // ── Divorce escalation (the refused spouse begins ending it themselves) ──────────────────
+
+      /// <summary>
+      ///   The player's own spouse, refused too many times, writes to announce that they no longer wait
+      ///   on the player's consent: they have begun ending the marriage themselves, on a deadline. Only a
+      ///   genuinely repaired bond, not mere words, can still call it off. Added last to preserve old-save
+      ///   ordinals.
+      /// </summary>
+      SpouseDivorceEscalation
    }
 }

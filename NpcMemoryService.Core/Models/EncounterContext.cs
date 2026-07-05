@@ -306,6 +306,17 @@ namespace NpcMemoryService.Core.Models
       public bool LoveMatchEligible { get; init; }
 
       /// <summary>
+      ///   True when THIS NPC's own spouse IS the player themselves. Distinguishes the "married to
+      ///   the player" case from the ordinary "married to some third party" case in the RELATIONSHIP
+      ///   STATUS &amp; CONSENT block: with a third-party spouse, intimacy with the player is an act of
+      ///   infidelity gated behind deep trust; when the spouse IS the player, intimacy is marital and
+      ///   natural, and none of the stranger-resistance thresholds or infidelity framing apply. Fixes
+      ///   a player report: after <c>cr.marry</c> the NPC still treated the player as a third party
+      ///   distinct from their own spouse.
+      /// </summary>
+      public bool NpcSpouseIsPlayer { get; init; }
+
+      /// <summary>
       ///   Ready-to-inject block describing a marriage the player could seek from THIS NPC's
       ///   house: the unmarried, suitable kin of the NPC's clan (and the NPC themselves when
       ///   eligible), built game-side so the NPC names only real, marriageable people. Null
@@ -545,6 +556,21 @@ namespace NpcMemoryService.Core.Models
       ///   spouse.
       /// </summary>
       public string? PlayerEndOwnMarriageNote { get; init; }
+
+      /// <summary>
+      ///   Divorce escalation: set when this NPC IS the player's own living spouse AND their estrangement
+      ///   is currently under way (<c>SpouseDivorceDemandBehavior.IsEstranging</c>), after repeated
+      ///   refusals of their Phase 2b demand. Host-composed, the same additive-field pattern as
+      ///   <see cref="SpouseDivorceDemandNote" />, folding the accept_divorce <c>[ACTION]</c> teaching in
+      ///   directly (decline_divorce no longer applies here: an estrangement already under way is not
+      ///   something to refuse in words, only to accept or to genuinely repair through deeds). Rendered
+      ///   verbatim right after <see cref="PlayerEndOwnMarriageNote" />; SKIPPED in
+      ///   <see cref="LeanPromptLevel.Lean" /> like the sibling notes. Mutually exclusive with
+      ///   <see cref="SpouseDivorceDemandNote" /> in practice (beginning the estrangement clears the
+      ///   pending-demand flag), though nothing here depends on that. Null when this NPC's estrangement is
+      ///   not active.
+      /// </summary>
+      public string? SpouseEstrangementNote { get; init; }
 
       /// <summary>
       ///   A full replacement for the BEHAVIOR GUIDELINES section, matched to the NPC's social station

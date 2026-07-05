@@ -179,7 +179,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendSchemeRecruitment(sb, encounterContext);
          AppendSchemeWarning(sb, encounterContext);
          AppendInterception(sb, encounterContext);
-         AppendLoveMatchProposal(sb, encounterContext);
+         AppendLoveMatchProposal(sb, npc, encounterContext);
          AppendConsortProposal(sb, encounterContext);
          AppendGiveItem(sb, encounterContext);
          // Dropped entirely in Lean (a small local model has no headroom for a favor it is unlikely to use), and
@@ -941,8 +941,8 @@ namespace NpcMemoryService.Core.Prompts
       {
          sb.AppendLine($"YOU ARE {npc.Name.ToUpperInvariant()}, a {(npc.IsFemale ? "woman" : "man")} of the {npc.Clan} clan, {npc.Faction} faction.");
          sb.AppendLine(npc.IsFemale
-            ? "You are female — speak of yourself, and let others speak of you, as she/her."
-            : "You are male — speak of yourself, and let others speak of you, as he/him.");
+            ? "You are female. Always speak of yourself as a woman, using she/her, whatever any older record might imply."
+            : "You are male. Always speak of yourself as a man, using he/him, whatever any older record might imply.");
          sb.AppendLine();
 
          if (!string.IsNullOrWhiteSpace(npc.Personality))
@@ -1080,15 +1080,44 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
-      ///   Taught only when the NPC THEMSELVES is a viable marriage candidate (Phase A.3):
-      ///   player single, NPC eligible by sex/age/clan, and personal relation ≥ 50.
-      ///   Either party may propose; the action fires only on unambiguous mutual consent.
-      ///   The family-blessing state is surfaced so the NPC can weave it into their words.
+      ///   Taught only when the NPC THEMSELVES is a viable marriage candidate (Phase A.3): player
+      ///   single, NPC eligible by sex/age/clan, and regard deep enough (personal reputation OR the
+      ///   live vanilla relation). Either party may propose; the action fires only on unambiguous
+      ///   mutual consent. The family-blessing state is surfaced so the NPC can weave it into their
+      ///   words. When NOT eligible and the NPC is still unmarried, a short anti-empty-promise guard is
+      ///   emitted instead of a silent skip — otherwise the LLM was free to have the NPC "agree" to a
+      ///   ceremony in words with no matching [ACTION], a player-reported empty promise. Nothing is
+      ///   said when the NPC is already wed (the "already married" framing elsewhere covers that case),
+      ///   and the guard itself is dropped in Lean mode (a small model gets only the minimal action
+      ///   contract, same as <see cref="AppendExtraActionTeachings" />), so it never touches the Lean
+      ///   token budget for the overwhelmingly common non-eligible case.
       /// </summary>
-      private static void AppendLoveMatchProposal(StringBuilder sb, EncounterContext? context)
+      private static void AppendLoveMatchProposal(StringBuilder sb, NpcProfile npc, EncounterContext? context)
       {
-         if (context?.LoveMatchEligible != true) return;
+         if (context?.LoveMatchEligible == true)
+         {
+            AppendLoveMatchProposalEligible(sb, context);
 
+            return;
+         }
+
+         if (context?.LeanLevel == LeanPromptLevel.Lean) return;
+         if (!string.IsNullOrWhiteSpace(npc?.SpouseName)) return; // already wed — covered elsewhere
+
+         sb.AppendLine("MARRIAGE IS NOT YET ON OFFER:");
+         sb.AppendLine("Marriage is a formal, family-gated matter of Calradian law. It cannot be settled or sealed");
+         sb.AppendLine("in a single conversation. You may express affection, longing, or hope for such a future,");
+         sb.AppendLine("but you must NOT declare a marriage done, agree to an immediate ceremony, or act as though");
+         sb.AppendLine("you are already wed to the player.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   The eligible branch of <see cref="AppendLoveMatchProposal" />, split out so the anti-empty-promise
+      ///   guard above it stays easy to read on its own.
+      /// </summary>
+      private static void AppendLoveMatchProposalEligible(StringBuilder sb, EncounterContext context)
+      {
          sb.AppendLine("MARRIAGE — THE BOND BETWEEN YOU AND THE PLAYER:");
          if (context.LoveMatchBlessed)
             sb.AppendLine("Your family has already given their blessing to a union between you and the player.");
@@ -2160,6 +2189,23 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   Renders <see cref="EncounterContext.SpouseEstrangementNote" /> verbatim, right after
+      ///   <see cref="AppendPlayerEndOwnMarriageNote" />, when the host supplied one for this NPC this
+      ///   conversation (the divorce escalation: a refused spouse has begun ending the marriage on their
+      ///   own timeline). The host has already composed the full directive, including the accept_divorce
+      ///   <c>[ACTION]</c> format, so this method does nothing but place the text. No-op when blank.
+      /// </summary>
+      private static void AppendSpouseEstrangementNote(StringBuilder sb, EncounterContext? context)
+      {
+         string? note = context?.SpouseEstrangementNote;
+
+         if (string.IsNullOrWhiteSpace(note)) return;
+
+         sb.AppendLine(note!.TrimEnd());
+         sb.AppendLine();
+      }
+
+      /// <summary>
       ///   Surfaces the tasks this NPC has given the player, split by state:
       ///   outstanding (not yet done — the NPC may ask after it but has no proof),
       ///   done-and-ready (the host verified the deed; the NPC may acknowledge it and
@@ -3152,6 +3198,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendExtraActionTeachings(sb, context);
          AppendSpouseDivorceDemandNote(sb, context);
          AppendPlayerEndOwnMarriageNote(sb, context);
+         AppendSpouseEstrangementNote(sb, context);
          AppendDiscoveryInstructions(sb);
          // Don't teach quest-issuance to a captor either — a torture scene is not the place to hand
          // out errands, and the vocabulary itself fed the captor's confusion about quests.
@@ -3286,7 +3333,15 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.AppendLine("RELATIONSHIP STATUS & CONSENT:");
 
-         if (isMarried)
+         if (isMarried && context?.NpcSpouseIsPlayer == true)
+         {
+            sb.AppendLine("You are married to the player. This is your own spouse speaking with you right now,");
+            sb.AppendLine("not a third party. Intimacy between you is MARITAL and natural, never an act of");
+            sb.AppendLine("infidelity, and none of the stranger-resistance trust thresholds apply here: your vows");
+            sb.AppendLine("already bind you to this very person. Let your own character (warmth, mood, the state of");
+            sb.AppendLine("the marriage) shape whether and how you welcome them, not a trust gate meant for strangers.");
+         }
+         else if (isMarried)
          {
             sb.AppendLine($"You are married to {npc.SpouseName}. Your vows bind you to fidelity.");
             sb.AppendLine("Physical intimacy with the player — kissing, touching, sexual contact — requires");
