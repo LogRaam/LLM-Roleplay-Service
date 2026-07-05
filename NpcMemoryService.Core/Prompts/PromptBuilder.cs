@@ -918,6 +918,20 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   Renders the host-built <see cref="EncounterContext.NemesisRecaptureNote" /> (this captor is a
+      ///   nemesis who has caught the player again after a prior escape), so he acknowledges it and plays
+      ///   colder. No-op when the note is absent.
+      /// </summary>
+      private void AppendNemesisRecaptureNote(StringBuilder sb, EncounterContext? context)
+      {
+         string note = context?.NemesisRecaptureNote;
+         if (string.IsNullOrWhiteSpace(note)) return;
+
+         sb.AppendLine(note);
+         sb.AppendLine();
+      }
+
+      /// <summary>
       ///   Teaches the give_item action. Shown whenever the player is not the captive
       ///   (a prisoner cannot hand items from their inventory). The player uses the
       ///   in-chat item picker to pre-fill the offer text; the LLM then decides to
@@ -2707,6 +2721,7 @@ namespace NpcMemoryService.Core.Prompts
 
          AppendCaptiveVoiceAndPerspective(sb);
          AppendCaptorReleaseRule(sb, context);
+         AppendNemesisRecaptureNote(sb, context);
 
          // Bandit/pirate menace intents are NON-sexual: a thug shaking down, threatening, or
          // avenging — a different scene from the CNC framing below.

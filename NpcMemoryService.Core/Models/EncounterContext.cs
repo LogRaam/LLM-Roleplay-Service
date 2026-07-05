@@ -279,6 +279,13 @@ namespace NpcMemoryService.Core.Models
       public string NativeQuestNote { get; init; }
 
       /// <summary>
+      ///   Nemesis pillar (2026-07-05): set when THIS captor is a nemesis who has recaptured the player after
+      ///   a prior escape, so the prompt has him acknowledge it in character ("you slipped me once, not
+      ///   again") and play colder/more careful. Null otherwise.
+      /// </summary>
+      public string NemesisRecaptureNote { get; init; }
+
+      /// <summary>
       ///   True on the final beat of a captive scene continuation (mirrors
       ///   <see cref="IsLastWitnessExchange" /> for the 15C loop). When set, the prompt
       ///   instructs the NPC to bring the scene to a definitive conclusion this turn —
