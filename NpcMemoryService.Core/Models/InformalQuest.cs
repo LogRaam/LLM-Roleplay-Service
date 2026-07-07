@@ -48,6 +48,22 @@ namespace NpcMemoryService.Core.Models
         /// <summary>Display name of <see cref="TargetFactionId" />.</summary>
         public string? TargetFactionName { get; set; }
 
+        /// <summary>
+        ///   For a <see cref="QuestType.BanditHideout" /> deed: the stable id of the specific, already-existing
+        ///   bandit hideout the giver named. The quest is bound to a real lair chosen in the giver's region when
+        ///   the task is issued (never given at all if none exists nearby), and only that lair's clearing counts.
+        ///   Since only the player can ever clear a hideout, its fall is unambiguously the player's deed. Null on
+        ///   quests saved before this existed (they fall back to accepting any hideout clear).
+        /// </summary>
+        public string? TargetHideoutId { get; set; }
+
+        /// <summary>
+        ///   A short, factual bearing to the deed's target relative to a named settlement, e.g. "north of Pravend".
+        ///   Set for a hideout deed so the player is pointed to the region of a lair that is hidden until scouted.
+        ///   Surfaced in the journal and in the giver's prompt so they can restate it. Null when not applicable.
+        /// </summary>
+        public string? DirectionHint { get; set; }
+
         /// <summary>Game day the quest was issued. Used as the floor for valid deeds.</summary>
         public int IssuedOnDay { get; set; }
 

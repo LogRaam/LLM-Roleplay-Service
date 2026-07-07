@@ -2305,6 +2305,8 @@ namespace NpcMemoryService.Core.Prompts
          foreach (InformalQuest q in outstanding)
          {
             sb.AppendLine($"- OUTSTANDING: {q.Description}{RewardSuffix(q)}{DeadlineSuffix(q)}");
+            if (!string.IsNullOrWhiteSpace(q.DirectionHint))
+               sb.AppendLine($"  The lair lies to the {q.DirectionHint}; tell them so if they ask where to look.");
             sb.AppendLine("  Not yet done — you may ask how it fares, but you have no proof it is finished.");
          }
 
@@ -3649,6 +3651,12 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Rules: name real, plausible targets you would know. Promise only rewards you would");
          sb.AppendLine("truly pay — the figure is fixed now and honored on completion. Offer at most ONE task,");
          sb.AppendLine("and never while you already have one outstanding (listed under YOUR QUESTS when present).");
+         sb.AppendLine();
+         sb.AppendLine("The DEED ITSELF is the proof: the game verifies it from real events (a battle won, a");
+         sb.AppendLine("capture, a delivery). There is NO token, trophy, blade, banner, severed head, or item to");
+         sb.AppendLine("carry back, and none can be handed over, so never invent one in your description or ask");
+         sb.AppendLine("the player to bring anything. Tell them plainly what to do and where (name the settlement),");
+         sb.AppendLine("and to RETURN to you afterward to collect their reward.");
          sb.AppendLine();
          sb.AppendLine("When YOUR QUESTS shows a task the player has DONE (proof is listed) and you are");
          sb.AppendLine("satisfied, acknowledge it in [DIALOGUE] and emit:");
