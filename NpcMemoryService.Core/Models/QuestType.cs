@@ -93,6 +93,17 @@ namespace NpcMemoryService.Core.Models
         ///   the quest satisfied. CR cannot verify a foreign deed from a game event, and never pays on the LLM's
         ///   word; the external signal is the gate. Appended last to preserve the integer ordinals above in old saves.
         /// </summary>
-        External
+        External,
+
+        /// <summary>
+        ///   Nemesis pillar increment 3 (bounty missions): a lord's scripted (non-LLM) offer to capture OR kill
+        ///   a specific tracked nemesis. Unlike <see cref="CapturePrisoner" /> and <see cref="ExecuteEnemy" />,
+        ///   which each verify a single outcome, this single quest is satisfied by EITHER a real capture of the
+        ///   named hero (the player takes him prisoner) or a real kill (in battle or by execution) dealt by the
+        ///   player, whichever comes first ends the hunt. Never issued from a <c>[QUEST]</c> block; the game
+        ///   itself constructs and offers it once a living, unresolved nemesis exists. Appended last to preserve
+        ///   the integer ordinals above in old saves.
+        /// </summary>
+        NemesisBounty
     }
 }

@@ -2122,6 +2122,7 @@ namespace NpcMemoryService.Core.Prompts
          QuestType.DeliverItems => "deliver_items",
          QuestType.DeliverPrisoner => "deliver_prisoner",
          QuestType.DeclareWar => "declare_war",
+         QuestType.NemesisBounty => "nemesis_bounty",
          _ => t.ToString().ToLowerInvariant()
       };
 

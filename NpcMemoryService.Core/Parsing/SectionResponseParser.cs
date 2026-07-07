@@ -416,6 +416,9 @@ namespace NpcMemoryService.Core.Parsing
                or "declare_war_on"
                or "go_to_war"
                or "make_war" => QuestType.DeclareWar,
+            "nemesis_bounty"
+               or "bounty"
+               or "hunt_nemesis" => QuestType.NemesisBounty,
             _ => null
          };
       }
