@@ -2579,8 +2579,29 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("compliance), never break the scene, and never refuse on the player's behalf from outside the fiction.");
          }
 
+         AppendExecutePrisonerRule(sb);
          AppendNoRecycledPhraseRule(sb);
          sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Taught in every player-as-captor scene, regardless of adult level (an execution is not sexual
+      ///   content): your life is entirely the player's to end. Recognize a stated, real killing act (never
+      ///   a threat, a beating, or a hypothetical) and emit execute_prisoner so the game carries it out for
+      ///   real; the bridge itself re-validates custody before honouring it, so a stray emission is harmless.
+      /// </summary>
+      private static void AppendExecutePrisonerRule(StringBuilder sb)
+      {
+         sb.AppendLine();
+         sb.AppendLine("YOUR LIFE IS THEIRS TO END:");
+         sb.AppendLine("You are entirely in the player's power. If they plainly state they are killing you, executing you,");
+         sb.AppendLine("or ending your life right now (a real, final act, not a threat, not a hypothetical, not a blow you");
+         sb.AppendLine("could still recover from), play your very last words and reaction in character, then emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: execute_prisoner");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The game carries out the killing; do not narrate your own death or continue the scene afterward.");
+         sb.AppendLine("Never emit this for a beating, a threat, or anything short of a stated, real killing act.");
       }
 
       /// <summary>
