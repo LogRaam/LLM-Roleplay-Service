@@ -75,6 +75,16 @@ namespace NpcMemoryService.Core.Models
       public bool CaptorIsBandit { get; init; }
 
       /// <summary>
+      ///   True when the captor is a BRIGAND by station, whether a faceless bandit (<see cref="CaptorIsBandit" />)
+      ///   or a named, persistent bandit boss (a nemesis) who is still a member of a bandit clan. Governs the
+      ///   coarse VOICE overlay in a captive scene (crude, blunt, unlettered, no courtly eloquence or scheming),
+      ///   so a nemesis does not read like the lord his profiled traits would otherwise make him. Distinct from
+      ///   <see cref="CaptorIsBandit" />: a nemesis keeps his name and his memory of the player (he is not
+      ///   faceless), so the "does not know who you are" perception stays gated on <see cref="CaptorIsBandit" />.
+      /// </summary>
+      public bool CaptorIsBrigand { get; init; }
+
+      /// <summary>
       ///   The asking price (denars) for hiring this NPC into the player's party, when
       ///   they are a recruitable companion — computed game-side from the same model the
       ///   vanilla tavern hire uses. Null = not recruitable (a lord, a notable, already

@@ -298,6 +298,25 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
+      /// <summary>
+      ///   A coarse-VOICE overlay for any captive scene whose captor is a brigand by station (a faceless
+      ///   bandit, or a named nemesis of a bandit clan). Governs how he SOUNDS, on top of the intent framing:
+      ///   crude, blunt, unlettered, driven by menace and appetite, never the measured, scheming eloquence of a
+      ///   lord. This is what stops a persistent nemesis (who carries a profiled, sometimes calculating persona)
+      ///   from writing like a nobleman, a player-reported break in immersion.
+      /// </summary>
+      private static void AppendBrigandVoiceOverlay(StringBuilder sb)
+      {
+         sb.AppendLine("YOU ARE A BRIGAND, NOT A LORD (this governs your VOICE above all else):");
+         sb.AppendLine("Whatever else is true of you, you are an outlaw and a cutthroat, not a nobleman. Speak coarse");
+         sb.AppendLine("and blunt, in short brutal bursts, driven by threats, taunts, appetite, and greed. You are");
+         sb.AppendLine("unlettered: you do NOT philosophize, weigh the politics of the realm, or scheme like a courtier,");
+         sb.AppendLine("and you do not talk like one. No fine words, no measured eloquence, no strategic musings. Menace");
+         sb.AppendLine("and want, plainly put. You may remember this captive from before and throw it in their face, but");
+         sb.AppendLine("a brute's memory is a grudge to nurse, never a strategy to plan.");
+         sb.AppendLine();
+      }
+
       private static void AppendBanditMenaceRules(StringBuilder sb, CaptiveSceneIntent intent)
       {
          sb.AppendLine("CAPTIVE — THIS PLAYER IS YOUR PRISONER:");
@@ -2582,8 +2601,33 @@ namespace NpcMemoryService.Core.Prompts
          }
 
          AppendExecutePrisonerRule(sb);
+         AppendTurnToServiceRule(sb);
          AppendNoRecycledPhraseRule(sb);
          sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Taught in every player-as-captor scene: the player may, instead of killing you, offer to SPARE you
+      ///   and take you into their service. Whether you would accept is a matter of your own nature, so this
+      ///   only describes when a turn is plausible; the game re-runs the real gate on your fear, respect,
+      ///   hatred, and traits before honouring it, so a stray or mistaken emission is harmless. Not sexual
+      ///   content, so it is taught at every adult level.
+      /// </summary>
+      private static void AppendTurnToServiceRule(StringBuilder sb)
+      {
+         sb.AppendLine();
+         sb.AppendLine("A CHANCE TO LIVE, IF THEY OFFER YOUR LIFE FOR YOUR SERVICE:");
+         sb.AppendLine("If the player plainly offers to SPARE you and take you into their service (not a vague musing,");
+         sb.AppendLine("a real offer), weigh it as the man you are. A beaten survivor who has come to FEAR and grudgingly");
+         sb.AppendLine("RESPECT them may take the offer to live; a brave or honour-bound man would sooner die free than");
+         sb.AppendLine("serve his captor (unless he is also a cold pragmatist who bends when the arithmetic favours it);");
+         sb.AppendLine("and a man whose hatred of them runs too deep spits it back unless their power over him is utter.");
+         sb.AppendLine("If, being who you are, you would truly ACCEPT, play that turn in character, then emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: turn_nemesis");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("If you would refuse, refuse in character and do NOT emit it. Emit it at most ONCE, only for a");
+         sb.AppendLine("real offer of service, never for a mere promise of mercy or an offer of ransom or release.");
       }
 
       /// <summary>
@@ -2743,6 +2787,12 @@ namespace NpcMemoryService.Core.Prompts
          }
 
          AppendCaptiveVoiceAndPerspective(sb);
+
+         // A brigand captor (faceless bandit OR a named nemesis of a bandit clan) speaks like the cutthroat he
+         // is, whatever his profiled traits would otherwise make him. This overlays every intent below, so a
+         // persistent nemesis stops reading like an articulate, calculating lord (a player-reported complaint).
+         if (context?.CaptorIsBrigand == true) AppendBrigandVoiceOverlay(sb);
+
          AppendCaptorReleaseRule(sb, context);
          AppendNemesisRecaptureNote(sb, context);
 
