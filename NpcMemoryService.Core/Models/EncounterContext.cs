@@ -58,6 +58,23 @@ namespace NpcMemoryService.Core.Models
       public string? NpcSelfAppearance { get; init; }
 
       /// <summary>
+      ///   True when a bandit captor has ALREADY dealt with the player (his profile carries memories of
+      ///   them), so the "brigands do not know your name" perception no longer applies: he greets a captive
+      ///   he knows of old, by name. False on a first encounter, where learning the name in-scene stays part
+      ///   of the fiction.
+      /// </summary>
+      public bool CaptorKnowsPlayer { get; init; }
+
+      /// <summary>
+      ///   The GROUNDED quest menu: the tasks this giver can truly hand out RIGHT NOW, pre-validated
+      ///   against the live world by the host (a real infested hideout, a real enemy lord, a real war),
+      ///   one "- type (target_field: Name): cue" line each. When non-blank, the quest teaching offers
+      ///   ONLY these, targets verbatim, so a registered quest succeeds by construction. Null/empty
+      ///   falls back to the generic type catalogue (host supplied no scan). Per-conversation stable.
+      /// </summary>
+      public string? ViableQuestMenu { get; init; }
+
+      /// <summary>
       ///   Who is acting this beat: the lead captor, another single member of the band taking
       ///   their turn, or the remaining members acting on the prisoner together at once.
       /// </summary>

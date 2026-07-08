@@ -51,6 +51,14 @@ namespace NpcMemoryService.Core.Models
         public QuestProposal? QuestGiven { get; init; }
 
         /// <summary>
+        ///   True when a <c>[QUEST]</c> block WAS present but could not be parsed (missing or unknown
+        ///   type token, or a block truncated mid-way), so <see cref="QuestGiven" /> is null despite the
+        ///   NPC having spoken a task. The consumer should tell the player nothing was recorded rather
+        ///   than let the spoken offer and the registered state silently diverge.
+        /// </summary>
+        public bool QuestBlockMalformed { get; init; }
+
+        /// <summary>
         ///   The NPC's acknowledgement that one of their active quests is done
         ///   (a <c>[QUEST_COMPLETE]</c> block). Null when none was claimed. The consumer
         ///   pays the reward only if a matching, already-satisfied quest exists.

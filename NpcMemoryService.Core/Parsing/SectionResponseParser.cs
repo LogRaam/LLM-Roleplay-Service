@@ -65,6 +65,7 @@ namespace NpcMemoryService.Core.Parsing
          string? questAbandonSection = ExtractSection(rawResponse, QuestAbandonTag);
          IReadOnlyList<GameAction> actions = ParseActions(rawResponse);
          IReadOnlyList<WitnessReaction> witnessReactions = ParseWitnessReactions(rawResponse);
+         QuestProposal? questGiven = ParseQuestProposal(questSection);
 
          return new ParsedResponse {
             Dialogue = dialogue.Trim(),
@@ -79,7 +80,11 @@ namespace NpcMemoryService.Core.Parsing
             StanceShift = ParseStanceShift(stanceSection),
             Actions = actions,
             Discovery = ParseDiscovery(discoverySection),
-            QuestGiven = ParseQuestProposal(questSection),
+            QuestGiven = questGiven,
+            // The model DID emit a [QUEST] block but it could not be parsed (missing/unknown type,
+            // or the block arrived truncated). Surfaced so the host can tell the player the spoken
+            // offer was NOT recorded, instead of the two silently diverging.
+            QuestBlockMalformed = questGiven == null && !string.IsNullOrWhiteSpace(questSection),
             QuestCompleted = ParseQuestCompletion(questCompleteSection),
             QuestAbandoned = ParseQuestAbandon(questAbandonSection),
             WitnessReactions = witnessReactions

@@ -62,5 +62,42 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().Contain("north of Pravend");
       }
+
+      // ── The grounded viable-quest menu (the referential pre-validated against the world) ──
+
+      private static string BuildWithMenu(string menu)
+      {
+         var builder = new PromptBuilder {EnableQuests = true};
+
+         return builder.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10},
+            new EncounterContext {ViableQuestMenu = menu});
+      }
+
+      [Test]
+      public void GIVEN_a_grounded_menu_WHEN_teaching_task_issuance_THEN_only_the_menu_is_taught_not_the_generic_catalogue()
+      {
+         string prompt = BuildWithMenu("- bandit_hideout (target_settlement: Diathma): a lair infests the country nearby");
+
+         prompt.Should().Contain("THE ONLY TASKS THAT EXIST FOR YOU TO GIVE RIGHT NOW");
+         prompt.Should().Contain("target_settlement: Diathma");
+         // The generic, world-blind catalogue must NOT also be taught (it is what let the model invent targets).
+         prompt.Should().NotContain("Task types you may offer");
+      }
+
+      [Test]
+      public void GIVEN_no_grounded_menu_WHEN_teaching_task_issuance_THEN_the_generic_catalogue_remains_the_fallback()
+      {
+         string prompt = BuildWithQuests(Npc());
+
+         prompt.Should().Contain("Task types you may offer");
+      }
+
+      [Test]
+      public void GIVEN_quest_teaching_WHEN_rendered_THEN_the_pairing_contract_makes_the_block_mandatory_for_any_spoken_offer()
+      {
+         string prompt = BuildWithQuests(Npc());
+
+         prompt.Should().Contain("A task EXISTS only if you emit the [QUEST] block");
+      }
    }
 }

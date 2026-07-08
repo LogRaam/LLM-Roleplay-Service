@@ -46,5 +46,44 @@ namespace NpcMemoryServiceTests
       {
          BuildCaptivePrompt(captorIsBrigand: false).Should().NotContain("YOU ARE A BRIGAND, NOT A LORD");
       }
+
+      // ── The bandit captor's knowledge of the player across encounters ────
+
+      private static string BuildBanditPerceptionPrompt(bool captorKnowsPlayer)
+      {
+         var builder = new PromptBuilder {
+            AdultLevel = AdultContentLevel.Hardcore,
+            PlayerIsFemale = false,
+            PlayerName = "Arwa"
+         };
+         var context = new EncounterContext {
+            PlayerStatus = PlayerStatusVsNpc.Captive,
+            CaptiveIntent = CaptiveSceneIntent.Interrogation,
+            CaptorIsBandit = true,
+            CaptorIsBrigand = true,
+            CaptorKnowsPlayer = captorKnowsPlayer
+         };
+
+         return builder.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+      }
+
+      [Test]
+      public void GIVEN_a_first_encounter_WHEN_building_the_bandit_perception_THEN_the_captor_does_not_know_the_players_name()
+      {
+         string prompt = BuildBanditPerceptionPrompt(captorKnowsPlayer: false);
+
+         prompt.Should().Contain("You do NOT know their name");
+         prompt.Should().NotContain("you know them of old");
+      }
+
+      [Test]
+      public void GIVEN_a_captor_who_already_dealt_with_the_player_WHEN_building_the_bandit_perception_THEN_he_greets_them_by_name()
+      {
+         string prompt = BuildBanditPerceptionPrompt(captorKnowsPlayer: true);
+
+         prompt.Should().Contain("you know them of old");
+         prompt.Should().Contain("This is Arwa");
+         prompt.Should().NotContain("You do NOT know their name");
+      }
    }
 }

@@ -21,6 +21,38 @@ namespace NpcMemoryServiceTests
    [TestFixture]
    public class OpenRouterResponseParsingTests
    {
+      // ── Provider content-filter cuts (a moderated host stops generation mid-reply) ──
+
+      [Test]
+      public void GIVEN_a_reply_cut_by_the_providers_content_filter_WHEN_parsing_THEN_the_partial_text_and_the_reason_both_survive()
+      {
+         const string body = "{\"choices\":[{\"message\":{\"role\":\"assistant\",\"content\":\"He leans in and\"}," +
+                             "\"finish_reason\":\"content_filter\"}]}";
+
+         LlmResponse response = OpenRouterClient.ParseResponse(body);
+
+         response.IsSuccess.Should().BeTrue();
+         response.Content.Should().Be("He leans in and");
+         response.FinishReason.Should().Be("content_filter");
+      }
+
+      [TestCase("content_filter")]
+      [TestCase("content-filter")]
+      [TestCase("CONTENT_FILTER")]
+      [TestCase("moderation")]
+      public void GIVEN_the_known_filter_finish_reasons_WHEN_classifying_THEN_they_are_recognized_as_filter_cuts(string reason)
+      {
+         OpenRouterClient.IsContentFiltered(reason).Should().BeTrue();
+      }
+
+      [TestCase("stop")]
+      [TestCase("length")]
+      [TestCase(null)]
+      public void GIVEN_ordinary_finish_reasons_WHEN_classifying_THEN_they_are_not_filter_cuts(string reason)
+      {
+         OpenRouterClient.IsContentFiltered(reason).Should().BeFalse();
+      }
+
       [Test]
       public void GIVEN_a_reasoning_only_reply_cut_by_length_WHEN_parsing_THEN_it_is_an_empty_success_so_the_bigger_budget_retry_fires()
       {

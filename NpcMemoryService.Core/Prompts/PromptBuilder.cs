@@ -2384,7 +2384,20 @@ namespace NpcMemoryService.Core.Prompts
       private void AppendBanditPlayerPerception(StringBuilder sb, EncounterContext context)
       {
          sb.AppendLine("YOUR PRISONER (what you can tell):");
-         sb.AppendLine($"This captive is a {(PlayerIsFemale ? "woman" : "man")}. You do NOT know their name, " + "their house, or their station — brigands like you live apart from lords and their " + "registers. Do not use a name for them or claim to know who they are; you would not.");
+
+         // A first-time captive is a nameless stranger to a brigand; but a captor who has ALREADY dealt
+         // with this player (his memories above are of them) knows exactly who he holds, and greets them so.
+         if (context.CaptorKnowsPlayer && !string.IsNullOrWhiteSpace(PlayerName))
+         {
+            sb.AppendLine($"This captive is NO stranger: you know them of old. This is {PlayerName} " + $"({(PlayerIsFemale ? "a woman" : "a man")}), the one your memories above speak of. Use their " + "name freely; there is no mystery for you about who they are, and your history with them " + "colours everything you say.");
+            if (!string.IsNullOrWhiteSpace(context.PlayerAppearance))
+               sb.AppendLine($"What you can SEE of them (do not invent past this): {context.PlayerAppearance}");
+            sb.AppendLine();
+
+            return;
+         }
+
+         sb.AppendLine($"This captive is a {(PlayerIsFemale ? "woman" : "man")}. You do NOT know their name, " + "their house, or their station: brigands like you live apart from lords and their " + "registers. Do not use a name for them or claim to know who they are; you would not.");
 
          if (!string.IsNullOrWhiteSpace(context.PlayerAppearance))
             sb.AppendLine($"What you can SEE of them (do not invent past this): {context.PlayerAppearance}");
@@ -3359,7 +3372,7 @@ namespace NpcMemoryService.Core.Prompts
          // Don't teach quest-issuance to a captor either — a torture scene is not the place to hand
          // out errands, and the vocabulary itself fed the captor's confusion about quests.
          if (context?.PlayerStatus != PlayerStatusVsNpc.Captive)
-            AppendQuestInstructions(sb);
+            AppendQuestInstructions(sb, context);
          sb.AppendLine("Stay in character at all times. Never break the fourth wall.");
          sb.AppendLine("If the player's history conflicts with a stated stance, the history wins.");
          sb.AppendLine();
@@ -3683,7 +3696,7 @@ namespace NpcMemoryService.Core.Prompts
       ///   promise only what they would truly give. Completion is gated on verified
       ///   evidence (surfaced under YOUR QUESTS) — a player's bare claim is never enough.
       /// </summary>
-      private void AppendQuestInstructions(StringBuilder sb)
+      private void AppendQuestInstructions(StringBuilder sb, EncounterContext? context = null)
       {
          if (!EnableQuests) return;
 
@@ -3692,23 +3705,46 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("need this player, you may ask them to carry out a concrete deed. Nobles do not");
          sb.AppendLine("hand tasks to strangers — offer only when it fits who you are and where you stand.");
          sb.AppendLine();
-         sb.AppendLine("Task types you may offer (use the exact 'type' token and the noted target):");
-         sb.AppendLine("- bandit_clear (target_settlement): defeat bandits raiding near a settlement.");
-         sb.AppendLine("- bandit_hideout (target_settlement): clear out a bandit hideout near a settlement.");
-         sb.AppendLine("- attack_faction (target_faction): strike an enemy faction's parties — only if you war with them.");
-         sb.AppendLine("- attack_lord (target_hero): defeat a specific enemy lord in battle.");
-         sb.AppendLine("- raid_village (target_settlement): raid a village of a faction you war with.");
-         sb.AppendLine("- attack_caravan (target_faction): destroy a caravan of an enemy faction.");
-         sb.AppendLine("- siege (target_settlement): help take an enemy town or castle by siege.");
-         sb.AppendLine("- capture_prisoner (target_hero): take a specific enemy hero prisoner.");
-         sb.AppendLine("- execute_enemy (target_hero): kill a specific enemy hero.");
-         sb.AppendLine("- rescue_prisoner (target_hero): free a specific ally held captive.");
-         sb.AppendLine("- deliver_letter (target_hero): carry your message to a recipient — put it in 'description'.");
-         sb.AppendLine("- provide_gold (no target needed): the player owes you financial support — they must give you denars in conversation. This quest is issued by the game, not by you; only emit [QUEST_COMPLETE] once the player has actually paid (the deed is shown as done in YOUR QUESTS).");
-         sb.AppendLine("- scout_army (target_faction or target_hero): get close to an enemy army, observe its strength, and report back. Use target_hero to name the army's leader, or target_faction to accept any army of that faction.");
-         sb.AppendLine("- deliver_items (no target needed): the player must hand you goods worth at least a denar value, in conversation — the barter alternative to coin. Used in a bargain (see CONDITIONAL BARGAINS below); the game sets and enforces the required value.");
-         sb.AppendLine("- deliver_prisoner (target_hero or target_faction): the player hands you an enemy captive — a named lord, or any lord of an enemy faction. If they already hold a match it is handed over now; otherwise it is a capture-and-deliver task. Verified by a real prisoner transfer.");
-         sb.AppendLine("- declare_war (target_faction): the player declares war, as their OWN faction, on a faction you name — one you have cause to want struck, and that the player is not already at war with. A heavy ask; offer only for a great reward (often your own service). Verified ONLY when the PLAYER's faction is the one that declares — never when they are merely attacked.");
+
+         // The grounded menu: when the host has scanned the live world, teach ONLY the tasks it
+         // pre-validated (targets verbatim), so every offer the model makes can truly register.
+         // The generic catalogue below remains the fallback for hosts that supply no scan.
+         if (!string.IsNullOrWhiteSpace(context?.ViableQuestMenu))
+         {
+            sb.AppendLine("THE ONLY TASKS THAT EXIST FOR YOU TO GIVE RIGHT NOW (pre-checked against the world):");
+            sb.AppendLine(context!.ViableQuestMenu);
+            sb.AppendLine("Offer ONLY from this list, using the exact 'type' token and the EXACT target name shown");
+            sb.AppendLine("(copy it verbatim into the target field). Any other task, any other target, does not");
+            sb.AppendLine("exist and cannot be completed: never invent one. If none of these suit the moment,");
+            sb.AppendLine("give no task at all. (CONDITIONAL BARGAINS below are the one exception: when the PLAYER");
+            sb.AppendLine("asks a favor of you, those deed-for-favor terms follow their own rules.)");
+         }
+         else
+         {
+            sb.AppendLine("Task types you may offer (use the exact 'type' token and the noted target):");
+            sb.AppendLine("- bandit_clear (target_settlement): defeat bandits raiding near a settlement.");
+            sb.AppendLine("- bandit_hideout (target_settlement): clear out a bandit hideout near a settlement.");
+            sb.AppendLine("- attack_faction (target_faction): strike an enemy faction's parties, only if you war with them.");
+            sb.AppendLine("- attack_lord (target_hero): defeat a specific enemy lord in battle.");
+            sb.AppendLine("- raid_village (target_settlement): raid a village of a faction you war with.");
+            sb.AppendLine("- attack_caravan (target_faction): destroy a caravan of an enemy faction.");
+            sb.AppendLine("- siege (target_settlement): help take an enemy town or castle by siege.");
+            sb.AppendLine("- capture_prisoner (target_hero): take a specific enemy hero prisoner.");
+            sb.AppendLine("- execute_enemy (target_hero): kill a specific enemy hero.");
+            sb.AppendLine("- rescue_prisoner (target_hero): free a specific ally held captive.");
+            sb.AppendLine("- deliver_letter (target_hero): carry your message to a recipient; put it in 'description'.");
+            sb.AppendLine("- provide_gold (no target needed): the player owes you financial support: they must give you denars in conversation. This quest is issued by the game, not by you; only emit [QUEST_COMPLETE] once the player has actually paid (the deed is shown as done in YOUR QUESTS).");
+            sb.AppendLine("- scout_army (target_faction or target_hero): get close to an enemy army, observe its strength, and report back. Use target_hero to name the army's leader, or target_faction to accept any army of that faction.");
+            sb.AppendLine("- deliver_items (no target needed): the player must hand you goods worth at least a denar value, in conversation, the barter alternative to coin. Used in a bargain (see CONDITIONAL BARGAINS below); the game sets and enforces the required value.");
+            sb.AppendLine("- deliver_prisoner (target_hero or target_faction): the player hands you an enemy captive: a named lord, or any lord of an enemy faction. If they already hold a match it is handed over now; otherwise it is a capture-and-deliver task. Verified by a real prisoner transfer.");
+            sb.AppendLine("- declare_war (target_faction): the player declares war, as their OWN faction, on a faction you name, one you have cause to want struck, and that the player is not already at war with. A heavy ask; offer only for a great reward (often your own service). Verified ONLY when the PLAYER's faction is the one that declares, never when they are merely attacked.");
+         }
+
+         sb.AppendLine();
+         sb.AppendLine("A task EXISTS only if you emit the [QUEST] block in the same reply where you offer it.");
+         sb.AppendLine("Speak of giving a task without the block and NOTHING is recorded: the player can never");
+         sb.AppendLine("complete it, which reads as a broken promise. Never present a task as given, accepted,");
+         sb.AppendLine("or underway unless you emit the block with it.");
          sb.AppendLine();
          sb.AppendLine("[QUEST]");
          sb.AppendLine("type: one token from the list above");

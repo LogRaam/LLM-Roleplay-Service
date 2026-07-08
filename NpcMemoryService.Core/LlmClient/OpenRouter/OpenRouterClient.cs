@@ -43,13 +43,16 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
       {
          LlmResponse response = await SendOnceAsync(request, ct).ConfigureAwait(false);
 
-         // One retry when the provider cut the reply off by output length, OR returned an empty
-         // reply outright. Some models (notably certain DeepSeek deployments) truncate a reply
-         // mid-sentence; a fresh generation usually completes. Reasoning models (MiMo, GLM, R1...)
-         // can also return an empty content with finish_reason "stop" when the template closes on
-         // reasoning alone; an empty chat reply is never legitimate, so it earns the same retry.
-         // Bounded to a single retry so a model that always truncates cannot loop or double-bill.
-         if (response.IsSuccess && (IsLengthTruncated(response.FinishReason) || string.IsNullOrWhiteSpace(response.Content)))
+         // One retry when the provider cut the reply off by output length, by its CONTENT FILTER, or
+         // returned an empty reply outright. Some models (notably certain DeepSeek deployments) truncate
+         // a reply mid-sentence; a moderated host can stop generation partway with finish_reason
+         // "content_filter" (the reply arrives cut mid-act, which players read as the MOD censoring);
+         // a fresh generation usually completes (sampling differs roll to roll). Reasoning models
+         // (MiMo, GLM, R1...) can also return an empty content with finish_reason "stop" when the
+         // template closes on reasoning alone; an empty chat reply is never legitimate, so it earns
+         // the same retry. Bounded to a single retry so a model that always truncates cannot loop
+         // or double-bill.
+         if (response.IsSuccess && (IsLengthTruncated(response.FinishReason) || IsContentFiltered(response.FinishReason) || string.IsNullOrWhiteSpace(response.Content)))
          {
             // An EMPTY reply means a reasoning model spent the whole completion budget thinking
             // (or closed on reasoning alone) and never wrote any text. Retry with double the
@@ -71,15 +74,23 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
             LlmResponse retry = await SendOnceAsync(retryRequest, ct).ConfigureAwait(false);
 
             if (retry.IsSuccess && !string.IsNullOrEmpty(retry.Content))
-               // Prefer the retry even if also truncated — it's no worse. Stamped WasRetried so the
-               // host can log real retry frequency (token counts alone cannot reveal it).
+            {
+               // Prefer the retry even if also truncated, it's no worse. EXCEPT after a content-filter
+               // cut: the filter trips at a different point each roll, so keep whichever roll carried
+               // FURTHER before being stopped. Stamped WasRetried so the host can log real retry
+               // frequency (token counts alone cannot reveal it).
+               bool originalCarriedFurther = IsContentFiltered(response.FinishReason)
+                                             && response.Content != null
+                                             && response.Content.Length > retry.Content.Length;
+
                return new LlmResponse {
-                  Content = retry.Content,
+                  Content = originalCarriedFurther ? response.Content : retry.Content,
                   IsSuccess = true,
                   Usage = retry.Usage,
-                  FinishReason = retry.FinishReason,
+                  FinishReason = originalCarriedFurther ? response.FinishReason : retry.FinishReason,
                   WasRetried = true
                };
+            }
 
             if (!thinkingAteBudget) return response; // original had text; keep it over a failed retry
 
@@ -124,6 +135,21 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
 
       private static bool IsLengthTruncated(string? finishReason)
          => string.Equals(finishReason, "length", StringComparison.OrdinalIgnoreCase);
+
+      /// <summary>
+      ///   True when the provider stopped generation because ITS content filter tripped: the reply arrives
+      ///   cut mid-sentence with a "content_filter" finish reason (providers vary the exact spelling, so
+      ///   the check is separator-insensitive; "moderation" is the other reported variant).
+      /// </summary>
+      internal static bool IsContentFiltered(string? finishReason)
+      {
+         if (string.IsNullOrEmpty(finishReason)) return false;
+
+         string normalized = finishReason!.Replace("-", "").Replace("_", "").Trim();
+
+         return string.Equals(normalized, "contentfilter", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(normalized, "moderation", StringComparison.OrdinalIgnoreCase);
+      }
 
       // ── Response parsing ──────────────────────────────────────────────────
 

@@ -42,6 +42,51 @@ namespace NpcMemoryServiceTests
          result.Reputation.Should().BeNull();
       }
 
+      // ---------- Quest-block malformation is surfaced, never silent ----------
+
+      [Test]
+      public void A_quest_block_with_an_unknown_type_flags_malformed_instead_of_vanishing()
+      {
+         var raw = "[DIALOGUE]Go do this for me.[/DIALOGUE]\n[QUEST]\ntype: escort_caravan\ndescription: See them safe.\n[/QUEST]";
+
+         var result = _parser.Parse(raw);
+
+         result.QuestGiven.Should().BeNull();
+         result.QuestBlockMalformed.Should().BeTrue();
+      }
+
+      [Test]
+      public void A_quest_block_missing_its_type_flags_malformed()
+      {
+         var raw = "[QUEST]\ndescription: A task with no type token.\n[/QUEST]";
+
+         var result = _parser.Parse(raw);
+
+         result.QuestGiven.Should().BeNull();
+         result.QuestBlockMalformed.Should().BeTrue();
+      }
+
+      [Test]
+      public void A_wellformed_quest_block_parses_and_is_not_flagged()
+      {
+         var raw = "[QUEST]\ntype: bandit_clear\ntarget_settlement: Pravend\ndescription: Drive them off.\nreward_gold: 200\n[/QUEST]";
+
+         var result = _parser.Parse(raw);
+
+         result.QuestGiven.Should().NotBeNull();
+         result.QuestGiven!.Type.Should().Be(QuestType.BanditClear);
+         result.QuestBlockMalformed.Should().BeFalse();
+      }
+
+      [Test]
+      public void No_quest_block_at_all_is_not_flagged_malformed()
+      {
+         var result = _parser.Parse("[DIALOGUE]Fine weather.[/DIALOGUE]");
+
+         result.QuestGiven.Should().BeNull();
+         result.QuestBlockMalformed.Should().BeFalse();
+      }
+
       [TestCase("conflict", NotableEventType.Conflict)]
       [TestCase("betrayal", NotableEventType.Betrayal)]
       [TestCase("confrontation", NotableEventType.Confrontation)]
