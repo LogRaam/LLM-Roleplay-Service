@@ -45,6 +45,19 @@ namespace NpcMemoryService.Core.Models
       public string? ExtraActionTeachings { get; init; }
 
       /// <summary>
+      ///   The PLAYER's appearance in the THIRD person (Subject voice), composed by the host from derived body
+      ///   facts plus any authored prose. Rendered under THE PLAYER so the NPC pictures the player consistently
+      ///   and stops inventing their looks. Null/empty renders nothing.
+      /// </summary>
+      public string? PlayerAppearance { get; init; }
+
+      /// <summary>
+      ///   The SPEAKING NPC's OWN appearance in the SECOND person (Self voice), so it grounds its self-image and
+      ///   never invents contradictory looks. Rendered near the NPC's identity. Null/empty renders nothing.
+      /// </summary>
+      public string? NpcSelfAppearance { get; init; }
+
+      /// <summary>
       ///   Who is acting this beat: the lead captor, another single member of the band taking
       ///   their turn, or the remaining members acting on the prisoner together at once.
       /// </summary>

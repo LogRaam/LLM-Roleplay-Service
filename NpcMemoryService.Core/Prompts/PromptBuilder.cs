@@ -151,6 +151,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendPlayerDescription(sb, encounterContext);
          // ── Per-NPC identity ─────────────────────────────────────────────────
          AppendIdentity(sb, npc);
+         AppendNpcSelfAppearance(sb, encounterContext);
          if (LeanPromptPolicy.Include(PromptSection.AuthoredBackstory, lean)) AppendAuthoredBackstory(sb, npc);
          if (LeanPromptPolicy.Include(PromptSection.Relationships, lean)) AppendRelationships(sb, npc);
          AppendRomanticContext(sb, npc);
@@ -2385,6 +2386,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("YOUR PRISONER (what you can tell):");
          sb.AppendLine($"This captive is a {(PlayerIsFemale ? "woman" : "man")}. You do NOT know their name, " + "their house, or their station — brigands like you live apart from lords and their " + "registers. Do not use a name for them or claim to know who they are; you would not.");
 
+         if (!string.IsNullOrWhiteSpace(context.PlayerAppearance))
+            sb.AppendLine($"What you can SEE of them (do not invent past this): {context.PlayerAppearance}");
+
          if (context.PlayerLooksImportant)
             sb.AppendLine("Yet something about them gives you pause: their bearing, their gear, perhaps a scrap " + "of talk among your men — you SUSPECT this is no common traveler but someone of real " + "consequence, the kind a faction or a rich clan would ransom back at a steep price. " + "You don't know their name, but you can smell coin and leverage on them.");
          else if (context.PlayerLooksWealthy)
@@ -3587,6 +3591,20 @@ namespace NpcMemoryService.Core.Prompts
          }
       }
 
+      /// <summary>
+      ///   Renders the SPEAKING NPC's OWN appearance (Self voice, second person), so the character the LLM plays
+      ///   pictures its own body consistently and never invents contradictory looks. No-op when the host supplied
+      ///   nothing (nothing derivable stood out and no prose was authored).
+      /// </summary>
+      private void AppendNpcSelfAppearance(StringBuilder sb, EncounterContext? context)
+      {
+         if (string.IsNullOrWhiteSpace(context?.NpcSelfAppearance)) return;
+
+         sb.AppendLine("YOUR OWN APPEARANCE (how you carry yourself, stay true to it):");
+         sb.AppendLine(context!.NpcSelfAppearance);
+         sb.AppendLine();
+      }
+
       private void AppendPlayerDescription(StringBuilder sb, EncounterContext? context = null)
       {
          // A bandit/pirate captor lives outside the world of nobles: they do not know the
@@ -3602,8 +3620,9 @@ namespace NpcMemoryService.Core.Prompts
          bool hasName = !string.IsNullOrWhiteSpace(PlayerName);
          bool hasClan = !string.IsNullOrWhiteSpace(PlayerClanName);
          bool hasCustom = !string.IsNullOrWhiteSpace(PlayerDescription);
+         bool hasAppearance = !string.IsNullOrWhiteSpace(context?.PlayerAppearance);
 
-         if (!hasName && !hasClan && !hasCustom) return;
+         if (!hasName && !hasClan && !hasCustom && !hasAppearance) return;
 
          sb.AppendLine("THE PLAYER:");
          if (hasName)
@@ -3611,6 +3630,12 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine($"Gender: {(PlayerIsFemale ? "female" : "male")}");
          if (hasClan)
             sb.AppendLine($"Clan: {PlayerClanName}");
+         if (hasAppearance)
+         {
+            sb.AppendLine();
+            sb.AppendLine("Appearance (what you see of them, do not contradict or invent past this):");
+            sb.AppendLine(context!.PlayerAppearance);
+         }
          if (hasCustom)
          {
             sb.AppendLine();
