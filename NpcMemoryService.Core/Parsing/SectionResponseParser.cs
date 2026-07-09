@@ -369,6 +369,8 @@ namespace NpcMemoryService.Core.Parsing
                ? ParseRewardGrant(grantStr)
                : RewardGrant.None,
             RequiredValue = ClampNonNegative(TryParseSignedInt(fields, "required_value")),
+            Category = NullIfBlank(GetField(fields, "category")),
+            RequiredCount = ClampNonNegative(TryParseSignedInt(fields, "required_count")),
             MarriageSpouse = NullIfBlank(GetField(fields, "spouse"))
          };
       }
@@ -424,6 +426,12 @@ namespace NpcMemoryService.Core.Parsing
             "nemesis_bounty"
                or "bounty"
                or "hunt_nemesis" => QuestType.NemesisBounty,
+            "provide_goods"
+               or "provide_supplies"
+               or "supply"
+               or "supplies"
+               or "bring_goods"
+               or "bring_supplies" => QuestType.ProvideGoods,
             _ => null
          };
       }

@@ -87,6 +87,20 @@ namespace NpcMemoryServiceTests
          result.QuestBlockMalformed.Should().BeFalse();
       }
 
+      [Test]
+      public void A_provide_goods_quest_block_parses_its_category_and_count()
+      {
+         var raw = "[QUEST]\ntype: provide_goods\ncategory: horses\nrequired_count: 15\nreward_gold: 400\ndescription: My cavalry wants for mounts.\n[/QUEST]";
+
+         var result = _parser.Parse(raw);
+
+         result.QuestGiven.Should().NotBeNull();
+         result.QuestGiven!.Type.Should().Be(QuestType.ProvideGoods);
+         result.QuestGiven.Category.Should().Be("horses");
+         result.QuestGiven.RequiredCount.Should().Be(15);
+         result.QuestBlockMalformed.Should().BeFalse();
+      }
+
       [TestCase("conflict", NotableEventType.Conflict)]
       [TestCase("betrayal", NotableEventType.Betrayal)]
       [TestCase("confrontation", NotableEventType.Confrontation)]

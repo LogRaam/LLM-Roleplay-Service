@@ -104,6 +104,15 @@ namespace NpcMemoryService.Core.Models
         ///   itself constructs and offers it once a living, unresolved nemesis exists. Appended last to preserve
         ///   the integer ordinals above in old saves.
         /// </summary>
-        NemesisBounty
+        NemesisBounty,
+
+        /// <summary>
+        ///   A personal SUPPLY task: bring the giver a COUNT of goods of a named category (horses for their
+        ///   cavalry, livestock or grain to feed their people). Verified by a real hand-over of matching goods
+        ///   in conversation (the bag settles it, the bridge tallies the count), never by the LLM's word. Uses
+        ///   <see cref="InformalQuest.RequiredItemCategory"/> + <see cref="InformalQuest.RequiredItemCount"/>.
+        ///   Appended last to preserve the integer ordinals above in old saves.
+        /// </summary>
+        ProvideGoods
     }
 }

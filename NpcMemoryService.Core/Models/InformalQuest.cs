@@ -96,6 +96,18 @@ namespace NpcMemoryService.Core.Models
         public int RequiredItemValue { get; set; }
 
         /// <summary>
+        ///   For a <see cref="QuestType.ProvideGoods" /> supply task: the canonical goods category the player
+        ///   must hand over ("horses", "livestock", or "grain"). Null for non-supply quests.
+        /// </summary>
+        public string? RequiredItemCategory { get; set; }
+
+        /// <summary>
+        ///   For a <see cref="QuestType.ProvideGoods" /> supply task: how many head/units of
+        ///   <see cref="RequiredItemCategory" /> the player must hand over. Zero for non-supply quests.
+        /// </summary>
+        public int RequiredItemCount { get; set; }
+
+        /// <summary>
         ///   For a <see cref="RewardGrant.MarriageConsent" /> bargain: the hero whose hand the
         ///   blessing covers — the intended spouse, distinct from the deed's <see cref="TargetHeroId" />
         ///   (which may name a rival to capture, a town to take, etc.). The blessing is recorded for

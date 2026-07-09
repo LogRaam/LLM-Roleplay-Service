@@ -53,6 +53,18 @@ namespace NpcMemoryService.Core.Models
         public int RequiredValue { get; init; }
 
         /// <summary>
+        ///   For a <see cref="QuestType.ProvideGoods" /> supply task: the goods category the giver named
+        ///   ("horses", "livestock", "grain", or a synonym), as the LLM wrote it. Normalized game-side.
+        /// </summary>
+        public string? Category { get; init; }
+
+        /// <summary>
+        ///   For a <see cref="QuestType.ProvideGoods" /> supply task: how many head/units the giver asked
+        ///   for, in the LLM's words. Clamped game-side.
+        /// </summary>
+        public int RequiredCount { get; init; }
+
+        /// <summary>
         ///   For a <see cref="RewardGrant.MarriageConsent" /> bargain: the name of the intended
         ///   spouse the blessing covers (the candidate the player asked after), as the LLM wrote
         ///   it. Resolved and validated game-side. Null for non-marriage bargains.
