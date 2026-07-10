@@ -208,6 +208,14 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public string? GeographyNote { get; init; }
 
+      /// <summary>
+      ///   Ready-to-inject "first impression" guidance for a barely-known NPC: how their traits and the player's
+      ///   standing colour their OPENING TONE (warm, reserved, arrogant, suspicious, demeaning), built game-side.
+      ///   It steers tone only, never the relation numbers (deeds still govern regard). Null for an already-known
+      ///   NPC or an ordinary neutral opening.
+      /// </summary>
+      public string? OpeningDisposition { get; init; }
+
       public int DaysSinceLastMeeting { get; init; } = -1;
 
       /// <summary>

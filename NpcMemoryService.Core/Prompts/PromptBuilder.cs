@@ -830,6 +830,13 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         if (!string.IsNullOrWhiteSpace(context.OpeningDisposition))
+         {
+            sb.AppendLine("FIRST IMPRESSION (how you open with this person you barely know):");
+            sb.AppendLine(context.OpeningDisposition);
+            sb.AppendLine();
+         }
+
          if (!string.IsNullOrWhiteSpace(context.ContextualNames))
          {
             sb.AppendLine(context.ContextualNames);
