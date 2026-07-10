@@ -200,6 +200,14 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public string? CurrentLocationNote { get; init; }
 
+      /// <summary>
+      ///   Ready-to-inject geography grounding, built game-side from the engine's own map data: the
+      ///   encyclopedia blurb of the settlement the NPC stands in, plus compact facts (owner, culture,
+      ///   bearing) for any place named in the conversation, so the NPC never invents where places sit
+      ///   relative to one another. Null when there is nothing concrete to ground.
+      /// </summary>
+      public string? GeographyNote { get; init; }
+
       public int DaysSinceLastMeeting { get; init; } = -1;
 
       /// <summary>

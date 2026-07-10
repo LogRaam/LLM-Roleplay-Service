@@ -822,6 +822,14 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         if (!string.IsNullOrWhiteSpace(context.GeographyNote))
+         {
+            sb.AppendLine("THE LAY OF THE LAND (real geography, treat as fact):");
+            sb.AppendLine(context.GeographyNote);
+            sb.AppendLine("Never contradict these locations or invent where a place sits or which lands border it; if you are unsure of a place you were not told about, say so rather than guess.");
+            sb.AppendLine();
+         }
+
          if (!string.IsNullOrWhiteSpace(context.ContextualNames))
          {
             sb.AppendLine(context.ContextualNames);
