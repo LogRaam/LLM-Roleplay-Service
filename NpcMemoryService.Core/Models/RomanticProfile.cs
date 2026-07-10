@@ -66,9 +66,11 @@ namespace NpcMemoryService.Core.Models
 
       public List<Kink> Kinks { get; init; } = new();
 
-      // ── Layer 2: orientation (set at creation) ───────────────────────
+      // ── Layer 2: orientation (rolled at creation; overridable by authored char data) ──
 
-      public SexualOrientation Orientation { get; init; } = SexualOrientation.Heterosexual;
+      // Settable, not init-only: a player may deliberately change an NPC's orientation via
+      // character_overrides.json (or the cr.orientation console), e.g. to enable a same-sex romance.
+      public SexualOrientation Orientation { get; set; } = SexualOrientation.Heterosexual;
 
       // ── Layer 3: preferences (set at creation) ───────────────────────
 

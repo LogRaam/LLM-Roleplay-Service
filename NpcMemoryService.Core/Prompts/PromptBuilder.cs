@@ -254,9 +254,12 @@ namespace NpcMemoryService.Core.Prompts
       private static void AppendAuthoredBackstory(StringBuilder sb, NpcProfile npc)
       {
          if (string.IsNullOrWhiteSpace(npc.AuthoredBackstory)) return;
-         sb.AppendLine("BACKSTORY (roleplay color the player has written for you — flavor, not a rule:");
-         sb.AppendLine("draw on it for who you are and how you speak, but your CONDUCT still follows your");
-         sb.AppendLine("traits and the guidelines above; it makes no claim about how you behave):");
+         sb.AppendLine("BACKSTORY AND VOICE (the player has written this to shape how you sound). ADOPT it: let it set");
+         sb.AppendLine("your temperament, tone, and manner, and USE any speech quirks or recurring words it gives you");
+         sb.AppendLine("(e.g. a habitual 'Hmm', a name you always use) naturally, not in every line. This is HOW you");
+         sb.AppendLine("speak. It does NOT change WHAT you decide: your conduct still follows your traits and the");
+         sb.AppendLine("guidelines, and you stay within Calradia. Take the STYLE and temperament of any figure it");
+         sb.AppendLine("names, never their world: never import names, places, powers, or lore from outside Calradia.");
          sb.AppendLine(npc.AuthoredBackstory);
          sb.AppendLine();
       }
