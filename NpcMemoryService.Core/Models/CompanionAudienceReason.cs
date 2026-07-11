@@ -16,6 +16,13 @@ namespace NpcMemoryService.Core.Models
       Grievance,
 
       /// <summary>They are war-weary and wish to retire (leave, or step back from the field if landed).</summary>
-      Retirement
+      Retirement,
+
+      /// <summary>
+      ///   A faithful, content companion has come to confide genuine affection born of shared war, and wishes
+      ///   to become the player's discreet SECRET LOVER. Never a demand or a bargain. Added last to preserve the
+      ///   serialized ordinals of existing saves.
+      /// </summary>
+      SecretAffection
    }
 }

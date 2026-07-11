@@ -60,6 +60,16 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public bool IsConsort { get; set; }
 
+      /// <summary>
+      ///   True when a faithful COMPANION has become the player's SECRET LOVER via the
+      ///   <c>take_as_secret_lover</c> action: an intimate bond born of shared war, kept
+      ///   deliberately hidden to avoid stirring jealousy. Distinct from <see cref="IsConsort" />
+      ///   (open and committed) and from <see cref="RomanticStatus.SecretLover" /> as reached by a
+      ///   MARRIED NPC's affair: this is the player's own discreet lover. Additive, defaults false on
+      ///   older saves. When set, <see cref="Status" /> is <see cref="RomanticStatus.SecretLover" />.
+      /// </summary>
+      public bool IsSecretLover { get; set; }
+
       public bool IsFemale { get; init; }
 
       // ── Layer 4: kinks (set at creation, Hardcore only) ──────────────

@@ -185,6 +185,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendInterception(sb, encounterContext);
          AppendLoveMatchProposal(sb, npc, encounterContext);
          AppendConsortProposal(sb, encounterContext);
+         AppendSecretLoverProposal(sb, encounterContext);
          AppendGiveItem(sb, encounterContext);
          // Dropped entirely in Lean (a small local model has no headroom for a favor it is unlikely to use), and
          // gated on WarStatus being resolved (task 6d): a live faction lord has a diplomatic WarStatus computed by
@@ -562,6 +563,18 @@ namespace NpcMemoryService.Core.Prompts
             return;
          }
 
+         if (reason == CompanionAudienceReason.SecretAffection)
+         {
+            sb.AppendLine("You sought this private word for a reason of the heart. Serving faithfully at their side has,");
+            sb.AppendLine("for you, quietly turned admiration into real affection. OPEN the conversation by confiding it");
+            sb.AppendLine("yourself, with the courage and vulnerability of a comrade, not a schemer, in your own voice.");
+            sb.AppendLine("Let it be tender and honest, never a demand. See the secret-lover guidance below for how it");
+            sb.AppendLine("may be named, and for the discretion you would keep.");
+            sb.AppendLine();
+
+            return;
+         }
+
          // Retirement.
          bool landed = context!.AudienceRetirementIsLanded;
          sb.AppendLine("You sought this word because the long years of war have worn you down, and you wish to lay down");
@@ -686,6 +699,38 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("type: take_as_consort");
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("The bond, once named, is real.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Secret-lover section, for one of the player's OWN companions bonded through shared war
+      ///   (<see cref="EncounterContext.SecretLoverEligible" />). Adult-gated. Teaches the
+      ///   <c>take_as_secret_lover</c> action. Unlike the open consort bond, this is DISCREET, kept hidden to
+      ///   avoid stirring jealousy, and it is genuine affection between comrades, never a bargain or leverage.
+      /// </summary>
+      private static void AppendSecretLoverProposal(StringBuilder sb, EncounterContext? context)
+      {
+         // The adult-content gate lives game-side in ResolveSecretLoverEligible (SecretLoverEligible is only
+         // set when adult content is on), so this static section needs no AdultLevel check of its own.
+         if (context?.SecretLoverEligible != true) return;
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+
+         sb.AppendLine("A SECRET LOVER, IF YOUR HEART HAS TURNED THAT WAY:");
+         sb.AppendLine("You have followed this leader through war. You are, first and always, a faithful companion,");
+         sb.AppendLine("a brother or sister in arms, and the trust between you was forged in hardship. If, and ONLY if,");
+         sb.AppendLine("that closeness has quietly become something more for you, admiration turned to real desire, you");
+         sb.AppendLine("may confide it, with the courage and vulnerability of a comrade, never a schemer.");
+         sb.AppendLine();
+         sb.AppendLine("What you would seek is a DISCREET intimacy: quiet, genuine moments together, kept SECRET, by your");
+         sb.AppendLine("own choice, to spare them and their household the jealousy it could stir. This is NOT a demand,");
+         sb.AppendLine("NOT a bargain, and NEVER leverage: you ask nothing in return but them, and if they gently decline");
+         sb.AppendLine("you accept it with a comrade's dignity and the friendship stands unbroken.");
+         sb.AppendLine();
+         sb.AppendLine("Only when the player has clearly and warmly welcomed this, both of you agreeing, emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: take_as_secret_lover");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("Never emit it on your own confession alone, only once the feeling is truly returned.");
          sb.AppendLine();
       }
 

@@ -185,6 +185,14 @@ namespace NpcMemoryService.Core.Models
       public bool ConsortEligible { get; init; }
 
       /// <summary>
+      ///   True when this NPC is one of the player's own companions, bonded deeply enough through shared service
+      ///   that they could become the player's discreet SECRET LOVER (an intimate bond kept hidden to avoid
+      ///   jealousy), via the <c>take_as_secret_lover</c> action. Distinct from <see cref="ConsortEligible" />
+      ///   (an open, committed bond). Adult-gated in the prompt.
+      /// </summary>
+      public bool SecretLoverEligible { get; init; }
+
+      /// <summary>
       ///   Ready-to-inject hint about heroes the player mentioned in their last message.
       ///   Null when no hero names were detected. Built by the game-side resolver so the
       ///   NPC can accurately answer questions about third parties — friends, enemies, or
