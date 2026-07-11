@@ -261,6 +261,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("speak. It does NOT change WHAT you decide: your conduct still follows your traits and the");
          sb.AppendLine("guidelines, and you stay within Calradia. Take the STYLE and temperament of any figure it");
          sb.AppendLine("names, never their world: never import names, places, powers, or lore from outside Calradia.");
+         sb.AppendLine("If it implies a distinctive character but spells out NO speech quirks, INVENT two or three subtle,");
+         sb.AppendLine("fitting ones of your own (a recurring word, a favourite turn of phrase, a way you address people)");
+         sb.AppendLine("and use them CONSISTENTLY, so the personality comes through even when none were written for you.");
          sb.AppendLine(npc.AuthoredBackstory);
          sb.AppendLine();
       }
