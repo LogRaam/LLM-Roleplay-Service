@@ -891,6 +891,15 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         if (context.IsRoundTableTurn)
+         {
+            sb.AppendLine("ROUND TABLE:");
+            sb.AppendLine("The floor is open to everyone present. Speak at more length than a normal reply, a full and");
+            sb.AppendLine("substantive contribution in your own voice. You may respond to, build on, agree or disagree with,");
+            sb.AppendLine("or address by name another person present, not only the player. Do not simply defer back to the player.");
+            sb.AppendLine();
+         }
+
          // Only ever non-zero for a speaker who would plausibly know it (the player's own companions /
          // party members — see EncounterContextBuilder.ResolvePlayerPartyTroopCount); everyone else gets
          // 0 and this stays silent rather than handing out a metagame number.

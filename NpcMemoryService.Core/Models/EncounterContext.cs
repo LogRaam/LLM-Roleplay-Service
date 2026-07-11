@@ -366,6 +366,13 @@ namespace NpcMemoryService.Core.Models
       public bool IsLastWitnessExchange { get; init; }
 
       /// <summary>
+      ///   True on a turn fired by the round-table group mode: the floor is open to everyone present, so the
+      ///   NPC should speak at more length than a normal reply and may address the other people present by name,
+      ///   not only the player. Set by the game-side round-table orchestrator; false in ordinary turns.
+      /// </summary>
+      public bool IsRoundTableTurn { get; init; }
+
+      /// <summary>
       ///   True when this turn is an automatic NPC response to a witness who just
       ///   reacted (Sprint 15C). The final user message in the session is a witness
       ///   statement ([Name]: …), not a player message. When set, the prompt instructs
