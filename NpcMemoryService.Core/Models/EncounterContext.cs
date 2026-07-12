@@ -216,6 +216,9 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public string? GeographyNote { get; init; }
 
+      /// <summary>True when this conversation happens aboard a ship on open water (player party at sea).</summary>
+      public bool AtSea { get; init; }
+
       /// <summary>
       ///   Ready-to-inject "first impression" guidance for a barely-known NPC: how their traits and the player's
       ///   standing colour their OPENING TONE (warm, reserved, arrogant, suspicious, demeaning), built game-side.

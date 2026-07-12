@@ -212,6 +212,7 @@ namespace NpcMemoryService.Core.Prompts
          // or it invalidates the prefix cache on every single turn of a long captive scene. ─────────────────
          AppendEncounterContext(sb, encounterContext);
          AppendWorldState(sb, world);
+         AppendAtSeaNote(sb, encounterContext);
          AppendWitnessTurnDirectives(sb, encounterContext);
          if (ShouldAppendCaptiveStageDirective(encounterContext))
             AppendSceneStageDirective(sb, encounterContext);
@@ -2060,6 +2061,16 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine($"Active conflicts: {world.ActiveConflicts}");
          if (!string.IsNullOrWhiteSpace(world.Rumors))
             sb.AppendLine($"Rumors: {world.Rumors}");
+         sb.AppendLine();
+      }
+
+      private static void AppendAtSeaNote(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.AtSea != true) return;
+         sb.AppendLine("AT SEA: this conversation is happening aboard a ship on open water, out of sight of land.");
+         sb.AppendLine("There are no horses, no roads, no inns, no farms here, only the deck, the sea, and the crew.");
+         sb.AppendLine("Speak and act as people do at sea; do not talk of riding, roads, or overland travel as if you");
+         sb.AppendLine("were on land.");
          sb.AppendLine();
       }
 
