@@ -74,9 +74,10 @@ namespace NpcMemoryServiceTests
       ///   local model's context window. Budget: ~1.6k tokens of instruction overhead, ~6.5k chars at the
       ///   usual ~4 chars/token. The always-on Lean contract crept ~600 chars across later increments (new
       ///   actions, rules); 2026-07-06 the lean behaviour guidelines were tightened to reclaim some, landing
-      ///   at ~6.47k chars for a minimal profile (no history, no relationships, no encounter flavour). 6600
-      ///   leaves a little headroom for incidental drift without being so loose it stops catching a
-      ///   regression that re-bloats Lean mode.
+      ///   at ~6.47k chars for a minimal profile (no history, no relationships, no encounter flavour). 2026-07-12
+      ///   the compact end-of-prompt FORMAT REMINDER (three lines in Lean, so a weak model still emits [ACTION]/
+      ///   [EVENT] blocks) added ~126 chars, landing at ~6.73k. 6850 leaves a little headroom for incidental
+      ///   drift without being so loose it stops catching a regression that re-bloats Lean mode.
       /// </summary>
       [Test]
       public void GIVEN_a_lean_prompt_for_a_minimal_profile_WHEN_built_THEN_it_stays_under_the_token_budget()
@@ -86,7 +87,7 @@ namespace NpcMemoryServiceTests
 
          string prompt = builder.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
-         prompt.Length.Should().BeLessThan(6600);
+         prompt.Length.Should().BeLessThan(6850);
       }
    }
 }

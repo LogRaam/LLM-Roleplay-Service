@@ -222,6 +222,11 @@ namespace NpcMemoryService.Core.Prompts
          AppendStayWithinWhatYouKnow(sb);
          AppendPlayerActionNarration(sb);
          AppendLanguageMirror(sb);
+         // A short, forceful restatement of the machine-read contract, placed at the very end (highest recency)
+         // because the full format teaching sits ~10k tokens up in the cached prefix: a weaker model that follows
+         // instructions loosely (dialogue only, no [ACTION]/[EVENT]) is far more likely to emit the blocks when
+         // the rule is the last thing it reads before generating.
+         AppendFormatReminder(sb, lean);
          // Last of all (highest recency) — the modder's own post-history instructions, if any.
          AppendPostHistoryInstructions(sb);
 
@@ -4033,6 +4038,36 @@ namespace NpcMemoryService.Core.Prompts
          if (string.IsNullOrWhiteSpace(PostHistoryInstructions)) return;
          sb.AppendLine();
          sb.AppendLine(PostHistoryInstructions);
+      }
+
+      /// <summary>
+      ///   A short, forceful restatement of the machine-read output contract, emitted at the very end of the
+      ///   prompt (highest recency). The full format teaching sits far up in the cached prefix; a model that
+      ///   follows structure loosely (prose only, no [ACTION]/[EVENT]) is much likelier to emit the blocks when
+      ///   the rule is the last thing it reads. Kept generic ("the block taught above for it") so it holds in
+      ///   every mode (Lean, Full, captive scene) without re-teaching block bodies or naming gated sections.
+      /// </summary>
+      private static void AppendFormatReminder(StringBuilder sb, LeanPromptLevel lean)
+      {
+         sb.AppendLine();
+         if (lean == LeanPromptLevel.Lean)
+         {
+            // A small / short-context model needs the reminder most, but has the least room: keep it to the
+            // essential contract in three lines so it fits the Lean budget.
+            sb.AppendLine("FORMAT REMINDER: put speech in [DIALOGUE] ... [/DIALOGUE]. When a concrete change happens this");
+            sb.AppendLine("turn (coin, a deal, a status change, a parting), you MUST emit its block ([ACTION]/[EVENT]) as");
+            sb.AppendLine("taught, or the game cannot see it and it will not take effect.");
+
+            return;
+         }
+
+         sb.AppendLine("FORMAT REMINDER (this is how the game READS your reply, so it is not optional):");
+         sb.AppendLine("Wrap everything you SAY aloud in [DIALOGUE] ... [/DIALOGUE]. Whenever something the rules");
+         sb.AppendLine("above treat as a concrete change truly happens this turn (coin changes hands, a deal is");
+         sb.AppendLine("struck, a status changes, you part ways, or any other change those rules name), you MUST");
+         sb.AppendLine("also emit the matching block taught above for it (such as [ACTION] or [EVENT]) in the exact");
+         sb.AppendLine("shape shown. If you skip the block, the game cannot see what happened and it will not take");
+         sb.AppendLine("effect. Never answer as one run of plain prose with no tags.");
       }
 
       private bool IsPlayerCompatible(RomanticProfile romantic)
