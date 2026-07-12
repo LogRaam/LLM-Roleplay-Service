@@ -255,15 +255,15 @@ namespace NpcMemoryService.Core.Prompts
       private static void AppendAuthoredBackstory(StringBuilder sb, NpcProfile npc)
       {
          if (string.IsNullOrWhiteSpace(npc.AuthoredBackstory)) return;
-         sb.AppendLine("BACKSTORY AND VOICE (the player has written this to shape how you sound). ADOPT it: let it set");
-         sb.AppendLine("your temperament, tone, and manner, and USE any speech quirks or recurring words it gives you");
-         sb.AppendLine("(e.g. a habitual 'Hmm', a name you always use) naturally, not in every line. This is HOW you");
-         sb.AppendLine("speak. It does NOT change WHAT you decide: your conduct still follows your traits and the");
-         sb.AppendLine("guidelines, and you stay within Calradia. Take the STYLE and temperament of any figure it");
-         sb.AppendLine("names, never their world: never import names, places, powers, or lore from outside Calradia.");
-         sb.AppendLine("If it implies a distinctive character but spells out NO speech quirks, INVENT two or three subtle,");
-         sb.AppendLine("fitting ones of your own (a recurring word, a favourite turn of phrase, a way you address people)");
-         sb.AppendLine("and use them CONSISTENTLY, so the personality comes through even when none were written for you.");
+         sb.AppendLine("BACKSTORY AND VOICE (the player wrote this to shape who you are and how you sound). COMMIT to it");
+         sb.AppendLine("fully: it sets your temperament, tone, and manner, and it must come through clearly and");
+         sb.AppendLine("unmistakably in every reply, never as a faint flavour. USE the speech quirks or recurring words it");
+         sb.AppendLine("gives you (a habitual 'Hmm', a name you always use) so the character is instantly recognisable.");
+         sb.AppendLine("It shapes HOW you speak and WHO you are, not WHAT you decide: your conduct still follows your");
+         sb.AppendLine("traits, the guidelines, and Calradia's world. If it names a figure, take that figure's FULL manner,");
+         sb.AppendLine("voice, and force of personality; keep only their world out of the fiction (import no names, places,");
+         sb.AppendLine("powers, or lore from outside Calradia). If, and ONLY if, it spells out no speech quirks of its own,");
+         sb.AppendLine("invent two or three that fit and use them consistently, so a clear personality still comes through.");
          sb.AppendLine(npc.AuthoredBackstory);
          sb.AppendLine();
       }
