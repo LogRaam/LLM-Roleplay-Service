@@ -118,6 +118,28 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
         public string? ResolveReasoning() => ReasoningProvider?.Invoke();
 
         /// <summary>
+        ///   Live resolver for OpenRouter's PROVIDER ROUTING: a comma-separated list of provider slugs the
+        ///   request may be served by, read on every request. Null/empty leaves OpenRouter's own routing alone
+        ///   (the historical behaviour), so the pin is strictly opt-in and no other OpenAI-compatible endpoint
+        ///   ever sees the field. Players use it to pin a provider that does not stop generation on its own
+        ///   content filter (see <see cref="ProviderRouting" />).
+        /// </summary>
+        public Func<string?>? ProviderSlugsProvider { get; init; }
+
+        /// <summary>
+        ///   Live resolver for whether OpenRouter may fall back to providers OUTSIDE the pinned list when those
+        ///   are unavailable. False makes the pin a hard restriction, which is what "force a specific provider"
+        ///   means; true keeps the pin as a mere preference. Null = false.
+        /// </summary>
+        public Func<bool>? AllowProviderFallbacksProvider { get; init; }
+
+        /// <summary>The pinned provider slugs at call time, parsed and de-duplicated. Empty = OpenRouter routes as it sees fit.</summary>
+        public string[] ResolveProviderSlugs() => ProviderRouting.ParseSlugs(ProviderSlugsProvider?.Invoke());
+
+        /// <summary>Whether a pinned request may still be served by a provider outside the list. Defaults to false (a hard pin).</summary>
+        public bool ResolveAllowProviderFallbacks() => AllowProviderFallbacksProvider?.Invoke() ?? false;
+
+        /// <summary>
         ///   Resolves whether to emit the cacheable system-prompt content array.
         ///   Defaults to true (caching on) when no provider is set.
         /// </summary>

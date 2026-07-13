@@ -362,6 +362,17 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          object? reasoning = BuildReasoning(_config.ResolveReasoning());
          if (reasoning != null) payload["reasoning"] = reasoning;
 
+         // OpenRouter provider routing: pin the request to specific providers, in the player's chosen order.
+         // Several providers moderate their own OUTPUT and cut generation the moment profanity appears, which
+         // arrives as a reply chopped mid-sentence. Omitted entirely when nothing is pinned, so every other
+         // OpenAI-compatible endpoint keeps receiving exactly the payload it received before.
+         string[] providerSlugs = _config.ResolveProviderSlugs();
+         if (providerSlugs.Length > 0)
+            payload["provider"] = new Dictionary<string, object> {
+               ["order"] = providerSlugs,
+               ["allow_fallbacks"] = _config.ResolveAllowProviderFallbacks()
+            };
+
          return payload;
       }
 
