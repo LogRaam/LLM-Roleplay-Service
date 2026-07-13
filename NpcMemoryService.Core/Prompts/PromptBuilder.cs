@@ -814,6 +814,15 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         // How the NPC is at the player's side right now (riding along, marching in the army, sharing a town),
+         // stated plainly and WITHOUT the gap note's restraint: closeness is a bond to lean into, and a partner
+         // travelling with the player must never sound as though they had been abandoned.
+         if (!string.IsNullOrWhiteSpace(context.PresenceNote))
+         {
+            sb.AppendLine(context.PresenceNote);
+            sb.AppendLine();
+         }
+
          // Time apart, surfaced only for a genuinely long absence (host-gated) and with restraint — short gaps
          // are unremarkable when the player travels the map fast, and NPCs were opening every chat on the count.
          if (!string.IsNullOrWhiteSpace(context.MeetingGapNote))

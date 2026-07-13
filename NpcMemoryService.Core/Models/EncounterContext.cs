@@ -238,6 +238,15 @@ namespace NpcMemoryService.Core.Models
       public string? MeetingGapNote { get; init; }
 
       /// <summary>
+      ///   A present-tense line telling the NPC how they are at the player's side right now (riding in the
+      ///   party, marching in the army, or sharing a town), host-resolved from the live presence tier. Null when
+      ///   the NPC is away. Rendered plainly, without the "time apart" restraint the gap note carries: a shared
+      ///   road is a bond to lean into, not a lapse to excuse. It is why a companion travelling with the player
+      ///   no longer opens as though abandoned for a season between two ports.
+      /// </summary>
+      public string? PresenceNote { get; init; }
+
+      /// <summary>
       ///   A prompt-ready list of the LORD captives the player currently holds (name + faction),
       ///   or null/empty when they hold none. Lets a lord demand a captive as the price of a favor:
       ///   a match the player already holds is an immediate hand-over, one they do not is a
