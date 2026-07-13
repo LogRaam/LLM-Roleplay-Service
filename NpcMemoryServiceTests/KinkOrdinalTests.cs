@@ -1,4 +1,10 @@
 // Code written by Gabriel Mailhot, 01/07/2026.
+// Kink (NpcMemoryService.Core.Models) is stored per NPC profile as a raw int inside the player's save.
+// The enum has no explicit numeric values, so the C# compiler assigns them by DECLARATION ORDER: inserting,
+// removing, or reordering a member reassigns every later ordinal, and a save written before the change
+// deserializes into the WRONG kink after it (an NPC's persisted Sadism silently becomes Masochism). This
+// test pins the whole name-to-ordinal map so that kind of edit fails the build, not a player's save file.
+// The save-migration rule for this project is that new members are only ever APPENDED AT THE END.
 
 #region
 
@@ -20,6 +26,9 @@ namespace NpcMemoryServiceTests
    [TestFixture]
    public class KinkOrdinalTests
    {
+      // One TestCase per member, each pinning its ordinal by hand: this is the actual save contract, not a
+      // loop over Enum.GetValues (which would just restate whatever order the enum happens to be in today
+      // and catch nothing). A future edit that moves, say, Sadism from 4 to 5 fails exactly here.
       [TestCase(Kink.None, 0)]
       [TestCase(Kink.Dominance, 1)]
       [TestCase(Kink.Submission, 2)]
@@ -56,6 +65,9 @@ namespace NpcMemoryServiceTests
             "reordering this enum reinterprets every previously-saved kink of a later value");
       }
 
+      // The companion guard: the count alone catches a member appended at the end without ANY corresponding
+      // [TestCase] above (which the per-value assertions can't see, since they only check what's already
+      // listed). A failure here means "go add the missing [TestCase], last, with the next free ordinal".
       [Test]
       public void GIVEN_the_Kink_enum_WHEN_counting_members_THEN_no_value_was_added_without_updating_this_test()
       {

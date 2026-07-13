@@ -36,6 +36,9 @@ namespace NpcMemoryServiceTests
             Npc(backstory), new WorldState {CurrentDay = 10},
             new EncounterContext {LeanLevel = LeanPromptLevel.Full});
 
+      // The baseline every other test in this file assumes: if the authored text itself stops reaching the
+      // prompt, no amount of correct wording around it matters, and the player's written persona vanishes
+      // outright rather than merely diluting.
       [Test]
       public void GIVEN_an_authored_backstory_WHEN_building_the_full_prompt_THEN_its_text_reaches_the_prompt()
       {
@@ -45,6 +48,8 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain(Backstory);
       }
 
+      // Pins the exact reworded wording that fixed the v1.30.6 report: the section must COMMIT to the
+      // persona, not merely mention it, or a strong named voice again reads as flat and generic.
       [Test]
       public void GIVEN_an_authored_backstory_WHEN_building_the_full_prompt_THEN_the_section_commits_to_it_forcefully()
       {
@@ -56,6 +61,9 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("instantly recognisable");
       }
 
+      // A named figure (e.g. "Kratos") must lend the NPC their FULL manner and force of personality, not a
+      // watered-down echo, while Calradia stays Calradia: no imported names, places or powers from the
+      // figure's own world.
       [Test]
       public void GIVEN_a_backstory_naming_a_figure_WHEN_building_the_full_prompt_THEN_its_full_manner_is_adopted_but_its_world_is_kept_out()
       {
@@ -65,6 +73,9 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("import no names, places");
       }
 
+      // The actual root cause of the v1.30.6 regression: the old "invent 2-3 subtle quirks of your own"
+      // clause fired even when a strong persona was already authored, diluting it. Quirk invention must now
+      // trigger ONLY when the backstory itself names none, and the regressive phrasing must never return.
       [Test]
       public void GIVEN_an_authored_backstory_WHEN_building_the_full_prompt_THEN_inventing_quirks_is_a_strict_fallback_not_a_dilution()
       {
@@ -76,6 +87,8 @@ namespace NpcMemoryServiceTests
          prompt.Should().NotContain("two or three subtle");
       }
 
+      // A whitespace-only backstory must not render an empty, pointless section header; the section only
+      // exists to carry real authored text.
       [Test]
       public void GIVEN_a_blank_or_missing_backstory_WHEN_building_the_prompt_THEN_the_section_is_absent()
       {
@@ -83,6 +96,8 @@ namespace NpcMemoryServiceTests
          BuildFull("   ").Should().NotContain(Header);
       }
 
+      // AuthoredBackstory is one of the heavy sections LeanPromptPolicy drops for small/local models; a long
+      // authored backstory has no room in that short context budget.
       [Test]
       public void GIVEN_lean_mode_WHEN_building_the_prompt_THEN_the_backstory_section_is_dropped()
       {

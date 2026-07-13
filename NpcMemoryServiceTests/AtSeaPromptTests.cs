@@ -26,6 +26,9 @@ namespace NpcMemoryServiceTests
          Clan = "dey Meroc"
       };
 
+      // Without this header an NPC talking to a player mid-ocean would still default to land framing: riding
+      // out to meet them, roads, inns, horses, none of which exist on open water. AppendAtSeaNote exists
+      // specifically to stop that break in immersion.
       [Test]
       public void GIVEN_the_party_is_at_sea_WHEN_building_the_prompt_THEN_the_at_sea_header_is_injected()
       {
@@ -37,6 +40,8 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain(Header);
       }
 
+      // False by default, so an ordinary land conversation is never told there are "no horses, no roads, no
+      // inns" when the player is standing in a town.
       [Test]
       public void GIVEN_the_party_is_not_at_sea_WHEN_building_the_prompt_THEN_the_at_sea_header_is_absent()
       {

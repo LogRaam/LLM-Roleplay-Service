@@ -26,6 +26,10 @@ namespace NpcMemoryServiceTests
          Clan = "dey Meroc"
       };
 
+      // The whole point of the extension surface: the host already re-checked every eligibility guard and
+      // composed its own [ACTION] text, so PromptBuilder must place it verbatim, not reinterpret or
+      // reformat it. If this silently drops or mangles the block, the verb it teaches becomes a hollow
+      // promise the engine can never honour.
       [Test]
       public void GIVEN_a_full_prompt_WHEN_extra_action_teachings_are_supplied_THEN_they_are_rendered_verbatim()
       {
@@ -37,6 +41,8 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain(Marker);
       }
 
+      // The extended verb set is deliberately withheld from Lean: a small / short-context model gets only
+      // the minimal built-in action contract, so a host-supplied verb never eats into that tight budget.
       [Test]
       public void GIVEN_a_lean_prompt_WHEN_extra_action_teachings_are_supplied_THEN_they_are_omitted()
       {
@@ -48,6 +54,8 @@ namespace NpcMemoryServiceTests
          prompt.Should().NotContain(Marker);
       }
 
+      // No-op is the common case, since most conversations have no eligible extra verb this turn: this
+      // guards that an absent or blank host block costs zero tokens rather than rendering an empty section.
       [Test]
       public void GIVEN_no_extra_action_teachings_WHEN_building_a_full_prompt_THEN_nothing_extra_is_added()
       {

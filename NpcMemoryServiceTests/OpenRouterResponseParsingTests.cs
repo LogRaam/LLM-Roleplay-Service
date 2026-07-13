@@ -23,6 +23,10 @@ namespace NpcMemoryServiceTests
    {
       // ── Provider content-filter cuts (a moderated host stops generation mid-reply) ──
 
+      // Both the partial text AND the finish reason must survive parsing: CompleteAsync's one-shot
+      // retry (OpenRouterClient) decides whether to fire, and which of the two rolls "carried
+      // further", from exactly these two fields. Drop either one and a moderated host's cut-off
+      // reply reads to the player as the mod itself censoring them.
       [Test]
       public void GIVEN_a_reply_cut_by_the_providers_content_filter_WHEN_parsing_THEN_the_partial_text_and_the_reason_both_survive()
       {
@@ -36,6 +40,9 @@ namespace NpcMemoryServiceTests
          response.FinishReason.Should().Be("content_filter");
       }
 
+      // Providers spell their own cut differently (underscore, hyphen, case, or "moderation" outright).
+      // A variant this classifier fails to recognize silently disables the content-filter retry for
+      // that provider, so the player keeps eating chopped replies from it forever.
       [TestCase("content_filter")]
       [TestCase("content-filter")]
       [TestCase("CONTENT_FILTER")]
@@ -45,6 +52,9 @@ namespace NpcMemoryServiceTests
          OpenRouterClient.IsContentFiltered(reason).Should().BeTrue();
       }
 
+      // The negative space of the classifier, including null: a false positive here would route an
+      // ordinary "stop"/"length" reply into the content-filter retry branch instead of its own path
+      // (or, for "length", still needs its own separate retry logic to fire correctly).
       [TestCase("stop")]
       [TestCase("length")]
       [TestCase(null)]
@@ -53,6 +63,9 @@ namespace NpcMemoryServiceTests
          OpenRouterClient.IsContentFiltered(reason).Should().BeFalse();
       }
 
+      // The file's flagship bug (see header): a reasoning model spending its whole budget "thinking"
+      // must parse as an EMPTY SUCCESS, not a hard error, or CompleteAsync's bigger-budget retry
+      // (which only fires on IsSuccess) never gets the chance to give the model room to actually reply.
       [Test]
       public void GIVEN_a_reasoning_only_reply_cut_by_length_WHEN_parsing_THEN_it_is_an_empty_success_so_the_bigger_budget_retry_fires()
       {
@@ -66,6 +79,9 @@ namespace NpcMemoryServiceTests
          response.FinishReason.Should().Be("length");
       }
 
+      // GLM reports its thinking under a differently-named field ("reasoning_content" instead of
+      // "reasoning"). Missing this fallback would resurface the exact flagship bug, but only for
+      // that model family, which is the kind of gap that is easy to miss without a dedicated case.
       [Test]
       public void GIVEN_a_reasoning_only_reply_in_the_glm_reasoning_content_field_WHEN_parsing_THEN_it_is_treated_the_same_as_reasoning()
       {
@@ -78,6 +94,10 @@ namespace NpcMemoryServiceTests
          response.FinishReason.Should().Be("length");
       }
 
+      // The other side of the empty-success case above: when the model itself claims "stop" (not
+      // "length"), a bigger budget would not have helped, retrying is pointless, so this must stay a
+      // hard failure, one with the actionable "lower Reasoning Effort" guidance instead of a generic
+      // parse error, since the player has no other way to know why the reply came back blank.
       [Test]
       public void GIVEN_a_reasoning_only_reply_that_claims_to_have_stopped_WHEN_parsing_THEN_it_fails_with_reasoning_guidance()
       {
@@ -90,6 +110,9 @@ namespace NpcMemoryServiceTests
          response.ErrorMessage.Should().Contain("Reasoning Effort");
       }
 
+      // Guards the fix does not overreach: a body with neither content nor reasoning is a genuine
+      // upstream error envelope, not a reasoning-only reply, and must keep failing loudly with the
+      // original message instead of being swallowed into a false empty success.
       [Test]
       public void GIVEN_an_error_body_without_content_or_reasoning_WHEN_parsing_THEN_it_stays_the_original_hard_failure()
       {
@@ -101,6 +124,8 @@ namespace NpcMemoryServiceTests
          response.ErrorMessage.Should().Be("Response contained no message content.");
       }
 
+      // Baseline regression guard: the ordinary, by-far-most-common reply shape must keep flowing
+      // through unchanged while all the reasoning-model special cases above are handled around it.
       [Test]
       public void GIVEN_a_normal_reply_WHEN_parsing_THEN_content_finish_reason_and_usage_flow_through()
       {

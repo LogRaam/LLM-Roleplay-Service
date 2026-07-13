@@ -32,6 +32,9 @@ namespace NpcMemoryServiceTests
             Npc(), new WorldState {CurrentDay = 10},
             new EncounterContext {LeanLevel = level});
 
+      // The root fix, from the DeepSeek player report (good prose, no [ACTION]/[EVENT], so no mechanics
+      // fire): an instruction near the END of the prompt carries the most weight, so the format contract is
+      // restated there, strictly after the main teaching, not merged into or replacing it.
       [Test]
       public void GIVEN_a_full_prompt_WHEN_built_THEN_a_format_reminder_is_restated_after_the_main_contract()
       {
@@ -45,6 +48,8 @@ namespace NpcMemoryServiceTests
                .Should().BeGreaterThan(prompt.IndexOf("RESPONSE FORMAT", System.StringComparison.Ordinal));
       }
 
+      // Unlike most heavy sections, this one must survive Lean rather than being dropped: a weak/small model
+      // is exactly the case the reminder was built for, so Lean gets its own compact three-line version.
       [Test]
       public void GIVEN_a_lean_prompt_WHEN_built_THEN_the_format_reminder_is_still_present()
       {
@@ -52,6 +57,8 @@ namespace NpcMemoryServiceTests
          Build(LeanPromptLevel.Lean).Should().Contain(Reminder);
       }
 
+      // A bare rule restated is easy to skim past; naming the concrete consequence (the game literally
+      // cannot see what happened) is what is meant to actually change a weak model's behaviour.
       [Test]
       public void GIVEN_any_prompt_WHEN_built_THEN_the_reminder_names_the_consequence_of_skipping_a_block()
       {

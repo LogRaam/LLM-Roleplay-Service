@@ -27,6 +27,9 @@ namespace NpcMemoryServiceTests
          Clan = "dey Meroc"
       };
 
+      // This note folds in the accept_divorce / decline_divorce [ACTION] format itself (Divorce, Phase 2b).
+      // If it fails to reach the prompt, the player loses the taught path to answer the demanding spouse in
+      // dialogue at all.
       [Test]
       public void GIVEN_a_full_prompt_WHEN_a_spouse_divorce_demand_note_is_supplied_THEN_it_is_rendered_verbatim()
       {
@@ -38,6 +41,8 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain(Marker);
       }
 
+      // Dropped in Lean like ExtraActionTeachings: a small model does not need the extended [ACTION]
+      // contract, but the demand itself still surfaces through the NPC's own history and letters.
       [Test]
       public void GIVEN_a_lean_prompt_WHEN_a_spouse_divorce_demand_note_is_supplied_THEN_it_is_omitted()
       {
@@ -49,6 +54,8 @@ namespace NpcMemoryServiceTests
          prompt.Should().NotContain(Marker);
       }
 
+      // Blank guard: an NPC who is not the player's own demanding spouse must never be handed the
+      // accept_divorce / decline_divorce actions.
       [Test]
       public void GIVEN_no_spouse_divorce_demand_note_WHEN_building_a_full_prompt_THEN_nothing_extra_is_added()
       {

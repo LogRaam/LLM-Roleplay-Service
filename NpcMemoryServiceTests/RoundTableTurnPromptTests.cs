@@ -26,6 +26,9 @@ namespace NpcMemoryServiceTests
          Clan = "dey Meroc"
       };
 
+      // Without this block the NPC keeps its normal one-on-one habits: short replies, deferring back to the
+      // player. The round-table mode needs the opposite, a full contribution that may address other people
+      // present, or the group scene reads as a series of disconnected one-line answers.
       [Test]
       public void GIVEN_a_round_table_turn_WHEN_building_the_prompt_THEN_the_round_table_block_is_injected()
       {
@@ -37,6 +40,8 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain(Header);
       }
 
+      // False by default: an ordinary two-person conversation must never be told to "address the other people
+      // present", which would invite the model to invent participants who are not actually there.
       [Test]
       public void GIVEN_no_round_table_turn_WHEN_building_the_prompt_THEN_the_round_table_block_is_absent()
       {

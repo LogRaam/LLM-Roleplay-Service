@@ -27,6 +27,10 @@ namespace NpcMemoryServiceTests
          Clan = "dey Meroc"
       };
 
+      // The note is built game-side from the engine's own map data (encyclopedia blurb + bearing), never a
+      // hand-authored lorebook (ROADMAP: a hand lorebook would drift from the real map). If the header or the
+      // note itself fails to reach the prompt, the NPC has nothing grounding it and reverts to inventing
+      // where places sit, the exact bug this pillar exists to fix.
       [Test]
       public void GIVEN_a_geography_note_WHEN_building_the_prompt_THEN_it_is_injected_under_the_lay_of_the_land_header()
       {
@@ -39,6 +43,8 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain(Note);
       }
 
+      // Blank guard: with nothing concrete to ground (unknown settlement, no place named), the header must
+      // not appear empty, which would read as "treat the following as fact" over nothing at all.
       [Test]
       public void GIVEN_no_geography_note_WHEN_building_the_prompt_THEN_the_lay_of_the_land_header_is_absent()
       {

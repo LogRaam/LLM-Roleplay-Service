@@ -28,6 +28,9 @@ namespace NpcMemoryServiceTests
          Clan = ""
       };
 
+      // This is the actual fix for the reported bug (a gang leader speaking, and "rising from her throne",
+      // like a noble). If the override only ADDS to the built-in noble text instead of replacing it, the
+      // lordly register still leaks through underneath the station-appropriate one.
       [Test]
       public void GIVEN_a_station_override_WHEN_building_a_full_prompt_THEN_it_replaces_the_noble_guidelines()
       {
@@ -40,6 +43,10 @@ namespace NpcMemoryServiceTests
          prompt.Should().NotContain("how a noble of");
       }
 
+      // Precedence pins the production comment directly: "the station-matched register outranks the global
+      // override: a gang leader must never inherit the lordly voice just because the global file speaks as a
+      // noble." A player-authored global override (e.g. a custom noble house style) must not overrule a
+      // specific station's voice.
       [Test]
       public void GIVEN_a_station_override_WHEN_a_global_override_also_exists_THEN_the_station_wins()
       {
@@ -52,6 +59,9 @@ namespace NpcMemoryServiceTests
          prompt.Should().NotContain(GlobalMarker);
       }
 
+      // The fallback chain's other end: an NPC with no specific station guidelines (most lords) must still
+      // honour a player-authored global override, or that customization silently stops working for anyone
+      // without a station file.
       [Test]
       public void GIVEN_no_station_override_WHEN_a_global_override_exists_THEN_the_global_still_applies()
       {
@@ -77,6 +87,9 @@ namespace NpcMemoryServiceTests
          prompt.Should().NotContain("You speak as a lord of");
       }
 
+      // Whitespace must count as "no override supplied", not as "an empty override to honour": otherwise a
+      // blank StationGuidelinesOverride would swallow the ENTIRE guidelines section (no station, no global,
+      // no noble default), leaving the NPC's voice completely unguided.
       [Test]
       public void GIVEN_a_blank_station_override_WHEN_building_THEN_the_normal_fallback_chain_applies()
       {

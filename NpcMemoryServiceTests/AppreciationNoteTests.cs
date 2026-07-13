@@ -27,6 +27,10 @@ namespace NpcMemoryServiceTests
          Clan = "dey Meroc"
       };
 
+      // The host has already applied the TARNISH (a fresh live grudge souring a standing kindness, see
+      // AppreciationPolicy.TarnishedMagnitude) before composing this note, so PromptBuilder's only job is to
+      // place the text unchanged. Rewriting or dropping it here would show a kindness at full untarnished
+      // warmth even when the NPC's own grudge should have soured it.
       [Test]
       public void GIVEN_a_full_prompt_WHEN_an_appreciation_note_is_supplied_THEN_it_is_rendered_verbatim()
       {
@@ -38,6 +42,8 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain(Marker);
       }
 
+      // Mirrors GrudgeNoteTests' lean case: a lingering kindness is short, per-NPC stable colour, not an
+      // extended verb set, so it is never dropped for a small model the way ExtraActionTeachings is.
       [Test]
       public void GIVEN_a_lean_prompt_WHEN_an_appreciation_note_is_supplied_THEN_it_is_still_rendered()
       {
@@ -49,6 +55,8 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain(Marker);
       }
 
+      // Whitespace must count as "no kindness worth voicing", not a blank line under "A KINDNESS YOU
+      // REMEMBER" that the model would have to fill in on its own.
       [Test]
       public void GIVEN_no_appreciation_note_WHEN_building_a_prompt_THEN_nothing_extra_is_added()
       {
@@ -63,6 +71,9 @@ namespace NpcMemoryServiceTests
          promptBlank.Should().NotContain(Marker);
       }
 
+      // Fixed order matters: the grievance colours the NPC first, the kindness second, so the "likes you but
+      // resents you" texture (ROADMAP: grudge DOMINATES tone, warmth is the nuance, not the co-equal) reads
+      // in the intended weight rather than the model latching onto whichever note it saw first.
       [Test]
       public void GIVEN_both_a_grudge_note_and_an_appreciation_note_WHEN_building_a_prompt_THEN_the_appreciation_renders_after_the_grudge()
       {

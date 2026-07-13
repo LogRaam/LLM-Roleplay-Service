@@ -28,6 +28,8 @@ namespace NpcMemoryServiceTests
          IsFemale = isFemale
       };
 
+      // Foundation for every other test in this file: NpcChatService locates the split point by searching
+      // for this literal marker, so if it is ever missing the whole cacheable-prefix split silently fails.
       [Test]
       public void GIVEN_a_context_bearing_prompt_WHEN_built_THEN_it_contains_the_encounter_marker()
       {
@@ -39,6 +41,9 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain(PromptBuilder.EncounterSectionHeading);
       }
 
+      // Exactly the worst case named in the file header: a multi-turn Hardcore captive scene. The per-beat
+      // stage directive changes every turn, so if it ever lands before the marker the cache busts on every
+      // single turn of that long scene instead of just once.
       [Test]
       public void GIVEN_a_hardcore_captive_scene_WHEN_built_THEN_the_stage_directive_lands_after_the_marker()
       {
@@ -59,6 +64,9 @@ namespace NpcMemoryServiceTests
          stageDirectiveIndex.Should().BeGreaterThan(markerIndex);
       }
 
+      // Splits the stable from the volatile within the same witness feature: the roster and reaction
+      // teaching hold across a whole conversation and belong in the cached prefix, but whether THIS turn is
+      // a witness-exchange beat changes every turn and must stay in the dynamic tail.
       [Test]
       public void GIVEN_a_witness_exchange_turn_WHEN_built_THEN_the_turn_directive_lands_after_the_marker()
       {
@@ -82,6 +90,8 @@ namespace NpcMemoryServiceTests
          prompt.IndexOf("WITNESSES PRESENT", System.StringComparison.Ordinal).Should().BeLessThan(markerIndex);
       }
 
+      // Same class of bug as the witness-turn case: a privacy request is a THIS-TURN fact, not a standing
+      // one, so it must never be baked into the stable prefix shared across turns.
       [Test]
       public void GIVEN_a_privacy_request_this_turn_WHEN_built_THEN_the_directive_lands_after_the_marker()
       {
@@ -103,6 +113,8 @@ namespace NpcMemoryServiceTests
          privacyIndex.Should().BeGreaterThan(markerIndex);
       }
 
+      // CurrentDay (and the rest of world state) moves as the campaign advances, so it can never be part of
+      // the cacheable prefix without going stale across turns or busting the cache when it changes.
       [Test]
       public void GIVEN_any_prompt_WHEN_built_THEN_current_world_state_lands_after_the_marker()
       {

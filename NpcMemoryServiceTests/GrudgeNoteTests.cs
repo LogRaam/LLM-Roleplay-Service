@@ -28,6 +28,10 @@ namespace NpcMemoryServiceTests
          Clan = "dey Meroc"
       };
 
+      // The host (GrudgeNarrator) already composed the knownness mirror (named openly vs concealed) and the
+      // "no numbers" narrative framing; AppendGrudgeNote's job is only to PLACE that text. If it reformats or
+      // drops any of it, a concealed grudge could leak its true cause, or the mechanic could bleed into the
+      // NPC's own voice as a bare number instead of a story.
       [Test]
       public void GIVEN_a_full_prompt_WHEN_a_grudge_note_is_supplied_THEN_it_is_rendered_verbatim()
       {
@@ -52,6 +56,9 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain(Marker);
       }
 
+      // Whitespace must count as "no grudge", not as "a blank grudge to render": otherwise a stray "A
+      // GRIEVANCE YOU NURSE" header with nothing under it would reach the LLM, reading as a non-sequitur
+      // the model would have to invent a cause for.
       [Test]
       public void GIVEN_no_grudge_note_WHEN_building_a_prompt_THEN_nothing_extra_is_added()
       {
@@ -68,6 +75,11 @@ namespace NpcMemoryServiceTests
 
       // ── RegardShadowNote: the tone arbiter's clause on the CURRENT STANCE regard line ───────────
 
+      // Ordering is the whole point of the tone arbiter: it must land right after CURRENT STANCE so the LLM
+      // is primed on the live grudge BEFORE it reaches the regard number, per the production doc "before the
+      // LLM even reaches it, so a strong grievance is never read as an afterthought to stated warmth". If the
+      // clause drifted before the stance line or vanished, a good regard score could read as uncomplicated
+      // warmth even while a grudge should be muting it.
       [Test]
       public void GIVEN_a_regard_shadow_note_WHEN_building_a_prompt_THEN_it_is_rendered_verbatim_after_current_stance()
       {
@@ -81,6 +93,8 @@ namespace NpcMemoryServiceTests
             .Should().BeLessThan(prompt.IndexOf(Marker, System.StringComparison.Ordinal));
       }
 
+      // Same blank guard as the grudge note itself: no live grudge shadowing the regard means the CURRENT
+      // STANCE line must render exactly as it always did, with no dangling tone clause.
       [Test]
       public void GIVEN_no_regard_shadow_note_WHEN_building_a_prompt_THEN_nothing_extra_is_added()
       {

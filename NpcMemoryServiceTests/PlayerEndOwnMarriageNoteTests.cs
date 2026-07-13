@@ -27,6 +27,8 @@ namespace NpcMemoryServiceTests
          Clan = "dey Meroc"
       };
 
+      // This note folds in the end_own_marriage [ACTION] format itself. If it fails to reach the prompt, the
+      // player loses the only taught path to end their own marriage in dialogue (Divorce, Phase 2a).
       [Test]
       public void GIVEN_a_full_prompt_WHEN_a_player_end_own_marriage_note_is_supplied_THEN_it_is_rendered_verbatim()
       {
@@ -38,6 +40,8 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain(Marker);
       }
 
+      // Dropped in Lean like SpouseDivorceDemandNote: a small model does not need the extended [ACTION]
+      // contract to still let the marriage's end play out narratively.
       [Test]
       public void GIVEN_a_lean_prompt_WHEN_a_player_end_own_marriage_note_is_supplied_THEN_it_is_omitted()
       {
@@ -49,6 +53,8 @@ namespace NpcMemoryServiceTests
          prompt.Should().NotContain(Marker);
       }
 
+      // Blank guard: an NPC who is not the player's own spouse must never be handed the end_own_marriage
+      // action.
       [Test]
       public void GIVEN_no_player_end_own_marriage_note_WHEN_building_a_full_prompt_THEN_nothing_extra_is_added()
       {
@@ -63,6 +69,9 @@ namespace NpcMemoryServiceTests
          promptBlank.Should().NotContain(Marker);
       }
 
+      // Per the production doc these two coexist ON PURPOSE: the spouse demanding a divorce and the player
+      // separately choosing to end it themselves are "not contradictory", so both actions must reach the
+      // LLM together rather than one silently overwriting the other.
       [Test]
       public void GIVEN_both_notes_supplied_WHEN_building_a_full_prompt_THEN_both_are_rendered_together()
       {

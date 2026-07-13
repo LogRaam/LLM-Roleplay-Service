@@ -63,6 +63,10 @@ namespace NpcMemoryServiceTests
          AuthoredBackstory = KratosBackstory
       };
 
+      // A prompt-text assertion (as in the ordinary unit tests) cannot catch this regression: the
+      // v1.30.4 bug was in what the MODEL actually wrote, a diluted, generic voice despite a correct
+      // prompt. Only a real completion, graded by a second real call, can pin that the fix in
+      // AppendAuthoredBackstory actually changes model behaviour, not just the instructions it sends.
       [Test]
       public async Task GIVEN_a_strong_named_backstory_WHEN_a_real_llm_replies_THEN_an_impartial_judge_confirms_the_persona_lands()
       {

@@ -1,6 +1,12 @@
 // Code written by Gabriel Mailhot, 01/07/2026.
 // Documents the lean-prompt section selection: Full keeps everything, Lean drops the heavy flavour/context
 // sections and shortens memory + the behaviour guidelines, so the prompt fits a small model's short context.
+//
+// WHY IT MATTERS: a small/local model whose context overflows the full prompt returns nothing usable (the
+// "(My words escape me...)" fallback), so Include/MemoryEventLimit/UseFullBehaviorGuidelines decide exactly
+// what survives to still produce a coherent in-character reply inside that short window. The token-budget
+// test at the bottom is the hard backstop: if Lean silently regrows past its budget, the overflow this
+// policy exists to prevent happens again.
 
 #region
 
@@ -23,6 +29,8 @@ namespace NpcMemoryServiceTests
          Clan = "dey Meroc"
       };
 
+      // Full is for capable / large-context models: it must never silently drop a section, or a new
+      // PromptSection added later could quietly ship half-missing in Full without anyone noticing.
       [Test]
       public void GIVEN_the_full_level_WHEN_selecting_sections_THEN_every_heavy_section_is_kept()
       {
@@ -30,6 +38,8 @@ namespace NpcMemoryServiceTests
             LeanPromptPolicy.Include(section, LeanPromptLevel.Full).Should().BeTrue();
       }
 
+      // The other half of the same guard: a heavy section that leaks into Lean eats into the short context
+      // budget a small/local model does not have to spare.
       [Test]
       public void GIVEN_the_lean_level_WHEN_selecting_sections_THEN_every_heavy_section_is_dropped()
       {
@@ -49,12 +59,16 @@ namespace NpcMemoryServiceTests
          LeanPromptPolicy.Include(section, LeanPromptLevel.Lean).Should().BeFalse();
       }
 
+      // A capable model gets the NPC's whole memory; no arbitrary loss of history just because Lean exists
+      // as a mode.
       [Test]
       public void GIVEN_the_full_level_WHEN_reading_the_memory_limit_THEN_all_events_are_kept()
       {
          LeanPromptPolicy.MemoryEventLimit(LeanPromptLevel.Full).Should().Be(int.MaxValue);
       }
 
+      // The recent-window cap is what keeps a long-running NPC's history from blowing Lean's token budget;
+      // it must be strictly smaller than Full's unlimited window and never zero or negative.
       [Test]
       public void GIVEN_the_lean_level_WHEN_reading_the_memory_limit_THEN_only_a_small_recent_window_is_kept()
       {
@@ -62,6 +76,8 @@ namespace NpcMemoryServiceTests
          LeanPromptPolicy.LeanMemoryEventLimit.Should().BeLessThan(int.MaxValue).And.BePositive();
       }
 
+      // The authored behaviour_guidelines.txt is one of the heaviest sections; Lean must fall back to the
+      // short built-in set rather than carry the full file at the cost of the model's short context.
       [Test]
       public void GIVEN_a_level_WHEN_deciding_the_behaviour_guidelines_THEN_only_full_uses_the_authored_file()
       {

@@ -31,6 +31,10 @@ namespace NpcMemoryServiceTests
          return builder.BuildSystemPrompt(npc, new WorldState {CurrentDay = 10});
       }
 
+      // Player-reported problem: a character could ask the player to "bring back proof" (a blade, a banner,
+      // a captive) that exists as no real item, an errand the player could never actually finish. The deed
+      // itself, verified from real game events, is the only proof, so this pins that the giver is never
+      // taught to invent a token to carry back.
       [Test]
       public void GIVEN_quests_are_enabled_WHEN_teaching_task_issuance_THEN_it_forbids_inventing_a_proof_item()
       {
@@ -40,6 +44,9 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("NO token, trophy");
       }
 
+      // Companion fix to the proof-item guard: since the player can no longer be asked to bring back a
+      // token, the giver must instead be able to tell them WHERE to go ("the lair lies to the north of..");
+      // a computed bearing with no path to the prompt would leave the giver unable to answer that.
       [Test]
       public void GIVEN_an_outstanding_hideout_quest_with_a_bearing_WHEN_listing_the_players_quests_THEN_the_direction_is_surfaced()
       {
@@ -73,6 +80,11 @@ namespace NpcMemoryServiceTests
             new EncounterContext {ViableQuestMenu = menu});
       }
 
+      // Root cause of the recurring "the NPC offered a mission but no quest was recorded" reports: the
+      // model, taught the abstract 17-type catalogue blind to the world, invented targets QuestFactory
+      // refused, and the refusal was silent. When a host supplies a pre-validated menu, the generic
+      // catalogue must NOT also be taught, or the model can still reach for an ungrounded, unregisterable
+      // target.
       [Test]
       public void GIVEN_a_grounded_menu_WHEN_teaching_task_issuance_THEN_only_the_menu_is_taught_not_the_generic_catalogue()
       {
@@ -84,6 +96,8 @@ namespace NpcMemoryServiceTests
          prompt.Should().NotContain("Task types you may offer");
       }
 
+      // Not every host scans the live world before a conversation; the generic catalogue is the documented
+      // SDK fallback for those callers, so it must keep working when no ViableQuestMenu is supplied at all.
       [Test]
       public void GIVEN_no_grounded_menu_WHEN_teaching_task_issuance_THEN_the_generic_catalogue_remains_the_fallback()
       {
@@ -92,6 +106,9 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("Task types you may offer");
       }
 
+      // The NOTHING-IS-SILENT half of the viable-quest fix: even with a grounded, registerable target, a
+      // task only truly exists if the [QUEST] block ships in the same reply as the spoken offer, or the
+      // player is left with a broken promise and no way to complete it.
       [Test]
       public void GIVEN_quest_teaching_WHEN_rendered_THEN_the_pairing_contract_makes_the_block_mandatory_for_any_spoken_offer()
       {
