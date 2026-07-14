@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NpcMemoryService.Core.LlmClient;
 using NpcMemoryService.Core.Models;
+using NpcMemoryService.Core.Prompts;
 
 #endregion
 
@@ -65,7 +66,7 @@ namespace NpcMemoryService.Core.Services
       private static string BuildSystemPrompt(string playerName, string styleGuidance, string? continuationOf)
       {
          var sb = new StringBuilder();
-         sb.AppendLine($"You are a court chronicler writing the life of {playerName}, a lord of Calradia.");
+         sb.AppendLine($"You are a court chronicler writing the life of {playerName}, a lord of {PromptLore.WorldName}.");
          sb.AppendLine("Below is a bare list of their deeds, each with its date. Rewrite them into a flowing");
          sb.AppendLine("chronicle in a medieval chronicler's voice — grand and vivid, reverent or wry as the");
          sb.AppendLine("deeds warrant — as connected prose, not a list. Preserve every deed and its order; you");

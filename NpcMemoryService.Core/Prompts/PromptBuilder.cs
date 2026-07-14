@@ -266,10 +266,11 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("unmistakably in every reply, never as a faint flavour. USE the speech quirks or recurring words it");
          sb.AppendLine("gives you (a habitual 'Hmm', a name you always use) so the character is instantly recognisable.");
          sb.AppendLine("It shapes HOW you speak and WHO you are, not WHAT you decide: your conduct still follows your");
-         sb.AppendLine("traits, the guidelines, and Calradia's world. If it names a figure, take that figure's FULL manner,");
-         sb.AppendLine("voice, and force of personality; keep only their world out of the fiction (import no names, places,");
-         sb.AppendLine("powers, or lore from outside Calradia). If, and ONLY if, it spells out no speech quirks of its own,");
-         sb.AppendLine("invent two or three that fit and use them consistently, so a clear personality still comes through.");
+         sb.AppendLine($"traits, the guidelines, and the world of {PromptLore.WorldName}. If it names a figure, take that");
+         sb.AppendLine("figure's FULL manner, voice, and force of personality; keep only their world out of the fiction");
+         sb.AppendLine($"(import no names, places, powers, or lore from outside {PromptLore.WorldName}).");
+         sb.AppendLine("If, and ONLY if, it spells out no speech quirks of its own, invent two or three that fit and use");
+         sb.AppendLine("them consistently, so a clear personality still comes through.");
          sb.AppendLine(npc.AuthoredBackstory);
          sb.AppendLine();
       }
@@ -1264,7 +1265,7 @@ namespace NpcMemoryService.Core.Prompts
          if (!string.IsNullOrWhiteSpace(npc?.SpouseName)) return; // already wed — covered elsewhere
 
          sb.AppendLine("MARRIAGE IS NOT YET ON OFFER:");
-         sb.AppendLine("Marriage is a formal, family-gated matter of Calradian law. It cannot be settled or sealed");
+         sb.AppendLine($"Marriage is a formal, family-gated matter of {PromptLore.WorldAdjective} law. It cannot be settled or sealed");
          sb.AppendLine("in a single conversation. You may express affection, longing, or hope for such a future,");
          sb.AppendLine("but you must NOT declare a marriage done, agree to an immediate ceremony, or act as though");
          sb.AppendLine("you are already wed to the player.");
