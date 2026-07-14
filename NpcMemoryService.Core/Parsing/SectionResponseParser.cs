@@ -26,6 +26,31 @@ namespace NpcMemoryService.Core.Parsing
 
       private const string DecisionKey = "decision";
 
+      /// <summary>Both separators a model writes between a key and its value. The first one on the line wins.</summary>
+      private static readonly char[] KeyValueSeparators = {':', '='};
+
+      /// <summary>The one action a stray, self-invented block is worth recovering into. See <see cref="RecoverStrayRelationChange" />.</summary>
+      private const string ChangeRelationAction = "change_relation";
+
+      /// <summary>
+      ///   A bracketed ALL-CAPS token sitting ALONE on its own line. That is exactly what a section tag looks
+      ///   like, and exactly what a weaker model writes when it INVENTS one instead of using the taught format
+      ///   (a player was shown "[RELATION CHANGE]" spoken aloud by an NPC while the relation never moved:
+      ///   Fakade, 2026-07-13). Legitimate dialogue never takes this shape: the prompt teaches *asterisks* for
+      ///   stage directions and never [brackets], and prose brackets ("[unreadable]") are inline and lower-case.
+      ///   So a line of this shape is MACHINERY, whatever it is called, and machinery must never reach the player.
+      ///   Matched CASE-SENSITIVELY on purpose: that is the whole discriminator.
+      /// </summary>
+      private const string StandaloneTagLine = @"(?m)^[ \t]*\[[A-Z][A-Z0-9_ ]{1,30}\][ \t]*$";
+
+      /// <summary>
+      ///   A standalone tag line PLUS the directive lines that follow it, which is the whole shape of an invented
+      ///   block ("[RELATION CHANGE]" then "delta = 2"). Removed as one piece, so no orphan fragment is left
+      ///   behind for the player to read out of the NPC's mouth.
+      /// </summary>
+      private const string MachineryBlock =
+         @"(?m)^[ \t]*\[/?[A-Z][A-Z0-9_ ]{0,30}\][ \t]*\r?\n?(?:[ \t]*[A-Za-z_][A-Za-z_ ]{0,24}[ \t]*[:=][^\r\n]*\r?\n?)*";
+
       // Section tag names (canonical form, matched case-insensitively).
       private const string DialogueTag = "DIALOGUE";
       private const string DiscoveryDescriptionKey = "description";
@@ -126,6 +151,11 @@ namespace NpcMemoryService.Core.Parsing
          // Safety net: drop any residual [DIALOGUE]/[/DIALOGUE] markers that slipped through.
          body = Regex.Replace(body, @"\[/?DIALOGUE\]", "", RegexOptions.IgnoreCase);
 
+         // The guarantee: whatever the model invents, the player never reads our plumbing. A block the parser
+         // does not recognise is still MACHINERY, and dropping it from the spoken line is not optional. See
+         // MachineryBlock: a standalone ALL-CAPS bracketed line and the directive lines under it, removed whole.
+         body = Regex.Replace(body, MachineryBlock, "");
+
          // Weaker models sometimes prefix the line with a stray bracketed label — their own
          // name, or a tag they invented (e.g. "[Vesha the Crow]"). Legitimate dialogue uses
          // *asterisks* for action, never [brackets] as a speaker label, so strip only a
@@ -144,10 +174,21 @@ namespace NpcMemoryService.Core.Parsing
       private static string ExtractDialogueFallback(string text)
       {
          var pattern = @"\[(?:NARRATION|MEMORY|EVENT|REPUTATION|STANCE|ACTION|DISCOVERY|QUEST_COMPLETE|QUEST_ABANDON|QUEST|WITNESS_REACTION)\]";
-         Match match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
+         Match known = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
 
-         return match.Success
-            ? text.Substring(0, match.Index)
+         // An INVENTED section ends the dialogue just as surely as a known one. Without this, a model that wrote
+         // "[RELATION CHANGE]" (a tag we never taught) left it outside every boundary we recognised, so it fell
+         // through into the spoken line and the NPC read our plumbing aloud. Case-sensitive: only ALL-CAPS.
+         Match invented = Regex.Match(text, StandaloneTagLine);
+
+         int cut = known.Success
+            ? known.Index
+            : -1;
+
+         if (invented.Success && (cut < 0 || invented.Index < cut)) cut = invented.Index;
+
+         return cut >= 0
+            ? text.Substring(0, cut)
             : text;
       }
 
@@ -211,7 +252,54 @@ namespace NpcMemoryService.Core.Parsing
             });
          }
 
+         // Last resort: a model that invented its own tag instead of the taught [ACTION] block still MEANT to
+         // move the regard. Only when it emitted no real change_relation of its own, so a recovered one can
+         // never double-count a proper emission.
+         if (!actions.Exists(a => string.Equals(a.Type, ChangeRelationAction, StringComparison.OrdinalIgnoreCase)))
+         {
+            GameAction? recovered = RecoverStrayRelationChange(text);
+            if (recovered != null) actions.Add(recovered);
+         }
+
          return actions;
+      }
+
+      /// <summary>
+      ///   Recovers a relation change a model wrote under a tag it invented. A player watched an NPC speak the
+      ///   words "[RELATION CHANGE] delta = 2" aloud while the regard never moved (Fakade, 2026-07-13): the tag
+      ///   was not one we teach, so nothing parsed it, and the block fell through into the spoken line.
+      ///   <para>
+      ///     Stripping it from the dialogue is the guarantee. Recovering it is the honesty: the NPC plainly meant
+      ///     to move the regard, and silently dropping that would leave their word empty, which is the very
+      ///     hollow-promise failure this codebase fights everywhere else. Safe to be generous here, because the
+      ///     host's RelationGate still caps and rate-limits whatever comes through: the prompt proposes, the gate
+      ///     rules. A hallucinated number cannot become an exploit.
+      ///   </para>
+      ///   Deliberately narrow: only an ALL-CAPS standalone tag whose letters contain "RELATION", and only when a
+      ///   signed delta follows it. Anything else is stripped from view and left unrecovered rather than guessed.
+      /// </summary>
+      private static GameAction? RecoverStrayRelationChange(string text)
+      {
+         foreach (Match tag in Regex.Matches(text, StandaloneTagLine))
+         {
+            string name = tag.Value.Trim().Trim('[', ']').Replace(" ", "").Replace("_", "");
+
+            if (name.IndexOf("RELATION", StringComparison.OrdinalIgnoreCase) < 0) continue;
+
+            string rest = text.Substring(tag.Index + tag.Length);
+            Match delta = Regex.Match(rest, @"delta[ \t]*[:=][ \t]*(?<n>[+-]?\d{1,3})", RegexOptions.IgnoreCase);
+
+            if (!delta.Success) continue;
+
+            return new GameAction {
+               Type = ChangeRelationAction,
+               Parameters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
+                  ["delta"] = delta.Groups["n"].Value
+               }
+            };
+         }
+
+         return null;
       }
 
       private static DiscoveredTrait? ParseDiscovery(string? section)
@@ -273,12 +361,16 @@ namespace NpcMemoryService.Core.Parsing
 
             if (line.Length == 0) continue;
 
-            int colonIdx = line.IndexOf(':');
+            // Accept 'key = value' as well as 'key: value'. Models write both, and a player was shown a block
+            // reading "delta = 2" (Fakade, 2026-07-13): had the model wrapped it in a correct [ACTION] tag, this
+            // parser would STILL have dropped it silently, because it only ever looked for a colon. The first
+            // separator wins, so a colon inside a value ("summary: he said: no") still keys on the first one.
+            int sepIdx = line.IndexOfAny(KeyValueSeparators);
 
-            if (colonIdx <= 0) continue;
+            if (sepIdx <= 0) continue;
 
-            string key = line.Substring(0, colonIdx).Trim();
-            string value = line.Substring(colonIdx + 1).Trim();
+            string key = line.Substring(0, sepIdx).Trim();
+            string value = line.Substring(sepIdx + 1).Trim();
 
             if (value.StartsWith("#", StringComparison.Ordinal)) value = value.Substring(1);
 
@@ -526,10 +618,19 @@ namespace NpcMemoryService.Core.Parsing
       private static string TrimAtFirstSection(string text)
       {
          const string pattern = @"\[(?:/DIALOGUE|NARRATION|MEMORY|EVENT|REPUTATION|STANCE|ACTION|DISCOVERY|QUEST_COMPLETE|QUEST_ABANDON|QUEST|WITNESS_REACTION)\]";
-         Match match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
+         Match known = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
 
-         return match.Success
-            ? text.Substring(0, match.Index)
+         // An invented section closes an unclosed [DIALOGUE] too, for the same reason it ends the fallback.
+         Match invented = Regex.Match(text, StandaloneTagLine);
+
+         int cut = known.Success
+            ? known.Index
+            : -1;
+
+         if (invented.Success && (cut < 0 || invented.Index < cut)) cut = invented.Index;
+
+         return cut >= 0
+            ? text.Substring(0, cut)
             : text;
       }
 
