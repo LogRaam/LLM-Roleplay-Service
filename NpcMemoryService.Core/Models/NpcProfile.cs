@@ -33,6 +33,16 @@ namespace NpcMemoryService.Core.Models
       public string? AuthoredBackstory { get; set; }
 
       /// <summary>
+      ///   Optional player-authored CONVICTION: what this character holds to be true, and therefore what they
+      ///   pursue. Distinct from <see cref="AuthoredBackstory" />, which the prompt deliberately confines to
+      ///   voice and temperament ("HOW you speak and WHO you are, NOT what you decide"): a conviction is a
+      ///   MOTIVE, and it may be false. It grants no powers, imports no lore, and never reaches past the bridge
+      ///   (it may make an NPC want to plot; it can never make a plot exist). Synced from the host's
+      ///   character-overrides file before each prompt, so it is never authoritative state in the save.
+      /// </summary>
+      public string? AuthoredConviction { get; set; }
+
+      /// <summary>
       ///   Background narrative context produced when older events are compressed away.
       ///   Preserves the gist of dropped events as a short prose paragraph.
       /// </summary>

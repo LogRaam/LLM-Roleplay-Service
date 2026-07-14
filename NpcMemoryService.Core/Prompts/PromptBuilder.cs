@@ -152,7 +152,14 @@ namespace NpcMemoryService.Core.Prompts
          // ── Per-NPC identity ─────────────────────────────────────────────────
          AppendIdentity(sb, npc);
          AppendNpcSelfAppearance(sb, encounterContext);
-         if (LeanPromptPolicy.Include(PromptSection.AuthoredBackstory, lean)) AppendAuthoredBackstory(sb, npc);
+         // Voice first, then motive: the backstory says who they SOUND like, the conviction what they WANT.
+         // Both ride the same lean gate, because an authored character is the whole reason a player authored one:
+         // dropping it to save tokens on a small model would silently return them the generic NPC they replaced.
+         if (LeanPromptPolicy.Include(PromptSection.AuthoredBackstory, lean))
+         {
+            AppendAuthoredBackstory(sb, npc);
+            AppendAuthoredConviction(sb, npc);
+         }
          if (LeanPromptPolicy.Include(PromptSection.Relationships, lean)) AppendRelationships(sb, npc);
          AppendRomanticContext(sb, npc);
          AppendIntimacyConsentRules(sb, npc, encounterContext);
@@ -272,6 +279,41 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("If, and ONLY if, it spells out no speech quirks of its own, invent two or three that fit and use");
          sb.AppendLine("them consistently, so a clear personality still comes through.");
          sb.AppendLine(npc.AuthoredBackstory);
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   The one authored field that touches CONDUCT. The backstory block above tells the model, in as many
+      ///   words, that it shapes "HOW you speak and WHO you are, NOT what you decide", so a player who wrote
+      ///   "he believes he is secretly a necromancer" got a character who SAID so with great colour and then
+      ///   behaved exactly as before: the belief was a costume. A conviction is a motive.
+      ///   <para>
+      ///     Three guardrails, and they are the reason this can cross that line safely. It is a BELIEF, not a
+      ///     capability: he may hoard bones and speak of the dead, he may not raise them. It imports no lore, on
+      ///     the same terms as the backstory. And it cannot reach past the bridge: it may make an NPC WANT to
+      ///     plot against the player's clan, it can never make a plot EXIST, because every deed still goes
+      ///     through the same action gates. The prompt proposes, the bridge rules.
+      ///   </para>
+      ///   The belief may be FALSE, and that is the whole point (a player asked for a lord "who believes they
+      ///   were pulling the strings of my clan behind the scenes": Thoragoros1, 2026-07-12). An NPC acting on a
+      ///   conviction the world does not share is the drama. And a conviction they must HIDE is a motive in itself.
+      /// </summary>
+      private static void AppendAuthoredConviction(StringBuilder sb, NpcProfile npc)
+      {
+         if (string.IsNullOrWhiteSpace(npc.AuthoredConviction)) return;
+         sb.AppendLine("WHAT YOU HOLD TRUE (the player wrote this). This is your CONVICTION, not necessarily the truth of");
+         sb.AppendLine("the world. You believe it utterly, and you ACT on it: it shapes what you WANT, what you pursue,");
+         sb.AppendLine("what you fear, whom you trust, and what you read into other people's words. It is not merely");
+         sb.AppendLine("something you say. Unlike your backstory, which colours only how you speak, this one moves what");
+         sb.AppendLine("you decide, so let it steer your intentions in every exchange.");
+         sb.AppendLine("Others need not share it, and may not even know of it. If it is the kind of thing that would ruin");
+         sb.AppendLine("you were it known, then HIDE it: speak around it, deflect, and let it show only in what you");
+         sb.AppendLine("pursue. Concealing it is itself a motive, and a far better scene than confessing it.");
+         sb.AppendLine("Three limits. It gives you NO powers: whatever you believe of yourself, you can still only do what");
+         sb.AppendLine($"any person of your station could do, and the world of {PromptLore.WorldName} remains exactly as it is.");
+         sb.AppendLine("It imports no lore from outside that world. And it does not bend the world to suit it: you may WANT");
+         sb.AppendLine("a thing fiercely, and want is all a belief can give you. Whether you get it is for deeds to decide.");
+         sb.AppendLine(npc.AuthoredConviction);
          sb.AppendLine();
       }
 
