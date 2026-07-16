@@ -192,7 +192,12 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
                return Failure("Response contained no message content.");
             }
 
-            string content = contentToken.Value<string>() ?? string.Empty;
+            // Reasoning models can also leak their chain-of-thought INLINE in the content as
+            // <think>...</think> (nemotron and friends) instead of the separate field handled above;
+            // strip it here so every consumer (chat replies, memory lines, captive scenes) is covered
+            // at once. A trace cut off before its closing tag strips to EMPTY, which routes into
+            // CompleteAsync's bigger-budget retry exactly like the separate-field case.
+            string content = ReasoningTraceStripper.Strip(contentToken.Value<string>());
 
             // "length" here means the reply was cut off by the token limit — surfaced so
             // the host can log it and the one-shot retry above can fire.

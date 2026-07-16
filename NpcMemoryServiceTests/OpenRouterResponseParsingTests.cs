@@ -124,6 +124,43 @@ namespace NpcMemoryServiceTests
          response.ErrorMessage.Should().Be("Response contained no message content.");
       }
 
+      // ── Inline chain-of-thought leaks (the reported memory-screen bug) ──
+
+      // Nemotron-style models put their thinking INLINE in content as <think>...</think> rather than
+      // the separate reasoning field the cases above cover. End-to-end through ParseResponse, only the
+      // prose after the trace may survive; otherwise the trace is what the NPC "says" and "remembers"
+      // (Bannerlord hides the tags as markup, so the player sees the bare reasoning text).
+      [Test]
+      public void GIVEN_a_reply_with_an_inline_think_trace_WHEN_parsing_THEN_only_the_prose_after_it_survives()
+      {
+         const string body = "{\"choices\":[{\"message\":{\"role\":\"assistant\"," +
+                             "\"content\":\"<think>The user wants me to write a memory line.</think>She kept her word.\"}," +
+                             "\"finish_reason\":\"stop\"}]}";
+
+         LlmResponse response = OpenRouterClient.ParseResponse(body);
+
+         response.IsSuccess.Should().BeTrue();
+         response.Content.Should().Be("She kept her word.");
+      }
+
+      // The exact reported failure: Reasoning Effort High plus a small completion budget, so the inline
+      // trace is cut by length before its closing tag and no prose ever arrives. It must parse as an
+      // EMPTY success carrying the length reason, so CompleteAsync's bigger-budget retry fires, the same
+      // path as when a truncated trace arrives in the separate reasoning field.
+      [Test]
+      public void GIVEN_an_inline_trace_cut_by_length_with_no_prose_WHEN_parsing_THEN_an_empty_success_so_the_retry_fires()
+      {
+         const string body = "{\"choices\":[{\"message\":{\"role\":\"assistant\"," +
+                             "\"content\":\"<think>Let me summarize what happened: 1. Huan Yi\"}," +
+                             "\"finish_reason\":\"length\"}]}";
+
+         LlmResponse response = OpenRouterClient.ParseResponse(body);
+
+         response.IsSuccess.Should().BeTrue();
+         response.Content.Should().BeEmpty();
+         response.FinishReason.Should().Be("length");
+      }
+
       // Baseline regression guard: the ordinary, by-far-most-common reply shape must keep flowing
       // through unchanged while all the reasoning-model special cases above are handled around it.
       [Test]
