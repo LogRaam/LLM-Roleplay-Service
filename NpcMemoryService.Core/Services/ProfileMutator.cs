@@ -20,6 +20,9 @@ namespace NpcMemoryService.Core.Services
     /// </summary>
     public static class ProfileMutator
     {
+        /// <summary>Regard (ReputationWithPlayer) at which a warm act can rekindle an Estranged bond (M-J5). Tuning.</summary>
+        private const int EstrangedReconcileRelation = 30;
+
         /// <summary>
         ///   Applies the response to the profile:
         ///   - <see cref="ParsedResponse.NewEventData" /> → appends a <see cref="NotableEvent" />
@@ -34,6 +37,20 @@ namespace NpcMemoryService.Core.Services
         /// <param name="response">The parsed LLM response.</param>
         /// <param name="gameDay">The current game day, used to timestamp the new event.</param>
         public static void Apply(NpcProfile profile, ParsedResponse response, int gameDay)
+            => Apply(profile, response, gameDay, romanticContentEnabled: true, orientationCompatible: true);
+
+        public static void Apply(NpcProfile profile, ParsedResponse response, int gameDay, bool romanticContentEnabled)
+            => Apply(profile, response, gameDay, romanticContentEnabled, orientationCompatible: true);
+
+        /// <summary>
+        ///   Same authoritative mutation, with explicit gates on whether the romantic arc may advance (romance
+        ///   audit M-R2/M-R3). <paramref name="romanticContentEnabled" /> is false when adult content is Off (the
+        ///   whole romance system is disabled there), which froze a hallucinated at-Off intimacy from silently
+        ///   climbing the arc. <paramref name="orientationCompatible" /> is false for a pair the NPC's orientation
+        ///   rules out, so POSITIVE advancement is skipped for an implausible pair, matching the jealousy filter;
+        ///   negative degradation and event/reputation recording still apply either way.
+        /// </summary>
+        public static void Apply(NpcProfile profile, ParsedResponse response, int gameDay, bool romanticContentEnabled, bool orientationCompatible)
         {
             // Append event when present and non-trivial.
             // An empty or whitespace summary would pollute the history with lines
@@ -46,11 +63,14 @@ namespace NpcMemoryService.Core.Services
             // Adjust reputation when present
             if (response.Reputation != null) ApplyReputationDelta(profile, response.Reputation.ClanDelta ?? 0);
 
-            // Advance the romantic arc based on the event type and current trust level.
-            if (response.NewEventData != null
+            // Advance the romantic arc based on the event type and current trust level. Skipped entirely when the
+            // romance system is off (M-R3), so no romantic state accumulates behind the player's back.
+            if (romanticContentEnabled
+                && response.NewEventData != null
                 && !string.IsNullOrWhiteSpace(response.NewEventData.Summary))
             {
-                AdvanceRomanticStatus(profile, response.NewEventData.Type, profile.ReputationWithPlayer);
+                AdvanceRomanticStatus(profile, response.NewEventData.Type, profile.ReputationWithPlayer, orientationCompatible);
+                AdvanceAttraction(profile, response.NewEventData.Type, orientationCompatible);
             }
 
             // Record newly discovered trait — deduplicated by key so the same fact is never stored twice.
@@ -125,7 +145,24 @@ namespace NpcMemoryService.Core.Services
         ///   </list>
         ///   Negative events (Conflict / Betrayal) can push any arc toward Estranged or Broken.
         /// </summary>
-        private static void AdvanceRomanticStatus(NpcProfile profile, NotableEventType eventType, int relation)
+        /// <summary>
+        ///   Moves <see cref="RomanticProfile.AttractionToPlayer" /> by this event's
+        ///   <see cref="AttractionEvolutionPolicy" /> delta, clamped to [-100, 100] (romance audit M-R5: the stat
+        ///   was frozen because only duels ever wrote it). Runs alongside the arc advancement, under the same
+        ///   romance-enabled gate; court duels keep adding on top of whatever conversation builds.
+        /// </summary>
+        private static void AdvanceAttraction(NpcProfile profile, NotableEventType eventType, bool orientationCompatible)
+        {
+            if (profile.Romantic == null) return;
+
+            int delta = AttractionEvolutionPolicy.Delta(eventType, orientationCompatible);
+            if (delta == 0) return;
+
+            profile.Romantic.AttractionToPlayer =
+                Math.Max(-100, Math.Min(100, profile.Romantic.AttractionToPlayer + delta));
+        }
+
+        private static void AdvanceRomanticStatus(NpcProfile profile, NotableEventType eventType, int relation, bool orientationCompatible)
         {
             if (profile.Romantic == null) return;
 
@@ -135,6 +172,16 @@ namespace NpcMemoryService.Core.Services
                 && profile.Romantic.Preferences.Contains(RomanticPreference.Casual);
             bool isIntense = profile.Romantic.Preferences != null
                 && profile.Romantic.Preferences.Contains(RomanticPreference.Intense);
+
+            // Romance audit M-R7: a SecretLover whose third-party spouse has died (SpouseName has since cleared)
+            // is no longer "married to another", so the clandestine affair surfaces as an open Intimate bond
+            // instead of freezing forever under a "married to another" framing that no longer applies. Corrected
+            // up front so THIS event then resolves from the right state.
+            if (status == RomanticStatus.SecretLover && !isMarried)
+            {
+                profile.Romantic.Status = RomanticStatus.Intimate;
+                status = RomanticStatus.Intimate;
+            }
 
             // ── Negative events degrade any arc ─────────────────────────────
             if (eventType == NotableEventType.Betrayal
@@ -156,6 +203,26 @@ namespace NpcMemoryService.Core.Services
             if (eventType == NotableEventType.Conflict && status == RomanticStatus.Estranged)
             {
                 profile.Romantic.Status = RomanticStatus.Broken;
+                return;
+            }
+
+            // Romance audit M-R2: POSITIVE advancement below is gated on the pair being orientation-plausible, the
+            // same filter the jealousy system already applies. Without this, a romantic act the NPC's orientation
+            // rules out (an LLM hallucination) still climbed the arc while jealousy ignored it, a visible
+            // incoherence (the profile says "Intimate" but no jealous party ever reacts). Negative degradation
+            // above stays UNCONDITIONAL: a betrayal or quarrel wounds a bond whatever the orientation.
+            if (!orientationCompatible) return;
+
+            // Romance audit M-J5: Estranged means "trust broken but FEELING REMAINS", so it is RECOVERABLE,
+            // unlike Broken ("no path back"). A warm act at genuinely restored regard rekindles the bond instead
+            // of leaving it frozen forever: intimacy revives it as Intimate, a flirt as a rebuilding Courting.
+            if (status == RomanticStatus.Estranged
+                && (eventType == NotableEventType.Flirt || eventType == NotableEventType.Intimacy)
+                && relation >= EstrangedReconcileRelation)
+            {
+                profile.Romantic.Status = eventType == NotableEventType.Intimacy
+                    ? RomanticStatus.Intimate
+                    : RomanticStatus.Courting;
                 return;
             }
 

@@ -273,6 +273,157 @@ namespace NpcMemoryServiceTests
          profile.Romantic!.Status.Should().Be(RomanticStatus.Committed);
       }
 
+      // Romance audit M-R3: when the romance system is OFF (romanticContentEnabled false), a hallucinated
+      // intimacy [EVENT] must NOT advance the romantic status. Otherwise hidden romantic state accrues at content
+      // Off and resurfaces the moment the player enables content. The event and reputation still apply; only the
+      // arc is frozen.
+      [Test]
+      public void GIVEN_romance_disabled_WHEN_an_intimacy_event_arrives_THEN_the_status_does_not_advance()
+      {
+         var romantic = new RomanticProfile {Status = RomanticStatus.Courting};
+         NpcProfile profile = CreateProfile(romantic: romantic);
+         ParsedResponse response = ResponseWithEvent(NotableEventType.Intimacy, "A charged moment.");
+
+         ProfileMutator.Apply(profile, response, gameDay: 1, romanticContentEnabled: false);
+
+         profile.Romantic!.Status.Should().Be(RomanticStatus.Courting); // unchanged
+         profile.Events.Should().ContainSingle(e => e.type == NotableEventType.Intimacy); // event still recorded
+      }
+
+      // The same intimacy WITH romance enabled advances the arc as normal, so the gate never blocks a legitimate
+      // explicit scene.
+      [Test]
+      public void GIVEN_romance_enabled_WHEN_an_intimacy_event_arrives_THEN_the_status_advances()
+      {
+         var romantic = new RomanticProfile {Status = RomanticStatus.Courting};
+         NpcProfile profile = CreateProfile(romantic: romantic);
+         profile.ReputationWithPlayer = 30; // clears the standard Courting -> Intimate threshold (>= 20)
+         ParsedResponse response = ResponseWithEvent(NotableEventType.Intimacy, "A charged moment.");
+
+         ProfileMutator.Apply(profile, response, gameDay: 1, romanticContentEnabled: true);
+
+         profile.Romantic!.Status.Should().Be(RomanticStatus.Intimate);
+      }
+
+      // Romance audit M-J5: Estranged ("trust broken but feeling remains") is RECOVERABLE, unlike Broken. A warm
+      // act at restored regard rekindles it: intimacy back to Intimate, a flirt to a rebuilding Courting. Without
+      // this an estranged romance was frozen for life, and the wound the jealousy system now inflicts (down to
+      // Estranged) would have no way back.
+      [Test]
+      public void GIVEN_an_Estranged_bond_WHEN_intimacy_at_restored_regard_THEN_it_revives_to_Intimate()
+      {
+         var romantic = new RomanticProfile {Status = RomanticStatus.Estranged};
+         NpcProfile profile = CreateProfile(romantic: romantic);
+         profile.ReputationWithPlayer = 40; // genuinely warmed back up
+         ParsedResponse response = ResponseWithEvent(NotableEventType.Intimacy, "The distance closed.");
+
+         ProfileMutator.Apply(profile, response, gameDay: 1);
+
+         profile.Romantic!.Status.Should().Be(RomanticStatus.Intimate);
+      }
+
+      // The reconciliation requires GENUINELY restored regard: a warm act while regard is still cold leaves the
+      // bond Estranged, so a single gesture cannot paper over trust that was really broken.
+      [Test]
+      public void GIVEN_an_Estranged_bond_WHEN_a_flirt_at_cold_regard_THEN_it_stays_Estranged()
+      {
+         var romantic = new RomanticProfile {Status = RomanticStatus.Estranged};
+         NpcProfile profile = CreateProfile(romantic: romantic);
+         profile.ReputationWithPlayer = 5; // not warmed enough to rekindle
+         ParsedResponse response = ResponseWithEvent(NotableEventType.Flirt, "An overture, too soon.");
+
+         ProfileMutator.Apply(profile, response, gameDay: 1);
+
+         profile.Romantic!.Status.Should().Be(RomanticStatus.Estranged);
+      }
+
+      // Romance audit M-R5: a flirt now MOVES AttractionToPlayer through Apply (it was frozen at 0 because only
+      // duels ever wrote it). This is the end-to-end proof that conversation feeds the stat the LLM reads and the
+      // SpurnedAdmirer jealousy branch gates on.
+      [Test]
+      public void GIVEN_a_flirt_WHEN_applied_THEN_attraction_rises_by_the_policy_delta()
+      {
+         var romantic = new RomanticProfile {Status = RomanticStatus.None, AttractionToPlayer = 10};
+         NpcProfile profile = CreateProfile(romantic: romantic);
+         ParsedResponse response = ResponseWithEvent(NotableEventType.Flirt, "A warm exchange.");
+
+         ProfileMutator.Apply(profile, response, gameDay: 1);
+
+         profile.Romantic!.AttractionToPlayer.Should().Be(10 + AttractionEvolutionPolicy.FlirtGain);
+      }
+
+      // Attraction is clamped to +100: repeated warmth cannot run it past the documented ceiling that duels and
+      // the SpurnedAdmirer threshold both assume.
+      [Test]
+      public void GIVEN_attraction_near_the_ceiling_WHEN_a_warm_act_applies_THEN_it_clamps_at_100()
+      {
+         var romantic = new RomanticProfile {Status = RomanticStatus.Intimate, AttractionToPlayer = 98};
+         NpcProfile profile = CreateProfile(romantic: romantic);
+         ParsedResponse response = ResponseWithEvent(NotableEventType.Intimacy, "A night together.");
+
+         ProfileMutator.Apply(profile, response, gameDay: 1);
+
+         profile.Romantic!.AttractionToPlayer.Should().Be(100);
+      }
+
+      // M-R5 x M-R2: a warm act on an orientation-implausible pair grows no attraction (parity with the arc gate),
+      // but a BETRAYAL still cools it, so the wound path is never swallowed by the plausibility gate.
+      [Test]
+      public void GIVEN_an_implausible_pair_WHEN_a_betrayal_applies_THEN_attraction_still_falls()
+      {
+         var romantic = new RomanticProfile {Status = RomanticStatus.Intimate, AttractionToPlayer = 50};
+         NpcProfile profile = CreateProfile(romantic: romantic);
+         ParsedResponse response = ResponseWithEvent(NotableEventType.Betrayal, "The lie surfaced.");
+
+         ProfileMutator.Apply(profile, response, gameDay: 1, romanticContentEnabled: true, orientationCompatible: false);
+
+         profile.Romantic!.AttractionToPlayer.Should().Be(50 + AttractionEvolutionPolicy.BetrayalLoss);
+      }
+
+      // Romance audit M-R2: for an orientation-IMPLAUSIBLE pair (a romance the NPC's orientation rules out, an
+      // LLM hallucination), POSITIVE advancement must NOT happen, matching the jealousy filter. Otherwise the
+      // status climbs to Courting/Intimate while no jealous party ever reacts, a visible incoherence.
+      [Test]
+      public void GIVEN_an_orientation_implausible_pair_WHEN_a_flirt_arrives_THEN_the_status_does_not_advance()
+      {
+         var romantic = new RomanticProfile {Status = RomanticStatus.None};
+         NpcProfile profile = CreateProfile(romantic: romantic);
+         ParsedResponse response = ResponseWithEvent(NotableEventType.Flirt, "An overture the model imagined.");
+
+         ProfileMutator.Apply(profile, response, gameDay: 1, romanticContentEnabled: true, orientationCompatible: false);
+
+         profile.Romantic!.Status.Should().Be(RomanticStatus.None); // no climb for an implausible pair
+      }
+
+      // The M-R2 boundary: NEGATIVE degradation must stay UNCONDITIONAL. A betrayal wounds an existing bond
+      // regardless of orientation plausibility, so gating positive advancement must never also swallow a betrayal.
+      [Test]
+      public void GIVEN_an_orientation_implausible_pair_WHEN_a_betrayal_arrives_THEN_the_bond_still_breaks()
+      {
+         var romantic = new RomanticProfile {Status = RomanticStatus.Intimate};
+         NpcProfile profile = CreateProfile(romantic: romantic);
+         ParsedResponse response = ResponseWithEvent(NotableEventType.Betrayal, "The lie surfaced.");
+
+         ProfileMutator.Apply(profile, response, gameDay: 1, romanticContentEnabled: true, orientationCompatible: false);
+
+         profile.Romantic!.Status.Should().Be(RomanticStatus.Broken);
+      }
+
+      // Romance audit M-R7: a SecretLover whose third-party spouse has DIED (SpouseName cleared, so no longer
+      // married) must not stay frozen as a clandestine affair "married to another". On the next event they surface
+      // as an open Intimate bond. Here even a fresh Flirt corrects the stale status rather than leaving it stuck.
+      [Test]
+      public void GIVEN_a_SecretLover_who_is_no_longer_married_WHEN_an_event_arrives_THEN_it_surfaces_as_Intimate()
+      {
+         var romantic = new RomanticProfile {Status = RomanticStatus.SecretLover};
+         NpcProfile profile = CreateProfile(romantic: romantic, spouseName: null); // widowed: no spouse recorded
+         ParsedResponse response = ResponseWithEvent(NotableEventType.Flirt, "A look held a moment too long.");
+
+         ProfileMutator.Apply(profile, response, gameDay: 1);
+
+         profile.Romantic!.Status.Should().Be(RomanticStatus.Intimate);
+      }
+
       // Romance audit C3 (save migration): the host's one-shot backfill heals a player's spouse whose status
       // predates the marriage-sets-Committed fix. A pre-marriage leftover or the SecretLover corruption must be
       // healed; a deliberately damaged bond (Estranged/Broken) or an already-correct Committed must be left as
