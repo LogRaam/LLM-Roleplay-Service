@@ -190,6 +190,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendSchemeRecruitment(sb, encounterContext);
          AppendSchemeWarning(sb, encounterContext);
          AppendInterception(sb, encounterContext);
+         AppendFormatFeedback(sb, encounterContext);
          AppendLoveMatchProposal(sb, npc, encounterContext);
          AppendConsortProposal(sb, encounterContext);
          AppendSecretLoverProposal(sb, encounterContext);
@@ -220,6 +221,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendEncounterContext(sb, encounterContext);
          AppendWorldState(sb, world);
          AppendAtSeaNote(sb, encounterContext);
+         AppendCourtshipChallenge(sb, encounterContext);
          AppendWitnessTurnDirectives(sb, encounterContext);
          if (ShouldAppendCaptiveStageDirective(encounterContext))
             AppendSceneStageDirective(sb, encounterContext);
@@ -1196,6 +1198,24 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   Feedback loop (quest audit C5): when the PREVIOUS reply's [QUEST] or [ACTION] block could not be
+      ///   registered, tell the MODEL so, not just the player. Without it the model keeps speaking of a task the
+      ///   game never recorded. The host sets the note only the turn after a refusal and consumes it, so this
+      ///   nudges once and then falls silent.
+      /// </summary>
+      private static void AppendFormatFeedback(StringBuilder sb, EncounterContext? context)
+      {
+         string? note = context?.LlmFormatFeedbackNote;
+
+         if (string.IsNullOrWhiteSpace(note)) return;
+
+         sb.AppendLine("NOTE ON YOUR LAST REPLY:");
+         sb.AppendLine(note);
+         sb.AppendLine("If you still mean it, state it plainly again in a correctly formatted block; otherwise let it go and do not speak of it as done.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
       ///   Teaches that a captive's escape attempt is resolved by fate, not by the captor's
       ///   narration — the single biggest reason the LLM otherwise "always wins". The NPC emits
       ///   an escape_attempt action and narrates only the START of the scuffle; the host rolls the
@@ -1998,9 +2018,12 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("Each witness reacts TRUE TO THEIR OWN CHARACTER (see their descriptor above):");
             sb.AppendLine("an aloof witness stays guarded and terse; a warm one is openly expressive;");
             sb.AppendLine("a rival bristles. Do not make every witness react the same bland way.");
-            sb.AppendLine("Vary the form: a silent gesture for minor moments; a brief spoken line when");
-            sb.AppendLine("the moment is strong. Witnesses do not hold the floor: they react, then you");
-            sb.AppendLine("continue. One sentence in their voice — no more.");
+            sb.AppendLine("Vary the form: a silent gesture for minor moments; spoken words when the moment");
+            sb.AppendLine("is strong. A witness the topic genuinely CONCERNS (their kin, their trade, their");
+            sb.AppendLine("past, their strong opinion) may do more than quip: they may ask the player or you");
+            sb.AppendLine("a pointed question, object, or press a point of their own, up to two or three");
+            sb.AppendLine("sentences. You remain the scene's anchor: a witness interjects and then yields the");
+            sb.AppendLine("floor back; they never take over the conversation.");
             sb.AppendLine();
             sb.AppendLine("A witness may react in two ways:");
             sb.AppendLine("PROVOKED — something provocative, personally relevant, or insulting reaches them.");
@@ -2123,6 +2146,29 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("There are no horses, no roads, no inns, no farms here, only the deck, the sea, and the crew.");
          sb.AppendLine("Speak and act as people do at sea; do not talk of riding, roads, or overland travel as if you");
          sb.AppendLine("were on land.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Courtship-duel opener. Rendered only when a rival suitor rides out to challenge the player over a
+      ///   courted hero (<see cref="EncounterContext.CourtshipRivalLadyName" /> non-null): a directive for the
+      ///   rival to open the scene by declaring the challenge in his own voice, not a fixed canned line.
+      /// </summary>
+      private static void AppendCourtshipChallenge(StringBuilder sb, EncounterContext? context)
+      {
+         string? lady = context?.CourtshipRivalLadyName;
+
+         if (string.IsNullOrWhiteSpace(lady)) return;
+
+         sb.AppendLine("COURTSHIP CHALLENGE:");
+         sb.AppendLine($"You have ridden out to intercept the player over {lady}. You OPEN this scene yourself, in your");
+         sb.AppendLine($"own words and true to your character, making three things plain: that you love {lady}, that you");
+         sb.AppendLine("know the player is drawn to her too, and that you mean to settle which of you is worthier with");
+         sb.AppendLine("steel, here and now.");
+         sb.AppendLine("VARY the framing to your own nature, never a fixed canned line: a proud lord states it cold and");
+         sb.AppendLine("formal, a hot-blooded one burns with open fury, a desperate one all but pleads his devotion.");
+         sb.AppendLine("You ISSUE the challenge only. You do not narrate the fight or decide its outcome, the duel is");
+         sb.AppendLine("fought on the field, and whether the player accepts is theirs to answer, not yours to decide.");
          sb.AppendLine();
       }
 
@@ -2343,6 +2389,12 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("type: action_name");
          sb.AppendLine("context: brief natural-language intent (optional)");
          sb.AppendLine("param_name: value (one line per parameter)");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine();
+         sb.AppendLine("For example:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: change_relation");
+         sb.AppendLine("delta: 1");
          sb.AppendLine("[/ACTION]");
          sb.AppendLine();
          // The ONE global emission contract for every action below and throughout this prompt (recruitment,
@@ -2580,6 +2632,13 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("not above using that. If the moment serves, remind them of the child and press — coldly,");
                sb.AppendLine($"transactionally — for coin to keep your silence (around {demand} denars). Make the");
                sb.AppendLine("threat plain but take a clear refusal for an answer; the payment, if it comes, is real coin they hand over.");
+               sb.AppendLine("When the player AGREES to pay for your silence, emit a pay_blackmail action so the coin actually");
+               sb.AppendLine("changes hands and your silence is truly bought (the game settles the exact sum owed; you need name");
+               sb.AppendLine("no figure):");
+               sb.AppendLine("[ACTION]");
+               sb.AppendLine("type: pay_blackmail");
+               sb.AppendLine("[/ACTION]");
+               sb.AppendLine("Never treat the debt as paid on your word alone; without that action nothing has changed.");
 
                break;
 
@@ -3426,6 +3485,17 @@ namespace NpcMemoryService.Core.Prompts
             AppendActionInstructions(sb);
             // ExtraActionTeachings (the extended verb set) is deliberately NOT rendered in Lean mode:
             // a small / short-context model gets only the minimal action contract above.
+            // YOUR QUESTS (elsewhere in the Lean prompt) may ask you to acknowledge a done task with
+            // [QUEST_COMPLETE], but the full quest teaching below is skipped in Lean, so show the bare
+            // syntax here or a small model has no example of the block to copy.
+            if (EnableQuests)
+            {
+               sb.AppendLine("[QUEST_COMPLETE]");
+               sb.AppendLine("type: the completed task's type token");
+               sb.AppendLine("[/QUEST_COMPLETE]");
+               sb.AppendLine();
+            }
+
             sb.AppendLine("Stay in character at all times. Never break the fourth wall.");
             sb.AppendLine();
             sb.AppendLine("─────────────────────────────────────────────");
@@ -3436,6 +3506,7 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.AppendLine("RESPONSE FORMAT (always follow):");
          sb.AppendLine("Structure every response using the sections below.");
+         sb.AppendLine("Section labels are UPPERCASE, each OPENED as [LABEL] and CLOSED as [/LABEL] on their own lines.");
          sb.AppendLine();
          sb.AppendLine("EMIT [EVENT] WHEN ANY OF THESE OCCUR IN THIS EXCHANGE:");
          sb.AppendLine("- An agreement is reached (mission accepted, oath sworn, contract, promise, alliance).");
@@ -3519,8 +3590,19 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Stay in character at all times. Never break the fourth wall.");
          sb.AppendLine("If the player's history conflicts with a stated stance, the history wins.");
          sb.AppendLine();
+         // SCENE DISCIPLINE sits at the very END of the prompt, so it carries maximum recency. That is why it
+         // must be witness-aware: the unconditional "You are the ONLY character speaking" wall (v1.30.12) was
+         // the last thing the model read before generating, and it visibly muffled witness interjections (player
+         // report, 2026-07-15) even though the early WITNESSES PRESENT teaching encourages them. With witnesses
+         // present, the wall is replaced by an anchor rule plus an active invitation, and the invitation is what
+         // now holds the recency slot. The core prohibition (never compose another character's words inside YOUR
+         // OWN blocks) is identical in both variants: that bug fix stays.
          sb.AppendLine("SCENE DISCIPLINE:");
-         sb.AppendLine("You are the ONLY character speaking in this conversation. The player is speaking to YOU.");
+         bool hasWitnesses = context?.Witnesses is {Count: > 0};
+         if (hasWitnesses)
+            sb.AppendLine("You are the scene's ANCHOR, but you are not alone: the characters under WITNESSES PRESENT are in the room, listening, and alive.");
+         else
+            sb.AppendLine("You are the ONLY character speaking in this conversation. The player is speaking to YOU.");
          sb.AppendLine("You may briefly describe another character's presence or a WORDLESS gesture (a smirk, a nod,");
          sb.AppendLine("a glance: one short line of narration), but you must NEVER:");
          sb.AppendLine("- Put spoken words in another character's mouth, not even a short quote, inside your own");
@@ -3528,11 +3610,21 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("- Answer the player's question AS someone else, or reply on another character's behalf.");
          sb.AppendLine("- Simulate an exchange between the player and someone else.");
          sb.AppendLine("A present character's actual spoken reply is theirs to give, not yours to write.");
-         sb.AppendLine("EXCEPTION, named witnesses (listed under WITNESSES PRESENT): they are in the room. When one");
-         sb.AppendLine("visibly reacts, emit a [WITNESS_REACTION] block FOR them (attributed to them) rather than");
-         sb.AppendLine("weaving their words into your own text. If the player addresses a witness by name, do NOT");
-         sb.AppendLine("answer for them: their reply comes as their own [WITNESS_REACTION], or their own turn. Any");
-         sb.AppendLine("words a witness speaks belong in THEIR block, never in your dialogue or narration.");
+         if (hasWitnesses)
+         {
+            sb.AppendLine("A witness's words belong in THEIR block, never in your dialogue or narration: when one of them");
+            sb.AppendLine("has something to say, give it to them as their own attributed [WITNESS_REACTION] block. If the");
+            sb.AppendLine("player addresses a witness by name, do NOT answer for them.");
+            sb.AppendLine("AND THE ROOM IS ALIVE: when the talk touches a witness (their kin, their trade, their honour,");
+            sb.AppendLine("their strong opinion), let them STEP IN this very turn, a pointed question, an objection, a");
+            sb.AppendLine("correction, a laugh, through their own [WITNESS_REACTION] block. A room where bystanders only");
+            sb.AppendLine("nod is a stage set; make it a room full of living people.");
+         }
+         else
+         {
+            sb.AppendLine("If the player wishes to address someone else, they must seek them out separately. You may");
+            sb.AppendLine("acknowledge this, but never speak for them.");
+         }
          sb.AppendLine();
          sb.AppendLine("─────────────────────────────────────────────");
          sb.AppendLine();
@@ -3902,6 +3994,15 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("description: one or two sentences in your own voice");
          sb.AppendLine("[/QUEST]");
          sb.AppendLine();
+         sb.AppendLine("For example:");
+         sb.AppendLine("[QUEST]");
+         sb.AppendLine("type: bandit_hideout");
+         sb.AppendLine("target_settlement: Pravend");
+         sb.AppendLine("reward_gold: 150");
+         sb.AppendLine("reward_relation: 3");
+         sb.AppendLine("description: Bandits have been raiding the roads near Pravend; clear their hideout.");
+         sb.AppendLine("[/QUEST]");
+         sb.AppendLine();
          AppendConditionalBargains(sb);
          sb.AppendLine("Rules: name real, plausible targets you would know. Promise only rewards you would");
          sb.AppendLine("truly pay — the figure is fixed now and honored on completion. Offer at most ONE task,");
@@ -4129,6 +4230,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("also emit the matching block taught above for it (such as [ACTION] or [EVENT]) in the exact");
          sb.AppendLine("shape shown. If you skip the block, the game cannot see what happened and it will not take");
          sb.AppendLine("effect. Never answer as one run of plain prose with no tags.");
+         sb.AppendLine("e.g.  [DIALOGUE]your spoken words[/DIALOGUE]   then, only on a real change:   [ACTION] type: change_relation  delta: 1 [/ACTION]");
       }
 
       private bool IsPlayerCompatible(RomanticProfile romantic)

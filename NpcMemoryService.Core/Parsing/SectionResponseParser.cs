@@ -51,6 +51,9 @@ namespace NpcMemoryService.Core.Parsing
       private const string MachineryBlock =
          @"(?m)^[ \t]*\[/?[A-Z][A-Z0-9_ ]{0,30}\][ \t]*\r?\n?(?:[ \t]*[A-Za-z_][A-Za-z_ ]{0,24}[ \t]*[:=][^\r\n]*\r?\n?)*";
 
+      /// <summary>An upper bound on a quest deadline: a model that writes an absurd "365" is capped to a sane maximum rather than persisting a year-long task.</summary>
+      private const int MaxDeadlineDays = 90;
+
       // Section tag names (canonical form, matched case-insensitively).
       private const string DialogueTag = "DIALOGUE";
       private const string DiscoveryDescriptionKey = "description";
@@ -85,9 +88,12 @@ namespace NpcMemoryService.Core.Parsing
          string? reputationSection = ExtractSection(rawResponse, ReputationTag);
          string? stanceSection = ExtractSection(rawResponse, StanceTag);
          string? discoverySection = ExtractSection(rawResponse, DiscoveryTag);
-         string? questSection = ExtractSection(rawResponse, QuestTag);
-         string? questCompleteSection = ExtractSection(rawResponse, QuestCompleteTag);
-         string? questAbandonSection = ExtractSection(rawResponse, QuestAbandonTag);
+         // The QUEST family is promise-shaped: a block dropped for want of a close tag is a broken word the
+         // player never sees. Tolerate the truncation (a max-tokens cut) so a partial block still parses, or
+         // (if unparseable) still trips QuestBlockMalformed and tells the player, instead of vanishing.
+         string? questSection = ExtractSectionTolerant(rawResponse, QuestTag);
+         string? questCompleteSection = ExtractSectionTolerant(rawResponse, QuestCompleteTag);
+         string? questAbandonSection = ExtractSectionTolerant(rawResponse, QuestAbandonTag);
          IReadOnlyList<GameAction> actions = ParseActions(rawResponse);
          IReadOnlyList<WitnessReaction> witnessReactions = ParseWitnessReactions(rawResponse);
          QuestProposal? questGiven = ParseQuestProposal(questSection);
@@ -106,9 +112,11 @@ namespace NpcMemoryService.Core.Parsing
             Actions = actions,
             Discovery = ParseDiscovery(discoverySection),
             QuestGiven = questGiven,
-            // The model DID emit a [QUEST] block but it could not be parsed (missing/unknown type,
-            // or the block arrived truncated). Surfaced so the host can tell the player the spoken
-            // offer was NOT recorded, instead of the two silently diverging.
+            // The model DID emit a [QUEST] block but it could not be parsed (missing/unknown type). A block cut
+            // off before its close is now caught too: questSection comes from ExtractSectionTolerant, so a
+            // TRUNCATED [QUEST] arrives non-empty and trips this flag instead of vanishing (it used to be
+            // dropped silently, which this comment wrongly claimed it covered). Surfaced so the host can tell
+            // the player the spoken offer was NOT recorded, instead of the two silently diverging.
             QuestBlockMalformed = questGiven == null && !string.IsNullOrWhiteSpace(questSection),
             QuestCompleted = ParseQuestCompletion(questCompleteSection),
             QuestAbandoned = ParseQuestAbandon(questAbandonSection),
@@ -207,6 +215,26 @@ namespace NpcMemoryService.Core.Parsing
             : null;
       }
 
+      /// <summary>
+      ///   Like <see cref="ExtractSection" /> but tolerant of a MISSING close tag, the way a reply cut off by
+      ///   the token limit arrives (the model opened [QUEST] and never reached [/QUEST]). A closed block is
+      ///   returned as before; an open block with no close returns its body up to the next section boundary
+      ///   (<see cref="TrimAtFirstSection" />), so a truncated but promise-shaped block still reaches the
+      ///   consumer instead of vanishing silently. Used for the sections where a silent loss is a broken word
+      ///   (the QUEST family); DIALOGUE has its own open-tolerance in <see cref="ExtractDialogue" />.
+      /// </summary>
+      private static string? ExtractSectionTolerant(string text, string tag)
+      {
+         string? closed = ExtractSection(text, tag);
+         if (closed != null) return closed;
+
+         Match open = Regex.Match(text, $@"\[{Regex.Escape(tag)}\]", RegexOptions.IgnoreCase);
+
+         return open.Success
+            ? TrimAtFirstSection(text.Substring(open.Index + open.Length))
+            : null;
+      }
+
       private static string? GetField(IReadOnlyDictionary<string, string> fields, string key)
          => fields.TryGetValue(key, out string? v)
             ? v
@@ -224,9 +252,16 @@ namespace NpcMemoryService.Core.Parsing
       private static IReadOnlyList<GameAction> ParseActions(string text)
       {
          var actions = new List<GameAction>();
+
+         // A model that EXPLAINS the [ACTION] format inside its spoken [DIALOGUE] must not have its example
+         // executed against the game. Scan the reply with the dialogue body removed, so only real,
+         // out-of-dialogue action blocks (and any stray invented tag outside the dialogue) ever fire.
+         string scanText = Regex.Replace(text, $@"\[{DialogueTag}\].*?\[/{DialogueTag}\]", " ",
+            RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
          var pattern = $@"\[{ActionTag}\](.*?)\[/{ActionTag}\]";
 
-         foreach (Match match in Regex.Matches(text, pattern,
+         foreach (Match match in Regex.Matches(scanText, pattern,
                      RegexOptions.Singleline | RegexOptions.IgnoreCase))
          {
             Dictionary<string, string> fields = ParseKeyValueLines(match.Groups[1].Value);
@@ -246,15 +281,48 @@ namespace NpcMemoryService.Core.Parsing
             }
 
             actions.Add(new GameAction {
-               Type = type.Trim(),
+               Type = NormalizeActionType(type),
                Context = context,
                Parameters = parameters
             });
          }
 
+         // A trailing [ACTION] cut off before its [/ACTION] (a max-tokens truncation) is invisible to the
+         // closed-only match above and would be lost silently. Catch the LAST [ACTION] open with no close after
+         // it, and parse its body up to the next section boundary, so a truncated action still fires.
+         MatchCollection opens = Regex.Matches(scanText, $@"\[{ActionTag}\]", RegexOptions.IgnoreCase);
+         if (opens.Count > 0)
+         {
+            Match lastOpen = opens[opens.Count - 1];
+            string afterOpen = scanText.Substring(lastOpen.Index + lastOpen.Length);
+
+            if (!Regex.IsMatch(afterOpen, $@"\[/{ActionTag}\]", RegexOptions.IgnoreCase))
+            {
+               Dictionary<string, string> truncFields = ParseKeyValueLines(TrimAtFirstSection(afterOpen));
+
+               if (truncFields.TryGetValue(ActionTypeKey, out string? truncType) && !string.IsNullOrWhiteSpace(truncType))
+               {
+                  truncFields.TryGetValue(ActionContextKey, out string? truncContext);
+                  var truncParameters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                  foreach (KeyValuePair<string, string> kvp in truncFields)
+                  {
+                     if (string.Equals(kvp.Key, ActionTypeKey, StringComparison.OrdinalIgnoreCase)) continue;
+                     if (string.Equals(kvp.Key, ActionContextKey, StringComparison.OrdinalIgnoreCase)) continue;
+                     truncParameters[kvp.Key] = kvp.Value;
+                  }
+
+                  actions.Add(new GameAction {Type = NormalizeActionType(truncType), Context = truncContext, Parameters = truncParameters});
+               }
+            }
+         }
+
          // Last resort: a model that invented its own tag instead of the taught [ACTION] block still MEANT to
          // move the regard. Only when it emitted no real change_relation of its own, so a recovered one can
          // never double-count a proper emission.
+         // Deliberately scans the FULL text, dialogue included: an INVENTED [RELATION CHANGE] the NPC wrote
+         // inside its own speech is the reported Fakade case (the regard the NPC promised must move), which is
+         // the opposite of the taught [ACTION] example A7 excludes from the block scan above. A narrow recovery
+         // the RelationGate still caps, so recovering an in-dialogue one can never become an exploit.
          if (!actions.Exists(a => string.Equals(a.Type, ChangeRelationAction, StringComparison.OrdinalIgnoreCase)))
          {
             GameAction? recovered = RecoverStrayRelationChange(text);
@@ -357,7 +425,10 @@ namespace NpcMemoryService.Core.Parsing
 
          foreach (string rawLine in section.Split(separator: '\n'))
          {
-            string line = rawLine.Trim();
+            // Strip a leading markdown list / emphasis marker some models prefix ("- type:", "* type:",
+            // "`type`:"): weaker models JSON-ify or bullet their blocks, and the marker must not become part
+            // of the key or hide the line from the parser.
+            string line = rawLine.Trim().TrimStart('-', '*', '`', ' ', '\t');
 
             if (line.Length == 0) continue;
 
@@ -369,16 +440,59 @@ namespace NpcMemoryService.Core.Parsing
 
             if (sepIdx <= 0) continue;
 
-            string key = line.Substring(0, sepIdx).Trim();
-            string value = line.Substring(sepIdx + 1).Trim();
+            string key = NormalizeKey(line.Substring(0, sepIdx));
+            string value = StripValueWrappers(line.Substring(sepIdx + 1).Trim());
 
-            if (value.StartsWith("#", StringComparison.Ordinal)) value = value.Substring(1);
+            if (value.StartsWith("#", StringComparison.Ordinal)) value = value.Substring(1).Trim();
+            if (key.Length == 0) continue;
 
             dict[key] = value;
          }
 
          return dict;
       }
+
+      /// <summary>
+      ///   Folds a key to the canonical form the lookups use: strips markdown emphasis / quotes around it and
+      ///   turns runs of spaces and dashes into the underscore the canonical keys carry, so "reward gold",
+      ///   "reward-gold" and "reward_gold" all resolve to the same field. Comparison is already case-insensitive.
+      /// </summary>
+      private static string NormalizeKey(string raw)
+      {
+         string k = raw.Trim().Trim('*', '`', '"', '\'', ' ', '\t');
+
+         return Regex.Replace(k, @"[ \t\-]+", "_");
+      }
+
+      /// <summary>
+      ///   Removes ONE matching pair of surrounding quotes or backticks a JSON-minded model wrapped a value in
+      ///   (<c>type: "bandit_clear"</c> or <c>type: `bandit_clear`</c>), so the wrapper does not become part of
+      ///   the value and defeat the alias tables. A value with no matching pair is returned unchanged.
+      /// </summary>
+      private static string StripValueWrappers(string raw)
+      {
+         string v = raw.Trim();
+
+         if (v.Length >= 2)
+         {
+            char first = v[0];
+            char last = v[v.Length - 1];
+
+            if ((first == '"' && last == '"') || (first == '\'' && last == '\'') || (first == '`' && last == '`'))
+               v = v.Substring(1, v.Length - 2).Trim();
+         }
+
+         return v;
+      }
+
+      /// <summary>
+      ///   Folds an action type to the canonical snake_case the bridge matches on: runs of spaces and dashes
+      ///   become one underscore, so "give gold" and "give-gold" both reach "give_gold". Deliberately NOT an
+      ///   alias table: the bridge already lowercases, and synonyms like "pay" are ambiguous (player pays vs NPC
+      ///   pays), so guessing one could fire the WRONG transfer. Only the unambiguous separator fold is applied.
+      /// </summary>
+      private static string NormalizeActionType(string raw)
+         => Regex.Replace(raw.Trim(), @"[ \t\-]+", "_");
 
       private static ConversationMemory? ParseMemory(string? section)
       {
@@ -402,11 +516,14 @@ namespace NpcMemoryService.Core.Parsing
          if (section == null) return null;
 
          Dictionary<string, string> fields = ParseKeyValueLines(section);
-         QuestType? type = fields.TryGetValue("type", out string? typeStr)
-            ? ParseQuestType(typeStr)
+         bool typeNamed = fields.TryGetValue("type", out string? typeStr);
+         QuestType? type = typeNamed
+            ? ParseQuestType(typeStr!)
             : null;
 
-         return new QuestAbandonClaim {Type = type};
+         // A type that was NAMED but did not resolve is a hallucination, not the "no type given" wildcard: flag
+         // it so the consumer ignores the claim instead of abandoning the first outstanding quest by accident.
+         return new QuestAbandonClaim {Type = type, TypeUnrecognized = typeNamed && type == null};
       }
 
       /// <summary>
@@ -420,11 +537,14 @@ namespace NpcMemoryService.Core.Parsing
          if (section == null) return null;
 
          Dictionary<string, string> fields = ParseKeyValueLines(section);
-         QuestType? type = fields.TryGetValue("type", out string? typeStr)
-            ? ParseQuestType(typeStr)
+         bool typeNamed = fields.TryGetValue("type", out string? typeStr);
+         QuestType? type = typeNamed
+            ? ParseQuestType(typeStr!)
             : null;
 
-         return new QuestCompletionClaim {Type = type};
+         // Same discipline as abandonment: a named-but-unrecognised type is flagged so the consumer ignores it
+         // rather than paying out the first awaiting-reward quest on a hallucinated token.
+         return new QuestCompletionClaim {Type = type, TypeUnrecognized = typeNamed && type == null};
       }
 
       /// <summary>
@@ -446,7 +566,8 @@ namespace NpcMemoryService.Core.Parsing
          fields.TryGetValue("description", out string? description);
 
          int? deadline = TryParseSignedInt(fields, "deadline_days");
-         if (deadline is <= 0) deadline = null; // 0 or negative means "no deadline"
+         if (deadline is <= 0) deadline = null;   // 0 or negative means "no deadline"
+         if (deadline is > MaxDeadlineDays) deadline = MaxDeadlineDays; // a model that wrote "365" gets a sane cap
 
          return new QuestProposal {
             Type = type.Value,
@@ -636,9 +757,15 @@ namespace NpcMemoryService.Core.Parsing
 
       private static int? TryParseSignedInt(IReadOnlyDictionary<string, string> fields, string key)
       {
-         if (!fields.TryGetValue(key, out string? raw)) return null;
+         if (!fields.TryGetValue(key, out string? raw) || raw == null) return null;
 
-         return int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out int v)
+         // Permissive: pull the first signed integer out of a value a model dressed up ("500 denars", "1,000",
+         // "+3 relation"), dropping thousands separators first, so a well-meant number is not lost for its
+         // wrapping. Every consumer clamps or gates the result (ClampNonNegative, RelationGate), so being
+         // generous here can never become an exploit.
+         Match m = Regex.Match(raw.Replace(",", ""), @"[+-]?\d+");
+
+         return m.Success && int.TryParse(m.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int v)
             ? v
             : null;
       }

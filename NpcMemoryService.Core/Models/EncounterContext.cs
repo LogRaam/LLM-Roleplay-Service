@@ -263,6 +263,21 @@ namespace NpcMemoryService.Core.Models
       public string? InterceptionReason { get; init; }
 
       /// <summary>
+      ///   A one-line FEEDBACK note for the model when its PREVIOUS reply emitted a [QUEST] or [ACTION] block
+      ///   the host could not register (unknown / ungroundable target, unparseable). Without it, only the player
+      ///   was ever told, so a weak model kept referencing a task the game never recorded. The host sets this on
+      ///   the turn AFTER the refusal and consumes it, so it nudges once. Null in an ordinary turn.
+      /// </summary>
+      public string? LlmFormatFeedbackNote { get; init; }
+
+      /// <summary>
+      ///   When set, this conversation is a rival suitor's COURTSHIP-DUEL challenge, and this holds the courted
+      ///   hero's name. The speaking NPC (the rival) opens by declaring his love for her, his knowledge of the
+      ///   player's interest, and his demand to settle it with steel. Null in an ordinary conversation.
+      /// </summary>
+      public string? CourtshipRivalLadyName { get; init; }
+
+      /// <summary>
       ///   Negotiation Phase 3 (adult-gated): true when this NPC is the exploiter archetype who may offer
       ///   the female player a favour in exchange for intimacy (a man of low scruple, unrelated). Off by
       ///   default; the prompt section double-checks the adult tier.

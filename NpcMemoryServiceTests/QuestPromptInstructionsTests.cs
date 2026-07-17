@@ -116,5 +116,33 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().Contain("A task EXISTS only if you emit the [QUEST] block");
       }
+
+      // Phase C (weak-model parser hardening): the abstract [QUEST] TEMPLATE alone (field names, no real
+      // values) leaves a weak model guessing at concrete syntax. A fully-filled worked example, mirroring
+      // the existing [DIALOGUE]/[EVENT] example, is the biggest single win for weak-model compliance.
+      [Test]
+      public void GIVEN_quests_are_enabled_WHEN_teaching_task_issuance_THEN_a_fully_filled_quest_example_follows_the_template()
+      {
+         string prompt = BuildWithQuests(Npc());
+
+         prompt.Should().Contain("type: bandit_hideout");
+         prompt.Should().Contain("target_settlement: Pravend");
+      }
+
+      // Phase C: the Lean prompt drops the full quest-issuance teaching (AppendQuestInstructions is never
+      // called there), yet YOUR QUESTS may still ask a Lean model to acknowledge a done task with
+      // [QUEST_COMPLETE]. Without the bare skeleton taught in Lean too, a weak/small model has never once
+      // seen the closing tag and cannot reproduce the block, so the reward never pays.
+      [Test]
+      public void GIVEN_a_lean_prompt_with_quests_enabled_WHEN_built_THEN_the_quest_complete_syntax_is_still_taught()
+      {
+         var builder = new PromptBuilder {EnableQuests = true};
+
+         string prompt = builder.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10},
+            new EncounterContext {LeanLevel = LeanPromptLevel.Lean});
+
+         prompt.Should().Contain("[QUEST_COMPLETE]");
+         prompt.Should().Contain("[/QUEST_COMPLETE]");
+      }
    }
 }

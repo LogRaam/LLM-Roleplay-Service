@@ -18,5 +18,13 @@ namespace NpcMemoryService.Core.Models
         ///   (the consumer then completes the single satisfied quest, if exactly one).
         /// </summary>
         public QuestType? Type { get; init; }
+
+        /// <summary>
+        ///   True when the block DID name a type but it was not one the parser recognises. Distinct from a plain
+        ///   null <see cref="Type" /> (no type named, a legitimate "the single satisfied quest"): a named-but-
+        ///   unknown type is a hallucination, and the consumer must IGNORE it rather than wildcard onto the first
+        ///   awaiting-reward quest. Defaults false (older callers wildcard as before).
+        /// </summary>
+        public bool TypeUnrecognized { get; init; }
     }
 }

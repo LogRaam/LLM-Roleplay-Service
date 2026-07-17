@@ -267,6 +267,126 @@ namespace NpcMemoryServiceTests
 
          result.QuestAbandoned.Should().NotBeNull();
          result.QuestAbandoned!.Type.Should().BeNull();
+         result.QuestAbandoned.TypeUnrecognized.Should().BeFalse(); // no type named is the legitimate wildcard, never flagged
+      }
+
+      // The confirmed wildcard bug (quest audit, 2026-07-17): a [QUEST_ABANDON] that NAMED a type the parser
+      // does not recognise resolved to Type=null, INDISTINGUISHABLE from "no type given", so QuestService
+      // wildcarded it onto the first outstanding quest and could land a false broken-word penalty (-regard +
+      // grudge) on the wrong task. The block must now flag TypeUnrecognized so the consumer ignores the
+      // hallucinated token instead of penalising a quest the player never abandoned.
+      [Test]
+      public void Quest_abandon_with_a_named_but_unrecognized_type_is_flagged_not_treated_as_a_wildcard()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[QUEST_ABANDON]\ntype: not_a_real_quest_type\n[/QUEST_ABANDON]";
+
+         var result = _parser.Parse(raw);
+
+         result.QuestAbandoned.Should().NotBeNull();
+         result.QuestAbandoned!.Type.Should().BeNull();
+         result.QuestAbandoned.TypeUnrecognized.Should().BeTrue();
+      }
+
+      // The completion side of the same bug: a garbage type must not pay out the first awaiting-reward quest.
+      // Less harmful than a false abandon penalty, but still the wrong quest closed on a hallucination.
+      [Test]
+      public void Quest_complete_with_a_named_but_unrecognized_type_is_flagged_not_treated_as_a_wildcard()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[QUEST_COMPLETE]\ntype: not_a_real_quest_type\n[/QUEST_COMPLETE]";
+
+         var result = _parser.Parse(raw);
+
+         result.QuestCompleted.Should().NotBeNull();
+         result.QuestCompleted!.Type.Should().BeNull();
+         result.QuestCompleted.TypeUnrecognized.Should().BeTrue();
+      }
+
+      // Guards the boundary from the other side: the legitimate untyped completion wildcard must stay
+      // UNflagged, or the mod would start ignoring honest "complete my single quest" acknowledgements.
+      [Test]
+      public void Quest_complete_with_no_type_is_not_flagged_as_unrecognized()
+      {
+         _parser.Parse("[DIALOGUE]hi[/DIALOGUE]\n[QUEST_COMPLETE]\n[/QUEST_COMPLETE]")
+                .QuestCompleted!.TypeUnrecognized.Should().BeFalse();
+      }
+
+      // ---------- Truncation tolerance (quest audit A1, fragility 1) ----------
+
+      // A reply cut off by the token limit opens [QUEST] and never reaches [/QUEST]. The closed-only extractor
+      // dropped it with no flag and no message, so a task the NPC just offered aloud simply never existed. A
+      // truncated but well-formed body must still parse into a real proposal.
+      [Test]
+      public void A_truncated_quest_block_with_no_close_tag_still_parses()
+      {
+         var raw = "[DIALOGUE]clear the lair[/DIALOGUE]\n[QUEST]\ntype: bandit_hideout\ntarget_settlement: Pravend";
+
+         var result = _parser.Parse(raw);
+
+         result.QuestGiven.Should().NotBeNull();
+         result.QuestGiven!.Type.Should().Be(QuestType.BanditHideout);
+         result.QuestBlockMalformed.Should().BeFalse();
+      }
+
+      // The other half: a [QUEST] truncated BEFORE its type line is unparseable, but it must no longer vanish
+      // silently. It must trip QuestBlockMalformed so the player is told the spoken offer was not recorded.
+      [Test]
+      public void A_truncated_quest_block_cut_before_its_type_trips_the_malformed_flag()
+      {
+         var raw = "[DIALOGUE]I have a task[/DIALOGUE]\n[QUEST]\ndescription: rid my lands of";
+
+         var result = _parser.Parse(raw);
+
+         result.QuestGiven.Should().BeNull();
+         result.QuestBlockMalformed.Should().BeTrue();
+      }
+
+      // The closing family tolerates truncation too: an unclosed [QUEST_COMPLETE] still yields a claim rather
+      // than being lost, so a hard-won completion is not silently denied because the reply was cut short.
+      [Test]
+      public void A_truncated_quest_complete_block_still_yields_a_claim()
+      {
+         _parser.Parse("[DIALOGUE]well done[/DIALOGUE]\n[QUEST_COMPLETE]\ntype: bandit_clear")
+                .QuestCompleted!.Type.Should().Be(QuestType.BanditClear);
+      }
+
+      // ---------- Lexical robustness for weak models (quest audit A2 / A3 / A6) ----------
+
+      // JSON-minded models wrap values in quotes and bullet their lines. A quoted type and a markdown-bulleted
+      // key line must both still resolve, or a genuinely offered quest reads to the player as garbled or vanishes.
+      [Test]
+      public void A_quoted_type_and_a_bulleted_key_line_still_parse()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[QUEST]\n- type: \"bandit_clear\"\ntarget_settlement: Pravend\n[/QUEST]";
+
+         _parser.Parse(raw).QuestGiven!.Type.Should().Be(QuestType.BanditClear);
+      }
+
+      // A key written with a space instead of an underscore ("reward gold") is a common model habit; folding it
+      // to the canonical key keeps the reward from silently persisting as 0.
+      [Test]
+      public void A_spaced_key_folds_to_the_canonical_underscore_key()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[QUEST]\ntype: bandit_clear\nreward gold: 250\n[/QUEST]";
+
+         _parser.Parse(raw).QuestGiven!.RewardGold.Should().Be(250);
+      }
+
+      // Numbers dressed with a unit word or a thousands separator must still read as the number, not drop to 0.
+      [Test]
+      public void A_reward_with_a_unit_word_and_a_thousands_separator_reads_as_the_number()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[QUEST]\ntype: bandit_clear\nreward_gold: 1,500 denars\n[/QUEST]";
+
+         _parser.Parse(raw).QuestGiven!.RewardGold.Should().Be(1500);
+      }
+
+      // A model that writes an absurd deadline ("365") must not persist a year-long task: it is capped.
+      [Test]
+      public void An_absurd_deadline_is_capped_to_the_maximum()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[QUEST]\ntype: bandit_clear\ndeadline_days: 365\n[/QUEST]";
+
+         _parser.Parse(raw).QuestGiven!.DeadlineDays.Should().Be(90);
       }
 
       // With several quests open, mistargeting an abandon claim to the wrong one would apply the

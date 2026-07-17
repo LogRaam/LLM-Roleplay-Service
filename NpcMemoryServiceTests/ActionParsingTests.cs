@@ -62,6 +62,56 @@ namespace NpcMemoryServiceTests
          result.Actions[1].Type.Should().Be("recruit");
       }
 
+      // Truncation net (quest audit A1, fragility 1): a reply cut off by the token limit opens [ACTION] and
+      // never reaches [/ACTION]. The closed-only match dropped it silently, so an intended game effect (a
+      // payment, a recruitment) simply did not happen with no trace. The trailing unclosed block must still fire.
+      [Test]
+      public void A_trailing_unclosed_action_block_is_still_parsed()
+      {
+         var raw = "[DIALOGUE]very well[/DIALOGUE]\n[ACTION]\ntype: give_money\namount: 50";
+
+         var result = _parser.Parse(raw);
+
+         result.Actions.Should().HaveCount(1);
+         result.Actions[0].Type.Should().Be("give_money");
+         result.Actions[0].Parameters.Should().ContainKey("amount");
+      }
+
+      // Guards against double-counting: a properly closed action followed by a truncated one must yield BOTH,
+      // and the closed one must not also be re-picked by the trailing-unclosed catch.
+      [Test]
+      public void A_closed_action_then_a_truncated_one_yields_both_exactly_once()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[ACTION]\ntype: recruit\n[/ACTION]\n[ACTION]\ntype: give_money\namount: 40";
+
+         var result = _parser.Parse(raw);
+
+         result.Actions.Should().HaveCount(2);
+         result.Actions[0].Type.Should().Be("recruit");
+         result.Actions[1].Type.Should().Be("give_money");
+      }
+
+      // A7 (quest audit): a model that EXPLAINS the action format inside its spoken [DIALOGUE] must not have the
+      // example executed against the game. An [ACTION] living only inside the dialogue body is not a real command,
+      // or an NPC describing "I could pay you" would actually move gold.
+      [Test]
+      public void An_action_written_inside_the_dialogue_body_is_not_executed()
+      {
+         var raw = "[DIALOGUE]To pay you I would write [ACTION]\ntype: give_money\namount: 100\n[/ACTION] like so.[/DIALOGUE]";
+
+         _parser.Parse(raw).Actions.Should().BeEmpty();
+      }
+
+      // A4 (quest audit): a model that writes the action type with a space or a dash ("give gold", "give-gold")
+      // instead of the canonical underscore must still reach the bridge's snake_case match, or a real command
+      // falls to the bridge default and does nothing.
+      [Test]
+      public void An_action_type_with_a_dash_is_folded_to_snake_case()
+      {
+         _parser.Parse("[DIALOGUE]hi[/DIALOGUE]\n[ACTION]\ntype: give-gold\namount: 10\n[/ACTION]")
+                .Actions[0].Type.Should().Be("give_gold");
+      }
+
       // The free-form Parameters dictionary is how each action type's specific data (item,
       // quantity...) reaches BannerlordGameStateBridge's per-type handling; "type" and "context"
       // leaking into it would corrupt any downstream lookup keyed on those same parameter names.

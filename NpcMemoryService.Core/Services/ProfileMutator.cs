@@ -101,6 +101,20 @@ namespace NpcMemoryService.Core.Services
         }
 
         /// <summary>
+        ///   Romance audit C3 save-heal: whether the profile of the player's OWN spouse needs its romantic
+        ///   status healed to <see cref="RomanticStatus.Committed" />. The player's spouse should always sit at
+        ///   Committed, but marriage never set it and a post-wedding intimacy corrupted it to SecretLover, so
+        ///   older saves carry a spouse stuck at a pre-marriage status or clandestine-affair status. Those are
+        ///   healed; a deliberately damaged bond (<see cref="RomanticStatus.Estranged" />/
+        ///   <see cref="RomanticStatus.Broken" />) is left exactly as the marriage earned it. Pure so the host's
+        ///   one-shot backfill is a tested rule, not an ad-hoc condition.
+        /// </summary>
+        public static bool SpouseStatusNeedsHeal(RomanticStatus current)
+            => current != RomanticStatus.Committed
+               && current != RomanticStatus.Estranged
+               && current != RomanticStatus.Broken;
+
+        /// <summary>
         ///   Advances <see cref="RomanticProfile.Status" /> based on the event type and
         ///   the current trust level. Rules differ by NPC personality:
         ///   <list type="bullet">
@@ -146,10 +160,15 @@ namespace NpcMemoryService.Core.Services
             }
 
             // ── Married: intimacy → SecretLover ─────────────────────────────
+            // Romance audit C3: a Committed bond ALWAYS means committed to the PLAYER (legal marriage or consort),
+            // never to a third party, so intimacy with the player is open and legitimate and must NOT be
+            // reclassified as a clandestine affair. Without this guard a real player-spouse flipped to SecretLover
+            // ("married to another, kept hidden") on the first post-wedding intimacy and froze there for life.
             if (isMarried)
             {
                 if (eventType == NotableEventType.Intimacy
                     && status != RomanticStatus.SecretLover
+                    && status != RomanticStatus.Committed
                     && status != RomanticStatus.Broken)
                 {
                     profile.Romantic.Status = RomanticStatus.SecretLover;

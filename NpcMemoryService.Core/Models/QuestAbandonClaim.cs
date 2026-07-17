@@ -18,5 +18,14 @@ namespace NpcMemoryService.Core.Models
         ///   (the consumer then abandons the single outstanding quest, if exactly one).
         /// </summary>
         public QuestType? Type { get; init; }
+
+        /// <summary>
+        ///   True when the block DID name a type but it was not one the parser recognises. This is the crucial
+        ///   distinction from a plain null <see cref="Type" /> (no type named at all, a legitimate "the single
+        ///   outstanding quest"): a named-but-unknown type is a hallucination, and the consumer must IGNORE the
+        ///   claim rather than wildcard onto the first quest, or a garbage token would abandon the WRONG quest
+        ///   and land a false broken-word penalty on the player. Defaults false (older callers wildcard as before).
+        /// </summary>
+        public bool TypeUnrecognized { get; init; }
     }
 }

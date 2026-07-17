@@ -65,5 +65,17 @@ namespace NpcMemoryServiceTests
          // The motivator is the consequence, not just the rule: skip the block and the game cannot act on it.
          Build(LeanPromptLevel.Full).Should().Contain("the game cannot see");
       }
+
+      // Phase C: the Full reminder leaned entirely on "as taught above", ~10k tokens back in the cached
+      // prefix. Without a literal syntactic skeleton at the very end (highest recency), a weak model that
+      // has drifted from the earlier teaching has nothing concrete left to copy.
+      [Test]
+      public void GIVEN_a_full_prompt_WHEN_built_THEN_the_reminder_ends_with_a_literal_bracket_skeleton()
+      {
+         string prompt = Build(LeanPromptLevel.Full);
+
+         prompt.Should().Contain("[DIALOGUE]your spoken words[/DIALOGUE]");
+         prompt.Should().Contain("[ACTION] type: change_relation  delta: 1 [/ACTION]");
+      }
    }
 }

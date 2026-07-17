@@ -256,6 +256,39 @@ namespace NpcMemoryServiceTests
          profile.Romantic!.Status.Should().Be(RomanticStatus.SecretLover);
       }
 
+      // Romance audit C3: a Committed bond ALWAYS means committed to the PLAYER (legal marriage or consort),
+      // never a third party, so intimacy with the player is open and legitimate. Marriage now sets Committed, and
+      // this must survive the "married NPC -> SecretLover" rule: without the guard a real player-spouse flipped to
+      // SecretLover ("married to another, clandestine") on the first post-wedding intimacy and froze there for
+      // life, poisoning the prompt and making jealousy read the marriage itself as an affair.
+      [Test]
+      public void GIVEN_a_Committed_player_spouse_WHEN_Intimacy_arrives_THEN_status_stays_Committed()
+      {
+         var romantic = new RomanticProfile {Status = RomanticStatus.Committed};
+         NpcProfile profile = CreateProfile(romantic: romantic, spouseName: "Player");
+         ParsedResponse response = ResponseWithEvent(NotableEventType.Intimacy, "A night together, as married folk.");
+
+         ProfileMutator.Apply(profile, response, gameDay: 1);
+
+         profile.Romantic!.Status.Should().Be(RomanticStatus.Committed);
+      }
+
+      // Romance audit C3 (save migration): the host's one-shot backfill heals a player's spouse whose status
+      // predates the marriage-sets-Committed fix. A pre-marriage leftover or the SecretLover corruption must be
+      // healed; a deliberately damaged bond (Estranged/Broken) or an already-correct Committed must be left as
+      // the marriage earned it, so the heal never erases a real emotional state or thrashes a good one.
+      [Test]
+      public void GIVEN_a_spouse_status_WHEN_asking_if_it_needs_healing_THEN_only_the_corrupt_or_leftover_states_do()
+      {
+         ProfileMutator.SpouseStatusNeedsHeal(RomanticStatus.SecretLover).Should().BeTrue();
+         ProfileMutator.SpouseStatusNeedsHeal(RomanticStatus.Intimate).Should().BeTrue();
+         ProfileMutator.SpouseStatusNeedsHeal(RomanticStatus.None).Should().BeTrue();
+
+         ProfileMutator.SpouseStatusNeedsHeal(RomanticStatus.Committed).Should().BeFalse();
+         ProfileMutator.SpouseStatusNeedsHeal(RomanticStatus.Estranged).Should().BeFalse();
+         ProfileMutator.SpouseStatusNeedsHeal(RomanticStatus.Broken).Should().BeFalse();
+      }
+
       // ---------- Romantic arc: negative events degrade the arc ----------
 
       // A Betrayal must be able to break ANY arc already past mere Curiosity (Courting, Intimate,
