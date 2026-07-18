@@ -362,6 +362,13 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          payload[options.UseMaxCompletionTokens ? "max_completion_tokens" : "max_tokens"] = request.Parameters.MaxTokens;
          if (options.IncludeTemperature) payload["temperature"] = (double) request.Parameters.Creativity;
 
+         // Audit M13: the one anti-repetition lever that also reaches weak models, which ignore the prompt's
+         // "never repeat a gesture or phrase". Sent only when the host asked for it AND the endpoint accepts
+         // custom sampling at all (the same signal temperature rides on: the OpenAI reasoning models reject
+         // both). At zero the field is omitted entirely, so every existing provider keeps its exact payload.
+         if (options.IncludeTemperature && request.Parameters.PresencePenalty > 0f)
+            payload["presence_penalty"] = (double) request.Parameters.PresencePenalty;
+
          // OpenRouter reasoning control: lowering or disabling reasoning cuts moralizing
          // refusals on consensual adult fiction (see OpenRouterConfig.ReasoningProvider).
          object? reasoning = BuildReasoning(_config.ResolveReasoning());

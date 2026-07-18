@@ -67,6 +67,17 @@ namespace NpcMemoryService.Core.Services
         ///   and tests, which drive the block deliberately.
         /// </summary>
         public static void Apply(NpcProfile profile, ParsedResponse response, int gameDay, bool romanticContentEnabled, bool orientationCompatible, bool applyReputation)
+            => Apply(profile, response, gameDay, romanticContentEnabled, orientationCompatible, applyReputation, intimacyPermitted: true);
+
+        /// <summary>
+        ///   Same authoritative mutation, with the intimacy CONSENT bar applied to the arc (adult-prompt audit
+        ///   M3). <paramref name="intimacyPermitted" /> is what
+        ///   <see cref="IntimacyThresholdPolicy.PermitsIntimacy" /> answered for this pair. Without it the
+        ///   bridge could demote the relation bonus for an intimacy below the bar while the romantic STATUS
+        ///   still climbed to Intimate, minting a shared past that never mechanically happened; every later
+        ///   refusal would then be voiced as a former lover's. Defaults true for the console and tests.
+        /// </summary>
+        public static void Apply(NpcProfile profile, ParsedResponse response, int gameDay, bool romanticContentEnabled, bool orientationCompatible, bool applyReputation, bool intimacyPermitted)
         {
             // An [EVENT] whose summary is un-tagged meta-reasoning (the model thinking out loud about its
             // task instead of remembering — "The user wants me to write a memory line...") is dropped
@@ -93,7 +104,7 @@ namespace NpcMemoryService.Core.Services
                 && !string.IsNullOrWhiteSpace(response.NewEventData.Summary)
                 && !eventIsMeta)
             {
-                AdvanceRomanticStatus(profile, response.NewEventData.Type, profile.ReputationWithPlayer, orientationCompatible);
+                AdvanceRomanticStatus(profile, response.NewEventData.Type, profile.ReputationWithPlayer, orientationCompatible, intimacyPermitted);
                 AdvanceAttraction(profile, response.NewEventData.Type, orientationCompatible);
             }
 
@@ -214,7 +225,7 @@ namespace NpcMemoryService.Core.Services
                 Math.Max(-100, Math.Min(100, profile.Romantic.AttractionToPlayer + delta));
         }
 
-        private static void AdvanceRomanticStatus(NpcProfile profile, NotableEventType eventType, int relation, bool orientationCompatible)
+        private static void AdvanceRomanticStatus(NpcProfile profile, NotableEventType eventType, int relation, bool orientationCompatible, bool intimacyPermitted)
         {
             if (profile.Romantic == null) return;
 
@@ -269,6 +280,12 @@ namespace NpcMemoryService.Core.Services
             // incoherence (the profile says "Intimate" but no jealous party ever reacts). Negative degradation
             // above stays UNCONDITIONAL: a betrayal or quarrel wounds a bond whatever the orientation.
             if (!orientationCompatible) return;
+
+            // Adult-prompt audit M3: an intimacy the consent bar does not permit must not climb the arc
+            // either, or the bridge would demote the relation bonus while the STATUS still rose to Intimate,
+            // minting a shared past that never mechanically happened. A flirt below the bar still advances:
+            // flirting is exactly what the courtship tiers are for, and it is how the bar gets earned.
+            if (eventType == NotableEventType.Intimacy && !intimacyPermitted) return;
 
             // Romance audit M-J5: Estranged means "trust broken but FEELING REMAINS", so it is RECOVERABLE,
             // unlike Broken ("no path back"). A warm act at genuinely restored regard rekindles the bond instead

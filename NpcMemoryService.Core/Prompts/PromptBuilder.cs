@@ -28,6 +28,14 @@ namespace NpcMemoryService.Core.Prompts
       public AdultContentLevel AdultLevel { get; init; } = AdultContentLevel.Off;
 
       /// <summary>
+      ///   How far the host's relationship-pacing dial lowers the intimacy consent bar (0 at the level the
+      ///   mod was balanced around). The dial is a mod-side player setting the SDK cannot see, so the host
+      ///   maps it and passes the relief; the bar itself, and its floor, belong to
+      ///   <see cref="IntimacyThresholdPolicy" />.
+      /// </summary>
+      public int IntimacyThresholdRelief { get; init; }
+
+      /// <summary>
       ///   The literal heading that opens the per-turn CURRENT ENCOUNTER section. Single source of truth
       ///   for both where this class emits it (<see cref="AppendEncounterContext" />) and where
       ///   <c>NpcChatService</c> splits the stable, cacheable prefix from the dynamic per-turn tail, so the
@@ -1801,16 +1809,7 @@ namespace NpcMemoryService.Core.Prompts
          if (context.PlayerStatus != PlayerStatusVsNpc.Captive) return false;
          if (!string.IsNullOrEmpty(context.CaptiveVictimName)) return false;
 
-         switch (context.CaptiveIntent)
-         {
-            case CaptiveSceneIntent.Reckoning:
-            case CaptiveSceneIntent.Extortion:
-            case CaptiveSceneIntent.Intimidation:
-            case CaptiveSceneIntent.Revenge:
-               return false;
-            default:
-               return true;
-         }
+         return CaptiveSceneIntentRules.IsSexual(context.CaptiveIntent);
       }
 
       /// <summary>
@@ -3789,6 +3788,66 @@ namespace NpcMemoryService.Core.Prompts
       ///   with minimal trust (≥5); Intense NPCs burn fast (≥10). Standard NPCs require
       ///   meaningful connection across multiple meetings (≥20).
       /// </summary>
+      /// <summary>
+      ///   Adult-prompt audit M3: states the consent bar and the VERDICT, instead of leaving the model to
+      ///   recall a regard printed thousands of tokens earlier under CURRENT STANCE and do arithmetic on it.
+      ///   The disposition prose above still says what this character's nature asks for; this says where the
+      ///   player actually stands, at the point of decision. Nothing is printed for the player's own spouse:
+      ///   no stranger-gate applies to them, and naming a bar would only invite the model to invent one.
+      ///   <para>
+      ///     A former lover now below the bar gets a WITHDRAWAL, not a stranger's refusal. Someone who has
+      ///     shared the player's bed and answers as though they had never met is the amnesia this whole mod
+      ///     exists to prevent, and it is also how the mechanical gate lands softly on a save where the two
+      ///     were already lovers. The mechanical answer is identical either way (see
+      ///     <see cref="IntimacyThresholdPolicy.PermitsIntimacy" />): only the voice differs.
+      ///   </para>
+      /// </summary>
+      private void AppendIntimacyConsentVerdict(
+         StringBuilder sb, NpcProfile npc, bool isPlayerSpouse, bool marriedToAnother, bool isCasual, bool isIntense, int rep)
+      {
+         var facts = new IntimacyConsentFacts {
+            NpcIsPlayerSpouse = isPlayerSpouse,
+            NpcIsMarriedToAnother = marriedToAnother,
+            PrefersCasual = isCasual,
+            PrefersIntense = isIntense,
+            RegardWithPlayer = rep,
+            HasSharedIntimacyBefore = npc.Romantic?.Status.IsIntimateOrDeeper() == true,
+            ThresholdRelief = IntimacyThresholdRelief
+         };
+
+         IntimacyConsentVerdict verdict = IntimacyThresholdPolicy.Resolve(facts);
+
+         if (verdict == IntimacyConsentVerdict.Exempt) return;
+
+         int bar = IntimacyThresholdPolicy.Threshold(facts);
+
+         sb.AppendLine();
+         sb.AppendLine($"WHERE THIS PLAYER ACTUALLY STANDS WITH YOU: your personal regard for them is {rep:+#;-#;0}, "
+                     + $"and what your nature asks before physical intimacy is {bar}.");
+
+         switch (verdict)
+         {
+            case IntimacyConsentVerdict.Met:
+               sb.AppendLine("That bar is MET. Intimacy is possible if the moment and your own character lead there;");
+               sb.AppendLine("it is never automatic, and you may still decline for reasons of your own.");
+
+               break;
+            case IntimacyConsentVerdict.BelowWithHistory:
+               sb.AppendLine("That is BELOW it, and yet the two of you have been lovers before. Do not answer as though");
+               sb.AppendLine("you had never met: you remember it, and you say so warmly when it is raised. But something");
+               sb.AppendLine("between you has cooled, and you are not ready to return there yet. Ask for time rather than");
+               sb.AppendLine("refusing coldly, and let the ache show. If they press you again, do not repeat yourself:");
+               sb.AppendLine("let the tenderness give way to awkwardness, and then to plain firmness.");
+
+               break;
+            default:
+               sb.AppendLine("That is BELOW it: you do not yield to physical advances yet. Redirect rather than comply,");
+               sb.AppendLine("acknowledging the attraction honestly while holding your ground with warmth or quiet dignity.");
+
+               break;
+         }
+      }
+
       private void AppendIntimacyConsentRules(StringBuilder sb, NpcProfile npc, EncounterContext? context)
       {
          if (AdultLevel == AdultContentLevel.Off) return;
@@ -3898,6 +3957,9 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("(personal relation ≥ 20). Below these thresholds redirect rather than comply:");
             sb.AppendLine("acknowledge the attraction honestly, but hold your ground with warmth or quiet dignity.");
          }
+
+         AppendIntimacyConsentVerdict(sb, npc, isMarried && context?.NpcSpouseIsPlayer == true,
+            isMarried && context?.NpcSpouseIsPlayer != true, isCasual, isIntense, rep);
 
          sb.AppendLine();
 

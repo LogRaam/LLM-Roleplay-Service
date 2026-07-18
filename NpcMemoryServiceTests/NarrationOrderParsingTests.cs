@@ -7,6 +7,7 @@
 #region
 
 using FluentAssertions;
+using NpcMemoryService.Core.Models;
 using NpcMemoryService.Core.Parsing;
 using NUnit.Framework;
 
@@ -21,6 +22,35 @@ namespace NpcMemoryServiceTests
 
       [SetUp]
       public void SetUp() => _parser = new SectionResponseParser();
+
+      // Adult-prompt audit M8: [NARRATION] was the only channel with no open-tag tolerance. A climactic beat
+      // is the longest thing the model writes, so it is the likeliest to hit the token ceiling before it can
+      // close the tag, and the entire beat used to evaporate: the scene rendered as nothing at all. The body
+      // written so far must reach the player instead.
+      [Test]
+      public void GIVEN_a_narration_truncated_before_its_closing_tag_WHEN_parsed_THEN_the_body_still_survives()
+      {
+         const string raw = "[DIALOGUE]\nHold still.\n[/DIALOGUE]\n" +
+                            "[NARRATION]\nThe cold bites deeper than the rope, and the lamp gutters as";
+
+         ParsedResponse parsed = _parser.Parse(raw);
+
+         parsed.Narration.Should().Contain("The cold bites deeper than the rope");
+         parsed.Dialogue.Should().Be("Hold still.");
+      }
+
+      // The other side of the tolerance: a truncated narration must not swallow the blocks that follow it,
+      // or a cut-off beat would eat the turn's [ACTION] and [EVENT] along with it.
+      [Test]
+      public void GIVEN_a_truncated_narration_followed_by_another_block_WHEN_parsed_THEN_it_stops_at_the_boundary()
+      {
+         const string raw = "[NARRATION]\nShe turns away from the bars\n[EVENT]\ntype: Captivity\nsummary: I left her there.\n[/EVENT]";
+
+         ParsedResponse parsed = _parser.Parse(raw);
+
+         parsed.Narration.Should().Contain("She turns away from the bars");
+         parsed.Narration.Should().NotContain("type: Captivity");
+      }
 
       // A narration-led turn: the flag is raised, and both sections still parse as before.
       [Test]

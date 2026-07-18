@@ -82,7 +82,11 @@ namespace NpcMemoryService.Core.Parsing
 
          string dialogue = ExtractDialogue(rawResponse);
 
-         string? narrationSection = ExtractSection(rawResponse, NarrationTag);
+         // Adult-prompt audit M8: [NARRATION] was the ONE channel with no open-tag tolerance, while the QUEST
+         // family had it and DIALOGUE has its own. A climactic beat is exactly the longest thing the model
+         // writes, so it is the likeliest to hit the token ceiling before reaching [/NARRATION]: the whole
+         // beat then vanished, and the scene could render as nothing at all.
+         string? narrationSection = ExtractSectionTolerant(rawResponse, NarrationTag);
          string? memorySection = ExtractSection(rawResponse, MemoryTag);
          string? eventSection = ExtractSection(rawResponse, EventTag);
          string? reputationSection = ExtractSection(rawResponse, ReputationTag);
