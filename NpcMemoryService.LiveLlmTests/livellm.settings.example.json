@@ -1,0 +1,35 @@
+{
+  "_comment_1": "TEMPLATE. Copy this file to 'livellm.settings.json' (same folder) and edit that copy.",
+  "_comment_2": "The copy is git-ignored: no file means the firewall is CLOSED, so a fresh clone and any CI are safe by default.",
+  "_comment_3": "NEVER put a real key in THIS example file: it is committed. Put it in your git-ignored copy only.",
+
+  "_enabled": "THE FIREWALL. true lets these tests call a real LLM and spend tokens. Takes effect on the next run, no IDE or runner restart.",
+  "enabled": false,
+
+  "_apiKey": "OpenRouter key. Empty falls back to the OPENROUTER_API_KEY environment variable. Beware: the variable is captured when a process STARTS, so a value set while VS or nCrunch is running is not seen, and it can hold an old key while the game uses a newer one from Mod Options.",
+  "apiKey": "",
+
+  "_model": "The model under test: judge the one you actually ship with.",
+  "model": "x-ai/grok-4.20",
+
+  "_judgeModel": "Model that scores the YES/NO behaviour verdicts. Empty reuses 'model'. A small literal model usually judges better, and costs less.",
+  "judgeModel": "",
+
+  "_reasoningEffort": "OpenRouter reasoning effort: low | medium | high, or empty for the provider default. Lowering it also cuts moralizing refusals on adult fiction.",
+  "reasoningEffort": "",
+
+  "_providerPin": "Comma-separated OpenRouter provider slugs, in order. Empty lets OpenRouter route. Some providers moderate their own output and cut a reply mid-sentence.",
+  "providerPin": "",
+
+  "_allowProviderFallbacks": "Whether OpenRouter may fall back to unpinned providers when the pinned ones are unavailable.",
+  "allowProviderFallbacks": false,
+
+  "_maxTokens": "Output cap per chat turn. The game ships 1500.",
+  "maxTokens": 1500,
+
+  "_temperature": "Sampling temperature. The game ships 0.7.",
+  "temperature": 0.7,
+
+  "_presencePenalty": "Pushes the model off words it has already used. The game ships 0.3. The one lever that reduces repetition on weaker models.",
+  "presencePenalty": 0.3
+}

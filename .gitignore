@@ -35,3 +35,8 @@ _NCrunch_*/
 # OS
 Thumbs.db
 .DS_Store
+
+# Live-LLM lane: the LOCAL opt-in and settings. Its absence is the closed-firewall default, so it must
+# never be committed (an accidentally-committed "enabled": true would let a clone or CI spend tokens).
+# The committed livellm.settings.example.json is the template.
+livellm.settings.json

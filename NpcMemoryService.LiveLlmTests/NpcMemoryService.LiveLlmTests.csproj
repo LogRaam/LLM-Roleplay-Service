@@ -23,4 +23,12 @@
     <ProjectReference Include="..\NpcMemoryService.Core\NpcMemoryService.Core.csproj" />
   </ItemGroup>
 
+  <!-- The local settings file (git-ignored) travels to the output so the harness finds it beside the test    -->
+  <!-- assembly. Condition + no error when missing: its ABSENCE is the closed-firewall default, never a build  -->
+  <!-- failure. The committed template beside it documents every option.                                       -->
+  <ItemGroup>
+    <None Include="livellm.settings.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('livellm.settings.json')" />
+    <None Include="livellm.settings.example.json" CopyToOutputDirectory="Never" />
+  </ItemGroup>
+
 </Project>
