@@ -40,6 +40,21 @@ namespace NpcMemoryService.Core.Models
       public bool IsDelivered { get; set; }
 
       /// <summary>
+      ///   Courier audit 2.3: the in-game day the letter ACTUALLY reached the player (set in
+      ///   MarkReceived). <see cref="DeliveryDay"/> is the DUE day, frozen at send and never corrected for a
+      ///   slow or waylaid-then-resent courier, so measuring a romantic follow-up ("your silence weighs on me")
+      ///   from it fires the day after a late arrival. Zero on letters delivered before this field existed, or
+      ///   still in transit; read through <see cref="EffectiveDeliveredDay"/> so old saves fall back gracefully.
+      /// </summary>
+      public int DeliveredOnDay { get; set; }
+
+      /// <summary>
+      ///   The day to measure "how long since the player received this" from: the real delivery day when known,
+      ///   else the due day (old saves / tolerant fallback). Never throws, never negative-drifts a follow-up.
+      /// </summary>
+      public int EffectiveDeliveredDay => DeliveredOnDay > 0 ? DeliveredOnDay : DeliveryDay;
+
+      /// <summary>
       ///   The player's reply text, if they chose to respond. When set, the delivery
       ///   service triggers a new LLM call to generate the NPC's next letter.
       /// </summary>

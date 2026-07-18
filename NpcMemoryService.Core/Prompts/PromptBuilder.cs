@@ -182,7 +182,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendStanceConsequence(sb, encounterContext);
          AppendGrudgeNote(sb, encounterContext);
          AppendAppreciationNote(sb, encounterContext);
-         AppendPlayerLetters(sb, npc);
+         AppendPlayerLetters(sb, npc, world.CurrentDay);
          AppendWitnesses(sb, encounterContext, lean);
          AppendRecruitment(sb, encounterContext);
          AppendMercenaryOffer(sb, encounterContext);
@@ -1446,7 +1446,10 @@ namespace NpcMemoryService.Core.Prompts
       ///   have been delivered but not yet acknowledged appear here. After the NPC's
       ///   first response the mod marks them read so they are not injected again.
       /// </summary>
-      private static void AppendPlayerLetters(StringBuilder sb, NpcProfile npc)
+      /// <summary>Most recent unread player letters to inject; older ones are dropped so the prompt cannot grow unbounded.</summary>
+      private const int MaxInjectedPlayerLetters = 3;
+
+      private static void AppendPlayerLetters(StringBuilder sb, NpcProfile npc, int currentDay)
       {
          if (npc.ReceivedPlayerLetters == null || npc.ReceivedPlayerLetters.Count == 0) return;
 
@@ -1457,10 +1460,19 @@ namespace NpcMemoryService.Core.Prompts
 
          if (unread.Count == 0) return;
 
+         // 4.8: cap the injection (a long-running campaign could accumulate many unread letters, each serialised
+         // in full every generation) and keep the most recent, since those are what the NPC would speak to first.
+         unread.Sort((a, b) => a.SentOnDay.CompareTo(b.SentOnDay));
+         if (unread.Count > MaxInjectedPlayerLetters)
+            unread.RemoveRange(0, unread.Count - MaxInjectedPlayerLetters);
+
          sb.AppendLine("LETTERS FROM THE PLAYER (received — you have not yet spoken of these):");
          foreach (PlayerLetter letter in unread)
          {
-            sb.AppendLine($"Sent on day {letter.SentOnDay}:");
+            // 4.8: a raw day ordinal ("Sent on day 91078") is meaningless to the model; render elapsed time in
+            // words ("arrived 6 days ago") and fall back to a neutral label when the stamp is unusable.
+            string ago = RecencySuffix(letter.SentOnDay, currentDay);
+            sb.AppendLine(string.IsNullOrEmpty(ago) ? "A letter:" : $"A letter that arrived{ago}:");
             sb.AppendLine($"\"{letter.Content}\"");
          }
 

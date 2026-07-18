@@ -96,6 +96,21 @@ namespace NpcMemoryService.Core.Models
         public int RequiredItemValue { get; set; }
 
         /// <summary>
+        ///   For a <see cref="QuestType.ProvideGold" /> support demand (e.g. child support): the TOTAL denars the
+        ///   player must pay to satisfy it. Courier audit M14: zero used to let a single denar close a 750-denar
+        ///   demand. Zero on quests saved before this existed, and on any non-support ProvideGold quest, where the
+        ///   legacy "any payment closes it" behaviour is preserved (graceful degradation).
+        /// </summary>
+        public int RequiredGold { get; set; }
+
+        /// <summary>
+        ///   For a <see cref="QuestType.ProvideGold" /> demand with a non-zero <see cref="RequiredGold" />: the
+        ///   cumulative denars paid so far, so partial payments accumulate toward the total instead of each one
+        ///   closing the quest. Defaults to zero (no payment yet); irrelevant when <see cref="RequiredGold" /> is 0.
+        /// </summary>
+        public int PaidGold { get; set; }
+
+        /// <summary>
         ///   For a <see cref="QuestType.ProvideGoods" /> supply task: the canonical goods category the player
         ///   must hand over ("horses", "livestock", or "grain"). Null for non-supply quests.
         /// </summary>

@@ -195,6 +195,15 @@ namespace NpcMemoryService.Core.Models
       public List<PendingLetter> SentLetters { get; init; } = new();
 
       /// <summary>
+      ///   Courier audit 2.5: letters this NPC has COMMITTED to send later but has not yet written (currently
+      ///   only the child-support demand, due some days after a birth). The intention is persisted here, and the
+      ///   content is generated at the scheduled day with bounded retry, so an LLM outage at the moment of the
+      ///   birth no longer loses the pension (and its quest) forever, and the old "stamp SentOnDay in the future"
+      ///   hack is gone. Empty on saves made before this existed (graceful, additive).
+      /// </summary>
+      public List<ScheduledLetter> ScheduledLetters { get; init; } = new();
+
+      /// <summary>
       ///   Name of this NPC's current spouse, or null if the NPC is single or widowed.
       ///   Refreshed from live game state on every session launch so it stays accurate
       ///   as Bannerlord events (death, remarriage) alter marital status.
