@@ -17,7 +17,10 @@ namespace NpcMemoryServiceTests
    [TestFixture]
    public class RoundTableTurnPromptTests
    {
-      private const string Header = "ROUND TABLE:";
+      // Round-table audit D5 renamed this block. "ROUND TABLE:" sat beside a WITNESSES PRESENT section that
+      // framed the same people as eavesdroppers to guard your tongue around, so the model received two
+      // contradictory readings of the room. The heading now names them as participants.
+      private const string Header = "THE COUNCIL PRESENT (each will speak in turn):";
 
       private static NpcProfile Npc() => new() {
          Id = "npc_test",
@@ -51,6 +54,36 @@ namespace NpcMemoryServiceTests
          string prompt = builder.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
          prompt.Should().NotContain(Header);
+      }
+
+      // Round-table audit C1, the defect all six axes found: the council runs on the STANDARD prompt, which
+      // teaches every action (quests, gold, troops, marriage), while the host applies NONE of them for a
+      // council turn. A lord who said "I lend you fifty men" was showing the player a promise the game would
+      // never honour, and had forgotten it by the next private conversation. Until the council has a real
+      // mechanical afterlife, the prompt must stop it making promises it cannot keep.
+      [Test]
+      public void GIVEN_a_round_table_turn_WHEN_building_the_prompt_THEN_nothing_may_be_sealed_at_the_table()
+      {
+         string prompt = new PromptBuilder().BuildSystemPrompt(
+            Npc(), new WorldState {CurrentDay = 10},
+            new EncounterContext {LeanLevel = LeanPromptLevel.Full, IsRoundTableTurn = true});
+
+         prompt.Should().Contain("NOTHING IS SEALED AT THIS TABLE:");
+         prompt.Should().Contain("must be settled between you and the");
+      }
+
+      // The attributed-transcript convention is what lets several speakers share one room, and it was taught
+      // nowhere: a weaker model could read "Name: ..." as the PLAYER quoting somebody, or answer on another
+      // participant's behalf. Both break the illusion the council depends on.
+      [Test]
+      public void GIVEN_a_round_table_turn_WHEN_building_the_prompt_THEN_the_attributed_transcript_is_explained()
+      {
+         string prompt = new PromptBuilder().BuildSystemPrompt(
+            Npc(), new WorldState {CurrentDay = 10},
+            new EncounterContext {LeanLevel = LeanPromptLevel.Full, IsRoundTableTurn = true});
+
+         prompt.Should().Contain("what THAT person said aloud in this room");
+         prompt.Should().Contain("Speak ONLY as yourself");
       }
    }
 }

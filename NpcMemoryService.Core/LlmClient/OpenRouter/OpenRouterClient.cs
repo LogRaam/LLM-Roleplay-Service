@@ -64,7 +64,11 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
                   Messages = request.Messages,
                   Parameters = new LlmParameters {
                      MaxTokens = request.Parameters.MaxTokens * 2,
-                     Creativity = request.Parameters.Creativity
+                     Creativity = request.Parameters.Creativity,
+                     // Carry every OTHER generation setting across untouched: only the budget is being
+                     // changed here. Rebuilding the object silently dropped the anti-repetition penalty on
+                     // exactly the retries most likely to ramble.
+                     PresencePenalty = request.Parameters.PresencePenalty
                   },
                   StableSystemPrompt = request.StableSystemPrompt,
                   SystemPrompt = request.SystemPrompt

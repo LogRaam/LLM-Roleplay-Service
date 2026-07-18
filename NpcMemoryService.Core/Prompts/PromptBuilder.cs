@@ -232,7 +232,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendCourtshipChallenge(sb, encounterContext);
          AppendWitnessTurnDirectives(sb, encounterContext);
          if (ShouldAppendCaptiveStageDirective(encounterContext))
-            AppendSceneStageDirective(sb, encounterContext);
+            AppendSceneStageDirective(sb, encounterContext, PlayerIsFemale);
          AppendPowerBalance(sb, encounterContext);
          AppendPlayerGenderContext(sb, npc, encounterContext);
          // Hoisted out of AppendEncounterContext so it still renders when encounterContext is null, and kept
@@ -961,10 +961,25 @@ namespace NpcMemoryService.Core.Prompts
 
          if (context.IsRoundTableTurn)
          {
-            sb.AppendLine("ROUND TABLE:");
-            sb.AppendLine("The floor is open to everyone present. Speak at more length than a normal reply, a full and");
+            sb.AppendLine("THE COUNCIL PRESENT (each will speak in turn):");
+            sb.AppendLine("The floor is open to everyone here. Speak at more length than a normal reply, a full and");
             sb.AppendLine("substantive contribution in your own voice. You may respond to, build on, agree or disagree with,");
             sb.AppendLine("or address by name another person present, not only the player. Do not simply defer back to the player.");
+            sb.AppendLine("Lines written as \"Name: ...\" in the exchange above are what THAT person said aloud in this room.");
+            sb.AppendLine("Speak ONLY as yourself: never write another person's reply, and never answer on their behalf.");
+            sb.AppendLine();
+            // Round-table audit C1/0.1: the council runs on the STANDARD prompt, which teaches every action
+            // (quests, gold, troops, marriage), and the host applies NONE of them for a council turn: no
+            // ProfileMutator, no Store.Set, no actions. A lord who said "I lend you fifty men" here was
+            // showing the player a promise the game would never honour, and had forgotten it by the next
+            // private conversation. Until the council has a real mechanical afterlife, the honest fix is to
+            // stop it making promises it cannot keep, rather than to leave the divergence in place.
+            sb.AppendLine("NOTHING IS SEALED AT THIS TABLE:");
+            sb.AppendLine("This is counsel, not a contract. Do NOT emit any [ACTION], [QUEST], [QUEST_COMPLETE] or");
+            sb.AppendLine("[EVENT] block on this turn, and do not declare a deed done: no gold changes hands, no troops");
+            sb.AppendLine("are lent, no quest is struck, no vow is sworn HERE. Argue, advise, warn, offer, or refuse in");
+            sb.AppendLine("words; if you would commit to something, say that it must be settled between you and the");
+            sb.AppendLine("player face to face, and let them come to you.");
             sb.AppendLine();
          }
 
@@ -1687,12 +1702,18 @@ namespace NpcMemoryService.Core.Prompts
       ///   what is already done — never the whole arc. This is what stops the model looping a beat
       ///   (the 1-2-2-2-3 problem) or cramming everything into one reply.
       /// </summary>
-      private static void AppendSceneStageDirective(StringBuilder sb, EncounterContext? context)
+      private static void AppendSceneStageDirective(StringBuilder sb, EncounterContext? context, bool prisonerIsFemale)
       {
          CaptiveSceneStage stage = context?.SceneStage ?? CaptiveSceneStage.Intro;
          CaptiveAggressorKind who = context?.AggressorKind ?? CaptiveAggressorKind.Lead;
 
          sb.AppendLine("THE BEAT TO PERFORM THIS TURN — DO ONLY THIS, THEN STOP:");
+         // Audit M6(b): the per-intent ESCALATION paragraphs above predate this machine and still carry their
+         // own tempo ("after 2-3 conversational exchanges, move"). Rather than dilute five blocks of
+         // characterization, this one line settles which authority wins, and it sits here because this block
+         // renders last and only when the machine is actually running.
+         sb.AppendLine("(This OVERRIDES any earlier pace advice, including the ESCALATION note for your purpose:");
+         sb.AppendLine("those describe your nature, this decides how far the scene has actually come.)");
          sb.AppendLine("(Perform it FULLY: a beat is a whole moment of the story, not a single line. Your spoken");
          sb.AppendLine("words, the psychological pressure, and the physical detail all belong inside this one beat.)");
          sb.AppendLine("STATE YOUR REASON AT MOST ONCE: do not re-litigate your grievances, your shared history with");
@@ -1706,20 +1727,28 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("below or stall the scene.)");
          }
 
-         // Whose aggression this is — only relevant once the band joins in.
+         // Whose aggression this is, and only relevant once the band joins in. Audit M5: these directives used to
+         // hard-code a female prisoner ("using her", "TAKE HER"), so a MALE captive player was narrated with
+         // the wrong sex throughout the scene the moment the band joined in. This block only ever describes
+         // the PLAYER (a companion-victim scene is excluded by ShouldAppendCaptiveStageDirective), so the
+         // player's own sex is the authority.
+         string them = prisonerIsFemale ? "her" : "him";
+
          switch (who)
          {
             case CaptiveAggressorKind.AnotherSingle:
                sb.AppendLine("IT IS NOT YOU ACTING NOW: ANOTHER member of your band steps up and takes his turn on the");
-               sb.AppendLine("prisoner. Narrate HIM using her while you watch, direct, or hold her down.");
+               sb.AppendLine($"prisoner. Narrate him using {them} while you watch, direct, or hold {them} down.");
 
                break;
             case CaptiveAggressorKind.GroupTogether:
-               sb.AppendLine("THE REMAINING MEN TAKE HER TOGETHER NOW — all at once. Narrate them using her at the same");
-               sb.AppendLine("time (different holes, hands, mouths, positions) while you watch or join in.");
+               sb.AppendLine($"THE REMAINING MEN TAKE {(prisonerIsFemale ? "HER" : "HIM")} TOGETHER NOW, all at once. Narrate them using {them} at the");
+               sb.AppendLine("same time (every opening, hands, mouths, positions) while you watch or join in.");
 
                break;
          }
+
+         sb.AppendLine($"Match EVERY pronoun to the prisoner's actual sex: they are a {(prisonerIsFemale ? "woman" : "man")}.");
 
          switch (stage)
          {
@@ -2034,7 +2063,15 @@ namespace NpcMemoryService.Core.Prompts
       {
          if (context?.Witnesses == null || context.Witnesses.Count == 0) return;
 
-         sb.AppendLine("WITNESSES PRESENT (they can hear this conversation):");
+         // Round-table audit D5: on a COUNCIL turn these people are not eavesdroppers, they are the other
+         // participants, and calling them "witnesses who can hear this" while the council block invites them
+         // to speak at length gave the model two contradictory framings of the same room.
+         bool council = context.IsRoundTableTurn;
+
+         sb.AppendLine(council
+            ? "AT THIS TABLE WITH YOU (each speaks in turn, you among them):"
+            : "WITNESSES PRESENT (they can hear this conversation):");
+
          foreach (WitnessEntry w in context.Witnesses)
          {
             // The captive-scene VICTIM is present and voiced, but they are NOT one of the captor's men —
@@ -2050,8 +2087,14 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine($"- {w.Name} ({role}){persona}");
          }
 
-         sb.AppendLine("Adjust your candor based on who is listening.");
-         sb.AppendLine("You will not share secrets or make commitments you would not voice in front of these people.");
+         // The candor rule is about being OVERHEARD, which is not what a council is: everyone here was
+         // invited, and telling a participant to guard their tongue is the opposite of opening the floor.
+         if (!council)
+         {
+            sb.AppendLine("Adjust your candor based on who is listening.");
+            sb.AppendLine("You will not share secrets or make commitments you would not voice in front of these people.");
+         }
+
          sb.AppendLine();
 
          if (LeanPromptPolicy.Include(PromptSection.WitnessMachineryTeaching, lean))
@@ -3073,21 +3116,13 @@ namespace NpcMemoryService.Core.Prompts
          AppendCaptorReleaseRule(sb, context);
          AppendNemesisRecaptureNote(sb, context);
 
-         // Bandit/pirate menace intents are NON-sexual: a thug shaking down, threatening, or
-         // avenging — a different scene from the CNC framing below.
-         if (intent is CaptiveSceneIntent.Extortion
-             or CaptiveSceneIntent.Intimidation
-             or CaptiveSceneIntent.Revenge)
+         // The NON-sexual captive intents branch away from the CNC framing below: a thug shaking down,
+         // threatening or avenging, and a lord's reckoning (a confrontation and a verdict-to-come). Audit
+         // M11: which intents those are is CaptiveSceneIntentRules' call, not a fourth copy of the list.
+         if (!CaptiveSceneIntentRules.IsSexual(intent))
          {
-            AppendBanditMenaceRules(sb, intent);
-
-            return;
-         }
-
-         // A lord enemy's reckoning is also NON-sexual: a confrontation and a verdict-to-come, not a CNC scene.
-         if (intent == CaptiveSceneIntent.Reckoning)
-         {
-            AppendLordReckoningRules(sb);
+            if (intent == CaptiveSceneIntent.Reckoning) AppendLordReckoningRules(sb);
+            else AppendBanditMenaceRules(sb, intent);
 
             return;
          }
@@ -3360,13 +3395,21 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         // Audit M6: this used to read "advance the act on YOUR OWN initiative every single turn", which
+         // flatly contradicted the beat machine's own opening stages ("do NOT begin any physical act yet"),
+         // and worst of all in SlowBurn, the arc built to delay. Two authorities on pacing meant the model
+         // obeyed whichever it read last. The intent worth keeping is that RESISTANCE never stalls the scene;
+         // WHICH beat happens is the stage cue's call alone.
          sb.AppendLine("YOU DRIVE THE SCENE — NEVER WAIT FOR THE PRISONER TO COOPERATE:");
-         sb.AppendLine("You advance the act on YOUR OWN initiative every single turn. The prisoner's");
-         sb.AppendLine("resistance, insults, pleading, passivity, or refusal NEVER pause the act and NEVER");
-         sb.AppendLine("require their cooperation for it to move forward. Do NOT loop the same demand waiting");
+         sb.AppendLine("You perform THE BEAT SET FOR YOU on your own initiative, every single turn. The prisoner's");
+         sb.AppendLine("resistance, insults, pleading, passivity, or refusal NEVER pause that beat and NEVER");
+         sb.AppendLine("require their cooperation for it to happen. Do NOT loop the same demand waiting");
          sb.AppendLine("for them to obey (\"show me you are obedient\" over and over until they comply). If they");
-         sb.AppendLine("resist, you FORCE the matter and push the act forward THIS turn — their non-cooperation");
-         sb.AppendLine("changes how, not whether. The scene only progresses when YOU progress it.");
+         sb.AppendLine("resist, you FORCE the matter and carry out this turn's beat anyway: their non-cooperation");
+         sb.AppendLine("changes how, not whether.");
+         sb.AppendLine("But the beat itself is FIXED: perform the one you are given and STOP there. Never jump ahead");
+         sb.AppendLine("to a later stage of the act because they resisted, complied, or provoked you. The stage cue");
+         sb.AppendLine("below is the only authority on how far the scene has gone.");
          sb.AppendLine();
          AppendBrevityRule(sb);
          // The per-turn stage cue (which single beat to perform now) is appended once, later, in the
@@ -3576,6 +3619,18 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
+      /// <summary>
+      ///   True when this turn runs a scene whose rules ask for [NARRATION]: any captive framing (the player
+      ///   held, the player as captor, a companion victim). Used to decide whether the Lean format contract
+      ///   must teach the block at all (audit M9), so an ordinary conversation's minimal contract stays
+      ///   minimal.
+      /// </summary>
+      private static bool UsesSceneNarration(EncounterContext? context)
+         => context != null
+         && (context.IsCaptorScene
+          || context.PlayerStatus == PlayerStatusVsNpc.Captive
+          || !string.IsNullOrEmpty(context.CaptiveVictimName));
+
       private void AppendFormatInstructions(StringBuilder sb, EncounterContext? context, LeanPromptLevel lean)
       {
          // Lean mode (task 8): a small local model has no headroom for the full format contract below
@@ -3597,6 +3652,19 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("summary: One sentence.");
             sb.AppendLine("[/EVENT]");
             sb.AppendLine();
+
+            // Audit M9: the Lean contract listed three blocks and never mentioned [NARRATION], yet the
+            // captive scene rules REQUIRE it (the closing beat is specified in terms of it). A small model
+            // was being asked for a block its own format contract said nothing about, which is precisely the
+            // model least able to infer it. Shown only when a scene that uses narration is actually running.
+            if (UsesSceneNarration(context))
+            {
+               sb.AppendLine("[NARRATION]");
+               sb.AppendLine("Third-person narrator prose for what physically happens. Required in scenes like this one.");
+               sb.AppendLine("[/NARRATION]");
+               sb.AppendLine();
+            }
+
             AppendFormatExample(sb);
             AppendActionInstructions(sb);
             // ExtraActionTeachings (the extended verb set) is deliberately NOT rendered in Lean mode:
