@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- FIREWALLED live-LLM integration tests (Etage C): they call a real LLM and spend tokens, so every test    -->
+  <!-- self-skips via Assert.Ignore unless CR_RUN_LIVE_LLM=1 is set (see LiveLlmHarness for the full guard and   -->
+  <!-- how to run them). Keep this project excluded from nCrunch auto-execution as a second belt.                -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="NUnit" Version="4.6.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+    <PackageReference Include="FluentAssertions" Version="8.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NpcMemoryService.Core\NpcMemoryService.Core.csproj" />
+  </ItemGroup>
+
+</Project>

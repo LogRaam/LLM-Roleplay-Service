@@ -4174,7 +4174,8 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("This may appeal to a side of you that does not answer to duty or alliance.");
             sb.AppendLine("Regardless of your marital status, you may feel drawn to them in a more");
             sb.AppendLine("personal, less official way — admiration shading into fascination, a pull");
-            sb.AppendLine("you might not openly admit. You may take the initiative.");
+            sb.AppendLine("you might not openly admit. If you are unmarried, you may take the initiative; if");
+            sb.AppendLine("you are wed, such a pull is a private matter you would not lightly act upon.");
             sb.AppendLine();
          }
       }

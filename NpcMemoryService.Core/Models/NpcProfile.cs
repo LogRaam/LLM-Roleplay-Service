@@ -60,6 +60,15 @@ namespace NpcMemoryService.Core.Models
       public int? ClanRelationWithPlayer { get; set; }
 
       /// <summary>
+      ///   Court-action cooldown clocks (romance audit M-B6): marker -> the in-game day that action last fired.
+      ///   A STRUCTURED store the LLM memory compaction cannot rewrite, unlike the old approach of scanning the
+      ///   free-text event summaries for a marker (which vanished on compaction, silently resetting the cooldown
+      ///   so the action could be spammed). Additive and save-safe: an older save loads this empty, and
+      ///   <c>CourtActionResolver</c> falls back to the legacy event scan until a fresh action stamps it here.
+      /// </summary>
+      public Dictionary<string, int> CourtActionCooldowns { get; init; } = new();
+
+      /// <summary>
       ///   Personal traits and preferences this NPC has revealed to the player
       ///   through conversation. Empty until the player has had meaningful exchanges.
       ///   Grows over time as the NPC opens up; each entry is deduplicated by

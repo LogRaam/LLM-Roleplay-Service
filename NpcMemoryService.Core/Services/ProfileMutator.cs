@@ -168,10 +168,15 @@ namespace NpcMemoryService.Core.Services
 
             var status    = profile.Romantic.Status;
             bool isMarried = !string.IsNullOrWhiteSpace(profile.SpouseName);
-            bool isCasual  = profile.Romantic.Preferences != null
-                && profile.Romantic.Preferences.Contains(RomanticPreference.Casual);
             bool isIntense = profile.Romantic.Preferences != null
                 && profile.Romantic.Preferences.Contains(RomanticPreference.Intense);
+            // Minor 10 (romance audit): Casual and Intense are contradictory cadences and should not coexist, but
+            // if a profile carries BOTH, the Casual branch below (checked first) used to fire and leave the Intense
+            // cadence permanently dead. Make the precedence explicit and deterministic: Intense wins, so its arc is
+            // never silently swallowed.
+            bool isCasual  = !isIntense
+                && profile.Romantic.Preferences != null
+                && profile.Romantic.Preferences.Contains(RomanticPreference.Casual);
 
             // Romance audit M-R7: a SecretLover whose third-party spouse has died (SpouseName has since cleared)
             // is no longer "married to another", so the clandestine affair surfaces as an open Intimate bond
