@@ -36,6 +36,25 @@ namespace NpcMemoryServiceTests
          RomanticStatus.Broken.IsCourtingOrDeeper().Should().BeFalse();
       }
 
+      // Curious-or-deeper is the "any active romance underway" gate: the floor for granting the intimacy relation
+      // bonus (regard audit C1). It must include Curious and every positive tier above it, exclude the pre-romantic
+      // None, and, the ordinal trap again, exclude the terminal Estranged/Broken so an intimacy tag on a DEAD
+      // romance can never unlock the +3 bonus.
+      [Test]
+      public void GIVEN_each_status_WHEN_asking_curious_or_deeper_THEN_any_active_romance_qualifies_but_never_a_dead_one()
+      {
+         RomanticStatus.Curious.IsCuriousOrDeeper().Should().BeTrue();
+         RomanticStatus.Courting.IsCuriousOrDeeper().Should().BeTrue();
+         RomanticStatus.Intimate.IsCuriousOrDeeper().Should().BeTrue();
+         RomanticStatus.SecretLover.IsCuriousOrDeeper().Should().BeTrue();
+         RomanticStatus.Committed.IsCuriousOrDeeper().Should().BeTrue();
+
+         RomanticStatus.None.IsCuriousOrDeeper().Should().BeFalse();
+         // The C1 exploit guard: a terminal romance sorts after Curious in the enum but must not vouch an intimacy bonus.
+         RomanticStatus.Estranged.IsCuriousOrDeeper().Should().BeFalse();
+         RomanticStatus.Broken.IsCuriousOrDeeper().Should().BeFalse();
+      }
+
       // Intimate-or-deeper is the "close enough for a consort" gate. It must include the three intimate-plus tiers
       // and exclude everything below Intimate AND the terminal states (the consort-eligibility bug).
       [Test]

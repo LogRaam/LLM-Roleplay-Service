@@ -105,6 +105,7 @@ namespace NpcMemoryService.Core.Parsing
             Narration = string.IsNullOrWhiteSpace(narrationSection)
                ? null
                : narrationSection!.Trim(),
+            NarrationBeforeDialogue = IsNarrationBeforeDialogue(rawResponse),
             Memory = ParseMemory(memorySection),
             NewEventData = ParseEventData(eventSection),
             Reputation = ParseReputation(reputationSection),
@@ -125,6 +126,21 @@ namespace NpcMemoryService.Core.Parsing
       }
 
       #region private
+
+      /// <summary>
+      ///   True when the raw reply opens its [NARRATION] block BEFORE its [DIALOGUE] block — a
+      ///   narration-led turn the host should render in the emitted order instead of its usual
+      ///   dialogue-first layout. Plain position comparison on the open tags (case-insensitive,
+      ///   like every other tag match here); false when either tag is absent, since the order is
+      ///   then moot. The close tags can never match: "[/DIALOGUE]" does not contain "[DIALOGUE]".
+      /// </summary>
+      private static bool IsNarrationBeforeDialogue(string text)
+      {
+         int narrationIndex = text.IndexOf($"[{NarrationTag}]", StringComparison.OrdinalIgnoreCase);
+         int dialogueIndex = text.IndexOf($"[{DialogueTag}]", StringComparison.OrdinalIgnoreCase);
+
+         return narrationIndex >= 0 && dialogueIndex >= 0 && narrationIndex < dialogueIndex;
+      }
 
       private static int ClampNonNegative(int? value)
          => value is > 0

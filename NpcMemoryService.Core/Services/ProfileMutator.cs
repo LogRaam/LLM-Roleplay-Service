@@ -51,6 +51,18 @@ namespace NpcMemoryService.Core.Services
         ///   negative degradation and event/reputation recording still apply either way.
         /// </summary>
         public static void Apply(NpcProfile profile, ParsedResponse response, int gameDay, bool romanticContentEnabled, bool orientationCompatible)
+            => Apply(profile, response, gameDay, romanticContentEnabled, orientationCompatible, applyReputation: true);
+
+        /// <summary>
+        ///   Same authoritative mutation, with an explicit switch for the legacy <c>[REPUTATION]</c> block (regard
+        ///   audit C2). The mod disables that block in the prompt (it is never TAUGHT), yet the parser still parses
+        ///   it and this method would still APPLY it, ungated and uncapped: a weak or jailbroken model emitting the
+        ///   legacy format could farm regard, or double-count an offense alongside <c>change_relation</c>. The mod
+        ///   passes <paramref name="applyReputation" />=false so the block can never move regard; the personal
+        ///   ledger moves only through the gated change_relation / RelationGate path. Defaults true for the console
+        ///   and tests, which drive the block deliberately.
+        /// </summary>
+        public static void Apply(NpcProfile profile, ParsedResponse response, int gameDay, bool romanticContentEnabled, bool orientationCompatible, bool applyReputation)
         {
             // Append event when present and non-trivial.
             // An empty or whitespace summary would pollute the history with lines
@@ -60,8 +72,9 @@ namespace NpcMemoryService.Core.Services
                 ApplyNotableEvent(profile, response.NewEventData.Type, response.NewEventData.Summary, gameDay);
             }
 
-            // Adjust reputation when present
-            if (response.Reputation != null) ApplyReputationDelta(profile, response.Reputation.ClanDelta ?? 0);
+            // Adjust reputation when present. C2: skipped when the caller disabled the legacy [REPUTATION] block
+            // (the mod), so a model emitting it unprompted can never move regard outside the gated change_relation path.
+            if (applyReputation && response.Reputation != null) ApplyReputationDelta(profile, response.Reputation.ClanDelta ?? 0);
 
             // Advance the romantic arc based on the event type and current trust level. Skipped entirely when the
             // romance system is off (M-R3), so no romantic state accumulates behind the player's back.

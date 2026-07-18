@@ -143,6 +143,14 @@ namespace NpcMemoryService.Core.Models
       public double? LastRelationGainHour { get; set; }
 
       /// <summary>
+      ///   Regard audit C1: the in-game hour of the last GRANTED intimacy relation bonus (the +3, cooldown-
+      ///   bypassing gain). Its own dedicated cooldown, separate from <see cref="LastRelationGainHour" />, is what
+      ///   stops a model that tags every reply "intimacy" from farming +3 per turn. Null = none granted yet.
+      ///   Additive; absent on old saves (reads as null = no cooldown pending).
+      /// </summary>
+      public double? LastIntimacyGainHour { get; set; }
+
+      /// <summary>
       ///   Compact per-conversation summaries. Useful for diagnostics.
       ///   Not currently injected into the prompt — see <see cref="Events" />.
       ///   Null means the NPC has never met the player.

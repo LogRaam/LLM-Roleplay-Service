@@ -26,6 +26,15 @@ namespace NpcMemoryService.Core.Models
                || status == RomanticStatus.Committed;
 
         /// <summary>
+        ///   True for ANY active romance, from the earliest interest up: Curious, Courting, Intimate, SecretLover,
+        ///   or Committed. Excludes the pre-romantic None AND the terminal Estranged/Broken. The floor for granting
+        ///   the intimacy relation bonus (regard audit C1): a real romance must be underway, however early, before
+        ///   an intimacy [EVENT] may move regard by the larger, cooldown-bypassing amount.
+        /// </summary>
+        public static bool IsCuriousOrDeeper(this RomanticStatus status)
+            => status == RomanticStatus.Curious || status.IsCourtingOrDeeper();
+
+        /// <summary>
         ///   True for an ACTIVE romance at least at the intimate tier: Intimate, SecretLover, or Committed.
         ///   Excludes everything below Intimate AND the terminal Estranged/Broken.
         /// </summary>

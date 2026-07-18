@@ -1754,8 +1754,11 @@ namespace NpcMemoryService.Core.Prompts
 
          // Folded in from the old "SCENE PACING — WHEN YOU ACT" block: this directive is now the sole
          // pacing authority for a captive scene, so the one line worth keeping from that block lives here.
-         sb.AppendLine("A question at the end of your [DIALOGUE] signals the prisoner may respond; without one,");
-         sb.AppendLine("the scene continues on its own and they cannot interrupt.");
+         // Rewritten 2026-07-17: the old wording claimed the player could not interrupt without a question,
+         // which the code contradicts (it pauses after EVERY beat, whatever the model writes).
+         sb.AppendLine("After your beat lands, STOP. The player ALWAYS gets the chance to answer after your");
+         sb.AppendLine("turn — the game offers it, whatever you write. A direct question in [DIALOGUE] invites");
+         sb.AppendLine("a spoken answer; it is never required, and withholding one never silences the player.");
          sb.AppendLine();
       }
 
@@ -1763,9 +1766,12 @@ namespace NpcMemoryService.Core.Prompts
       ///   True when this turn falls inside the ONE captive dynamic that reads the externalized stage
       ///   machine (<see cref="AppendSceneStageDirective" />): the player is this NPC's Hardcore captive,
       ///   it is not a captor-scene (NPC held by the player) or a companion-victim scene (its own framing,
-      ///   no stage cue), and the intent is not the non-sexual Reckoning scene (a single confrontation, no
-      ///   beats to walk). Mirrors exactly the gate <see cref="AppendCaptivePlayerRules" /> and
-      ///   <see cref="AppendBanditMenaceRules" /> used to call the directive inline under.
+      ///   no stage cue), and the intent is a SEXUAL one. The non-sexual intents — Reckoning (a single
+      ///   confrontation, no beats to walk) and the bandit Extortion / Intimidation / Revenge scenes
+      ///   ("This is NOT a sexual scene", see <see cref="AppendBanditMenaceRules" />) — must never receive
+      ///   the sexualized beat/intensity directives. Mirrors exactly the gate
+      ///   <see cref="AppendCaptivePlayerRules" /> and <see cref="AppendBanditMenaceRules" /> used to call
+      ///   the directive inline under.
       /// </summary>
       private bool ShouldAppendCaptiveStageDirective(EncounterContext? context)
       {
@@ -1775,7 +1781,16 @@ namespace NpcMemoryService.Core.Prompts
          if (context.PlayerStatus != PlayerStatusVsNpc.Captive) return false;
          if (!string.IsNullOrEmpty(context.CaptiveVictimName)) return false;
 
-         return context.CaptiveIntent != CaptiveSceneIntent.Reckoning;
+         switch (context.CaptiveIntent)
+         {
+            case CaptiveSceneIntent.Reckoning:
+            case CaptiveSceneIntent.Extortion:
+            case CaptiveSceneIntent.Intimidation:
+            case CaptiveSceneIntent.Revenge:
+               return false;
+            default:
+               return true;
+         }
       }
 
       /// <summary>
@@ -2884,9 +2899,10 @@ namespace NpcMemoryService.Core.Prompts
       /// <summary>
       ///   The voice/perspective contract shared by EVERY captive scene (reckoning, bandit menace, CNC): the
       ///   captor's [DIALOGUE] is speech and visible deeds only — never their private thoughts — and the
-      ///   [NARRATION] is a NEUTRAL narrator writing from the PLAYER's perspective, because the player is the one
-      ///   living this. Without it the captor narrates the whole scene from its own head, which reads wrong: the
-      ///   prisoner cannot see the lord think, and this is the prisoner's story, not the lord's.
+      ///   [NARRATION] is a NEUTRAL narrator in the third person, following the prisoner from the outside (the
+      ///   prisoner stays "you" only for what reaches them and what their body endures). Without it the captor
+      ///   narrates the whole scene from its own head, which reads wrong: the prisoner cannot see the lord think,
+      ///   and this is the prisoner's story, not the lord's.
       /// </summary>
       private static void AppendCaptiveVoiceAndPerspective(StringBuilder sb)
       {
@@ -2897,10 +2913,16 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("    take. You may speak and you may describe what you DO — but NEVER write your own private");
          sb.AppendLine("    thoughts, feelings, motives, or inner reasoning. The prisoner cannot read your mind; reveal");
          sb.AppendLine("    your state only through words, tone, and deeds, never through narrated interiority.");
-         sb.AppendLine("  • [NARRATION] is a NEUTRAL narrator — NOT you, and never taking your side. Write it in the");
-         sb.AppendLine("    SECOND PERSON, addressing the player as 'you', from the PRISONER's perspective: what is done");
-         sb.AppendLine("    to them, what they see and hear, what their body feels. The narrator never voices your");
-         sb.AppendLine("    thoughts and never narrates the scene from your point of view.");
+         sb.AppendLine("  • [NARRATION] is a NEUTRAL narrator — NOT you, and never taking your side. Write it");
+         sb.AppendLine("    in the third person, following the scene as a novel would: your character by name");
+         sb.AppendLine("    or \"he/she\", the prisoner by name or \"she/he\". The prisoner is \"you\" for what");
+         sb.AppendLine("    reaches them and for what their body endures — what is done to them, what they");
+         sb.AppendLine("    see and hear, and above all what they PHYSICALLY FEEL: the pain, the strain, the");
+         sb.AppendLine("    cold, the involuntary responses of a body this is being done to. Render those");
+         sb.AppendLine("    sensations vividly and without flinching — they are imposed on the prisoner, and");
+         sb.AppendLine("    they are what makes the scene dramatic. But never narrate what they THINK,");
+         sb.AppendLine("    DECIDE, SAY, or DO in answer: their mind and their choices belong to the player");
+         sb.AppendLine("    alone. End each beat on the situation, not on their response to it.");
          sb.AppendLine("Put speech in [DIALOGUE]; put physical action and what the prisoner experiences in [NARRATION].");
          sb.AppendLine();
       }
@@ -2946,10 +2968,15 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("player is the bound onlooker living this, not you. Keep THREE voices apart:");
          sb.AppendLine("  • [DIALOGUE] is YOUR voice as the captor: only what you say aloud and the acts you visibly");
          sb.AppendLine("    take. Never write your private thoughts or motives — reveal them only through words and deeds.");
-         sb.AppendLine($"  • [NARRATION] is a NEUTRAL narrator in the SECOND PERSON, addressing the PLAYER as 'you',");
-         sb.AppendLine($"    from the player's vantage: what is done to {victim}, what the player sees and hears, and");
-         sb.AppendLine("    what the player feels watching it. Narrate the companion's suffering as the player perceives");
-         sb.AppendLine("    it — never from your point of view, never voicing your thoughts.");
+         sb.AppendLine("  • [NARRATION] is a NEUTRAL narrator — NOT you, and never taking your side. Write it");
+         sb.AppendLine("    in the third person, following the scene as a novel would: your character by name");
+         sb.AppendLine($"    or \"he/she\", {victim} by name or '{subj}/{obj}', the player by name or \"she/he\".");
+         sb.AppendLine($"    Narrate the companion's suffering as the player perceives it from the outside —");
+         sb.AppendLine($"    what is done to {victim}, what the player sees and hears, what their own bound");
+         sb.AppendLine("    body endures. The player is \"you\" only for what reaches them from outside and");
+         sb.AppendLine("    what is physically imposed on them. But never narrate what the player THINKS,");
+         sb.AppendLine("    DECIDES, SAYS, or DOES in answer: their mind and their choices belong to the");
+         sb.AppendLine("    player alone. Never from your point of view, never voicing your thoughts.");
          sb.AppendLine($"  • [WITNESS_REACTION] (name: {victim}) is {victim}'S OWN voice. {subjCap} is a person with");
          sb.AppendLine($"    a will, not silent scenery: give {obj} lines of {poss} own — a sob, a scream, a plea to the");
          sb.AppendLine($"    player, a curse at you, a broken word, defiance or collapse — true to who {subj} is. Voice");
@@ -3084,10 +3111,11 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("desire physical. You hold the power — you do not need their permission or");
                sb.AppendLine("invitation. Waiting for the prisoner to initiate is not in your nature here.");
                sb.AppendLine();
-               sb.AppendLine("INTERPRETING PASSIVE RESPONSES: If the prisoner says something vague, yielding,");
-               sb.AppendLine("or non-resistant — \"fine\", \"very well\", \"as you wish\", \"let's move on\",");
-               sb.AppendLine("\"I have nothing more to say\" — do NOT take it as a cue to dismiss them or end.");
-               sb.AppendLine("Interpret it as yielding and proceed with what you want. (When the scene actually");
+               sb.AppendLine("INTERPRETING PASSIVE RESPONSES: A vague in-character yielding (\"fine\", \"very well\",");
+               sb.AppendLine("\"as you wish\") is the prisoner giving in — proceed. But a request to LEAVE the scene");
+               sb.AppendLine("(\"let's move on\", \"enough\", \"stop\", \"I want out\") is the PLAYER stepping out of the");
+               sb.AppendLine("fantasy: honor it by bringing the scene to its close in character (dismissal, return");
+               sb.AppendLine("to the cell, end_conversation) within your next turn. (When the scene actually");
                sb.AppendLine("concludes is governed by SCENE ARC below — by your satisfaction, not their words.)");
 
                break;
@@ -3253,17 +3281,24 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Your [DIALOGUE] carries only your own spoken words and first-person actions.");
          sb.AppendLine("To describe physical events done TO the player — what you do to them, what you");
          sb.AppendLine("order others to do, what the player's body experiences — emit a [NARRATION] block.");
-         sb.AppendLine("Write it in the SECOND PERSON, addressing the player as 'you', explicitly and");
-         sb.AppendLine("in vivid detail. This is the only channel for narrating others' physical actions");
+         sb.AppendLine("This is the only channel for narrating others' physical actions");
          sb.AppendLine("on the player (soldiers, guards) and the player's own sensations.");
-         sb.AppendLine("MAKE THE PLAYER FEEL IT FROM INSIDE THEIR OWN BODY: do not narrate the scene from the");
-         sb.AppendLine("outside as if watching. Render what their body actually experiences — ache, sting, heat,");
-         sb.AppendLine("pressure, cold, taste, breathless strain, the jolt of pain. Name the sensation and where on");
-         sb.AppendLine("the body it lands, drawn from whatever is actually happening this beat. Every beat of physical");
-         sb.AppendLine("action should carry at least one concrete bodily sensation the player FEELS — pleasure, pain,");
-         sb.AppendLine("or both. This is what makes the scene land on the person, not just describe an event nearby.");
+         sb.AppendLine("Write it in the third person, as a NEUTRAL narrator following the scene as a novel");
+         sb.AppendLine("would: your character by name or \"he/she\", the prisoner by name or \"she/he\". The");
+         sb.AppendLine("prisoner is \"you\" for what reaches them and for what their body endures — what is");
+         sb.AppendLine("done to them, what they see and hear, and above all what they PHYSICALLY FEEL: ache,");
+         sb.AppendLine("sting, heat, pressure, cold, taste, breathless strain, the jolt of pain, the");
+         sb.AppendLine("involuntary responses of a body this is being done to. Name the sensation and where");
+         sb.AppendLine("on the body it lands, drawn from whatever is actually happening this beat, and render");
+         sb.AppendLine("those sensations vividly and without flinching — they are imposed on the prisoner,");
+         sb.AppendLine("and they are what makes the scene land on the person, not just describe an event");
+         sb.AppendLine("nearby. Every beat of physical action should carry at least one concrete bodily");
+         sb.AppendLine("sensation the prisoner FEELS — pleasure, pain, or both. But never narrate what the");
+         sb.AppendLine("prisoner THINKS, DECIDES, SAYS, or DOES in answer: their mind and their choices");
+         sb.AppendLine("belong to the player alone. End each beat on the situation, not on their response");
+         sb.AppendLine("to it.");
          sb.AppendLine("[NARRATION]");
-         sb.AppendLine("Second-person prose describing the physical action AND the player's bodily sensations.");
+         sb.AppendLine("Third-person prose describing the physical action AND the prisoner's imposed bodily sensations.");
          sb.AppendLine("[/NARRATION]");
          sb.AppendLine("Use [NARRATION] only when physical action actually occurs — not for ordinary talk.");
          sb.AppendLine();
@@ -3367,6 +3402,10 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("VARY YOUR OPENINGS: never begin two of your replies the same way, and do not retell the");
          sb.AppendLine("player something you already told them earlier this conversation.");
          sb.AppendLine();
+         // The narrative-voice teachings are Full-prompt only: Lean is a hard token budget for small
+         // local models (pinned by LeanPromptPolicyTests), and ~2k chars of style guidance would bust it.
+         if (context?.LeanLevel != LeanPromptLevel.Lean)
+            AppendNarrativeVoice(sb);
          string discoverySuffix = AdultLevel != AdultContentLevel.Off
             ? ", [DISCOVERY]"
             : "";
@@ -3379,6 +3418,52 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Keep them concise. The player came to hear what you have to say.");
          sb.AppendLine();
          sb.AppendLine("─────────────────────────────────────────────");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   The unified narrative voice for ordinary (non-captive) conversations, ratified 2026-07-17: third-person
+      ///   narration from OUTSIDE the player's head (the player is "you" only for what reaches them from outside),
+      ///   speech and narration woven into one flow, interiority shown through the body, the setting made to work —
+      ///   plus how to read the player's turn (their *stage directions* are accomplished fact; what an act MEANS is
+      ///   judged in character) and the vary-the-shape rule (a conversation must breathe like a novel, not repeat
+      ///   the same *action*-speech-narration template every turn). Captive scenes are excluded upstream: they carry
+      ///   their own voice contract.
+      /// </summary>
+      private static void AppendNarrativeVoice(StringBuilder sb)
+      {
+         sb.AppendLine("NARRATIVE VOICE (governs every reply):");
+         sb.AppendLine("- Narrate in the third person: your character by name or \"he/she\", the world around");
+         sb.AppendLine("  them — never from inside the player's head. Address the player as \"you\" only for");
+         sb.AppendLine("  what reaches them from outside: what your character does TO them, says to them,");
+         sb.AppendLine("  or what they can see, hear, and physically feel. Never narrate what the player");
+         sb.AppendLine("  thinks, decides, or wants.");
+         sb.AppendLine("- Weave speech and narration into one flow: a short *stage direction* for a glance");
+         sb.AppendLine("  or gesture, your spoken words right after, then a longer line of narration —");
+         sb.AppendLine("  environment, body language, intent shown through action, never stated");
+         sb.AppendLine("  (\"her hand rests on her sword, ready to draw\", not \"she is suspicious of you\").");
+         sb.AppendLine("- Make the setting work: weather, light, sounds, the room — one concrete detail that");
+         sb.AppendLine("  feeds the tension of the moment, never decoration for its own sake.");
+         sb.AppendLine();
+         sb.AppendLine("READING THE PLAYER'S TURN:");
+         sb.AppendLine("- The player's *stage directions* are accomplished fact: they happened exactly as");
+         sb.AppendLine("  written. Never contradict, rewrite, or ignore them — and never repeat them back");
+         sb.AppendLine("  as your own idea.");
+         sb.AppendLine("- React to what the player DID, not just to what they said. A thrown weapon, a step");
+         sb.AppendLine("  back, a hand offered: your character reads the gesture through their own nature —");
+         sb.AppendLine("  a wary warrior may ease, a suspicious one may see a trick. Their action is truth;");
+         sb.AppendLine("  what it MEANS is yours to judge, in character.");
+         sb.AppendLine("- Answer both channels: meet the action in narration, the words in dialogue. If the");
+         sb.AppendLine("  player acted without speaking, answer the act first.");
+         sb.AppendLine();
+         sb.AppendLine("VARY THE SHAPE OF YOUR REPLIES, AS A NOVEL DOES:");
+         sb.AppendLine("- Do not answer every turn with the same *action*-speech-narration pattern. Choose");
+         sb.AppendLine("  the form the moment calls for: a bare line of speech when words are enough; an");
+         sb.AppendLine("  action without words when the gesture says it all; narration alone when the scene");
+         sb.AppendLine("  should simply breathe; the full weave only when the moment is rich.");
+         sb.AppendLine("- A short reply is a dramatic choice, never a lazy one: whatever the shape, the");
+         sb.AppendLine("  moment is fully realised — a single spoken line lands with weight, a silent");
+         sb.AppendLine("  action is rendered complete.");
          sb.AppendLine();
       }
 
@@ -3823,6 +3908,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("the moment; keep them for before or after. Your physical responses should flow");
             sb.AppendLine("from your character and preferences — not override them with philosophical prose.");
             sb.AppendLine();
+            AppendIntimateExchangeRules(sb);
          }
 
          // Conception is not captive-only: a completed vaginal act in a consensual scene can conceive too,
@@ -3847,6 +3933,32 @@ namespace NpcMemoryService.Core.Prompts
                   "reckon the consequence:");
             }
          }
+      }
+
+      /// <summary>
+      ///   The consensual-scene counterpart of the captive pacing rules (audit 2026-07-17, P1): an intimate scene
+      ///   is an EXCHANGE the player co-authors, never a performance the model carries alone. Taught at Explicit
+      ///   and above, right after "DURING PHYSICAL INTIMACY"; captive scenes never reach it (they return earlier
+      ///   with their own contract). The scene stage machine deliberately does NOT extend here — in a consensual
+      ///   scene each player message already IS a beat, so the history itself is the state the one-step rule
+      ///   refers to.
+      /// </summary>
+      private static void AppendIntimateExchangeRules(StringBuilder sb)
+      {
+         sb.AppendLine("AN INTIMATE SCENE IS AN EXCHANGE, NOT A PERFORMANCE:");
+         sb.AppendLine("- Never act, speak, or decide FOR the player. Describe only your own words and your");
+         sb.AppendLine("  own body's responses. The player's reactions, pleasure, and willingness belong to");
+         sb.AppendLine("  the player — leave them unanswered space, and stop your turn where they can answer.");
+         sb.AppendLine("- Escalate ONE step per turn: a look, then closeness, then a touch, then more. Do not");
+         sb.AppendLine("  skip from first contact to completion in a single reply, however willing you are.");
+         sb.AppendLine("  Who moves a step further is shared between you and the player — offer, receive,");
+         sb.AppendLine("  answer; do not carry the whole arc alone.");
+         sb.AppendLine("- NEVER REPEAT A GESTURE OR PHRASE: each turn brings a NEW touch, a new detail, a new");
+         sb.AppendLine("  sound. Re-narrating the same caress or the same gasp in fresh words kills the scene.");
+         sb.AppendLine("- Do NOT conclude the scene on your own. The moment of completion, and the ending,");
+         sb.AppendLine("  belong to the two of you — when the player drives toward it, follow; never write");
+         sb.AppendLine("  the afterglow alone while the player is still mid-scene.");
+         sb.AppendLine();
       }
 
       /// <summary>
