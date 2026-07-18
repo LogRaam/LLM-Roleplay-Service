@@ -25,7 +25,10 @@ namespace NpcMemoryService.Core.Prompts
 
          // === RELATIONS SOUDÉES ===
          >= 50 => "profound admiration",
-         >= 30 => "deep trust",
+         // 5.5 (regard audit): "deep affection", not "deep trust". This is the AFFECT band; naming it "trust"
+         // collided head-on with the separate StanceTrust axis, so an NPC at high regard but low stance-trust
+         // printed "deep trust" beside "you deeply distrust the player" in the same prompt.
+         >= 30 => "deep affection",
 
          // === BONNES RELATIONS ===
          >= 15 => "genuine regard",

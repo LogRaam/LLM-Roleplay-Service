@@ -57,7 +57,7 @@ namespace NpcMemoryServiceTests
       [TestCase(85, "unshakable devotion")]
       [TestCase(70, "most cherished ally")]
       [TestCase(50, "profound admiration")]
-      [TestCase(30, "deep trust")]
+      [TestCase(30, "deep affection")]
       [TestCase(15, "genuine regard")]
       [TestCase(5, "cordial regard")]
       [TestCase(-20, "wary")]
