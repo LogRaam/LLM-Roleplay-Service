@@ -93,6 +93,46 @@ namespace NpcMemoryServiceTests
          profile.Events[1].summary.Should().Be(ReasoningTraceBackfill.LostMemoryLine);
       }
 
+      // Un-tagged meta-reasoning is the leak the tag stripper CANNOT see: the model never opened a
+      // <think> block, it simply thought out loud, and that prose got stored as the memory. Detection
+      // only, never rewriting — the whole line becomes the same modest "faded" line a pure trace does.
+      [Test]
+      public void GIVEN_an_event_whose_summary_is_untagged_meta_reasoning_WHEN_scrubbing_THEN_it_becomes_the_faded_memory_line()
+      {
+         NpcProfile profile = ProfileWithSummaries(
+            "The user wants me to write a memory line from Mesui's perspective. She spoke of horses.");
+
+         ReasoningTraceBackfill.Scrub(profile).Should().BeTrue();
+
+         profile.Events[0].summary.Should().Be(ReasoningTraceBackfill.LostMemoryLine);
+      }
+
+      // The healed line itself must never trip the meta guard, or every launch would "heal" it again and
+      // the host would re-persist every profile for nothing.
+      [Test]
+      public void GIVEN_a_meta_summary_already_healed_WHEN_scrubbing_again_THEN_the_second_pass_changes_nothing()
+      {
+         NpcProfile profile = ProfileWithSummaries(
+            "Let me summarize the exchange: 1. the player arrived, 2. we bargained.");
+         ReasoningTraceBackfill.Scrub(profile).Should().BeTrue();
+
+         ReasoningTraceBackfill.Scrub(profile).Should().BeFalse();
+
+         profile.Events[0].summary.Should().Be(ReasoningTraceBackfill.LostMemoryLine);
+      }
+
+      // A memory that merely OPENS in the first person past tense is the common clean case; the meta
+      // guard must not start eating legitimate memories.
+      [Test]
+      public void GIVEN_a_clean_first_person_memory_WHEN_scrubbing_THEN_it_is_left_untouched()
+      {
+         NpcProfile profile = ProfileWithSummaries("Let me think... yes, they paid for the horses in full.");
+
+         ReasoningTraceBackfill.Scrub(profile).Should().BeFalse();
+
+         profile.Events[0].summary.Should().Be("Let me think... yes, they paid for the horses in full.");
+      }
+
       #region private
 
       private static NpcProfile ProfileWithSummaries(params string[] summaries)

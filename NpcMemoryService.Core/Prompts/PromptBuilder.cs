@@ -960,12 +960,16 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
-         // Only ever non-zero for a speaker who would plausibly know it (the player's own companions /
-         // party members — see EncounterContextBuilder.ResolvePlayerPartyTroopCount); everyone else gets
-         // 0 and this stays silent rather than handing out a metagame number.
+         // Non-zero for any face-to-face interlocutor (a visible fact, not a metagame number — see
+         // EncounterContextBuilder.ResolvePlayerPartyTroopCount); rendered as a coarse qualitative band
+         // so the exact figure never leaks, with a tone directive so the NPC WEIGHS what it sees.
          if (context.PlayerPartyTroopCount > 0)
          {
-            sb.AppendLine($"The player currently leads {context.PlayerPartyTroopCount} soldiers in their party.");
+            sb.AppendLine("THE FORCE AT THE PLAYER'S BACK (visible fact, right now):");
+            sb.AppendLine($"The player does not stand alone: {DescribeForce(context.PlayerPartyTroopCount)}");
+            sb.AppendLine("Never call the player alone, unescorted, brave-or-foolish for approaching, or an easy mark —");
+            sb.AppendLine("you can SEE this force. Weigh it in your tone: a force that dwarfs yours tempers bluster into");
+            sb.AppendLine("wariness or respect; a handful of men behind a stranger invites the boldness it deserves.");
             sb.AppendLine();
          }
 
@@ -1007,6 +1011,20 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   Folds the player's raw troop count into a coarse qualitative band, so the prompt carries the
+      ///   visible FACT of the force at the player's back without ever leaking the exact metagame figure.
+      /// </summary>
+      private static string DescribeForce(int troopCount)
+      {
+         if (troopCount < 25) return "only a handful of companions ride with them.";
+         if (troopCount < 100) return "a company of a few dozen soldiers rides at their back.";
+         if (troopCount < 400) return "a warband of well over a hundred soldiers rides at their back.";
+         if (troopCount < 1000) return "several hundred soldiers march at their back.";
+
+         return "an army numbering in the thousands marches at their back.";
+      }
+
+      /// <summary>
       ///   Anti-confabulation guard — the primary fix for invented parent names and made-up troop
       ///   movements. Hoisted out of <see cref="AppendEncounterContext" /> so it renders even when
       ///   <paramref name="context" /> would otherwise be entirely absent (a console session with no
@@ -1021,9 +1039,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("current situation above does not state where you are headed, do not fabricate a destination,");
          sb.AppendLine("troop movements, or war plans; speak in general terms rather than naming a specific place.");
          sb.AppendLine("And never AGREE to perform a concrete deed — entering someone's service, handing over troops");
-         sb.AppendLine("or prisoners, granting land, killing a named person, declaring or starting a war, dissolving a");
-         sb.AppendLine("marriage — unless an [ACTION] for it is available in this prompt. Words the game cannot honor");
-         sb.AppendLine("are broken promises: if no action exists for what the player asks, DECLINE");
+         sb.AppendLine("or prisoners, granting land, killing a named person, declaring or starting a war, entering into");
+         sb.AppendLine("or dissolving a marriage — unless an [ACTION] for it is available in this prompt. Words the game");
+         sb.AppendLine("cannot honor are broken promises: if no action exists for what the player asks, DECLINE");
          sb.AppendLine("or deflect in character. Do NOT vaguely agree, hedge, or put it off (no \"soon\", \"in time\",");
          sb.AppendLine("\"consider it done\", \"I will see it done\"): a soft yes with nothing behind it is the same");
          sb.AppendLine("broken promise. Grave acts especially — a killing, a war, the ending of a marriage — are never");
@@ -1359,6 +1377,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: marry");
          sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The marriage exists only if the game confirms your action. If no confirmation follows,");
+         sb.AppendLine("it did not happen — do not speak or act as though you are wed.");
          if (!context.LoveMatchBlessed)
          {
             sb.AppendLine("Without the family's blessing, wedding the player will chill your kin's regard for");
@@ -4344,6 +4364,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("FORMAT REMINDER: put speech in [DIALOGUE] ... [/DIALOGUE]. When a concrete change happens this");
             sb.AppendLine("turn (coin, a deal, a status change, a parting), you MUST emit its block ([ACTION]/[EVENT]) as");
             sb.AppendLine("taught, or the game cannot see it and it will not take effect.");
+            sb.AppendLine("Never think out loud — only the character's words and the taught blocks.");
 
             return;
          }
@@ -4355,6 +4376,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("also emit the matching block taught above for it (such as [ACTION] or [EVENT]) in the exact");
          sb.AppendLine("shape shown. If you skip the block, the game cannot see what happened and it will not take");
          sb.AppendLine("effect. Never answer as one run of plain prose with no tags.");
+         sb.AppendLine("Never think out loud: no analysis of the situation, no weighing of options, no mention of");
+         sb.AppendLine("the player as 'the player' — only the character's words and the taught blocks.");
          sb.AppendLine("e.g.  [DIALOGUE]your spoken words[/DIALOGUE]   then, only on a real change:   [ACTION] type: change_relation  delta: 1 [/ACTION]");
       }
 

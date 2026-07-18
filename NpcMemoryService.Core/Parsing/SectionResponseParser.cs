@@ -194,6 +194,10 @@ namespace NpcMemoryService.Core.Parsing
       /// <summary>
       ///   Fallback when no [DIALOGUE] tag is found: returns everything before
       ///   the first recognized section tag, or the whole text if none present.
+      ///   One exception: when what survives is un-tagged META-REASONING (the model thinking out loud —
+      ///   "Looking at the context: ...", "The user wants me to ...") and the reply holds no closed
+      ///   [DIALOGUE] at all, the model said NOTHING in character, so the fallback returns empty and the
+      ///   host shows no bubble rather than reading the model's homework aloud as the NPC's words.
       /// </summary>
       private static string ExtractDialogueFallback(string text)
       {
@@ -211,9 +215,19 @@ namespace NpcMemoryService.Core.Parsing
 
          if (invented.Success && (cut < 0 || invented.Index < cut)) cut = invented.Index;
 
-         return cut >= 0
+         string fallback = cut >= 0
             ? text.Substring(0, cut)
             : text;
+
+         // Detection only, never rewriting: meta-reasoning is not speech. A VALID closed [DIALOGUE] anywhere
+         // in the reply means this fallback never runs anyway (ExtractDialogue takes that branch first), but
+         // the guard is spelled out so the rule reads as "never touch a valid [DIALOGUE]".
+         if (MetaReasoningGuard.IsMetaReasoning(fallback)
+             && !Regex.IsMatch(text, $@"\[{DialogueTag}\].*?\[/{DialogueTag}\]",
+                RegexOptions.Singleline | RegexOptions.IgnoreCase))
+            return string.Empty;
+
+         return fallback;
       }
 
       /// <summary>

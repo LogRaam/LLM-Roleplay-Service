@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NpcMemoryService.Core.LlmClient;
 using NpcMemoryService.Core.Models;
+using NpcMemoryService.Core.Parsing;
 
 #endregion
 
@@ -55,6 +56,12 @@ namespace NpcMemoryService.Core.Captivity
          LlmResponse? response = await _llmClient.CompleteAsync(request, ct).ConfigureAwait(false);
 
          if (response is not {IsSuccess: true} || string.IsNullOrWhiteSpace(response.Content))
+            return null;
+
+         // The model thought out loud instead of remembering ("The user wants me to write a memory
+         // line..."): that meta-reasoning must never be STORED as the NPC's memory. Return null so the
+         // caller keeps the plain base summary it already recorded.
+         if (MetaReasoningGuard.IsMetaReasoning(response.Content))
             return null;
 
          return response.Content.Trim();

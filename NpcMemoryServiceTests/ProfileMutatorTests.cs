@@ -537,5 +537,90 @@ namespace NpcMemoryServiceTests
          profile.DiscoveredTraits.Should().ContainSingle();
          profile.DiscoveredTraits.Single().Description.Should().Be("Original.");
       }
+
+      // ---------- Event dedup & meta-reasoning guards ----------
+
+      // Player report: a model that re-emitted the same [EVENT] several times across one conversation had
+      // a marriage recorded THREE times in the NPC's memory. Same type, same day, same summary is the same
+      // memory told twice — only the first is kept.
+      [Test]
+      public void GIVEN_the_same_event_emitted_three_times_in_a_day_WHEN_applied_THEN_it_is_stored_once()
+      {
+         NpcProfile profile = CreateProfile();
+
+         for (var i = 0; i < 3; i++)
+            ProfileMutator.ApplyNotableEvent(profile, NotableEventType.Agreement, "We wed at the temple before the witnesses.", gameDay: 42);
+
+         profile.Events.Should().ContainSingle();
+      }
+
+      // The dedup must never merge two genuinely different memories of the same day and type: those differ
+      // well before the comparison cap, and dropping one would erase real history.
+      [Test]
+      public void GIVEN_two_distinct_events_of_the_same_type_and_day_WHEN_applied_THEN_both_are_stored()
+      {
+         NpcProfile profile = CreateProfile();
+
+         ProfileMutator.ApplyNotableEvent(profile, NotableEventType.Agreement, "We wed at the temple before the witnesses.", gameDay: 42);
+         ProfileMutator.ApplyNotableEvent(profile, NotableEventType.Agreement, "I swore to guard their caravan through the steppe.", gameDay: 42);
+
+         profile.Events.Should().HaveCount(2);
+      }
+
+      // Both axes of the dedup gate: a different type or a different day is a different memory, even with
+      // the very same words.
+      [Test]
+      public void GIVEN_the_same_summary_on_another_day_or_type_WHEN_applied_THEN_it_is_stored_again()
+      {
+         NpcProfile profile = CreateProfile();
+
+         ProfileMutator.ApplyNotableEvent(profile, NotableEventType.Agreement, "We spoke of the horses.", gameDay: 42);
+         ProfileMutator.ApplyNotableEvent(profile, NotableEventType.Agreement, "We spoke of the horses.", gameDay: 43);
+         ProfileMutator.ApplyNotableEvent(profile, NotableEventType.Collaboration, "We spoke of the horses.", gameDay: 42);
+
+         profile.Events.Should().HaveCount(3);
+      }
+
+      // The containment shape the cap exists for: a re-emission truncated mid-sentence still carries the
+      // same opening words, so it is the same memory, not a new one.
+      [Test]
+      public void GIVEN_a_reemission_truncated_mid_sentence_WHEN_applied_THEN_it_dedups_against_the_full_memory()
+      {
+         NpcProfile profile = CreateProfile();
+
+         ProfileMutator.ApplyNotableEvent(profile, NotableEventType.Agreement, "We wed at the temple before the whole assembled clan.", gameDay: 42);
+         ProfileMutator.ApplyNotableEvent(profile, NotableEventType.Agreement, "We wed at the temple before the", gameDay: 42);
+
+         profile.Events.Should().ContainSingle();
+      }
+
+      // An [EVENT] whose summary is un-tagged meta-reasoning is the model's homework, not a memory: it is
+      // never stored, and it must never move the romantic arc on a hallucinated event either.
+      [Test]
+      public void GIVEN_an_event_whose_summary_is_meta_reasoning_WHEN_applied_THEN_nothing_is_stored_and_the_arc_does_not_move()
+      {
+         var romantic = new RomanticProfile {Status = RomanticStatus.None};
+         NpcProfile profile = CreateProfile(reputation: 50, romantic: romantic);
+         ParsedResponse response = ResponseWithEvent(NotableEventType.Flirt,
+            "The user wants me to write an event summary of the flirt that just happened.");
+
+         ProfileMutator.Apply(profile, response, gameDay: 42);
+
+         profile.Events.Should().BeEmpty();
+         profile.Romantic!.Status.Should().Be(RomanticStatus.None);
+      }
+
+      // The same guard on the direct single-event path (the mod's own systems call ApplyNotableEvent), so
+      // no caller can ever persist a meta "memory" whatever route it took.
+      [Test]
+      public void GIVEN_a_meta_reasoning_summary_WHEN_added_directly_THEN_it_is_not_stored()
+      {
+         NpcProfile profile = CreateProfile();
+
+         ProfileMutator.ApplyNotableEvent(profile, NotableEventType.Other,
+            "Let me summarize what happened: 1. the player arrived.", gameDay: 42);
+
+         profile.Events.Should().BeEmpty();
+      }
    }
 }

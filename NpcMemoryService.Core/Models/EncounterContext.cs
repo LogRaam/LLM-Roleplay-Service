@@ -510,12 +510,13 @@ namespace NpcMemoryService.Core.Models
       public int PlayerClanTier { get; init; } = 0;
 
       /// <summary>
-      ///   The total troop count in the player's own party right now (companions and hero party members
-      ///   are counted separately by the game; this is the rank-and-file roster). 0 = not provided, meaning
-      ///   either the count is unknown or this speaker would have no plausible way to know it. Fed ONLY to
-      ///   speakers who would actually know the figure (the player's own companions / clan party members) so
-      ///   a stranger or an enemy is never handed an exact metagame troop count. Fixes a reported
-      ///   hallucination: companions confidently inventing how many soldiers the player leads.
+      ///   The total troop count in the player's own party right now — or of the whole army when the
+      ///   player leads one (companions and hero party members are counted separately by the game; this
+      ///   is the rank-and-file roster). 0 = not provided (the player is a captive, or no main party).
+      ///   Fed to ANY face-to-face interlocutor: the force at the player's back is a visible fact, and
+      ///   the prompt renders it as a coarse qualitative band (see PromptBuilder), never the exact
+      ///   figure, so no metagame number leaks. Fixes a reported immersion break: NPCs taunting the
+      ///   player for "approaching alone" while an army stood behind them.
       /// </summary>
       public int PlayerPartyTroopCount { get; init; } = 0;
 

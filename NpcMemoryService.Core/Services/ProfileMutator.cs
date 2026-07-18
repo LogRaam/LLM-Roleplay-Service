@@ -6,6 +6,7 @@
 using System;
 using System.Linq;
 using NpcMemoryService.Core.Models;
+using NpcMemoryService.Core.Parsing;
 
 #endregion
 
@@ -22,6 +23,9 @@ namespace NpcMemoryService.Core.Services
     {
         /// <summary>Regard (ReputationWithPlayer) at which a warm act can rekindle an Estranged bond (M-J5). Tuning.</summary>
         private const int EstrangedReconcileRelation = 30;
+
+        /// <summary>How much of two same-day, same-type summaries is compared for the dedup guard in <see cref="ApplyNotableEvent" />.</summary>
+        private const int DedupPrefixLength = 50;
 
         /// <summary>
         ///   Applies the response to the profile:
@@ -64,10 +68,16 @@ namespace NpcMemoryService.Core.Services
         /// </summary>
         public static void Apply(NpcProfile profile, ParsedResponse response, int gameDay, bool romanticContentEnabled, bool orientationCompatible, bool applyReputation)
         {
+            // An [EVENT] whose summary is un-tagged meta-reasoning (the model thinking out loud about its
+            // task instead of remembering — "The user wants me to write a memory line...") is dropped
+            // whole: never stored, and never allowed to move the romantic arc on a hallucinated memory.
+            bool eventIsMeta = response.NewEventData != null
+                && MetaReasoningGuard.IsMetaReasoning(response.NewEventData.Summary);
+
             // Append event when present and non-trivial.
             // An empty or whitespace summary would pollute the history with lines
             // like "Day N (Other):" that carry no information for future prompts.
-            if (response.NewEventData != null && !string.IsNullOrWhiteSpace(response.NewEventData.Summary))
+            if (response.NewEventData != null && !string.IsNullOrWhiteSpace(response.NewEventData.Summary) && !eventIsMeta)
             {
                 ApplyNotableEvent(profile, response.NewEventData.Type, response.NewEventData.Summary, gameDay);
             }
@@ -80,7 +90,8 @@ namespace NpcMemoryService.Core.Services
             // romance system is off (M-R3), so no romantic state accumulates behind the player's back.
             if (romanticContentEnabled
                 && response.NewEventData != null
-                && !string.IsNullOrWhiteSpace(response.NewEventData.Summary))
+                && !string.IsNullOrWhiteSpace(response.NewEventData.Summary)
+                && !eventIsMeta)
             {
                 AdvanceRomanticStatus(profile, response.NewEventData.Type, profile.ReputationWithPlayer, orientationCompatible);
                 AdvanceAttraction(profile, response.NewEventData.Type, orientationCompatible);
@@ -106,6 +117,10 @@ namespace NpcMemoryService.Core.Services
         ///   Callers with a full <see cref="ParsedResponse" /> should prefer <see cref="Apply" />;
         ///   this is exposed separately so a single-event caller (e.g. the mod's captivity or
         ///   jealousy systems, which record events the LLM never emitted) shares the same guard.
+        ///   Two more guards ride along: a meta-reasoning summary is never stored (the LLM's
+        ///   homework is not a memory), and an event of the same type, same day and near-identical
+        ///   summary is dropped — a model that re-emits the same [EVENT] several times in one
+        ///   conversation (a player watched a marriage recorded three times) must not triple the memory.
         /// </summary>
         /// <param name="profile">The NPC whose history is being updated. Must not be null.</param>
         /// <param name="type">The event's category.</param>
@@ -117,7 +132,31 @@ namespace NpcMemoryService.Core.Services
                 && profile.Events.Any(e => e.type == NotableEventType.FirstMeeting))
                 return;
 
+            if (MetaReasoningGuard.IsMetaReasoning(summary))
+                return;
+
+            if (profile.Events.Any(e => e.type == type && e.gameDay == gameDay && SummariesNearEqual(e.summary, summary)))
+                return;
+
             profile.Events.Add(new NotableEvent(gameDay, type, summary));
+        }
+
+        /// <summary>
+        ///   "The same memory told twice": two summaries count as duplicates when they agree on their
+        ///   shared prefix (capped at <see cref="DedupPrefixLength" /> characters), compared trimmed and
+        ///   case-insensitively. Prefix-equality also catches the containment case that matters here — a
+        ///   re-emission truncated mid-sentence — without ever calling two genuinely different memories
+        ///   of the same day duplicates (those differ well before fifty characters).
+        /// </summary>
+        private static bool SummariesNearEqual(string a, string b)
+        {
+            if (string.IsNullOrWhiteSpace(a) || string.IsNullOrWhiteSpace(b)) return false;
+
+            string na = a.Trim();
+            string nb = b.Trim();
+            int length = Math.Min(Math.Min(na.Length, nb.Length), DedupPrefixLength);
+
+            return string.Compare(na, 0, nb, 0, length, StringComparison.OrdinalIgnoreCase) == 0;
         }
 
         /// <summary>

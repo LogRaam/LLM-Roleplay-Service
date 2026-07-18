@@ -10,6 +10,7 @@
 
 using NpcMemoryService.Core.LlmClient.OpenRouter;
 using NpcMemoryService.Core.Models;
+using NpcMemoryService.Core.Parsing;
 
 #endregion
 
@@ -43,6 +44,13 @@ namespace NpcMemoryService.Core.Services
             if (string.IsNullOrEmpty(ev?.summary)) continue;
 
             string cleaned = ReasoningTraceStripper.Strip(ev!.summary);
+
+            // Un-tagged meta-reasoning survived the tag stripper: there was never a <think> tag, the model
+            // simply thought out loud ("The user wants me to write a memory line..."). Detection only,
+            // never rewriting — the whole line is unusable, so it becomes the same modest "faded" line a
+            // pure trace does. The event's day and type stay real history; only the leaked prose is lost.
+            if (MetaReasoningGuard.IsMetaReasoning(cleaned)) cleaned = string.Empty;
+
             if (cleaned == ev.summary) continue;
 
             profile.Events[i] = ev with {summary = cleaned.Length > 0 ? cleaned : LostMemoryLine};
