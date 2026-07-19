@@ -16,6 +16,15 @@ namespace NpcMemoryService.Core.Models
    /// </summary>
    public sealed class NpcProfile
    {
+      // Every collection below is backed by a field whose init accessor coalesces null away, rather than the
+      // shorter "{ get; init; } = new()". The initializer alone is not enough: a property initializer only
+      // runs before deserialization, and an explicit null in the stored JSON then OVERWRITES it through the
+      // init setter. The profile handed back would carry a null list that no caller expects, and the mod
+      // dereferences these in dozens of places (a courier respawn walking SentLetters, a quest pass walking
+      // ActiveQuests). Absorbing it here kills the whole class of NullReferenceException at the one place it
+      // can be prevented; guarding each call site instead is whack-a-mole against a save file.
+      private readonly List<InformalQuest> _activeQuests = new();
+
       /// <summary>
       ///   Tasks this NPC has asked the player to accomplish. Holds quests in every
       ///   lifecycle state — outstanding, satisfied-awaiting-reward, and recently
@@ -23,7 +32,11 @@ namespace NpcMemoryService.Core.Models
       ///   player has discharged past obligations. Each quest carries its own evidence,
       ///   so nothing accumulates into a shared log. Persisted across sessions.
       /// </summary>
-      public List<InformalQuest> ActiveQuests { get; init; } = new();
+      public List<InformalQuest> ActiveQuests
+      {
+         get => _activeQuests;
+         init => _activeQuests = value ?? new List<InformalQuest>();
+      }
 
       /// <summary>
       ///   Optional player-authored backstory: roleplay flavor only (color, not behavior — conduct
@@ -59,6 +72,8 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public int? ClanRelationWithPlayer { get; set; }
 
+      private readonly Dictionary<string, int> _courtActionCooldowns = new();
+
       /// <summary>
       ///   Court-action cooldown clocks (romance audit M-B6): marker -> the in-game day that action last fired.
       ///   A STRUCTURED store the LLM memory compaction cannot rewrite, unlike the old approach of scanning the
@@ -66,7 +81,13 @@ namespace NpcMemoryService.Core.Models
       ///   so the action could be spammed). Additive and save-safe: an older save loads this empty, and
       ///   <c>CourtActionResolver</c> falls back to the legacy event scan until a fresh action stamps it here.
       /// </summary>
-      public Dictionary<string, int> CourtActionCooldowns { get; init; } = new();
+      public Dictionary<string, int> CourtActionCooldowns
+      {
+         get => _courtActionCooldowns;
+         init => _courtActionCooldowns = value ?? new Dictionary<string, int>();
+      }
+
+      private readonly List<DiscoveredTrait> _discoveredTraits = new();
 
       /// <summary>
       ///   Personal traits and preferences this NPC has revealed to the player
@@ -75,13 +96,23 @@ namespace NpcMemoryService.Core.Models
       ///   <see cref="DiscoveredTrait.Key" /> so the same fact is never recorded twice.
       ///   Displayed in the encyclopedia discovery section.
       /// </summary>
-      public List<DiscoveredTrait> DiscoveredTraits { get; init; } = new();
+      public List<DiscoveredTrait> DiscoveredTraits
+      {
+         get => _discoveredTraits;
+         init => _discoveredTraits = value ?? new List<DiscoveredTrait>();
+      }
+
+      private readonly List<NotableEvent> _events = new();
 
       /// <summary>
       ///   Significant past events with natural-language summaries.
       ///   This is the primary long-term memory surfaced to the LLM.
       /// </summary>
-      public List<NotableEvent> Events { get; init; } = new();
+      public List<NotableEvent> Events
+      {
+         get => _events;
+         init => _events = value ?? new List<NotableEvent>();
+      }
 
       public required string Faction { get; init; }
 
@@ -161,6 +192,8 @@ namespace NpcMemoryService.Core.Models
 
       public string? Personality { get; set; }
 
+      private readonly List<PlayerLetter> _receivedPlayerLetters = new();
+
       /// <summary>
       ///   Letters the player has sent to this NPC. In transit until
       ///   <see cref="PlayerLetter.DeliveryDay" />; injected into the NPC's system
@@ -168,7 +201,11 @@ namespace NpcMemoryService.Core.Models
       ///   dialogue response that follows delivery.
       ///   Persisted across sessions via the store's JSON serializer.
       /// </summary>
-      public List<PlayerLetter> ReceivedPlayerLetters { get; init; } = new();
+      public List<PlayerLetter> ReceivedPlayerLetters
+      {
+         get => _receivedPlayerLetters;
+         init => _receivedPlayerLetters = value ?? new List<PlayerLetter>();
+      }
 
       /// <summary>
       ///   Formatted description of the NPC's key in-game relationships:
@@ -194,13 +231,21 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public RomanticProfile? Romantic { get; set; }
 
+      private readonly List<PendingLetter> _sentLetters = new();
+
       /// <summary>
       ///   Letters this NPC has sent (or is about to send) to the player. Holds every
       ///   letter in all states — in transit, delivered, and replied — so the full
       ///   correspondence history is available for prompt injection and anti-spam checks.
       ///   Persisted across sessions via the store's JSON serializer.
       /// </summary>
-      public List<PendingLetter> SentLetters { get; init; } = new();
+      public List<PendingLetter> SentLetters
+      {
+         get => _sentLetters;
+         init => _sentLetters = value ?? new List<PendingLetter>();
+      }
+
+      private readonly List<ScheduledLetter> _scheduledLetters = new();
 
       /// <summary>
       ///   Courier audit 2.5: letters this NPC has COMMITTED to send later but has not yet written (currently
@@ -209,7 +254,24 @@ namespace NpcMemoryService.Core.Models
       ///   birth no longer loses the pension (and its quest) forever, and the old "stamp SentOnDay in the future"
       ///   hack is gone. Empty on saves made before this existed (graceful, additive).
       /// </summary>
-      public List<ScheduledLetter> ScheduledLetters { get; init; } = new();
+      public List<ScheduledLetter> ScheduledLetters
+      {
+         get => _scheduledLetters;
+         init => _scheduledLetters = value ?? new List<ScheduledLetter>();
+      }
+
+      private readonly List<TroopLoan> _troopLoans = new();
+
+      /// <summary>
+      ///   Soldiers this NPC has lent the player for a task, and which return when that task ends (see
+      ///   <see cref="TroopLoan" />). Additive and save-safe: an older save loads this empty, which reads
+      ///   correctly as "this lord has nothing out on loan" rather than needing a migration.
+      /// </summary>
+      public List<TroopLoan> TroopLoans
+      {
+         get => _troopLoans;
+         init => _troopLoans = value ?? new List<TroopLoan>();
+      }
 
       /// <summary>
       ///   Name of this NPC's current spouse, or null if the NPC is single or widowed.

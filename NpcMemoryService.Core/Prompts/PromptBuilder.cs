@@ -3500,12 +3500,22 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("  what reaches them from outside: what your character does TO them, says to them,");
          sb.AppendLine("  or what they can see, hear, and physically feel. Never narrate what the player");
          sb.AppendLine("  thinks, decides, or wants.");
-         sb.AppendLine("- Weave speech and narration into one flow: a short *stage direction* for a glance");
-         sb.AppendLine("  or gesture, your spoken words right after, then a longer line of narration —");
-         sb.AppendLine("  environment, body language, intent shown through action, never stated");
-         sb.AppendLine("  (\"her hand rests on her sword, ready to draw\", not \"she is suspicious of you\").");
-         sb.AppendLine("- Make the setting work: weather, light, sounds, the room — one concrete detail that");
-         sb.AppendLine("  feeds the tension of the moment, never decoration for its own sake.");
+         sb.AppendLine("- YOUR GESTURES BELONG WITH YOUR WORDS, inside [DIALOGUE]: a short *stage direction*");
+         sb.AppendLine("  for a glance or a movement, your spoken words right after, another *gesture* when");
+         sb.AppendLine("  the beat turns. They follow the rhythm of the speech they punctuate, so they stay");
+         sb.AppendLine("  woven through it:");
+         sb.AppendLine("    *She raises an eyebrow.* \"What do you mean by that, traveller?\"");
+         sb.AppendLine("    *She rises abruptly, worry crossing her face.* \"Speak. You are frightening me.\"");
+         sb.AppendLine("- Show intent through the body, never state it (\"her hand rests on her sword, ready to");
+         sb.AppendLine("  draw\", not \"she is suspicious of you\").");
+         sb.AppendLine("- THE SCENE ITSELF IS NOT YOURS TO SPEAK: put it in [NARRATION], never in [DIALOGUE].");
+         sb.AppendLine("  The room, the light, the sounds, the shadow the candles throw against the wall. It is");
+         sb.AppendLine("  a neutral camera on the SETTING, held apart from your own gestures:");
+         sb.AppendLine("    [NARRATION]She stands motionless in the half-dark of the armoury, her shadow");
+         sb.AppendLine("    wavering against the wall as the few remaining candles gutter.[/NARRATION]");
+         sb.AppendLine("- Use [NARRATION] SPARINGLY, when the moment earns it: an opening tableau, a change in");
+         sb.AppendLine("  the room, a silence worth holding. Many turns need none at all, and a scene narrated");
+         sb.AppendLine("  every turn stops being a scene. Never narrate the same detail twice.");
          sb.AppendLine();
          sb.AppendLine("READING THE PLAYER'S TURN:");
          sb.AppendLine("- The player's *stage directions* are accomplished fact: they happened exactly as");
@@ -3715,8 +3725,16 @@ namespace NpcMemoryService.Core.Prompts
          }
 
          sb.AppendLine("[DIALOGUE]");
-         sb.AppendLine("Your in-character response.");
+         sb.AppendLine("Your in-character response, with your own *gestures* woven through it.");
          sb.AppendLine("[/DIALOGUE]");
+         sb.AppendLine();
+         // OPTIONAL, and the emphasis matters: the model reaches for any block the contract lists, so a
+         // scene note offered without restraint comes back every single turn and the violet line stops
+         // meaning anything. The voice section above carries the full rule (setting only, never gestures).
+         sb.AppendLine("[NARRATION]  (optional, and rare: only when the scene itself is worth a line)");
+         sb.AppendLine("A neutral camera on the SETTING: the room, the light, the sounds. Never your own");
+         sb.AppendLine("gestures, which belong in [DIALOGUE], and never the player's thoughts.");
+         sb.AppendLine("[/NARRATION]");
          sb.AppendLine();
          if (EnableMemoryBlock)
          {

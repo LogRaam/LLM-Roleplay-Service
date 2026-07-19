@@ -59,6 +59,45 @@ namespace NpcMemoryServiceTests
                CaptiveIntent = CaptiveSceneIntent.Interrogation
             });
 
+      // Gabriel's correction, in game, 2026-07-18. The ratified voice told the model to weave gestures,
+      // speech AND scene into "one flow", so all three landed inside [DIALOGUE] and the violet narration
+      // line never appeared in an ordinary conversation (it had only ever been taught to captive scenes).
+      // The two are different things and must stay apart: a gesture punctuates the speech it belongs to,
+      // while the scene is a camera on the room. Pins that the gestures are told to stay in [DIALOGUE].
+      [Test]
+      public void GIVEN_a_standard_lord_prompt_WHEN_built_THEN_gestures_are_kept_inside_the_dialogue()
+      {
+         string prompt = BuildLordPrompt();
+
+         prompt.Should().Contain("YOUR GESTURES BELONG WITH YOUR WORDS, inside [DIALOGUE]");
+         prompt.Should().Contain("the rhythm of the speech they punctuate");
+      }
+
+      // The other half of the same rule, and the one that produces the violet line: the SETTING is the
+      // only thing [NARRATION] carries in an ordinary conversation. Without this the model has no reason
+      // to emit the block at all, which is exactly what the Mina transcript showed.
+      [Test]
+      public void GIVEN_a_standard_lord_prompt_WHEN_built_THEN_the_scene_is_routed_to_narration()
+      {
+         string prompt = BuildLordPrompt();
+
+         prompt.Should().Contain("THE SCENE ITSELF IS NOT YOURS TO SPEAK: put it in [NARRATION]");
+         prompt.Should().Contain("a neutral camera on the SETTING");
+      }
+
+      // Restraint is load-bearing, not politeness: the model reaches for every block the contract lists,
+      // so a scene note offered without a rarity rule comes back each turn and the violet line stops
+      // meaning anything. Pins that the ordinary format contract offers the block AND bounds it.
+      [Test]
+      public void GIVEN_a_standard_lord_prompt_WHEN_built_THEN_narration_is_offered_but_marked_rare()
+      {
+         string prompt = BuildLordPrompt();
+
+         prompt.Should().Contain("[NARRATION]");
+         prompt.Should().Contain("only when the scene itself is worth a line");
+         prompt.Should().Contain("Many turns need none at all");
+      }
+
       // The core of the ratified style: every ordinary reply is governed by a third-person narrative
       // voice — the player's interiority is never narrated, "you" only for what reaches them from
       // outside.
