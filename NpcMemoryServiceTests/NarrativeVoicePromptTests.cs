@@ -33,6 +33,11 @@ namespace NpcMemoryServiceTests
             Npc(), new WorldState {CurrentDay = 10},
             new EncounterContext());
 
+      private static string BuildOpeningPrompt()
+         => new PromptBuilder {AdultLevel = AdultContentLevel.Off}.BuildSystemPrompt(
+            Npc(), new WorldState {CurrentDay = 10},
+            new EncounterContext {IsConversationOpening = true});
+
       private static string BuildCaptivePrompt()
          => new PromptBuilder {AdultLevel = AdultContentLevel.Hardcore, PlayerIsFemale = true}.BuildSystemPrompt(
             Npc(), new WorldState {CurrentDay = 10},
@@ -83,6 +88,41 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().Contain("THE SCENE ITSELF IS NOT YOURS TO SPEAK: put it in [NARRATION]");
          prompt.Should().Contain("a neutral camera on the SETTING");
+      }
+
+      // Gabriel's refinement (2026-07-19), after several conversations produced no violet line at all: the
+      // FIRST exchange establishes the scene, and only afterwards does narration go back to being sparing.
+      // Rarity alone left the opening to the model's judgement, and it kept deciding the moment was not
+      // worth one, so the feature was invisible in play.
+      [Test]
+      public void GIVEN_the_conversation_is_opening_WHEN_built_THEN_this_turn_is_told_to_set_the_scene()
+      {
+         string prompt = BuildOpeningPrompt();
+
+         prompt.Should().Contain("THIS TURN OPENS THE SCENE");
+         prompt.Should().Contain("the light, the sounds");
+      }
+
+      // And the restraint must NOT be preached on the same turn: telling the model the block is rare while
+      // asking it to open with one is a split instruction, which a weaker model resolves by omitting it.
+      [Test]
+      public void GIVEN_the_conversation_is_opening_WHEN_built_THEN_the_contract_does_not_also_call_it_rare()
+      {
+         string prompt = BuildOpeningPrompt();
+
+         prompt.Should().NotContain("optional, and rare");
+         prompt.Should().NotContain("Many turns need none at all");
+      }
+
+      // The other side of the same rule: once past the opening, the sparing wording comes back, or every
+      // turn would carry a scene note and the violet line would stop meaning anything.
+      [Test]
+      public void GIVEN_the_conversation_is_under_way_WHEN_built_THEN_narration_is_sparing_again()
+      {
+         string prompt = BuildLordPrompt();
+
+         prompt.Should().NotContain("THIS TURN OPENS THE SCENE");
+         prompt.Should().Contain("Many turns need none at all");
       }
 
       // Restraint is load-bearing, not politeness: the model reaches for every block the contract lists,

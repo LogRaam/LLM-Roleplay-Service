@@ -36,7 +36,7 @@ namespace NpcMemoryServiceTests
 
       // The five bands, pinned at representative values AND at their exact boundaries: an off-by-one in a
       // comparison would silently move a real game state into the wrong description.
-      [TestCase(1, "only a handful of companions ride with them.")]
+      [TestCase(2, "only a handful of companions ride with them.")]
       [TestCase(24, "only a handful of companions ride with them.")]
       [TestCase(25, "a company of a few dozen soldiers rides at their back.")]
       [TestCase(99, "a company of a few dozen soldiers rides at their back.")]
@@ -71,6 +71,49 @@ namespace NpcMemoryServiceTests
          prompt.Should().NotContain(SectionHeading);
          prompt.Should().NotContain("does not stand alone");
       }
+
+      // THE SOLO CASE, and it shipped WRONG (Gabriel, in play, 2026-07-19). A party of one is the player
+      // themselves: the roster counts them. Reported through the escort band it told the NPC "only a handful
+      // of companions ride with them" about someone riding alone, and the test above pinned that as correct
+      // (it read TestCase(1, ...) until today), which is precisely how it survived.
+      [Test]
+      public void GIVEN_a_party_of_one_WHEN_the_prompt_is_built_THEN_the_player_is_not_given_companions()
+      {
+         string prompt = Build(1);
+
+         prompt.Should().NotContain("only a handful of companions");
+         prompt.Should().NotContain("does not stand alone");
+      }
+
+      // And the silence had to be broken, not merely corrected. With no line at all the model furnishes the
+      // road itself: the scene narration put riders behind a solitary player because nothing said otherwise.
+      // The solitude is now a stated visible fact, like the force it replaces.
+      [Test]
+      public void GIVEN_a_party_of_one_WHEN_the_prompt_is_built_THEN_the_solitude_is_stated_outright()
+      {
+         string prompt = Build(1);
+
+         prompt.Should().Contain("THE PLAYER RIDES ALONE");
+         prompt.Should().Contain("no escort, no retinue, no soldiers, not one companion");
+         prompt.Should().Contain("Do not invent riders, guards or servants");
+      }
+
+      // The distinction the whole fix rests on: one is alone, two is an escort. Pinned at the boundary
+      // because an off-by-one here is the entire bug.
+      [Test]
+      public void GIVEN_a_party_of_two_WHEN_the_prompt_is_built_THEN_it_is_an_escort_and_not_solitude()
+      {
+         string prompt = Build(2);
+
+         prompt.Should().Contain(SectionHeading);
+         prompt.Should().NotContain("THE PLAYER RIDES ALONE");
+      }
+
+      // A captive has no force AND is not riding anywhere: neither block applies, which is why 0 stays
+      // distinct from 1 rather than being folded into the new solitude wording.
+      [Test]
+      public void GIVEN_no_troop_count_WHEN_the_prompt_is_built_THEN_the_solitude_block_is_absent_too()
+         => Build(0).Should().NotContain("THE PLAYER RIDES ALONE");
 
       // The whole point of the qualitative band: the exact metagame figure never reaches the model.
       // The old rendering ("The player currently leads N soldiers in their party.") is gone.

@@ -44,6 +44,14 @@ namespace NpcMemoryService.Core.Parsing
       private const string StandaloneTagLine = @"(?m)^[ \t]*\[[A-Z][A-Z0-9_ ]{1,30}\][ \t]*$";
 
       /// <summary>
+      ///   A function-call envelope: <c>{"name": "change_relation", "parameters": {"delta": -5}}</c>, the shape
+      ///   a tool-calling model reaches for instead of the taught [ACTION] block. Narrow on purpose (it must
+      ///   carry BOTH keys) so ordinary prose containing a brace can never match.
+      /// </summary>
+      private const string JsonActionCall =
+         @"\{\s*""name""\s*:\s*""(?<name>[A-Za-z_][A-Za-z0-9_]*)""\s*,\s*""(?:parameters|arguments)""\s*:\s*\{(?<args>[^{}]*)\}\s*\}";
+
+      /// <summary>
       ///   A standalone tag line PLUS the directive lines that follow it, which is the whole shape of an invented
       ///   block ("[RELATION CHANGE]" then "delta = 2"). Removed as one piece, so no orphan fragment is left
       ///   behind for the player to read out of the NPC's mouth.
@@ -103,7 +111,12 @@ namespace NpcMemoryService.Core.Parsing
          QuestProposal? questGiven = ParseQuestProposal(questSection);
 
          return new ParsedResponse {
-            Dialogue = dialogue.Trim(),
+            // A model that answers with a function-CALL rather than our [ACTION] block leaves the raw JSON
+            // sitting in the spoken line, and the player watches the NPC recite our plumbing (reported on
+            // Nexus, 2026-07-19). ParseActions recovers the call so the deed still happens; this takes it
+            // out of the character's mouth. Both halves are needed: stripping alone would silence a regard
+            // change the NPC plainly meant, recovering alone would still show the JSON.
+            Dialogue = StripJsonActionEnvelopes(dialogue).Trim(),
             // netstandard2.0 has no NotNullWhen annotation on IsNullOrWhiteSpace,
             // so the compiler can't see the guard — hence the '!'.
             Narration = string.IsNullOrWhiteSpace(narrationSection)
@@ -363,8 +376,53 @@ namespace NpcMemoryService.Core.Parsing
             if (recovered != null) actions.Add(recovered);
          }
 
+         // A model tuned for tool-calling answers with JSON instead of our [ACTION] block. Nothing parsed it,
+         // so the regard never moved AND the raw call was spoken aloud (Nexus, 2026-07-19).
+         foreach (GameAction call in RecoverJsonActionCalls(text))
+            if (!actions.Exists(a => string.Equals(a.Type, call.Type, StringComparison.OrdinalIgnoreCase)))
+               actions.Add(call);
+
          return actions;
       }
+
+      /// <summary>
+      ///   Recovers actions a model emitted as a function CALL, <c>{"name": "change_relation", "parameters":
+      ///   {"delta": 5}}</c>, rather than in the taught [ACTION] block.
+      ///   <para>
+      ///     Unlike <see cref="RecoverStrayRelationChange" /> this is not a guess and so is not restricted to
+      ///     one action type: that JSON shape cannot occur in roleplay prose, so its presence IS the intent.
+      ///     Safety is unchanged either way, because every recovered action still goes through the host's
+      ///     bridge, which re-validates and (for regard) caps and rate-limits it. The prompt proposes; the
+      ///     bridge rules.
+      ///   </para>
+      ///   An action the model ALSO emitted properly wins, so a well-formed block is never double-counted.
+      /// </summary>
+      private static List<GameAction> RecoverJsonActionCalls(string text)
+      {
+         var found = new List<GameAction>();
+
+         foreach (Match call in Regex.Matches(text, JsonActionCall, RegexOptions.IgnoreCase))
+         {
+            string name = call.Groups["name"].Value.Trim();
+            if (string.IsNullOrWhiteSpace(name)) continue;
+
+            var parameters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (Match p in Regex.Matches(call.Groups["args"].Value,
+                        "\"(?<k>[A-Za-z_][A-Za-z0-9_]*)\"[ \t]*:[ \t]*\"?(?<v>[^\",}]+)\"?"))
+               parameters[p.Groups["k"].Value] = p.Groups["v"].Value.Trim();
+
+            found.Add(new GameAction {Type = NormalizeActionType(name), Parameters = parameters});
+         }
+
+         return found;
+      }
+
+      /// <summary>Removes any recovered function-call JSON from a spoken line, so the NPC never recites it.</summary>
+      private static string StripJsonActionEnvelopes(string dialogue)
+         => string.IsNullOrEmpty(dialogue)
+            ? dialogue
+            : Regex.Replace(dialogue, JsonActionCall, "", RegexOptions.IgnoreCase);
 
       /// <summary>
       ///   Recovers a relation change a model wrote under a tag it invented. A player watched an NPC speak the

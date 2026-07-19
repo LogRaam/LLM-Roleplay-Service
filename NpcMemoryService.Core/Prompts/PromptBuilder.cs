@@ -986,13 +986,27 @@ namespace NpcMemoryService.Core.Prompts
          // Non-zero for any face-to-face interlocutor (a visible fact, not a metagame number — see
          // EncounterContextBuilder.ResolvePlayerPartyTroopCount); rendered as a coarse qualitative band
          // so the exact figure never leaks, with a tone directive so the NPC WEIGHS what it sees.
-         if (context.PlayerPartyTroopCount > 0)
+         // A party of ONE is the player themselves: the roster counts them. Reported as an escort, it told
+         // the NPC "only a handful of companions ride with them" about someone riding alone, and the scene
+         // narration then put those companions on the road (Gabriel, in play, 2026-07-19). The silence was
+         // worse than the error: with no line at all the model furnishes the road itself, so the solitude
+         // has to be STATED, not merely left unmentioned.
+         if (context.PlayerPartyTroopCount > 1)
          {
             sb.AppendLine("THE FORCE AT THE PLAYER'S BACK (visible fact, right now):");
             sb.AppendLine($"The player does not stand alone: {DescribeForce(context.PlayerPartyTroopCount)}");
             sb.AppendLine("Never call the player alone, unescorted, brave-or-foolish for approaching, or an easy mark —");
             sb.AppendLine("you can SEE this force. Weigh it in your tone: a force that dwarfs yours tempers bluster into");
             sb.AppendLine("wariness or respect; a handful of men behind a stranger invites the boldness it deserves.");
+            sb.AppendLine();
+         }
+         else if (context.PlayerPartyTroopCount == 1)
+         {
+            sb.AppendLine("THE PLAYER RIDES ALONE (visible fact, right now):");
+            sb.AppendLine("There is NO ONE at their back: no escort, no retinue, no soldiers, not one companion.");
+            sb.AppendLine("Do not invent riders, guards or servants for them, in speech or in narration. What you");
+            sb.AppendLine("make of a lone traveller is yours to judge: reckless, trusting, desperate, or dangerous");
+            sb.AppendLine("enough not to need anyone.");
             sb.AppendLine();
          }
 
@@ -1036,6 +1050,11 @@ namespace NpcMemoryService.Core.Prompts
       /// <summary>
       ///   Folds the player's raw troop count into a coarse qualitative band, so the prompt carries the
       ///   visible FACT of the force at the player's back without ever leaking the exact metagame figure.
+      /// </summary>
+      /// <summary>
+      ///   Coarse band for an escort of TWO OR MORE. A count of 1 is the player riding alone (the roster
+      ///   counts them) and is handled by its own block: it must never reach here, or a solitary traveller
+      ///   is described as having companions.
       /// </summary>
       private static string DescribeForce(int troopCount)
       {
@@ -3467,7 +3486,7 @@ namespace NpcMemoryService.Core.Prompts
          // The narrative-voice teachings are Full-prompt only: Lean is a hard token budget for small
          // local models (pinned by LeanPromptPolicyTests), and ~2k chars of style guidance would bust it.
          if (context?.LeanLevel != LeanPromptLevel.Lean)
-            AppendNarrativeVoice(sb);
+            AppendNarrativeVoice(sb, context?.IsConversationOpening == true);
          string discoverySuffix = AdultLevel != AdultContentLevel.Off
             ? ", [DISCOVERY]"
             : "";
@@ -3492,7 +3511,7 @@ namespace NpcMemoryService.Core.Prompts
       ///   the same *action*-speech-narration template every turn). Captive scenes are excluded upstream: they carry
       ///   their own voice contract.
       /// </summary>
-      private static void AppendNarrativeVoice(StringBuilder sb)
+      private static void AppendNarrativeVoice(StringBuilder sb, bool isOpening)
       {
          sb.AppendLine("NARRATIVE VOICE (governs every reply):");
          sb.AppendLine("- Narrate in the third person: your character by name or \"he/she\", the world around");
@@ -3513,9 +3532,21 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("  a neutral camera on the SETTING, held apart from your own gestures:");
          sb.AppendLine("    [NARRATION]She stands motionless in the half-dark of the armoury, her shadow");
          sb.AppendLine("    wavering against the wall as the few remaining candles gutter.[/NARRATION]");
-         sb.AppendLine("- Use [NARRATION] SPARINGLY, when the moment earns it: an opening tableau, a change in");
-         sb.AppendLine("  the room, a silence worth holding. Many turns need none at all, and a scene narrated");
-         sb.AppendLine("  every turn stops being a scene. Never narrate the same detail twice.");
+         if (isOpening)
+         {
+            sb.AppendLine("- THIS TURN OPENS THE SCENE, so it CARRIES a [NARRATION], and that block comes FIRST,");
+            sb.AppendLine("  BEFORE your [DIALOGUE]: the reader must see the place before anyone speaks in it.");
+            sb.AppendLine("  Where you both stand, the light, the sounds, what the room or the road is doing");
+            sb.AppendLine("  around you. One paragraph, concrete, no inventory of the furniture. After this opening");
+            sb.AppendLine("  turn, narration becomes occasional again: a change in the room, a silence worth");
+            sb.AppendLine("  holding. Never narrate the same detail twice.");
+         }
+         else
+         {
+            sb.AppendLine("- Use [NARRATION] SPARINGLY, when the moment earns it: an opening tableau, a change in");
+            sb.AppendLine("  the room, a silence worth holding. Many turns need none at all, and a scene narrated");
+            sb.AppendLine("  every turn stops being a scene. Never narrate the same detail twice.");
+         }
          sb.AppendLine();
          sb.AppendLine("READING THE PLAYER'S TURN:");
          sb.AppendLine("- The player's *stage directions* are accomplished fact: they happened exactly as");
@@ -3731,7 +3762,12 @@ namespace NpcMemoryService.Core.Prompts
          // OPTIONAL, and the emphasis matters: the model reaches for any block the contract lists, so a
          // scene note offered without restraint comes back every single turn and the violet line stops
          // meaning anything. The voice section above carries the full rule (setting only, never gestures).
-         sb.AppendLine("[NARRATION]  (optional, and rare: only when the scene itself is worth a line)");
+         // The contract must not contradict the voice section above: telling the model the block is "rare"
+         // on the very turn it is being asked to open the scene with one is the kind of split instruction a
+         // weaker model resolves by simply omitting it.
+         sb.AppendLine(context?.IsConversationOpening == true
+            ? "[NARRATION]  (this turn: set the scene, and put this block BEFORE [DIALOGUE])"
+            : "[NARRATION]  (optional, and rare: only when the scene itself is worth a line)");
          sb.AppendLine("A neutral camera on the SETTING: the room, the light, the sounds. Never your own");
          sb.AppendLine("gestures, which belong in [DIALOGUE], and never the player's thoughts.");
          sb.AppendLine("[/NARRATION]");

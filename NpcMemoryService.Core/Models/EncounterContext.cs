@@ -573,6 +573,14 @@ namespace NpcMemoryService.Core.Models
       public PlayerStatusVsNpc PlayerStatus { get; init; } = PlayerStatusVsNpc.Unknown;
 
       /// <summary>
+      ///   This is the conversation's FIRST exchange. The scene has not been established yet, so the opening
+      ///   turn carries a [NARRATION] that sets it (where they are, the light, the sound) instead of leaving
+      ///   the model to decide the moment is not worth one. After the opening, narration goes back to being
+      ///   sparing, which is what keeps it meaningful.
+      /// </summary>
+      public bool IsConversationOpening { get; init; }
+
+      /// <summary>
       ///   The realm that binds the two of them, when one of them RULES it: the kingdom the player has sworn
       ///   to (<see cref="PlayerStatusVsNpc.Vassal" />) or the one the player rules and this NPC serves
       ///   (<see cref="PlayerStatusVsNpc.Liege" />). Null when unknown or when neither applies, in which case
