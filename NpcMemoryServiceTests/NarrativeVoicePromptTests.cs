@@ -125,6 +125,45 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("Many turns need none at all");
       }
 
+      // A captive scene carries its OWN narration contract, and it is a DIFFERENT one, not a stricter
+      // version of the general rule. There, narration exists to put the player inside their own body: the
+      // prisoner is "you" for every sensation, named and unflinching, and that is the point of the channel.
+      // The general rule is the opposite instinct, a camera on the SETTING that never touches the player.
+      // Teaching both for one channel had the model pulling two ways at once (Gabriel, in play).
+      [Test]
+      public void GIVEN_a_captive_scene_WHEN_built_THEN_the_general_narration_contract_is_not_taught_beside_it()
+      {
+         string prompt = BuildCaptivePrompt();
+
+         prompt.Should().NotContain("a neutral camera on the SETTING");
+         prompt.Should().NotContain("optional, and rare");
+         prompt.Should().NotContain("this turn: set the scene");
+      }
+
+      // The check above must not be satisfiable by teaching nothing: the captive scene still contracts the
+      // block, AND it still asks for the bodily sensation in the second person, which is what a player
+      // actually feels the scene through. Losing that to a tidy "never address the player" rule would gut
+      // the pillar.
+      [Test]
+      public void GIVEN_a_captive_scene_WHEN_built_THEN_the_prisoners_bodily_sensations_are_still_demanded()
+      {
+         string prompt = BuildCaptivePrompt();
+
+         prompt.Should().Contain("[NARRATION]");
+         prompt.Should().Contain("what they PHYSICALLY FEEL");
+         prompt.Should().Contain("for what their body endures");
+      }
+
+      // The ONE thing that actually went wrong in play: the narrator slipped into the captor's own voice
+      // ("the spit lands near my boots") while keeping the prisoner correctly in the second. The rule always
+      // said "your character by name or he/she"; it is now also stated as a prohibition, because that is the
+      // form the model broke.
+      [Test]
+      public void GIVEN_a_captive_scene_WHEN_built_THEN_the_narrator_is_forbidden_the_captors_first_person()
+      {
+         BuildCaptivePrompt().Should().Contain("NEVER write \"I\" or \"my\" in [NARRATION]");
+      }
+
       // Restraint is load-bearing, not politeness: the model reaches for every block the contract lists,
       // so a scene note offered without a rarity rule comes back each turn and the violet line stops
       // meaning anything. Pins that the ordinary format contract offers the block AND bounds it.

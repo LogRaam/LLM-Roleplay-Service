@@ -55,7 +55,7 @@ namespace NpcMemoryServiceTests
 
       // ── The bandit captor's knowledge of the player across encounters ────
 
-      private static string BuildBanditPerceptionPrompt(bool captorKnowsPlayer)
+      private static string BuildBanditPerceptionPrompt(bool captorKnowsPlayer, bool captorKnowsName = false)
       {
          var builder = new PromptBuilder {
             AdultLevel = AdultContentLevel.Hardcore,
@@ -67,7 +67,8 @@ namespace NpcMemoryServiceTests
             CaptiveIntent = CaptiveSceneIntent.Interrogation,
             CaptorIsBandit = true,
             CaptorIsBrigand = true,
-            CaptorKnowsPlayer = captorKnowsPlayer
+            CaptorKnowsPlayer = captorKnowsPlayer,
+            CaptorKnowsPlayerName = captorKnowsName
          };
 
          return builder.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
@@ -85,17 +86,61 @@ namespace NpcMemoryServiceTests
          prompt.Should().NotContain("you know them of old");
       }
 
-      // The mirror fix: "a bandit boss who has met you before now knows your name" (CHANGELOG). A
-      // recurring nemesis who already holds memories of the player must not keep pretending to be a
-      // stranger just because he is a bandit, or every return encounter reads as amnesia.
+      // A recurring nemesis knows the FACE and the HISTORY, and must not read as an amnesiac stranger each
+      // return. He references the score between them and what he sees.
       [Test]
-      public void GIVEN_a_captor_who_already_dealt_with_the_player_WHEN_building_the_bandit_perception_THEN_he_greets_them_by_name()
+      public void GIVEN_a_captor_who_already_dealt_with_the_player_WHEN_building_the_bandit_perception_THEN_he_remembers_the_history()
       {
          string prompt = BuildBanditPerceptionPrompt(captorKnowsPlayer: true);
 
-         prompt.Should().Contain("you know them of old");
-         prompt.Should().Contain("This is Arwa");
-         prompt.Should().NotContain("You do NOT know their name");
+         prompt.Should().Contain("NO stranger");
+         prompt.Should().Contain("history your memories");
+      }
+
+      // Gabriel's rule (2026-07-19): a brigand never learns a noble's NAME, register-less as he is, so even
+      // a recurring nemesis must NOT use it. The old branch said "use their name freely", which is how a
+      // looter greeted the player as "Arwa". He knows the face and the debt, not the name.
+      [Test]
+      public void GIVEN_a_recurring_bandit_captor_WHEN_building_the_perception_THEN_he_still_does_not_use_the_players_name()
+      {
+         string prompt = BuildBanditPerceptionPrompt(captorKnowsPlayer: true);
+
+         prompt.Should().Contain("still do NOT know their NAME");
+         prompt.Should().NotContain("This is Arwa");
+         prompt.Should().NotContain("Use their name freely");
+      }
+
+      // The log (Gabriel, 2026-07-19) showed a first-time captor invent a shared past ("same as when you
+      // tried biting down earlier") off nothing but the prisoner's current "teeth clenched" line. A
+      // stranger has no history to reach for; the prompt now forbids inventing one outright.
+      [Test]
+      public void GIVEN_a_first_encounter_WHEN_building_the_bandit_perception_THEN_no_shared_past_may_be_invented()
+      {
+         string prompt = BuildBanditPerceptionPrompt(captorKnowsPlayer: false);
+
+         prompt.Should().Contain("You have NEVER met this prisoner before this moment");
+         prompt.Should().Contain("Invent no shared past");
+      }
+
+      // The mirror: a recurring captor who DOES know the player must not be told he has never met them, or
+      // he could not reference the very history that makes him a nemesis.
+      [Test]
+      public void GIVEN_a_captor_who_already_dealt_with_the_player_WHEN_building_the_bandit_perception_THEN_no_never_met_clause_is_added()
+      {
+         BuildBanditPerceptionPrompt(captorKnowsPlayer: true)
+            .Should().NotContain("You have NEVER met this prisoner");
+      }
+
+      // Gabriel 2026-07-19: if the prisoner gives the captor their name, he learns it and may use it, and a
+      // recurring nemesis keeps it. This flag overrides the register-less silence of the other branches.
+      [Test]
+      public void GIVEN_the_captor_has_learned_the_name_WHEN_building_the_perception_THEN_he_may_use_it()
+      {
+         string prompt = BuildBanditPerceptionPrompt(captorKnowsPlayer: false, captorKnowsName: true);
+
+         prompt.Should().Contain("You know this prisoner's name: Arwa");
+         prompt.Should().Contain("They gave it up to you");
+         prompt.Should().NotContain("still do NOT know their NAME");
       }
    }
 }

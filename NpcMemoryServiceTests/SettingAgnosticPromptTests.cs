@@ -86,5 +86,17 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().Contain("Calradia");
       }
+
+      // Player report (Nexus, 2026-07-19): told a lord to surrender, the lord agreed, then kept his party
+      // and ran off, because no surrender/capture action exists and the agreement was empty roleplay. The
+      // anti-empty-promise rule now names surrender explicitly, so the NPC declines or sets a price instead
+      // of agreeing to a yielding the game cannot execute.
+      [Test]
+      public void GIVEN_any_prompt_WHEN_built_THEN_surrendering_into_captivity_is_named_an_empty_promise_to_avoid()
+      {
+         string prompt = BuildPromptFor(Authored());
+
+         prompt.Should().Contain("surrendering yourself or your party into the player's captivity");
+      }
    }
 }

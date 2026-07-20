@@ -96,6 +96,23 @@ namespace NpcMemoryService.Core.Models
       public CaptiveSceneIntent CaptiveIntent { get; init; } = CaptiveSceneIntent.Interrogation;
 
       /// <summary>
+      ///   The driving THROUGHLINE of this captive scene (e.g. "an interrogation dressed as intimacy",
+      ///   "silence and stillness stretched past bearing"), chosen once when the scene opens and carried on
+      ///   EVERY turn so it governs the whole scene, not just the opening line. Null for a scene with no
+      ///   focus (the non-sexual bandit intents). Ratified with Gabriel (2026-07-19): the focus used to flavour
+      ///   only turn 1 and then evaporate, so every scene reverted to the same escalate-to-a-physical-climax
+      ///   spine; persisting it lets a psychological focus stay psychological and reach its OWN resolution.
+      /// </summary>
+      public string? CaptiveSceneFocus { get; init; }
+
+      /// <summary>
+      ///   A brigand captor has learned the player's name (the prisoner gave it up in a scene), so he MAY
+      ///   use it despite otherwise living apart from any register. Fed from
+      ///   <see cref="NpcProfile.CaptorLearnedPlayerName" />. Meaningless for a lord captor.
+      /// </summary>
+      public bool CaptorKnowsPlayerName { get; init; }
+
+      /// <summary>
       ///   True when the captor is a faceless bandit/pirate rather than a named lord.
       ///   Bandits live apart from the world of nobles: they do NOT know the player's
       ///   name, clan, or titles. The prompt suppresses the player's identity and lets

@@ -158,6 +158,15 @@ namespace NpcMemoryService.Core.Models
       public bool IntimacyLeverageHeld { get; set; }
 
       /// <summary>
+      ///   A brigand captor has LEARNED the player's name because the prisoner gave it up in a scene (a
+      ///   brigand has no lords' register, so this is the only way he could know it). Persisted, so a
+      ///   recurring nemesis keeps knowing it across captures. Additive and save-safe: old saves load false.
+      ///   Ratified with Gabriel 2026-07-19. Meaningless for a lord captor (who knows names anyway) and never
+      ///   persisted for an ephemeral synthesized bandit; it earns its keep on a nemesis profile.
+      /// </summary>
+      public bool CaptorLearnedPlayerName { get; set; }
+
+      /// <summary>
       ///   This NPC's sex, mirrored from the live hero. Stated plainly in the prompt's identity
       ///   line so the LLM never has to guess pronouns (a female NPC was once narrated as "his").
       ///   Refreshed each session, so profiles created before this field are corrected on load.

@@ -79,5 +79,22 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().NotContain(ExchangeHeading);
       }
+
+      // Gabriel 2026-07-19: the novelistic anatomy licence is shared with the CONSENSUAL explicit path, not
+      // only captive scenes, so an ordinary intimate scene reads with the same literary body detail.
+      [Test]
+      public void GIVEN_explicit_level_WHEN_built_THEN_the_novelistic_anatomy_licence_is_present()
+      {
+         BuildLordPrompt(AdultContentLevel.Explicit)
+            .Should().Contain("DESCRIBE THE BODY AS A NOVEL WOULD");
+      }
+
+      // And it is gated: at Mature (below Explicit) the licence must be absent, like the exchange block.
+      [Test]
+      public void GIVEN_mature_level_WHEN_built_THEN_the_novelistic_anatomy_licence_is_absent()
+      {
+         BuildLordPrompt(AdultContentLevel.Mature)
+            .Should().NotContain("DESCRIBE THE BODY AS A NOVEL WOULD");
+      }
    }
 }

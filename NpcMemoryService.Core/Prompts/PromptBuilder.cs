@@ -1081,8 +1081,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("current situation above does not state where you are headed, do not fabricate a destination,");
          sb.AppendLine("troop movements, or war plans; speak in general terms rather than naming a specific place.");
          sb.AppendLine("And never AGREE to perform a concrete deed — entering someone's service, handing over troops");
-         sb.AppendLine("or prisoners, granting land, killing a named person, declaring or starting a war, entering into");
-         sb.AppendLine("or dissolving a marriage — unless an [ACTION] for it is available in this prompt. Words the game");
+         sb.AppendLine("or prisoners, surrendering yourself or your party into the player's captivity, granting land,");
+         sb.AppendLine("killing someone, starting a war, marrying or");
+         sb.AppendLine("divorcing, unless an [ACTION] for it is available in this prompt. Words the game");
          sb.AppendLine("cannot honor are broken promises: if no action exists for what the player asks, DECLINE");
          sb.AppendLine("or deflect in character. Do NOT vaguely agree, hedge, or put it off (no \"soon\", \"in time\",");
          sb.AppendLine("\"consider it done\", \"I will see it done\"): a soft yes with nothing behind it is the same");
@@ -1787,10 +1788,12 @@ namespace NpcMemoryService.Core.Prompts
 
                break;
             case CaptiveSceneStage.Initiate:
-               sb.AppendLine("STAGE — INITIATE: begin the physical aggression NOW — the opening move of this act. Do not");
-               sb.AppendLine("restate the threat or stall; act. If you ALREADY finished an earlier act this scene, this is a");
-               sb.AppendLine("DIFFERENT new act or position — never a repeat of what you already did. ONE act, one beat, then");
-               sb.AppendLine("stop and let the player react.");
+               sb.AppendLine("STAGE - INITIATE: begin the physical aggression NOW, the OPENING move of this act, which is");
+               sb.AppendLine("its least degree, not the act entire. Do not restate the threat or stall; act. If the act is a");
+               sb.AppendLine("penetrative one, this beat reaches its APPROACH or its THRESHOLD and stops there (see the");
+               sb.AppendLine("degrees above): finishing it here is what leaves a scene with no inside. If you ALREADY");
+               sb.AppendLine("finished an earlier act this scene, this is a DIFFERENT new act or position, never a repeat");
+               sb.AppendLine("of what you already did. ONE act, one beat, then stop and let the player react.");
 
                break;
             case CaptiveSceneStage.Intensify:
@@ -2688,11 +2691,33 @@ namespace NpcMemoryService.Core.Prompts
       {
          sb.AppendLine("YOUR PRISONER (what you can tell):");
 
-         // A first-time captive is a nameless stranger to a brigand; but a captor who has ALREADY dealt
-         // with this player (his memories above are of them) knows exactly who he holds, and greets them so.
-         if (context.CaptorKnowsPlayer && !string.IsNullOrWhiteSpace(PlayerName))
+         // The prisoner gave their name up to this captor in a scene (the only way a register-less brigand
+         // could have it). Once learned it is his to use, and a nemesis keeps it across captures. This wins
+         // over both branches below, which otherwise deny him the name.
+         if (context.CaptorKnowsPlayerName && !string.IsNullOrWhiteSpace(PlayerName))
          {
-            sb.AppendLine($"This captive is NO stranger: you know them of old. This is {PlayerName} " + $"({(PlayerIsFemale ? "a woman" : "a man")}), the one your memories above speak of. Use their " + "name freely; there is no mystery for you about who they are, and your history with them " + "colours everything you say.");
+            sb.AppendLine($"You know this prisoner's name: {PlayerName} ({(PlayerIsFemale ? "a woman" : "a man")}). " + "They gave it up to you, so use it as you please; you did not have it from any register, you have it " + "because they told you. Your history and what you can see of them still colour everything you say.");
+            if (!string.IsNullOrWhiteSpace(context.PlayerAppearance))
+               sb.AppendLine($"What you can SEE of them (do not invent past this): {context.PlayerAppearance}");
+            sb.AppendLine();
+
+            return;
+         }
+
+         // A captor who has dealt with this prisoner before knows their FACE and the HISTORY between them,
+         // but NOT their name. Gabriel 2026-07-19: a brigand never learns a noble's name from any register
+         // (he lives apart from lords), so even a recurring nemesis refers to the prisoner by what he sees
+         // and the score between them, never "Arwa", unless the prisoner themselves gave the name up. The
+         // old branch here said "use their name freely", which is exactly how a looter came to greet the
+         // player by name.
+         if (context.CaptorKnowsPlayer)
+         {
+            sb.AppendLine($"This captive is NO stranger: you have held them before, and the history your memories");
+            sb.AppendLine("speak of is between you. You know their face, and the score you have to settle. But you");
+            sb.AppendLine("still do NOT know their NAME: a brigand has no lords' register, and you never learned it");
+            sb.AppendLine("unless they gave it up to you themselves. Refer to them by what you see and the debt");
+            sb.AppendLine("between you (\"the grey-eyed one\", \"my runaway\"), NOT by a name you would have no way to");
+            sb.AppendLine("know. Your history with them colours everything you say.");
             if (!string.IsNullOrWhiteSpace(context.PlayerAppearance))
                sb.AppendLine($"What you can SEE of them (do not invent past this): {context.PlayerAppearance}");
             sb.AppendLine();
@@ -2701,6 +2726,12 @@ namespace NpcMemoryService.Core.Prompts
          }
 
          sb.AppendLine($"This captive is a {(PlayerIsFemale ? "woman" : "man")}. You do NOT know their name, " + "their house, or their station: brigands like you live apart from lords and their " + "registers. Do not use a name for them or claim to know who they are; you would not.");
+         // The log (Gabriel, 2026-07-19) showed a first-time captor invent a shared past ("same as when you
+         // tried biting down earlier") off nothing but the prisoner's current "teeth clenched" line. A
+         // stranger has no history to reach for, so forbid it outright rather than hoping the "do not claim
+         // to know who they are" line above covers a past event too.
+         sb.AppendLine("You have NEVER met this prisoner before this moment. Invent no shared past with them, no");
+         sb.AppendLine("earlier meeting, no thing they \"already\" did to you: nothing has passed between you until now.");
 
          if (!string.IsNullOrWhiteSpace(context.PlayerAppearance))
             sb.AppendLine($"What you can SEE of them (do not invent past this): {context.PlayerAppearance}");
@@ -3110,6 +3141,42 @@ namespace NpcMemoryService.Core.Prompts
          AppendNoRecycledPhraseRule(sb);
       }
 
+      /// <summary>
+      ///   The scene's driving throughline, carried on EVERY turn so it governs the whole encounter and not
+      ///   just the opening line. Ratified B with Gabriel (2026-07-19): the focus used to flavour turn 1 and
+      ///   evaporate, so every scene reverted to the same escalate-to-a-physical-climax spine. Now the focus
+      ///   shapes the scene's NATURE (a psychological focus may stay psychological, non-penetrative, and reach
+      ///   its own resolution), and the scene is an EXPERIENCE that MOVES and RESOLVES rather than looping an
+      ///   unmet demand. Renders nothing when there is no focus (the non-sexual bandit intents opt out).
+      /// </summary>
+      private static void AppendCaptiveThroughline(StringBuilder sb, EncounterContext? context)
+      {
+         if (string.IsNullOrWhiteSpace(context?.CaptiveSceneFocus)) return;
+
+         sb.AppendLine("THE THROUGHLINE OF THIS SCENE (it governs every turn, not just the opening):");
+         sb.AppendLine($"What drives you here is: {context!.CaptiveSceneFocus}.");
+         sb.AppendLine("Let this shape the WHOLE scene, its NATURE and not merely its flavour. Not every scene is");
+         sb.AppendLine("the same act by another name. There is NO fixed track, in either direction: a psychological");
+         sb.AppendLine("throughline (dread, corruption, an interrogation dressed as intimacy, a war of wills, hope");
+         sb.AppendLine("offered and snatched away) may live and END as a thing of the mind, OR it may tip into the");
+         sb.AppendLine("physical, even the sexual, WHEN the scene genuinely charges toward it, the pressure you have");
+         sb.AppendLine("built finding a bodily outlet. Follow where the tension actually leads. What is wrong is only");
+         sb.AppendLine("the REFLEX: marching to a penetrative peak because you assume every scene must have one. Drop");
+         sb.AppendLine("that assumption and let this scene find its own shape. The \"satisfaction\" you build toward is");
+         sb.AppendLine("whatever THIS throughline was reaching for, physical or not: a secret breaking loose, a will");
+         sb.AppendLine("finally bent, weeping surrender, a composure picked wholly apart, or a body taken once the");
+         sb.AppendLine("mind is already broken.");
+         sb.AppendLine();
+         sb.AppendLine("MAKE IT AN EXPERIENCE THAT MOVES: the scene has a shape, and it goes somewhere. Do NOT loop");
+         sb.AppendLine("one demand or one act, waiting for the prisoner to give you what you want. If you seek");
+         sb.AppendLine("information and it does not come, you do NOT ask again and again forever: you change tack,");
+         sb.AppendLine("raise the cost, make good on a threat, or decide you are done and end it (for now, or for");
+         sb.AppendLine("good). A prisoner who yields nothing is answered by consequence, not by repetition. Every");
+         sb.AppendLine("beat leaves the situation somewhere it was not before, and the scene builds toward a real");
+         sb.AppendLine("resolution rather than circling one.");
+         sb.AppendLine();
+      }
+
       private void AppendCaptivePlayerRules(StringBuilder sb, NpcProfile npc, EncounterContext? context)
       {
          bool isCollective = context?.IsCollectiveCaptiveScene ?? false;
@@ -3151,6 +3218,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("The player before you is physically constrained and cannot simply leave.");
          sb.AppendLine("The power in this encounter belongs to you entirely.");
          sb.AppendLine();
+
+         AppendCaptiveThroughline(sb, context);
 
          if (PlayerIsFemale)
          {
@@ -3299,6 +3368,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("than a single one. Let this character's specific desires and kinks choose which acts, and use");
          sb.AppendLine("the explicit anatomical and sensory detail the moment deserves.");
          sb.AppendLine();
+         AppendNovelisticAnatomyGuidance(sb);
          sb.AppendLine("ANATOMY MATCHES YOUR SEX — STAY CONSISTENT:");
          if (npc?.IsFemale == true)
          {
@@ -3340,6 +3410,16 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Use it for the genuine physical cost — a rough taking, a struck blow, a wound — not for every");
          sb.AppendLine("touch, and scale severity to the harm actually done.");
          sb.AppendLine();
+         // Gabriel 2026-07-19: brute force builds fear on its own, and the scenes leaned almost wholly on
+         // sexual contact. A blow, a body slammed down, a boot on the neck is terror in its own right.
+         sb.AppendLine("BRUTE FORCE IS A TOOL OF TERROR, NOT ONLY THE ACT ITSELF: a captor does not only take, he");
+         sb.AppendLine("HITS. A backhand across the face, a fist knotted in the hair, a shove that puts the prisoner");
+         sb.AppendLine("on the ground, a knee in the back, a body hauled up and slammed against a wall or a wagon");
+         sb.AppendLine("rail, a boot pinning them down. Woven through the scene, this raw physical violence sharpens");
+         sb.AppendLine("the prisoner's fear far more than words do: it proves, on the body, how little power they");
+         sb.AppendLine("have. Reach for it as readily as for the sexual acts, and register the real ones with");
+         sb.AppendLine("harm_prisoner. A cruel captor's hands are never gentle even between the graver acts.");
+         sb.AppendLine();
 
          if (PlayerIsFemale)
          {
@@ -3370,6 +3450,48 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("prisoner THINKS, DECIDES, SAYS, or DOES in answer: their mind and their choices");
          sb.AppendLine("belong to the player alone. End each beat on the situation, not on their response");
          sb.AppendLine("to it.");
+         // Gabriel 2026-07-19: the prisoner only ever perceived the captor's WORDS and the gestures done to
+         // them, never what the captor's own body was doing. A predator undone by his own pleasure is more
+         // frightening, not less, and the prisoner can see and feel it, so it belongs in the narration.
+         sb.AppendLine("SHOW THE AGGRESSOR'S OWN BODY TOO, not only the prisoner's. What YOUR character feels and");
+         sb.AppendLine("does with his body is part of what the prisoner witnesses at this range: the grunt of");
+         sb.AppendLine("effort or pleasure, breath going ragged, a bitten lip, sweat, the shudder that runs through");
+         sb.AppendLine("him, the way his rhythm falters or turns savage as he nears his peak and his own body gives");
+         sb.AppendLine("him away. Render it in the third person like everything else (\"he\", or his name), as");
+         sb.AppendLine("something the prisoner cannot help but register. A captor lost in his own sensation is a");
+         sb.AppendLine("captor the prisoner is utterly at the mercy of; make that visible on his body, not just in");
+         sb.AppendLine("his threats.");
+         // Gabriel, in play 2026-07-19: penetration arrived abruptly, a single beat carrying the threat, the
+         // contact and the whole act at once. The arc machinery already paces the PRELIMINARIES (how much
+         // menacing and circling precedes the act, which is what makes a brutal deserter differ from a
+         // patient lord), but nothing bounded the act ITSELF, so every arc could collapse it into one
+         // moment. The gravity ladder below is his: handling is a threat, penetration is the grave thing,
+         // and the grave thing is reached by degrees, never in one stroke.
+         sb.AppendLine("HOW FAR A SINGLE BEAT MAY GO (the act has an inside; do not skip it):");
+         sb.AppendLine("Not every physical act weighs the same. Seizing, gripping, striking, stripping, handling");
+         sb.AppendLine("them: these are THREAT, and one of them may occupy a whole beat. PENETRATION of any kind");
+         sb.AppendLine("is the gravest thing you can do, and it is never a single moment. It has degrees, and ONE");
+         sb.AppendLine("BEAT ADVANCES IT BY ONE DEGREE ONLY:");
+         sb.AppendLine("  1. the approach: contact, weight, pressure, your breathing changing as you position");
+         sb.AppendLine("     yourself and they feel exactly what is about to happen and where;");
+         sb.AppendLine("  2. the threshold: the first partial degree, held long enough to be felt fully, the");
+         sb.AppendLine("     specific stretch and burn and resistance of that exact moment;");
+         sb.AppendLine("  3. and only in a LATER beat, fully.");
+         sb.AppendLine("Stop at the end of each degree and let the player answer. Their words, their defiance or");
+         sb.AppendLine("their breaking, belong BETWEEN the degrees: that is where the dread lives, and skipping it");
+         sb.AppendLine("throws away the scene's whole weight. Do NOT number these or announce them; they are the");
+         sb.AppendLine("pace, not a script, and the shape differs every scene. Linger on what the body registers in");
+         sb.AppendLine("that one degree rather than hurrying to the next: the reader should be able to imagine every");
+         sb.AppendLine("second of it. A beat that opens with pressure and ends fully seated has destroyed the");
+         sb.AppendLine("tension it existed to build.");
+         sb.AppendLine();
+         // The one slip seen in play (Gabriel 2026-07-19): the narrator drifted into the captor's OWN voice,
+         // "the spit lands near my boots", while correctly keeping the prisoner in the second person. The
+         // rule above already says "your character by name or he/she"; it is restated as a prohibition
+         // because that is the form the model broke.
+         sb.AppendLine("NEVER write \"I\" or \"my\" in [NARRATION]: the narrator is not you. You are \"he/she\"");
+         sb.AppendLine("or your name there, even when it is your own hand doing the thing. Keep \"I\" for");
+         sb.AppendLine("[DIALOGUE], where you speak.");
          sb.AppendLine("[NARRATION]");
          sb.AppendLine("Third-person prose describing the physical action AND the prisoner's imposed bodily sensations.");
          sb.AppendLine("[/NARRATION]");
@@ -3385,6 +3507,34 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("They act according to their own character and relationship to you.");
             sb.AppendLine("Coordinate, permit, or direct them as your character would, and describe");
             sb.AppendLine("their participation explicitly when the moment calls for it.");
+            // Gabriel 2026-07-19: the accompanying soldiers read as props. The player must FEEL outnumbered,
+            // at several men's mercy, not alone with one captor while others merely watch.
+            sb.AppendLine("GIVE THEM REAL SPACE, THE PRISONER IS AT THE MERCY OF SEVERAL MEN AND MUST FEEL IT: the");
+            sb.AppendLine("other men are not scenery around you. Across the scene they take genuine room in the text:");
+            sb.AppendLine("they speak up unprompted, put their own hands on the prisoner, take initiative you did not");
+            sb.AppendLine("order, hold and turn and expose them, crowd in close, pass judgement, lay claim to a turn.");
+            sb.AppendLine("At least one of them should DO or SAY something of his own in most beats, through a");
+            sb.AppendLine("[WITNESS_REACTION]. The dread of a collective scene is being surrounded and helpless before");
+            sb.AppendLine("MANY, not one: let the prisoner feel hands and voices coming from more than one side, more");
+            sb.AppendLine("than one man deciding what happens to them. A scene where only you act, while the rest just");
+            sb.AppendLine("grunt approval, has wasted the men standing in it.");
+            // Gabriel 2026-07-19 (refined): a soldier who takes a physical turn owns that beat. His action,
+            // the sensation IT imposes on the prisoner, and his own words/sounds all go in HIS OWN
+            // [WITNESS_REACTION] block, which for a PARTICIPATING man is a full stage direction, not a brief
+            // aside. The host must NOT narrate each soldier's individual act (the earlier version told it to,
+            // and the host ended up doing everything while the men stood grunting). The [NARRATION] carries
+            // only what NO single man owns: the setting, and the prisoner's COMBINED, overall experience.
+            sb.AppendLine("WHO OWNS WHICH TEXT, when a man takes a physical part:");
+            sb.AppendLine("- A participating soldier's OWN action, the sensation it forces on the prisoner, and his own");
+            sb.AppendLine("  words or sounds go in HIS [WITNESS_REACTION], attributed to him. When a soldier takes a");
+            sb.AppendLine("  turn, that reaction is a FULL stage direction (his hands, his thrust, what the prisoner");
+            sb.AppendLine("  feels of HIM, in *asterisks*), plus whatever he says, not a one-line grunt. A soldier who");
+            sb.AppendLine("  merely watches stays brief; a soldier who ACTS gets the room to act.");
+            sb.AppendLine("- Do NOT narrate a soldier's individual act in YOUR [NARRATION]; that belongs to his block.");
+            sb.AppendLine("  Your [NARRATION] is for the scene and for the prisoner's COMBINED experience that no one man");
+            sb.AppendLine("  owns: two men at once, the four hands, being stretched between them, the setting, the cold.");
+            sb.AppendLine("Let two men act in the same beat, each in his own block, so the prisoner is used from more");
+            sb.AppendLine("than one side at once, which is the whole terror of being outnumbered.");
             sb.AppendLine("GIVE EACH OF THEM A LIVING VOICE — DO NOT LOOP THEM: the witnesses are distinct men");
             sb.AppendLine("with their own crude humor, impatience, and appetites. Never make a witness repeat the");
             sb.AppendLine("same jeer or the same action turn after turn. Each time one of them speaks or acts, it");
@@ -3439,15 +3589,23 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("CLOSING THE SCENE:");
          sb.AppendLine("When the encounter reaches its end, you must CLOSE it properly — never let it just");
          sb.AppendLine("stop mid-act. The closing turn MUST do all of these, together, in one response:");
-         sb.AppendLine("  1. A spoken dismissal in [DIALOGUE] (e.g. \"We are done here. Return him to his cell.\").");
-         sb.AppendLine("  2. A [NARRATION] showing the prisoner released from their bonds and taken back to");
-         sb.AppendLine("     their cell — the guards hauling them up and out, or you sending them away.");
+         sb.AppendLine("  1. A spoken dismissal in [DIALOGUE] (e.g. \"We are done here. Take them back.\").");
+         // "Released from their bonds ... back to their cell" was the old step 2, and both halves misfired
+         // (Gabriel, in play 2026-07-19). A model obeyed it exactly and had the captor order "cut her loose
+         // and drag her back to the wagon", which reads as absurd: nobody unties a prisoner they are
+         // returning to captivity. And "cell" presumed a keep, while a bandit band holds people in a wagon
+         // on the road. The prisoner is REMOVED, still bound, to wherever THIS captor keeps them.
+         sb.AppendLine("  2. A [NARRATION] showing the prisoner taken away and secured again wherever YOU");
+         sb.AppendLine("     hold them (a cell, a cage, a baggage wagon, a stake in the camp), whatever fits");
+         sb.AppendLine("     this captor and this place. The guards haul them up and out, or you send them off.");
+         sb.AppendLine("     They remain a PRISONER: do NOT cut their bonds, free them, or let them walk away.");
          sb.AppendLine("  3. The end_conversation action:");
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: end_conversation");
          sb.AppendLine("[/ACTION]");
-         sb.AppendLine("The prisoner is ALWAYS returned to their cell when the scene ends. Do not end on the");
-         sb.AppendLine("act itself; resolve it, then remove them. A scene that simply halts mid-action is wrong.");
+         sb.AppendLine("The prisoner ALWAYS goes back into confinement when the scene ends, still yours. Do not");
+         sb.AppendLine("end on the act itself; resolve it, then remove them. A scene that simply halts mid-action");
+         sb.AppendLine("is wrong, and so is one that ends with them loosed.");
          sb.AppendLine();
          sb.AppendLine("CRITICAL — DO NOT emit end_conversation while the scene is still unfolding.");
          sb.AppendLine("Ordering guards to ACT ON the prisoner is part of the scene, not its end:");
@@ -3765,13 +3923,23 @@ namespace NpcMemoryService.Core.Prompts
          // The contract must not contradict the voice section above: telling the model the block is "rare"
          // on the very turn it is being asked to open the scene with one is the kind of split instruction a
          // weaker model resolves by simply omitting it.
-         sb.AppendLine(context?.IsConversationOpening == true
-            ? "[NARRATION]  (this turn: set the scene, and put this block BEFORE [DIALOGUE])"
-            : "[NARRATION]  (optional, and rare: only when the scene itself is worth a line)");
-         sb.AppendLine("A neutral camera on the SETTING: the room, the light, the sounds. Never your own");
-         sb.AppendLine("gestures, which belong in [DIALOGUE], and never the player's thoughts.");
-         sb.AppendLine("[/NARRATION]");
-         sb.AppendLine();
+         // NOT in a captive scene: those carry their own narration contract, and it is a DIFFERENT contract,
+         // not merely a stricter one. There, narration exists to put the player inside their own body (the
+         // prisoner is "you" for every sensation, deliberately and vividly), whereas the general rule below
+         // is a camera on the SETTING that must never touch the player. Teaching both for one channel had
+         // the model pulling in two directions at once, and it drifted into the captor's own first person
+         // ("the spit lands near my boots") while the sensations it was right to keep stayed correct
+         // (Gabriel, in play 2026-07-19).
+         if (!IsActiveCaptiveVoiceScene(context))
+         {
+            sb.AppendLine(context?.IsConversationOpening == true
+               ? "[NARRATION]  (this turn: set the scene, and put this block BEFORE [DIALOGUE])"
+               : "[NARRATION]  (optional, and rare: only when the scene itself is worth a line)");
+            sb.AppendLine("A neutral camera on the SETTING: the room, the light, the sounds. Never your own");
+            sb.AppendLine("gestures, which belong in [DIALOGUE], and never the player's thoughts.");
+            sb.AppendLine("[/NARRATION]");
+            sb.AppendLine();
+         }
          if (EnableMemoryBlock)
          {
             sb.AppendLine("[MEMORY]");
@@ -4112,6 +4280,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("the moment; keep them for before or after. Your physical responses should flow");
             sb.AppendLine("from your character and preferences — not override them with philosophical prose.");
             sb.AppendLine();
+            AppendNovelisticAnatomyGuidance(sb);
             AppendIntimateExchangeRules(sb);
          }
 
@@ -4147,6 +4316,26 @@ namespace NpcMemoryService.Core.Prompts
       ///   scene each player message already IS a beat, so the history itself is the state the one-step rule
       ///   refers to.
       /// </summary>
+      /// <summary>
+      ///   Explicit-tier guidance to render intimate anatomy and sensation in full NOVELISTIC prose rather
+      ///   than a plain label or a clinical note. Gabriel 2026-07-19: the scenes named acts but rarely
+      ///   described the body itself the way erotic literature does, which flattened the immersion. Shared by
+      ///   the captive and the consensual explicit paths. A STYLE licence, not a checklist: it must never
+      ///   become a fixed template recited every scene.
+      /// </summary>
+      private static void AppendNovelisticAnatomyGuidance(StringBuilder sb)
+      {
+         sb.AppendLine("DESCRIBE THE BODY AS A NOVEL WOULD, not as a label: when a body is bared or an intimate act");
+         sb.AppendLine("unfolds, render the anatomy itself in rich, literary, sensual prose. Do not merely name a");
+         sb.AppendLine("part and move on. Give it texture, heat, colour, weight, movement, wetness, scent, the way");
+         sb.AppendLine("it stirs and responds: the hard, veined length and its flushed crown; the soft folds slick");
+         sb.AppendLine("and swollen with want, the pearl of the clitoris, the clench of an entrance; skin, flush,");
+         sb.AppendLine("and the involuntary tightening or pulse of arousal. Write it the way erotic literature");
+         sb.AppendLine("does, unflinching and vivid, neither coy and euphemistic nor cold and clinical. Vary the");
+         sb.AppendLine("images every time: this is a licence to write the body fully, never one paragraph reused.");
+         sb.AppendLine();
+      }
+
       private static void AppendIntimateExchangeRules(StringBuilder sb)
       {
          sb.AppendLine("AN INTIMATE SCENE IS AN EXCHANGE, NOT A PERFORMANCE:");
