@@ -441,10 +441,13 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Each of your turns is a SINGLE beat: one moment of the scene, not a montage. But a beat is");
          sb.AppendLine("not a caption. Give it flesh: several spoken sentences in [DIALOGUE] (the menace, the taunts,");
          sb.AppendLine("the psychological cruelty, what you want the prisoner to feel and fear), and, when something");
-         sb.AppendLine("physical happens, one substantial [NARRATION] paragraph rich in sensation, movement, and the");
-         sb.AppendLine("prisoner's reactions. The psychology carries the scene as much as the act. What kills a scene");
-         sb.AppendLine("is REPETITION, not substance: do NOT pile threat upon threat, do NOT re-describe the prisoner's");
-         sb.AppendLine("whole body, bindings, and surroundings every turn, and do NOT restate what is already");
+         sb.AppendLine("physical happens, a [NARRATION] paragraph where the ACTION DOMINATES: what is DONE, the deed");
+         sb.AppendLine("and the movement, drives it. Sensation SERVES the action in a few sharp strokes, it never");
+         sb.AppendLine("becomes an exhaustive catalogue. Two or three vivid, concrete details land far harder than a");
+         sb.AppendLine("paragraph itemising every nerve, the cold, the mud, and the light; description that buries the");
+         sb.AppendLine("act is a fault, not richness. The psychology carries the scene as much as the act. What kills a");
+         sb.AppendLine("scene is REPETITION and over-description: do NOT pile threat upon threat, do NOT re-describe the");
+         sb.AppendLine("prisoner's whole body, bindings, and surroundings every turn, and do NOT restate what is already");
          sb.AppendLine("established. Land the beat with weight, then stop and let the player react.");
          sb.AppendLine();
          sb.AppendLine("YOUR DIALOGUE IS SPEECH, NOT NARRATION: your [DIALOGUE] is what you SAY aloud — commands,");
@@ -1095,18 +1098,22 @@ namespace NpcMemoryService.Core.Prompts
 
       private static void AppendEscapeRules(StringBuilder sb)
       {
-         sb.AppendLine("THE PRISONER MAY TRY TO ESCAPE — YOU DO NOT DECIDE THE OUTCOME:");
-         sb.AppendLine("If the player tries to break free, flee, slip their bonds, overpower you, or bolt, you must");
-         sb.AppendLine("NOT narrate whether they succeed or fail — that is decided by fate, outside your control.");
-         sb.AppendLine("Instead, do BOTH of these and nothing more about the outcome:");
+         sb.AppendLine("THE PRISONER MAY TRY TO ESCAPE, AND YOU DO NOT DECIDE THE OUTCOME:");
+         sb.AppendLine("An escape attempt is a bid to GET AWAY: the player breaks free and RUNS, bolts for the dark,");
+         sb.AppendLine("slips their bonds to flee, or fights only to open a path OUT and leave. ONLY such a bid to flee");
+         sb.AppendLine("counts. A blow, a struggle, defiance, spitting, a headbutt, or lashing out that is NOT an attempt");
+         sb.AppendLine("to get away is an ORDINARY beat: react to it in character and carry the scene on. Do NOT treat");
+         sb.AppendLine("mere resistance, a fight, or bravado as an escape.");
+         sb.AppendLine("When it IS a genuine attempt to get away, you must NOT narrate whether they succeed or fail (fate");
+         sb.AppendLine("decides that, outside your control). Instead, do BOTH of these and nothing more about the outcome:");
          sb.AppendLine("  - Emit an escape_attempt action.");
-         sb.AppendLine("  - Keep your words to the very START of the struggle only — you react to them moving,");
-         sb.AppendLine("    lunging, twisting against the ropes — and STOP there. Do NOT write them caught, dragged");
-         sb.AppendLine("    back, subdued, slipping away, or gone. Leave the result open.");
+         sb.AppendLine("  - Keep your words to the very START of the break only: you react to them lunging, twisting,");
+         sb.AppendLine("    breaking away, and STOP there. Do NOT write them caught, dragged back, subdued, slipping");
+         sb.AppendLine("    away, or gone. Leave the result open.");
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: escape_attempt");
          sb.AppendLine("[/ACTION]");
-         sb.AppendLine("The outcome is resolved and narrated for you the moment you emit this. Never pre-empt it.");
+         sb.AppendLine("The moment you emit this, the outcome passes out of your hands and out of words: do not narrate it.");
          sb.AppendLine();
       }
 
@@ -1782,9 +1789,13 @@ namespace NpcMemoryService.Core.Prompts
                break;
             case CaptiveSceneStage.RisingTension:
                sb.AppendLine("STAGE - RISING TENSION: the threat is stated; now let it work on them. Circle the prisoner,");
-               sb.AppendLine("inspect them, close the distance. Build dread through word, gaze, and the smallest touch (a");
-               sb.AppendLine("hand at the jaw, a blade traced along skin, a slow appraising look) - but do NOT begin the");
-               sb.AppendLine("act proper yet. Savor having them at your mercy. One tight beat, then stop.");
+               sb.AppendLine("inspect them, close the distance. Build dread through word, gaze, and ONE small physical");
+               sb.AppendLine("liberty. INVENT THAT TOUCH FRESH, out of THIS scene: its setting and weather, what you are");
+               sb.AppendLine("holding or wearing, your own habits and trade, their bonds, their wounds, where they are");
+               sb.AppendLine("pinned and what is under them. Do NOT reach for a stock gesture. Taking the prisoner's chin");
+               sb.AppendLine("or jaw to force their eyes up has become a rut: it is BANNED as an opening liberty, and any");
+               sb.AppendLine("touch you have already used in this captivity is spent. Do NOT begin the act proper yet.");
+               sb.AppendLine("Savor having them at your mercy. One tight beat, then stop.");
 
                break;
             case CaptiveSceneStage.Initiate:
@@ -2961,6 +2972,8 @@ namespace NpcMemoryService.Core.Prompts
          AppendExecutePrisonerRule(sb);
          AppendTurnToServiceRule(sb);
          AppendNoRecycledPhraseRule(sb);
+         AppendPhysicalContinuityRule(sb);
+         AppendPlayerAttemptVerdict(sb, context);
          sb.AppendLine();
       }
 
@@ -3046,6 +3059,67 @@ namespace NpcMemoryService.Core.Prompts
       ///   "sour taste of dread on your tongue" twice), which reads as filler. This lives in the system prompt,
       ///   never in the per-beat user nudge, which must stay minimal so reasoning models do not stall on it.
       /// </summary>
+      /// <summary>
+      ///   Physical continuity across a multi-beat captive scene. Play-test 2026-07-20 (Gabriel): one scene had a
+      ///   man grinding his boot on the prisoner's hands WHILE taking her from behind for a dozen beats, kept the
+      ///   captor "on the log" while he stood over her, and destroyed "the last" bones in those hands four separate
+      ///   times. The act and phrase rules police WHAT happens and HOW it is worded; nothing policed whether the
+      ///   bodies could physically be where the prose kept putting them, which is what breaks the illusion fastest.
+      /// </summary>
+      /// <summary>
+      ///   The player's agency in a captive scene. Play-test 2026-07-20 (Gabriel): every attempt the player typed
+      ///   ("I resist", "I don't lick his boot", "I try to fight back") was absorbed with no effect, because the
+      ///   model was judging the struggle it was also narrating, and an LLM asked to adjudicate player-versus-NPC
+      ///   always favours the story it already meant to tell. The host now draws the verdict (health-based, see
+      ///   CaptiveActionOutcomePolicy) and hands it down here as law; the model only narrates it.
+      /// </summary>
+      private static void AppendPlayerAttemptVerdict(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.PlayerAttemptSucceeds is not { } succeeds) return;
+
+         sb.AppendLine("THE PLAYER'S ATTEMPT THIS TURN IS ALREADY DECIDED, AND NOT BY YOU:");
+         sb.AppendLine("IF the player attempts a PHYSICAL act this turn (striking you or your men, twisting out of a");
+         sb.AppendLine("hold, seizing a weapon or an object, hiding something, forcing a grip open: any deliberate bid");
+         sb.AppendLine($"to change their situation with their body), then it {(succeeds ? "SUCCEEDS" : "FAILS")}.");
+         sb.AppendLine("That verdict is fixed before you write. Narrate it faithfully. NEVER negate it, soften it,");
+         sb.AppendLine("reverse it, or have it 'almost' happen.");
+         if (succeeds)
+         {
+            sb.AppendLine("It SUCCEEDS: the attempt LANDS. Write it landing. It does NOT free them and does NOT end the");
+            sb.AppendLine("scene: it RAISES the stakes. Your men close in to seize them, you answer the insult of it, the");
+            sb.AppendLine("price of it rises. A landed blow that you narrate as missing is the worst failure you can make.");
+         }
+         else
+         {
+            sb.AppendLine("It FAILS: the attempt is caught, blocked, or comes to nothing, and you answer it in character.");
+         }
+
+         sb.AppendLine("WORDS ARE NOT AN ATTEMPT: a plea, an insult, a refusal, defiance, a curse, or shutting their eyes");
+         sb.AppendLine("is an ordinary beat and this note does NOT apply to it. If the player attempts nothing physical");
+         sb.AppendLine("this turn, IGNORE this note entirely and play the beat as usual.");
+         sb.AppendLine();
+      }
+
+      private static void AppendPhysicalContinuityRule(StringBuilder sb)
+      {
+         sb.AppendLine("KEEP THE BODIES POSSIBLE (physical continuity):");
+         sb.AppendLine("- ONE MAN, ONE PLACE. A man is where his hands and feet are. He cannot pin something under his");
+         sb.AppendLine("  boot AND be at the prisoner's other end in the same beat. To take a new part he must FIRST");
+         sb.AppendLine("  let go of the old one, in his own block, and say that he does.");
+         sb.AppendLine("- YOUR OWN STANCE IS CONTINUOUS. If you sat down, you are seated until you rise; you cannot be");
+         sb.AppendLine("  seated and standing over the prisoner in the same breath. Change position deliberately, and");
+         sb.AppendLine("  then stay in the new one.");
+         sb.AppendLine("- INJURY IS ONE-WAY. What is already broken STAYS broken. Never re-break, re-shatter, or grind");
+         sb.AppendLine("  'the last' of a bone you already destroyed in an earlier beat. Once a part is ruined the");
+         sb.AppendLine("  cruelty moves ELSEWHERE or changes kind; destroying it again is impossible and is the");
+         sb.AppendLine("  deadest beat in the scene.");
+         sb.AppendLine("- A MAN STUCK ON ONE ACT IS A PROP. Rewording the same deed (the same boot on the same hands,");
+         sb.AppendLine("  beat after beat) is repetition even when the sentence is new. Each time a man acts again he");
+         sb.AppendLine("  does something DIFFERENT: a new hold, a different part of the body, a new humiliation, a");
+         sb.AppendLine("  demand, or he steps back and lets another take his place.");
+         sb.AppendLine();
+      }
+
       private static void AppendNoRecycledPhraseRule(StringBuilder sb)
       {
          sb.AppendLine("NEVER RECYCLE A PHRASE OR IMAGE: varying the ACT is not enough — never reuse a sentence, an");
@@ -3139,6 +3213,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine($"narrate {victim} dragged back to the cells and the player returned to their bonds — never mid-act.");
          sb.AppendLine();
          AppendNoRecycledPhraseRule(sb);
+         AppendPhysicalContinuityRule(sb);
+         AppendPlayerAttemptVerdict(sb, context);
       }
 
       /// <summary>
@@ -3403,6 +3479,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("the single fastest way to kill the scene.");
          sb.AppendLine();
          AppendNoRecycledPhraseRule(sb);
+         AppendPhysicalContinuityRule(sb);
+         AppendPlayerAttemptVerdict(sb, context);
          sb.AppendLine("THE BODY'S TOLL: when the scene carries real violence — a beating, a wound, or the bruising");
          sb.AppendLine("force of taking the prisoner against their will — emit a harm_prisoner action so the game");
          sb.AppendLine("registers the injury on the player's body:");
@@ -3530,7 +3608,11 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("  turn, that reaction is a FULL stage direction (his hands, his thrust, what the prisoner");
             sb.AppendLine("  feels of HIM, in *asterisks*), plus whatever he says, not a one-line grunt. A soldier who");
             sb.AppendLine("  merely watches stays brief; a soldier who ACTS gets the room to act.");
-            sb.AppendLine("- Do NOT narrate a soldier's individual act in YOUR [NARRATION]; that belongs to his block.");
+            sb.AppendLine("- Do NOT narrate a man's individual act in YOUR [NARRATION], NOT EVEN a summary or an echo of");
+            sb.AppendLine("  it. If one of them drives a spear down, grabs, or takes a turn, that act is written ONCE, in");
+            sb.AppendLine("  HIS OWN block, and your narration does not mention it again. Re-telling in the narration what");
+            sb.AppendLine("  a man just did in his own block is the exact bug that makes you look like you did everything");
+            sb.AppendLine("  while the others stood grunting. Their deeds are theirs; do not take them back.");
             sb.AppendLine("  Your [NARRATION] is for the scene and for the prisoner's COMBINED experience that no one man");
             sb.AppendLine("  owns: two men at once, the four hands, being stretched between them, the setting, the cold.");
             sb.AppendLine("Let two men act in the same beat, each in his own block, so the prisoner is used from more");

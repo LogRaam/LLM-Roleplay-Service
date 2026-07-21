@@ -629,6 +629,16 @@ namespace NpcMemoryService.Core.Models
       public bool ReactToPlayerIntervention { get; init; }
 
       /// <summary>
+      ///   This turn's PRE-DECIDED verdict for a physical attempt by the captive player (strike, twist free,
+      ///   seize something, conceal it): true = it lands, false = it comes to nothing. The host draws it fresh
+      ///   each turn from the player's health, so the model NARRATES the outcome and never adjudicates it (an
+      ///   LLM judging a player-versus-NPC struggle always favours the story it meant to tell, which is what
+      ///   made captive scenes railroad). Null when there is no verdict to impose (not a captive turn, or a
+      ///   synthetic scene cue rather than a real player message).
+      /// </summary>
+      public bool? PlayerAttemptSucceeds { get; init; }
+
+      /// <summary>
       ///   The single greatest realm-level happening the NPC has heard of right now — a war declared, a
       ///   peace struck — phrased as the talk of the whole realm. CR's light take on "kingdom statements":
       ///   the big news everyone is abuzz with, distinct from the personal/local <see cref="WorldRumorsBlock" />.

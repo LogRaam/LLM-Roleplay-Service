@@ -49,6 +49,37 @@ namespace NpcMemoryServiceTests
          return builder.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
       }
 
+      // Play-test 2026-07-20 (Gabriel): a scene kept one man's boot grinding the prisoner's hands WHILE he took
+      // her from behind, kept the captor "on the log" while he stood over her, and destroyed "the last" bones in
+      // those hands four separate times. The act rules police WHAT happens and the phrase rule polices the WORDS;
+      // nothing policed whether the bodies could physically be where the prose put them, which is what breaks the
+      // illusion fastest. These four clauses are that guard.
+      [Test]
+      public void GIVEN_a_captive_scene_WHEN_built_THEN_physical_continuity_is_required_of_the_bodies()
+      {
+         string prompt = BuildCaptivePrompt(CaptiveSceneIntent.Domination);
+
+         prompt.Should().Contain("ONE MAN, ONE PLACE");          // no man in two places at once
+         prompt.Should().Contain("YOUR OWN STANCE IS CONTINUOUS"); // not seated and standing in one breath
+         prompt.Should().Contain("INJURY IS ONE-WAY");            // never re-break what is already destroyed
+         prompt.Should().Contain("A MAN STUCK ON ONE ACT IS A PROP"); // vary the DEED, not merely the wording
+      }
+
+      // The escape trigger must stay NARROW (Gabriel 2026-07-20): only a genuine bid to GET AWAY fires the real
+      // escape encounter (a whole combat mission the chat closes for). A fight, a headbutt, or defiance that is
+      // not an attempt to flee must stay an ordinary in-chat beat, or every scuffle would rip the player out of
+      // the scene into combat. This test guards that the prompt draws that line.
+      [Test]
+      public void GIVEN_a_captive_scene_WHEN_escape_is_taught_THEN_only_a_bid_to_flee_counts_not_mere_resistance()
+      {
+         string prompt = BuildCaptivePrompt(CaptiveSceneIntent.Domination);
+
+         prompt.Should().Contain("type: escape_attempt");
+         prompt.Should().Contain("An escape attempt is a bid to GET AWAY");
+         prompt.Should().Contain("Do NOT treat");
+         prompt.Should().Contain("mere resistance");
+      }
+
 
       private static string BuildCaptivePromptWithFocus(string focus)
       {
@@ -313,7 +344,12 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().Contain("WHO OWNS WHICH TEXT");
          prompt.Should().Contain("go in HIS [WITNESS_REACTION], attributed to him");
-         prompt.Should().Contain("Do NOT narrate a soldier's individual act in YOUR [NARRATION]");
+         // Strengthened 2026-07-20: the host was writing a man's act in his block AND echoing it in the
+         // narration (Gabriel's log), which is what makes the host look like it did everything. The rule now
+         // forbids the echo explicitly, so the test pins the prohibition, not just the ownership.
+         prompt.Should().Contain("Do NOT narrate a man's individual act in YOUR [NARRATION]");
+         prompt.Should().Contain("NOT EVEN a summary or an echo");
+         prompt.Should().Contain("your narration does not mention it again");
       }
 
       // The other half: the host's narration keeps the COMBINED, shared experience that no single man owns,
@@ -335,6 +371,57 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().Contain("DESCRIBE THE BODY AS A NOVEL WOULD");
          prompt.Should().Contain("neither coy and euphemistic nor cold and clinical");
+      }
+
+      // Play-test 2026-07-20 (Gabriel): every physical attempt the player typed ("I resist", "I try to fight
+      // back") was absorbed with no effect, because the model was ADJUDICATING the struggle it was also
+      // writing. The mod now draws the verdict itself (CaptiveActionOutcomePolicy) and hands it down as a
+      // fixed fact. These three assertions pin the two branches and, above all, that the model is forbidden
+      // from reversing the verdict, which is exactly what it did when left to judge.
+      [Test]
+      public void GIVEN_a_pre_drawn_success_WHEN_built_THEN_the_model_is_told_the_attempt_lands_and_may_not_reverse_it()
+      {
+         string prompt = BuildCaptivePromptWithVerdict(true);
+
+         prompt.Should().Contain("THE PLAYER'S ATTEMPT THIS TURN IS ALREADY DECIDED, AND NOT BY YOU");
+         prompt.Should().Contain("the attempt LANDS");
+         prompt.Should().Contain("NEVER negate it, soften it,");
+      }
+
+      // The failing branch has its own trap: a model told "it fails" tends to answer with a beating that
+      // escalates on its own. The prompt must keep the failure OWNED by the attempt, and it must still bar
+      // the model from generously letting it half-work.
+      [Test]
+      public void GIVEN_a_pre_drawn_failure_WHEN_built_THEN_the_model_is_told_the_attempt_does_not_land()
+      {
+         string prompt = BuildCaptivePromptWithVerdict(false);
+
+         prompt.Should().Contain("THE PLAYER'S ATTEMPT THIS TURN IS ALREADY DECIDED, AND NOT BY YOU");
+         prompt.Should().Contain("FAILS");
+         prompt.Should().NotContain("the attempt LANDS");
+      }
+
+      // The verdict is drawn ONLY on a real player turn (a synthetic scene cue has no attempt to judge), so
+      // the absence of a verdict must leave the prompt untouched: a stale "already decided" note on a turn
+      // with no attempt would invite the model to invent one.
+      [Test]
+      public void GIVEN_no_verdict_drawn_WHEN_built_THEN_no_attempt_directive_is_injected()
+      {
+         BuildCaptivePrompt(CaptiveSceneIntent.Domination)
+            .Should().NotContain("THE PLAYER'S ATTEMPT THIS TURN IS ALREADY DECIDED");
+      }
+
+      private static string BuildCaptivePromptWithVerdict(bool succeeds)
+      {
+         var builder = new PromptBuilder {AdultLevel = AdultContentLevel.Hardcore, PlayerIsFemale = true};
+         var context = new EncounterContext {
+            Scene = SceneType.Dungeon,
+            PlayerStatus = PlayerStatusVsNpc.Captive,
+            CaptiveIntent = CaptiveSceneIntent.Domination,
+            PlayerAttemptSucceeds = succeeds
+         };
+
+         return builder.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
       }
    }
 }
