@@ -453,7 +453,7 @@ namespace NpcMemoryService.Core.Models
 
       /// <summary>
       ///   True when the NPC THEMSELVES is a viable marriage candidate for the player:
-      ///   player is single, NPC is of the right sex, adult, within age gap, unmarried,
+      ///   player is single, NPC is of the right sex, adult, unmarried,
       ///   from a different clan, AND the personal relation is deep enough (≥50).
       ///   When true, <see cref="AppendLoveMatchProposal" /> teaches the <c>marry</c> action.
       /// </summary>
