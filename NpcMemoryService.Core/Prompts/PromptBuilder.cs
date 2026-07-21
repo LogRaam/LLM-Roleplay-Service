@@ -109,6 +109,16 @@ namespace NpcMemoryService.Core.Prompts
       public string PlayerName { get; init; } = "";
 
       /// <summary>
+      ///   Optional explicit reply language (e.g. "Spanish"), from the host's own setting. When set, every
+      ///   reply this builder produces, conversation, letter, or otherwise, is written in this language
+      ///   regardless of what language the player writes in. Blank (default) keeps the auto-detect mirror:
+      ///   reply in whatever language the player's own last message is in. A player whose language is not
+      ///   among the mirror's worked examples, or whose model follows instructions too loosely to infer it
+      ///   from a prompt otherwise written in English, needs this to be named explicitly rather than detected.
+      /// </summary>
+      public string ReplyLanguage { get; init; } = "";
+
+      /// <summary>
       ///   Static world description loaded from <c>world.txt</c>.
       ///   Injected early in the prompt (before NPC-specific sections) so it
       ///   is shared across all NPCs in a session and maximizes prefix cache hits.
@@ -1322,22 +1332,33 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("with it as a real event in the scene.");
       }
 
-      private static void AppendLanguageMirror(StringBuilder sb)
+      private void AppendLanguageMirror(StringBuilder sb)
       {
          sb.AppendLine();
          sb.AppendLine("CRITICAL — LANGUAGE OF YOUR REPLY:");
-         sb.AppendLine("Detect the language of the player's last message and reply in that SAME language.");
-         sb.AppendLine("  • Player writes in English    → you reply in English.");
-         sb.AppendLine("  • Player writes in French     → you reply in French.");
-         sb.AppendLine("  • Player writes in German     → you reply in German.");
-         sb.AppendLine("  • Player writes in Ukrainian  → you reply in Ukrainian.");
-         sb.AppendLine("If there is NO player message yet (you are opening the conversation, or the player has not");
-         sb.AppendLine("written anything), reply in ENGLISH, then switch to the player's language once they write.");
+
+         if (!string.IsNullOrWhiteSpace(ReplyLanguage))
+         {
+            sb.AppendLine($"Always write your reply in {ReplyLanguage.Trim()}. This is fixed by the player's own");
+            sb.AppendLine("setting: write in it no matter what language the player writes in, and no matter what");
+            sb.AppendLine("language any instruction, letter, or context elsewhere in this prompt is written in.");
+         }
+         else
+         {
+            sb.AppendLine("Detect the language of the player's last message and reply in that SAME language.");
+            sb.AppendLine("  • Player writes in English    → you reply in English.");
+            sb.AppendLine("  • Player writes in French     → you reply in French.");
+            sb.AppendLine("  • Player writes in German     → you reply in German.");
+            sb.AppendLine("  • Player writes in Ukrainian  → you reply in Ukrainian.");
+            sb.AppendLine("If there is NO player message yet (you are opening the conversation, or the player has not");
+            sb.AppendLine("written anything), reply in ENGLISH, then switch to the player's language once they write.");
+         }
+
          sb.AppendLine("Keep ALL section labels ([DIALOGUE], [NARRATION], [ACTION], [EVENT] …) and every");
          sb.AppendLine("action keyword (change_relation, give_gold, give_item …) in English.");
          sb.AppendLine("Translate ONLY the prose and speech. Proper names stay exactly as given.");
          sb.AppendLine("This rule overrides everything else: even though your persona, memory, and all");
-         sb.AppendLine("context are written in English, your spoken words follow the player's language.");
+         sb.AppendLine("context are written in English, your spoken words follow it.");
       }
 
       /// <summary>

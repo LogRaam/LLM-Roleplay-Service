@@ -43,12 +43,13 @@ namespace NpcMemoryService.Core.Captivity
          string sceneTranscript,
          string intentVerb,
          bool playerIsFemale,
+         string? replyLanguage = null,
          CancellationToken ct = default)
       {
          if (captor == null || string.IsNullOrWhiteSpace(sceneTranscript)) return null;
 
          var request = new LlmRequest {
-            SystemPrompt = BuildSystemPrompt(captor, intentVerb, playerIsFemale),
+            SystemPrompt = BuildSystemPrompt(captor, intentVerb, playerIsFemale, replyLanguage),
             Messages = [new LlmMessage(MessageRole.User, sceneTranscript)],
             Parameters = Parameters
          };
@@ -69,7 +70,7 @@ namespace NpcMemoryService.Core.Captivity
 
       #region private
 
-      private static string BuildSystemPrompt(NpcProfile captor, string intentVerb, bool playerIsFemale)
+      private static string BuildSystemPrompt(NpcProfile captor, string intentVerb, bool playerIsFemale, string? replyLanguage)
       {
          string pronoun = playerIsFemale
             ? "her"
@@ -83,6 +84,9 @@ namespace NpcMemoryService.Core.Captivity
          sb.AppendLine("prisoner and how it left matters between you. No preamble, no quotation marks, no");
          sb.AppendLine("section tags — just the memory line itself. This is your own recollection, not a");
          sb.AppendLine("report to anyone else.");
+         sb.AppendLine(string.IsNullOrWhiteSpace(replyLanguage)
+            ? "Write it in the same language as the transcript below."
+            : $"Write it in {replyLanguage!.Trim()}, regardless of the language of the transcript below.");
 
          return sb.ToString();
       }

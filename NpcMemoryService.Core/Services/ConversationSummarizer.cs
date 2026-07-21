@@ -44,12 +44,13 @@ namespace NpcMemoryService.Core.Services
          NpcProfile npc,
          string conversationTranscript,
          string playerName,
+         string? replyLanguage = null,
          CancellationToken ct = default)
       {
          if (npc == null || string.IsNullOrWhiteSpace(conversationTranscript)) return null;
 
          var request = new LlmRequest {
-            SystemPrompt = BuildSystemPrompt(npc, playerName),
+            SystemPrompt = BuildSystemPrompt(npc, playerName, replyLanguage),
             Messages = [new LlmMessage(MessageRole.User, conversationTranscript)],
             Parameters = Parameters
          };
@@ -70,7 +71,7 @@ namespace NpcMemoryService.Core.Services
 
       #region private
 
-      private static string BuildSystemPrompt(NpcProfile npc, string playerName)
+      private static string BuildSystemPrompt(NpcProfile npc, string playerName, string? replyLanguage)
       {
          string who = string.IsNullOrWhiteSpace(playerName)
             ? "a visitor"
@@ -84,6 +85,9 @@ namespace NpcMemoryService.Core.Services
          sb.AppendLine("discussed, asked, agreed, refused or learned, and how it left matters between you.");
          sb.AppendLine("If the visitor left abruptly mid-conversation, remember that too. No preamble, no");
          sb.AppendLine("quotation marks, no section tags — just the memory line itself.");
+         sb.AppendLine(string.IsNullOrWhiteSpace(replyLanguage)
+            ? "Write it in the same language as the transcript below."
+            : $"Write it in {replyLanguage!.Trim()}, regardless of the language of the transcript below.");
 
          return sb.ToString();
       }
