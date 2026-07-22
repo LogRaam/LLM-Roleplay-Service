@@ -59,8 +59,9 @@ namespace NpcMemoryServiceTests
       // Round-table audit C1, the defect all six axes found: the council runs on the STANDARD prompt, which
       // teaches every action (quests, gold, troops, marriage), while the host applies NONE of them for a
       // council turn. A lord who said "I lend you fifty men" was showing the player a promise the game would
-      // never honour, and had forgotten it by the next private conversation. Until the council has a real
-      // mechanical afterlife, the prompt must stop it making promises it cannot keep.
+      // never honour, and had forgotten it by the next private conversation. The guarantee that nothing
+      // executes ON THE SPOT must survive the council's new mechanical afterlife ([RESOLUTION]): the model may
+      // now RECORD a commitment, but it must still never emit a real [ACTION]/[QUEST]/[EVENT] at the table.
       [Test]
       public void GIVEN_a_round_table_turn_WHEN_building_the_prompt_THEN_nothing_may_be_sealed_at_the_table()
       {
@@ -69,7 +70,25 @@ namespace NpcMemoryServiceTests
             new EncounterContext {LeanLevel = LeanPromptLevel.Full, IsRoundTableTurn = true});
 
          prompt.Should().Contain("NOTHING IS SEALED AT THIS TABLE:");
-         prompt.Should().Contain("must be settled between you and the");
+         prompt.Should().Contain("Do NOT emit any [ACTION], [QUEST], [QUEST_COMPLETE] or");
+         prompt.Should().Contain("nothing here executes on the spot");
+      }
+
+      // The council's mechanical afterlife (this task): a spoken pledge used to have no channel at all, which
+      // is exactly what made the model either ignore the prohibition or go vague. [RESOLUTION] gives it a real,
+      // concrete shape to record a commitment in (settled at the lift, not here), plus the withdrawal path the
+      // owner asked for INSTEAD of a manual delete button (a change of mind belongs in the conversation itself).
+      [Test]
+      public void GIVEN_a_round_table_turn_WHEN_building_the_prompt_THEN_the_resolution_block_is_taught()
+      {
+         string prompt = new PromptBuilder().BuildSystemPrompt(
+            Npc(), new WorldState {CurrentDay = 10},
+            new EncounterContext {LeanLevel = LeanPromptLevel.Full, IsRoundTableTurn = true});
+
+         prompt.Should().Contain("RECORDING WHAT THE TABLE DECIDES:");
+         prompt.Should().Contain("[RESOLUTION]");
+         prompt.Should().Contain("actor: <the member's name exactly as listed above>");
+         prompt.Should().Contain("type: withdraw");
       }
 
       // The attributed-transcript convention is what lets several speakers share one room, and it was taught

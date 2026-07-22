@@ -538,6 +538,43 @@ namespace NpcMemoryServiceTests
          profile.DiscoveredTraits.Single().Description.Should().Be("Original.");
       }
 
+      // Player report (Nexus): the Encyclopedia's discovery section was filling up with facts ABOUT THE
+      // PLAYER instead of about the NPC. DiscoverySubjectGuard is consulted here, in the one authoritative
+      // mutation path, so the pollution can never reach the profile regardless of which caller (mod,
+      // ConsoleRunner) drives Apply.
+      [Test]
+      public void GIVEN_a_discovery_naming_the_player_as_subject_WHEN_applied_THEN_it_is_dropped()
+      {
+         NpcProfile profile = CreateProfile();
+         var response = new ParsedResponse {
+            Dialogue = "",
+            Discovery = new DiscoveredTrait {Key = "orientation", Description = "Huan Yi prefers to lead.", GameDay = 0}
+         };
+
+         ProfileMutator.Apply(profile, response, gameDay: 1, romanticContentEnabled: true,
+            orientationCompatible: true, applyReputation: false, intimacyPermitted: true, playerName: "Huan Yi");
+
+         profile.DiscoveredTraits.Should().BeEmpty();
+      }
+
+      // The other side of the same boundary: a genuine discovery about the NPC that merely MENTIONS the
+      // player mid-sentence (the player is its object, not its subject) must still reach the profile, or the
+      // guard would cost the Encyclopedia every legitimate discovery that references the player at all.
+      [Test]
+      public void GIVEN_a_genuine_discovery_about_the_npc_WHEN_applied_THEN_it_is_stored()
+      {
+         NpcProfile profile = CreateProfile();
+         var response = new ParsedResponse {
+            Dialogue = "",
+            Discovery = new DiscoveredTrait {Key = "orientation", Description = "She admires how Huan Yi handles a blade.", GameDay = 0}
+         };
+
+         ProfileMutator.Apply(profile, response, gameDay: 1, romanticContentEnabled: true,
+            orientationCompatible: true, applyReputation: false, intimacyPermitted: true, playerName: "Huan Yi");
+
+         profile.DiscoveredTraits.Should().ContainSingle();
+      }
+
       // ---------- Event dedup & meta-reasoning guards ----------
 
       // Player report: a model that re-emitted the same [EVENT] several times across one conversation had

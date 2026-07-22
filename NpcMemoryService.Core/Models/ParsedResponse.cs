@@ -89,5 +89,14 @@ namespace NpcMemoryService.Core.Models
         /// </summary>
         public IReadOnlyList<WitnessReaction> WitnessReactions { get; init; }
             = new List<WitnessReaction>();
+
+        /// <summary>
+        ///   Decisions the table took this turn (<c>[RESOLUTION]</c> blocks), zero or more. Nothing executes
+        ///   from parsing alone: the consumer records each as provisional and only re-validates/executes it
+        ///   when the council is lifted. Empty list when none were emitted (every ordinary, non-council
+        ///   conversation).
+        /// </summary>
+        public IReadOnlyList<ResolutionProposal> Resolutions { get; init; }
+            = new List<ResolutionProposal>();
     }
 }

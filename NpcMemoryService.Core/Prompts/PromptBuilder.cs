@@ -239,6 +239,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendEncounterContext(sb, encounterContext);
          AppendWorldState(sb, world);
          AppendAtSeaNote(sb, encounterContext);
+         AppendPlayerDressNote(sb, encounterContext);
          AppendCourtshipChallenge(sb, encounterContext);
          AppendWitnessTurnDirectives(sb, encounterContext);
          if (ShouldAppendCaptiveStageDirective(encounterContext))
@@ -985,14 +986,29 @@ namespace NpcMemoryService.Core.Prompts
             // (quests, gold, troops, marriage), and the host applies NONE of them for a council turn: no
             // ProfileMutator, no Store.Set, no actions. A lord who said "I lend you fifty men" here was
             // showing the player a promise the game would never honour, and had forgotten it by the next
-            // private conversation. Until the council has a real mechanical afterlife, the honest fix is to
-            // stop it making promises it cannot keep, rather than to leave the divergence in place.
+            // private conversation. The council now has a real mechanical afterlife (a [RESOLUTION] block,
+            // settled only when the council is lifted), so the fix is no longer a pure prohibition: the model
+            // is given a positive channel for a real commitment instead of being told only what it may not do.
             sb.AppendLine("NOTHING IS SEALED AT THIS TABLE:");
             sb.AppendLine("This is counsel, not a contract. Do NOT emit any [ACTION], [QUEST], [QUEST_COMPLETE] or");
             sb.AppendLine("[EVENT] block on this turn, and do not declare a deed done: no gold changes hands, no troops");
-            sb.AppendLine("are lent, no quest is struck, no vow is sworn HERE. Argue, advise, warn, offer, or refuse in");
-            sb.AppendLine("words; if you would commit to something, say that it must be settled between you and the");
-            sb.AppendLine("player face to face, and let them come to you.");
+            sb.AppendLine("are lent, and nothing here executes on the spot. Argue, advise, warn, offer, or refuse in");
+            sb.AppendLine("words.");
+            sb.AppendLine();
+            sb.AppendLine("RECORDING WHAT THE TABLE DECIDES:");
+            sb.AppendLine("When a SEATED MEMBER commits to something the game should carry out (a task taken up, a");
+            sb.AppendLine("mission agreed to), name them and record it instead of just speaking it:");
+            sb.AppendLine("[RESOLUTION]");
+            sb.AppendLine("type: quest");
+            sb.AppendLine("actor: <the member's name exactly as listed above>");
+            sb.AppendLine("detail: <what they pledge, in plain words>");
+            sb.AppendLine("[/RESOLUTION]");
+            sb.AppendLine("This is held as the table's decision, not carried out here: it is settled only when the");
+            sb.AppendLine("council rises. If the table changes its mind before then, withdraw it:");
+            sb.AppendLine("[RESOLUTION]");
+            sb.AppendLine("type: withdraw");
+            sb.AppendLine("actor: <the same member>");
+            sb.AppendLine("[/RESOLUTION]");
             sb.AppendLine();
          }
 
@@ -2195,6 +2211,24 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         // Council actor attribution: at an ordinary two-person scene an [ACTION] always belongs to the one
+         // NPC speaking, so there is nothing to name. At a council several seated members can each commit to
+         // a deed in the same turn (one agrees to a gift, another to a task), and without a name the mod has
+         // no way to tell whom an action belongs to (taught ONLY here, never outside council/round-table), so
+         // an ordinary conversation is never tempted to bolt "actor:" onto a ordinary action.
+         if (council)
+         {
+            sb.AppendLine("ACTIONS AT THE TABLE:");
+            sb.AppendLine("If a SEATED MEMBER OTHER THAN YOU commits to a deed the game must carry out (a gift of");
+            sb.AppendLine("gold, a task taken up, and the like), name them in the action block:");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: <verb>");
+            sb.AppendLine("actor: <the member's name exactly as listed above>");
+            sb.AppendLine("[/ACTION]");
+            sb.AppendLine("An [ACTION] block with no actor belongs to the speaker (you).");
+            sb.AppendLine();
+         }
+
          // A captive player does not command the room: the captor's people leave
          // only at the captor's will, never through a privacy mechanism.
          if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
@@ -2290,6 +2324,32 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Speak and act as people do at sea; do not talk of riding, roads, or overland travel as if you");
          sb.AppendLine("were on land.");
          sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   A plain, factual note of how the player is dressed, rendered ONLY for a REMARKABLE state (Naked /
+      ///   Rags): the ordinary Civilian and Armoured states render nothing, or every single prompt in the game
+      ///   would grow for a fact almost never worth remarking on. Deliberately clean wording at every adult
+      ///   level: this is an NPC NOTICING what the player wears or does not, never a lurid description; any
+      ///   future stripping ACTION carries its own adult gate, observation does not need one.
+      /// </summary>
+      private static void AppendPlayerDressNote(StringBuilder sb, EncounterContext? context)
+      {
+         switch (context?.PlayerDress)
+         {
+            case PlayerDressState.Naked:
+               sb.AppendLine("The player stands before you with nothing on at all, plainly and entirely bare.");
+               sb.AppendLine();
+
+               break;
+            case PlayerDressState.Rags:
+               sb.AppendLine("The player is dressed in poor, ragged clothing, not the wear of someone with means.");
+               sb.AppendLine();
+
+               break;
+            // Civilian and Armoured are the ordinary, unremarkable states (most travellers and every fighter
+            // reads as one or the other) and render nothing at all.
+         }
       }
 
       /// <summary>
@@ -3896,7 +3956,10 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[DISCOVERY]");
          sb.AppendLine("key: a short slug identifying what was revealed");
          sb.AppendLine("     (e.g.: orientation, archetype, preference_dominant, preference_slow_burn, kink_bondage)");
-         sb.AppendLine("description: what this player now perceives, in their voice (one sentence)");
+         sb.AppendLine("description: ONE plain third-person sentence about YOU, the NPC, not the player");
+         sb.AppendLine("     (e.g.: \"She seems drawn to men.\" or \"He prefers to lead.\"). This is what the");
+         sb.AppendLine("     ENCYCLOPEDIA shows under this character's page as something learned ABOUT them");
+         sb.AppendLine("     (per WHAT THIS PLAYER ALREADY KNOWS ABOUT YOU above), never a fact about the player.");
          sb.AppendLine("[/DISCOVERY]");
          sb.AppendLine();
       }

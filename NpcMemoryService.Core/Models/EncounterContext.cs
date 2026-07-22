@@ -237,6 +237,17 @@ namespace NpcMemoryService.Core.Models
       public bool AtSea { get; init; }
 
       /// <summary>
+      ///   How the player is currently dressed, so an NPC can perceive and remark on it (free
+      ///   characterisation now; the foundation for a later increment where a captor can genuinely strip a
+      ///   prisoner). Host-resolved from the live equipment, never a raw engine type. <see cref="PromptBuilder" />
+      ///   renders a note only for a REMARKABLE state (<see cref="PlayerDressState.Naked" /> /
+      ///   <see cref="PlayerDressState.Rags" />); <see cref="PlayerDressState.Civilian" /> and
+      ///   <see cref="PlayerDressState.Armoured" /> are the ordinary states and render nothing, so an
+      ///   ordinarily-dressed or properly armoured player does not grow every single prompt for free.
+      /// </summary>
+      public PlayerDressState PlayerDress { get; init; } = PlayerDressState.Unknown;
+
+      /// <summary>
       ///   Ready-to-inject "first impression" guidance for a barely-known NPC: how their traits and the player's
       ///   standing colour their OPENING TONE (warm, reserved, arrogant, suspicious, demeaning), built game-side.
       ///   It steers tone only, never the relation numbers (deeds still govern regard). Null for an already-known
@@ -958,5 +969,29 @@ namespace NpcMemoryService.Core.Models
       None,
       PlayerCanConceive,
       NpcCanConceive
+   }
+
+   /// <summary>
+   ///   The band an onlooker would perceive at a glance in how the player is currently dressed, from wholly
+   ///   bare to genuine battle harness. Mirrors the mod-side pure classification
+   ///   (<c>CalradiaRemembers.Logic.PlayerDressBand</c>) one-for-one; kept as its own SDK-local enum because
+   ///   this project stays engine- and mod-agnostic and cannot reference the mod's Logic assembly.
+   /// </summary>
+   public enum PlayerDressState
+   {
+      /// <summary>Host never resolved a dress state (e.g. no live hero): renders nothing, same as Civilian/Armoured.</summary>
+      Unknown,
+
+      /// <summary>Genuinely nothing worn on the torso or legs, in either equipment set. Rendered: remarkable.</summary>
+      Naked,
+
+      /// <summary>Poor, ragged civilian clothing (low tier). Rendered: remarkable.</summary>
+      Rags,
+
+      /// <summary>Ordinary, presentable civilian clothing. The unremarkable default: renders nothing.</summary>
+      Civilian,
+
+      /// <summary>Genuine battle protection worn. The ordinary state for a traveller or a fighter: renders nothing.</summary>
+      Armoured
    }
 }

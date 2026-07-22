@@ -76,6 +76,7 @@ namespace NpcMemoryService.Core.Parsing
       private const string QuestCompleteTag = "QUEST_COMPLETE";
       private const string QuestTag = "QUEST";
       private const string ReputationTag = "REPUTATION";
+      private const string ResolutionTag = "RESOLUTION";
       private const string SentimentKey = "sentiment";
       private const string StanceTag = "STANCE";
       private const string SummaryKey = "summary";
@@ -108,6 +109,7 @@ namespace NpcMemoryService.Core.Parsing
          string? questAbandonSection = ExtractSectionTolerant(rawResponse, QuestAbandonTag);
          IReadOnlyList<GameAction> actions = ParseActions(rawResponse);
          IReadOnlyList<WitnessReaction> witnessReactions = ParseWitnessReactions(rawResponse);
+         IReadOnlyList<ResolutionProposal> resolutions = ParseResolutions(rawResponse);
          QuestProposal? questGiven = ParseQuestProposal(questSection);
 
          return new ParsedResponse {
@@ -138,7 +140,8 @@ namespace NpcMemoryService.Core.Parsing
             QuestBlockMalformed = questGiven == null && !string.IsNullOrWhiteSpace(questSection),
             QuestCompleted = ParseQuestCompletion(questCompleteSection),
             QuestAbandoned = ParseQuestAbandon(questAbandonSection),
-            WitnessReactions = witnessReactions
+            WitnessReactions = witnessReactions,
+            Resolutions = resolutions
          };
       }
 
@@ -218,7 +221,7 @@ namespace NpcMemoryService.Core.Parsing
       /// </summary>
       private static string ExtractDialogueFallback(string text)
       {
-         var pattern = @"\[(?:NARRATION|MEMORY|EVENT|REPUTATION|STANCE|ACTION|DISCOVERY|QUEST_COMPLETE|QUEST_ABANDON|QUEST|WITNESS_REACTION)\]";
+         var pattern = @"\[(?:NARRATION|MEMORY|EVENT|REPUTATION|STANCE|ACTION|DISCOVERY|QUEST_COMPLETE|QUEST_ABANDON|QUEST|WITNESS_REACTION|RESOLUTION)\]";
          Match known = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
 
          // An INVENTED section ends the dialogue just as surely as a known one. Without this, a model that wrote
@@ -827,10 +830,67 @@ namespace NpcMemoryService.Core.Parsing
          return reactions;
       }
 
+      /// <summary>
+      ///   Extracts all [RESOLUTION] sections (multiple allowed per response), mirroring
+      ///   <see cref="ParseActions" />'s conventions: a section missing <c>type</c> is skipped, a trailing
+      ///   block cut off before its close tag (a max-tokens truncation) is still recovered, and a block a
+      ///   model merely EXPLAINS inside its own [DIALOGUE] is not recorded as a real decision (the scan text
+      ///   has the dialogue body blanked out first, same as an [ACTION] example would be).
+      /// </summary>
+      private static IReadOnlyList<ResolutionProposal> ParseResolutions(string text)
+      {
+         var resolutions = new List<ResolutionProposal>();
+
+         string scanText = Regex.Replace(text, $@"\[{DialogueTag}\].*?\[/{DialogueTag}\]", " ",
+            RegexOptions.Singleline | RegexOptions.IgnoreCase);
+
+         var pattern = $@"\[{ResolutionTag}\](.*?)\[/{ResolutionTag}\]";
+
+         foreach (Match match in Regex.Matches(scanText, pattern,
+                     RegexOptions.Singleline | RegexOptions.IgnoreCase))
+         {
+            ResolutionProposal? resolution = BuildResolution(ParseKeyValueLines(match.Groups[1].Value));
+            if (resolution != null) resolutions.Add(resolution);
+         }
+
+         // A trailing [RESOLUTION] cut off before its [/RESOLUTION] (max-tokens truncation) would otherwise be
+         // lost silently, the same broken-word risk ParseActions and the QUEST family already guard against.
+         MatchCollection opens = Regex.Matches(scanText, $@"\[{ResolutionTag}\]", RegexOptions.IgnoreCase);
+         if (opens.Count > 0)
+         {
+            Match lastOpen = opens[opens.Count - 1];
+            string afterOpen = scanText.Substring(lastOpen.Index + lastOpen.Length);
+
+            if (!Regex.IsMatch(afterOpen, $@"\[/{ResolutionTag}\]", RegexOptions.IgnoreCase))
+            {
+               ResolutionProposal? truncated = BuildResolution(ParseKeyValueLines(TrimAtFirstSection(afterOpen)));
+               if (truncated != null) resolutions.Add(truncated);
+            }
+         }
+
+         return resolutions;
+      }
+
+      /// <summary>A [RESOLUTION] block missing "type" is not a decision at all: skipped, like a typeless [ACTION].</summary>
+      private static ResolutionProposal? BuildResolution(Dictionary<string, string> fields)
+      {
+         if (!fields.TryGetValue(ActionTypeKey, out string? type) || string.IsNullOrWhiteSpace(type)) return null;
+
+         fields.TryGetValue("actor", out string? actor);
+         fields.TryGetValue("detail", out string? detail);
+
+         return new ResolutionProposal {
+            Type = NormalizeActionType(type),
+            Actor = NullIfBlank(actor),
+            Detail = NullIfBlank(detail),
+            TargetSettlement = NullIfBlank(GetField(fields, "target_settlement"))
+         };
+      }
+
       /// <summary>Returns the text up to the first recognized section boundary (or all of it).</summary>
       private static string TrimAtFirstSection(string text)
       {
-         const string pattern = @"\[(?:/DIALOGUE|NARRATION|MEMORY|EVENT|REPUTATION|STANCE|ACTION|DISCOVERY|QUEST_COMPLETE|QUEST_ABANDON|QUEST|WITNESS_REACTION)\]";
+         const string pattern = @"\[(?:/DIALOGUE|NARRATION|MEMORY|EVENT|REPUTATION|STANCE|ACTION|DISCOVERY|QUEST_COMPLETE|QUEST_ABANDON|QUEST|WITNESS_REACTION|RESOLUTION)\]";
          Match known = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
 
          // An invented section closes an unclosed [DIALOGUE] too, for the same reason it ends the fallback.

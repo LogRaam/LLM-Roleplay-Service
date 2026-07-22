@@ -78,6 +78,17 @@ namespace NpcMemoryService.Core.Services
         ///   refusal would then be voiced as a former lover's. Defaults true for the console and tests.
         /// </summary>
         public static void Apply(NpcProfile profile, ParsedResponse response, int gameDay, bool romanticContentEnabled, bool orientationCompatible, bool applyReputation, bool intimacyPermitted)
+            => Apply(profile, response, gameDay, romanticContentEnabled, orientationCompatible, applyReputation, intimacyPermitted, playerName: null);
+
+        /// <summary>
+        ///   Same authoritative mutation, with the PLAYER's own display name threaded to the discovery guard
+        ///   (Encyclopedia audit, player report: an NPC's discovery section was filling up with facts ABOUT
+        ///   THE PLAYER instead of about the NPC). <paramref name="playerName" /> lets
+        ///   <see cref="DiscoverySubjectGuard" /> catch a [DISCOVERY] that opens with the player's own name as
+        ///   its subject; null is safe, the guard still catches its other two signals (key namespaced to
+        ///   "player", description opening with "the player"). Defaults null for the console and tests.
+        /// </summary>
+        public static void Apply(NpcProfile profile, ParsedResponse response, int gameDay, bool romanticContentEnabled, bool orientationCompatible, bool applyReputation, bool intimacyPermitted, string? playerName)
         {
             // An [EVENT] whose summary is un-tagged meta-reasoning (the model thinking out loud about its
             // task instead of remembering — "The user wants me to write a memory line...") is dropped
@@ -108,9 +119,18 @@ namespace NpcMemoryService.Core.Services
                 AdvanceAttraction(profile, response.NewEventData.Type, orientationCompatible);
             }
 
+            // Discovery-subject audit (player report, Nexus): the Encyclopedia's discovery section is meant
+            // to hold ONLY what the PLAYER learned ABOUT the NPC. A [DISCOVERY] whose subject is plainly the
+            // PLAYER instead (DiscoverySubjectGuard) is dropped whole, never stored, the same way a
+            // meta-reasoning [EVENT] is dropped above; this is the channel gate the marriage-claim audit
+            // called for (ungated storage is the same class of bug).
+            bool discoveryIsAboutPlayer = response.Discovery != null
+                && DiscoverySubjectGuard.IsAboutPlayer(response.Discovery.Key, response.Discovery.Description, playerName);
+
             // Record newly discovered trait — deduplicated by key so the same fact is never stored twice.
             if (response.Discovery != null
                 && !string.IsNullOrWhiteSpace(response.Discovery.Key)
+                && !discoveryIsAboutPlayer
                 && !profile.DiscoveredTraits.Any(t =>
                     string.Equals(t.Key, response.Discovery.Key, StringComparison.OrdinalIgnoreCase)))
             {
