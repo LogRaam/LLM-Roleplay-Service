@@ -100,6 +100,11 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("where N is the days you would wait before sending (1=urgent, 2-3=normal, 4-7=considered).");
          sb.AppendLine("Leave one blank line, then write your reply letter in 2-3 paragraphs.");
          sb.AppendLine($"Address {playerName} by name. Period-appropriate language only.");
+         // The weaker form of AppendNothingIsSettledByLetter: this path answers a letter the PLAYER chose to
+         // write, so the host cannot know what is being answered and cannot name the debt. The invariant still
+         // holds for every reason, and it is the only guard on this path.
+         sb.AppendLine("Coin and goods do not travel with a letter. If they promise a payment here, it has NOT");
+         sb.AppendLine("been made: never write as though you had received it, and settle such things in person.");
          AppendPlace(sb, whereabouts, playerSituation);
          sb.AppendLine($"Write your reply in the SAME language as the quoted letter from {playerName} above, not the");
          sb.AppendLine("language of this internal instruction.");
@@ -140,6 +145,8 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         if (RequiresInPersonSettlement(originalReason)) AppendNothingIsSettledByLetter(sb);
+
          sb.AppendLine("Write your reply letter in 2-3 paragraphs. Stay in character.");
          sb.AppendLine($"Address {playerName} by name. Do not use modern expressions.");
          AppendPlace(sb, whereabouts, playerSituation);
@@ -151,6 +158,31 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       // ── Helpers ─────────────────────────────────────────────────────────────
+
+      /// <summary>
+      ///   Reasons whose whole point is the player HANDING OVER COIN, which no letter can do: a letter is
+      ///   forbidden from emitting any [ACTION] (see every builder above), and the payment only becomes real
+      ///   when the live chat emits pay_blackmail (blackmail) or take_gold (which stamps the ProvideGold
+      ///   quest for child support). Left to itself the model answered "your silence is bought" or "the child
+      ///   is provided for", and the player then watched the secret break or the quest lapse anyway: they
+      ///   were told a debt was discharged that the game never discharged. The same redirect
+      ///   <see cref="LetterReason.SpouseDivorceDemand" /> already uses in its own description ("when you
+      ///   next speak") is the fix, so the settlement happens where the mechanics actually live.
+      /// </summary>
+      private static bool RequiresInPersonSettlement(LetterReason reason)
+         => reason == LetterReason.Blackmail || reason == LetterReason.ChildSupportRequest;
+
+      // Kept as a shared block so the unknown-reason path (a player-initiated letter, where the host cannot
+      // tell what the player is answering) can state the same invariant in its own weaker form.
+      private static void AppendNothingIsSettledByLetter(StringBuilder sb)
+      {
+         sb.AppendLine("NOTHING IS SETTLED BY LETTER. Whatever they pledge here, no coin has reached you and no");
+         sb.AppendLine("debt is discharged: a purse cannot travel in an envelope. Never write as though you had");
+         sb.AppendLine("been paid, never call the matter closed, and never say your silence is bought or the");
+         sb.AppendLine("child provided for. Take their pledge for what it is, then make plain that you expect it");
+         sb.AppendLine("from their own hand when you next meet face to face.");
+         sb.AppendLine();
+      }
 
       private static string DescribeReason(LetterReason reason) => reason switch
       {
@@ -171,6 +203,7 @@ namespace NpcMemoryService.Core.Prompts
          LetterReason.JealousThreat         => "Word has reached you of a romantic act by the player that wounds or angers you. You are writing to confront, warn, or threaten them over it. The Context names your exact stake — whose affection was at issue and why it is yours to resent. Let your nature set the register: a cold warning, a wounded reproach, or an open threat to make them regret it. Do not be servile, and do not back down; make plain what you expect of them now.",
          LetterReason.SpouseDivorceDemand   => "You are the player's own spouse, and you have grown truly, deeply unhappy in this marriage. You are writing to announce, plainly and without cruelty, that you can no longer bear it, and that when you next speak you mean to press them to end it. Do not be pleading or servile; you have made up your mind. Let your nature set the register: cold resolve, quiet grief, or open reproach.",
          LetterReason.SpouseDivorceEscalation => "You are the player's own spouse. You have pressed them before to end this marriage and been refused, more than once. You have resolved to wait no longer, and are writing to say, plainly, that you begin to end it yourself now, whether or not they consent. Let your nature set the register (cold resolve, quiet grief, or open reproach), but make plain that this is no longer a request.",
+         LetterReason.InterceptionMissed    => "You rode out meaning to speak with the player face to face, but the chase came to nothing before you could catch them. The Context below says exactly why you set out. Write now to say what you meant to say in person: do not apologise for writing instead of meeting, simply say it as you would have said it to their face.",
          _                                  => "You have a matter of personal importance to communicate."
       };
    }

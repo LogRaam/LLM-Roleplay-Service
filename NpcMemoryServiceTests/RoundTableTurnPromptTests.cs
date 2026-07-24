@@ -56,22 +56,37 @@ namespace NpcMemoryServiceTests
          prompt.Should().NotContain(Header);
       }
 
-      // Round-table audit C1, the defect all six axes found: the council runs on the STANDARD prompt, which
-      // teaches every action (quests, gold, troops, marriage), while the host applies NONE of them for a
-      // council turn. A lord who said "I lend you fifty men" was showing the player a promise the game would
-      // never honour, and had forgotten it by the next private conversation. The guarantee that nothing
-      // executes ON THE SPOT must survive the council's new mechanical afterlife ([RESOLUTION]): the model may
-      // now RECORD a commitment, but it must still never emit a real [ACTION]/[QUEST]/[EVENT] at the table.
+      // Council audit C3 (ratified 2026-07-24): a DEED is never carried out at the table. This used to be a
+      // flat "emit no [ACTION] at all", which contradicted a second block that invited an actor-attributed
+      // [ACTION], and which the whole-table dispatch enforced for neither. The invariant that survives is
+      // narrower and truthful: no gold/troops/deed is sealed here; a real commitment is a [RESOLUTION] settled
+      // at the lift.
       [Test]
-      public void GIVEN_a_round_table_turn_WHEN_building_the_prompt_THEN_nothing_may_be_sealed_at_the_table()
+      public void GIVEN_a_round_table_turn_WHEN_building_the_prompt_THEN_no_deed_is_sealed_and_commitments_defer_to_a_resolution()
       {
          string prompt = new PromptBuilder().BuildSystemPrompt(
             Npc(), new WorldState {CurrentDay = 10},
             new EncounterContext {LeanLevel = LeanPromptLevel.Full, IsRoundTableTurn = true});
 
-         prompt.Should().Contain("NOTHING IS SEALED AT THIS TABLE:");
-         prompt.Should().Contain("Do NOT emit any [ACTION], [QUEST], [QUEST_COMPLETE] or");
-         prompt.Should().Contain("nothing here executes on the spot");
+         prompt.Should().Contain("NO DEED IS SEALED AT THIS TABLE");
+         prompt.Should().Contain("no gold changes hands");
+         prompt.Should().Contain("RECORDED below as a");
+      }
+
+      // The other half of the ratified split (2026-07-24): PERCEPTION is immediate. A lord angered at the
+      // council IS angrier at once, and that must colour how he weighs every later request, so the prompt must
+      // explicitly permit the regard change it once forbade. The bridge enforces the same split (only
+      // change_relation runs on the spot at a council), so prompt and code now agree.
+      [Test]
+      public void GIVEN_a_round_table_turn_WHEN_building_the_prompt_THEN_a_shift_in_regard_is_permitted_immediately()
+      {
+         string prompt = new PromptBuilder().BuildSystemPrompt(
+            Npc(), new WorldState {CurrentDay = 10},
+            new EncounterContext {LeanLevel = LeanPromptLevel.Full, IsRoundTableTurn = true});
+
+         prompt.Should().Contain("YOUR REGARD IS REAL");
+         prompt.Should().Contain("Register it as a");
+         prompt.Should().Contain("change_relation");
       }
 
       // The council's mechanical afterlife (this task): a spoken pledge used to have no channel at all, which
@@ -89,6 +104,21 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("[RESOLUTION]");
          prompt.Should().Contain("actor: <the member's name exactly as listed above>");
          prompt.Should().Contain("type: withdraw");
+      }
+
+      // Council audit C2: target_settlement is REQUIRED to ground the only executable resolution kind (the lift
+      // binds the quest to it), the parser read it, yet the teaching block never showed it, so the most natural
+      // council pledge ("ride to X and clear the bandits") failed structurally at the lift. It must now be
+      // taught, and named as required, or the one working kind stays unreachable except by the model's luck.
+      [Test]
+      public void GIVEN_a_round_table_turn_WHEN_building_the_prompt_THEN_the_resolution_teaches_the_required_target_settlement()
+      {
+         string prompt = new PromptBuilder().BuildSystemPrompt(
+            Npc(), new WorldState {CurrentDay = 10},
+            new EncounterContext {LeanLevel = LeanPromptLevel.Full, IsRoundTableTurn = true});
+
+         prompt.Should().Contain("target_settlement:");
+         prompt.Should().Contain("The target_settlement is REQUIRED");
       }
 
       // The attributed-transcript convention is what lets several speakers share one room, and it was taught

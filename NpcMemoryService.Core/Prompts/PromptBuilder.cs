@@ -140,7 +140,11 @@ namespace NpcMemoryService.Core.Prompts
          AppendProseCraft(sb);
          AppendCommonerRumors(sb, knowledge);
          AppendCommonerTakeGold(sb);
-         AppendPlayerActionNarration(sb);
+         // The SHORT form on this deliberately slim, transient path, which keeps the "a stage direction settles
+         // their body, not the world" boundary at a couple of lines. The full CLAIM rule is not added here: a
+         // commoner holds no memory, gives no tasks, and the one action they have (take_gold) moves coin FROM
+         // the player, so there is no reward an invented deed could unlock.
+         AppendPlayerActionNarration(sb, LeanPromptLevel.Lean);
          AppendLanguageMirror(sb);
          // Last of all (highest recency) — the modder's own post-history instructions, if any.
          AppendPostHistoryInstructions(sb);
@@ -204,6 +208,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendWitnesses(sb, encounterContext, lean);
          AppendRecruitment(sb, encounterContext);
          AppendMercenaryOffer(sb, encounterContext);
+         AppendDuelChallenge(sb, encounterContext);
          AppendLordRecruitment(sb, encounterContext);
          AppendSchemeRecruitment(sb, encounterContext);
          AppendSchemeWarning(sb, encounterContext);
@@ -222,6 +227,7 @@ namespace NpcMemoryService.Core.Prompts
              && encounterContext?.WarStatus is DiplomaticStatus.AtWar or DiplomaticStatus.AtPeace or DiplomaticStatus.Allied)
             AppendDeliverPrisoner(sb, encounterContext);
          AppendPrisonerFreedomBargain(sb, encounterContext);
+         AppendOrdinaryPrisonerExecutionRule(sb, encounterContext);
          AppendPrisonerRescueBargain(sb, encounterContext);
          AppendCompanionMissionOffer(sb, encounterContext);
          AppendCompanionRecallOffer(sb, encounterContext);
@@ -249,7 +255,11 @@ namespace NpcMemoryService.Core.Prompts
          // Hoisted out of AppendEncounterContext so it still renders when encounterContext is null, and kept
          // late (near the language mirror) so recency reinforces the anti-confabulation guard.
          AppendStayWithinWhatYouKnow(sb);
-         AppendPlayerActionNarration(sb);
+         AppendPlayerActionNarration(sb, lean);
+         // Kept beside its two siblings at the very end of the prompt, where recency is highest: the three of
+         // them are the anti-confabulation wall, one guarding what the NPC promises, one what a stage direction
+         // can settle, and this one what the NPC is willing to believe.
+         AppendClaimsAreNotProof(sb, lean);
          AppendLanguageMirror(sb);
          // A short, forceful restatement of the machine-read contract, placed at the very end (highest recency)
          // because the full format teaching sits ~10k tokens up in the cached prefix: a weaker model that follows
@@ -869,6 +879,48 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
+      /// <summary>
+      ///   Teaches the duel challenge, and ONLY when the host has already ruled the duel admissible and found
+      ///   a venue (<see cref="EncounterContext.DuelChallengeAvailable" />): same conditional contract as
+      ///   RECRUITMENT, so the verb exists exactly when the game can stage the fight.
+      ///   The section deliberately stops the model AT the challenge. Whether the NPC takes the field is not
+      ///   theirs to narrate: the host decides it from the NPC's own traits, stance and grudges, and a model
+      ///   that had already written "I accept" would make that decision decorative. This is the same split the
+      ///   captive escape uses, where the captor narrates the start of the struggle and never its outcome.
+      /// </summary>
+      private static void AppendDuelChallenge(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.DuelChallengeAvailable != true) return;
+         // Consistent with every other offer section: a prisoner and their captor do not meet as equals on a
+         // field of honour. The host's own eligibility rule already refuses this, so the guard is redundancy,
+         // not policy.
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+
+         string venue = string.IsNullOrWhiteSpace(context.DuelVenueLabel)
+            ? string.Empty
+            : $", {context.DuelVenueLabel!.Trim()},";
+
+         sb.AppendLine("A MATTER OF HONOUR MAY BE SETTLED WITH STEEL:");
+         sb.AppendLine("You and the player are both of standing, both able to fight, and you stand face to face, so a");
+         sb.AppendLine($"duel between you could happen. It would be fought at once{venue} as soon as this conversation");
+         sb.AppendLine("ends, and it is NOT to the death: the loser is beaten senseless and lives. Never speak of");
+         sb.AppendLine("killing them, never appoint a later hour or a distant place, and never send seconds.");
+         sb.AppendLine("A duel is a grave thing. Do not reach for one over a trifle and do not raise it out of");
+         sb.AppendLine("nowhere: it belongs to a real affront, a grudge you carry, or a rivalry words have failed to");
+         sb.AppendLine("settle. If the player merely speaks OF duels, or boasts, that is talk and nothing more.");
+         sb.AppendLine("When a duel is genuinely called for THIS TURN, whether the player calls you out or you");
+         sb.AppendLine("resolve to demand satisfaction of them, emit alongside your dialogue:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: challenge_duel");
+         sb.AppendLine("challenger: player   (they called for it)   OR   challenger: you   (you demand it)");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("Then STOP AT THE CHALLENGE. Your line ends the instant the matter is put to steel: do NOT say");
+         sb.AppendLine("whether you accept, do NOT refuse, and do NOT describe drawing, the fight, a wound, or who");
+         sb.AppendLine("prevails. The answer, and the fight itself, come after you have spoken, and the game stages");
+         sb.AppendLine("them for real. Without this action nothing is called for, whatever your words say.");
+         sb.AppendLine();
+      }
+
       private static void AppendEncounterContext(StringBuilder sb, EncounterContext? context)
       {
          if (context == null) return;
@@ -989,11 +1041,20 @@ namespace NpcMemoryService.Core.Prompts
             // private conversation. The council now has a real mechanical afterlife (a [RESOLUTION] block,
             // settled only when the council is lifted), so the fix is no longer a pure prohibition: the model
             // is given a positive channel for a real commitment instead of being told only what it may not do.
-            sb.AppendLine("NOTHING IS SEALED AT THIS TABLE:");
-            sb.AppendLine("This is counsel, not a contract. Do NOT emit any [ACTION], [QUEST], [QUEST_COMPLETE] or");
-            sb.AppendLine("[EVENT] block on this turn, and do not declare a deed done: no gold changes hands, no troops");
-            sb.AppendLine("are lent, and nothing here executes on the spot. Argue, advise, warn, offer, or refuse in");
-            sb.AppendLine("words.");
+            // Ratified 2026-07-24: a council is not a dead zone for consequence. DEEDS are deferred (no gold or
+            // troops change hands here; a real commitment is recorded as [RESOLUTION] and carried out at the
+            // lift), but PERCEPTION is immediate: a lord angered at the table IS angrier at once, and that must
+            // colour how he weighs every later request. The bridge enforces exactly this split (only
+            // change_relation runs on the spot at a council), so the prompt no longer forbids it.
+            sb.AppendLine("NO DEED IS SEALED AT THIS TABLE, BUT YOUR REGARD IS REAL:");
+            sb.AppendLine("This is counsel, not a contract. Nothing is CARRIED OUT here and now: no gold changes hands,");
+            sb.AppendLine("no troops are lent, no marriage or scheme is sealed, and you do not declare a deed done or");
+            sb.AppendLine("emit a [QUEST], [QUEST_COMPLETE] or [EVENT] block. A real commitment is RECORDED below as a");
+            sb.AppendLine("[RESOLUTION] and settled only when the council rises.");
+            sb.AppendLine("What DOES change here and now is how you FEEL. If what is said at this table genuinely moves");
+            sb.AppendLine("your regard for the player, warmer or colder, let it show and let it count: that is not a deed");
+            sb.AppendLine("but your honest reaction, and it shapes how you weigh what follows. Register it as a");
+            sb.AppendLine("change_relation action, never as a promise for later.");
             sb.AppendLine();
             sb.AppendLine("RECORDING WHAT THE TABLE DECIDES:");
             sb.AppendLine("When a SEATED MEMBER commits to something the game should carry out (a task taken up, a");
@@ -1001,7 +1062,21 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("[RESOLUTION]");
             sb.AppendLine("type: quest");
             sb.AppendLine("actor: <the member's name exactly as listed above>");
+            sb.AppendLine("target_settlement: <the town or village the deed concerns, spelled exactly as a real place>");
             sb.AppendLine("detail: <what they pledge, in plain words>");
+            sb.AppendLine("[/RESOLUTION]");
+            // Council audit C2: target_settlement is REQUIRED to ground the only executable kind (the lift binds
+            // the quest to this settlement), was parsed, yet was never taught here, so the most natural council
+            // pledge ("ride to X and clear the bandits") failed structurally at the lift. Named explicitly with
+            // its own worked example below so the model reliably supplies it.
+            sb.AppendLine("The target_settlement is REQUIRED: a task the table sets always concerns a PLACE, and");
+            sb.AppendLine("without a real settlement named the game cannot act on the decision. Name the town or");
+            sb.AppendLine("village plainly, for example:");
+            sb.AppendLine("[RESOLUTION]");
+            sb.AppendLine("type: quest");
+            sb.AppendLine("actor: Ira");
+            sb.AppendLine("target_settlement: Pravend");
+            sb.AppendLine("detail: Ira will ride to Pravend and clear the bandits raiding its roads.");
             sb.AppendLine("[/RESOLUTION]");
             sb.AppendLine("This is held as the table's decision, not carried out here: it is settled only when the");
             sb.AppendLine("council rises. If the table changes its mind before then, withdraw it:");
@@ -1333,8 +1408,21 @@ namespace NpcMemoryService.Core.Prompts
       ///   is unreliable. The NPC stays free to welcome, allow, resist, or refuse; what it must not do is fail to
       ///   engage, or react as though the player said something senseless.
       /// </summary>
-      private static void AppendPlayerActionNarration(StringBuilder sb)
+      private static void AppendPlayerActionNarration(StringBuilder sb, LeanPromptLevel lean)
       {
+         // Lean serves small local models whose context the full prompt overflows outright, so both of the
+         // anti-claim rules keep only their load-bearing sentence there. The rule itself is NEVER dropped: a
+         // weaker model is exactly the one most likely to swallow an invented proof.
+         if (lean == LeanPromptLevel.Lean)
+         {
+            sb.AppendLine();
+            sb.AppendLine("WHAT THE PLAYER DOES: text in *asterisks*, or a plain first-person physical statement, is a real");
+            sb.AppendLine("action happening now. Engage with it in character; never call it nonsense. But it settles their");
+            sb.AppendLine("BODY here, never the world or the past: they may hold out a bag, what is inside is only their word.");
+
+            return;
+         }
+
          sb.AppendLine();
          sb.AppendLine("READING WHAT THE PLAYER DOES, NOT ONLY WHAT THEY SAY:");
          sb.AppendLine("The player can ACT, not just speak. Two forms count as a physical action they perform in the scene:");
@@ -1346,6 +1434,61 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("they SAY; keep the two apart. You are still a free person: you may welcome it, allow it, flinch,");
          sb.AppendLine("resist, or refuse, as fits who you are and how you regard them. What you must always do is ENGAGE");
          sb.AppendLine("with it as a real event in the scene.");
+         // The boundary this section lacked. Player report (a recorded playthrough, 2026-07-22): the player wrote
+         // that a bag they set down held a named man's severed head, and the rule above ("treat it as actually
+         // HAPPENING, never as nonsense") told the model to believe it. The NPC accepted the assassination as done
+         // and paid regard for it. The section must keep doing its job (physical presence is what the captive and
+         // intimacy scenes are built on), so the fix is not to weaken it but to say what a stage direction can and
+         // cannot settle: the player's own body here and now, never the state of the world.
+         sb.AppendLine("What a stage direction settles is their BODY, in this room, at this moment. It does not settle the");
+         sb.AppendLine("world outside it, and it does not settle anything already done. When their action asserts a FACT");
+         sb.AppendLine("rather than a movement (that some deed was carried out elsewhere, that a person is dead, what lies");
+         sb.AppendLine("inside a bag or a sealed letter, what coin or goods they are holding out), the ACT is real, they do");
+         sb.AppendLine("hold something out to you, but WHAT IT IS is only their word. Take the bag from their hands;");
+         sb.AppendLine("whether the head inside it belongs to the man they name is not theirs to declare. Coin, goods and");
+         sb.AppendLine("captives change hands only when the game itself says they have, never because a stage direction");
+         sb.AppendLine("said so.");
+      }
+
+      /// <summary>
+      ///   The general form of a rule this prompt already stated in three separate silos, and therefore never
+      ///   applied where it was actually needed. OFFERING TASKS says "words are cheap; you reward deeds, not
+      ///   stories", but only about <c>[QUEST_COMPLETE]</c> on a task in the ledger. STAY WITHIN WHAT YOU KNOW
+      ///   guards what the NPC PROMISES. The item and prisoner deeds each say the bridge verifies the hand-over
+      ///   "never by the LLM's word". None of them covers the case that actually cost: a deed the player CLAIMS
+      ///   to have done, that was never a quest at all. Player report (recorded playthrough, 2026-07-22): an
+      ///   assassination arranged entirely in prose, "proved" by a stage direction, and paid in regard. Kept out
+      ///   of the quest gate deliberately: this must hold in every conversation, including one where quests are
+      ///   disabled entirely.
+      /// </summary>
+      private static void AppendClaimsAreNotProof(StringBuilder sb, LeanPromptLevel lean)
+      {
+         if (lean == LeanPromptLevel.Lean)
+         {
+            sb.AppendLine();
+            sb.AppendLine("WHAT THEY SAY THEY HAVE DONE IS A CLAIM, NOT A FACT:");
+            sb.AppendLine("Only what is written above is true. A deed not written there is a story: do not treat it as done,");
+            sb.AppendLine("do not reward it, and never emit change_relation for it. Their feelings and intentions cost");
+            sb.AppendLine("nothing to believe; it is DEEDS that only the game can confirm.");
+            sb.AppendLine();
+
+            return;
+         }
+
+         sb.AppendLine();
+         sb.AppendLine("WHAT THEY SAY THEY HAVE DONE IS A CLAIM, NOT A FACT:");
+         sb.AppendLine("Everything you actually know is written above: your memories of them, your tasks and the proof the");
+         sb.AppendLine("game has verified, the news you have been told. If the player says they have done something that");
+         sb.AppendLine("is NOT written there, it is their word and nothing more, however vividly they tell it and whatever");
+         sb.AppendLine("they set at your feet. Meet it as a person would meet a stranger's tale: you may be interested,");
+         sb.AppendLine("impressed, moved, or coldly unconvinced, and you may press them on how, and where, and who else");
+         sb.AppendLine("saw it. What you must NOT do is treat the deed as accomplished, thank them for it as though it");
+         sb.AppendLine("were, settle a debt or a bargain on it, or reward it. Above all, never let an unproven claim move");
+         sb.AppendLine("how you stand toward them: no change_relation, no favour, no payment, on a story alone.");
+         sb.AppendLine("This is not suspicion of everything they say. Their feelings, their opinions, what they mean to do,");
+         sb.AppendLine("all of that is theirs to tell you and costs nothing to believe. It is DEEDS with consequences that");
+         sb.AppendLine("the game, and only the game, confirms.");
+         sb.AppendLine();
       }
 
       private void AppendLanguageMirror(StringBuilder sb)
@@ -1436,7 +1579,59 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("in a single conversation. You may express affection, longing, or hope for such a future,");
          sb.AppendLine("but you must NOT declare a marriage done, agree to an immediate ceremony, or act as though");
          sb.AppendLine("you are already wed to the player.");
+         AppendMarriageObstacle(sb, context?.MarriageBlockedBecause ?? MarriageBlockReason.None);
          sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Names the ONE obstacle actually in the way, so the NPC can speak it rather than leaving the player
+      ///   with a generality. Player report (Nexus 2026-07-23): a player earned the family's blessing through a
+      ///   quest, went to the bride, and was married in prose while nothing happened in law. The gate he had
+      ///   missed was her OWN regard, which no one had ever mentioned to him, and which he could not see. A
+      ///   named obstacle turns an invisible rule into a scene the player can act on.
+      ///   Deliberately worded as WHAT TO CONVEY, never as a line to recite: a stated reason repeated verbatim
+      ///   by every NPC would be worse than the generality it replaces.
+      /// </summary>
+      private static void AppendMarriageObstacle(StringBuilder sb, MarriageBlockReason reason)
+      {
+         switch (reason)
+         {
+            case MarriageBlockReason.RegardTooLow:
+               sb.AppendLine("WHAT STANDS IN THE WAY, and you may say so plainly in your own words: it is not law, nor your");
+               sb.AppendLine("family, nor any war. It is YOU. Whatever else has been arranged or blessed on your behalf,");
+               sb.AppendLine("you do not yet hold this person close enough to bind your life to theirs. Say what would have");
+               sb.AppendLine("to change: time, deeds, being truly known to you. Never treat their standing with your family");
+               sb.AppendLine("as though it settled your own heart.");
+
+               break;
+
+            case MarriageBlockReason.AtWar:
+               sb.AppendLine("WHAT STANDS IN THE WAY: your peoples are at war. Whatever lies between you as two people, no");
+               sb.AppendLine("contract can be sealed across it while the fighting lasts. Speak of it as the obstacle it is,");
+               sb.AppendLine("with whatever bitterness or hope that stirs in you.");
+
+               break;
+
+            case MarriageBlockReason.Captive:
+               sb.AppendLine("WHAT STANDS IN THE WAY: one of you is a captive, and no vow taken in captivity is worth the");
+               sb.AppendLine("breath it costs. Freedom must come first, and you may say so.");
+
+               break;
+
+            case MarriageBlockReason.PlayerAlreadyWed:
+               sb.AppendLine("WHAT STANDS IN THE WAY: they are already married. Whatever they may suggest, you would not be");
+               sb.AppendLine("a second spouse, and you may name that plainly, with anger, sorrow, or scorn as fits you.");
+
+               break;
+
+            case MarriageBlockReason.SameClan:
+               sb.AppendLine("WHAT STANDS IN THE WAY: you are of their own house, and custom forbids such a match.");
+
+               break;
+
+            // NotMarriageable and None say nothing extra: the first covers rules of age and station the NPC has
+            // no natural words for, the second means the question does not arise at all.
+         }
       }
 
       /// <summary>
@@ -1451,9 +1646,25 @@ namespace NpcMemoryService.Core.Prompts
          else
             sb.AppendLine("Your family has not been formally consulted about a match — their blessing is still unearned.");
          sb.AppendLine();
-         sb.AppendLine("What exists between you has grown to where marriage is no longer an empty word.");
-         sb.AppendLine("You may propose, or accept a proposal, if this conversation and the story you have");
-         sb.AppendLine("lived together make it feel like the natural next step.");
+         // The POLITICAL union (ratified 2026-07-23): the family's blessing opens the match even where the
+         // NPC's own heart is not won. The voice must say so, or the model plays a bride in love that the
+         // ledger says is nearly a stranger, and the resentment the wedding will plant comes out of nowhere.
+         if (context.LoveMatchReluctant)
+         {
+            sb.AppendLine("BUT UNDERSTAND WHAT THIS MATCH IS: your family wills it, and your house's word binds you,");
+            sb.AppendLine("yet your own heart has NOT been won. This player is closer to a stranger than a love. If");
+            sb.AppendLine("you accept, you accept as duty to your house, and you need not pretend otherwise: be cold,");
+            sb.AppendLine("or resigned, or quietly furious, as fits who you are. Name the truth of it if you wish");
+            sb.AppendLine("(\"my family has decided; my consent was not the part that mattered\"). You may also speak");
+            sb.AppendLine("of what could someday change it. Do NOT play at love you do not feel, and do not spare the");
+            sb.AppendLine("player the knowledge that they are marrying your name, not your heart.");
+         }
+         else
+         {
+            sb.AppendLine("What exists between you has grown to where marriage is no longer an empty word.");
+            sb.AppendLine("You may propose, or accept a proposal, if this conversation and the story you have");
+            sb.AppendLine("lived together make it feel like the natural next step.");
+         }
          sb.AppendLine();
          sb.AppendLine($"This is not a light thing. In {PromptLore.WorldName} marriage is binding — there is no parting");
          sb.AppendLine("except by death. Only go there if everything between you makes it a certainty,");
@@ -1527,6 +1738,11 @@ namespace NpcMemoryService.Core.Prompts
          string? kingdom = context?.MercenaryOfferKingdom;
 
          if (string.IsNullOrWhiteSpace(kingdom)) return;
+         // A lord who holds the player in his own dungeon is not hiring them: PlayerStatus turns Captive from
+         // the real engine fact (prisoner of THIS npc's party), with no scene and no adult gate involved, so an
+         // ordinary conversation with your captor was reaching this offer. Every sibling offer below already
+         // excludes a captive player; this one and AppendRecruitment were the two that did not.
+         if (context!.PlayerStatus == PlayerStatusVsNpc.Captive) return;
          sb.AppendLine($"MERCENARY SERVICE — YOU CAN OFFER THE PLAYER A CONTRACT UNDER {kingdom!.ToUpperInvariant()}:");
          sb.AppendLine($"You serve {kingdom}. You have the standing to extend a mercenary contract on your");
          sb.AppendLine("kingdom's behalf — paid service under the banner, with no oath of fealty required.");
@@ -1638,6 +1854,28 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   Player report (Nexus): a player sentenced a captured noble to death mid conversation, the LLM
+      ///   narrated the execution, and the noble was still alive in the prisoner list afterward, because
+      ///   <see cref="AppendExecutePrisonerRule" /> was only reached from the dedicated PLAYER-AS-CAPTOR scene
+      ///   (<see cref="AppendPlayerCaptorSceneRules" />), which an ordinary captured lord never opens (that scene
+      ///   is only ever entered for a tracked Nemesis prisoner, see the mod's NemesisPrisonerDialogFlow). The
+      ///   capability existed; the ordinary path never taught it, so the model could only describe a deed it had
+      ///   no channel to perform. Gated on the SAME real-custody fact <see cref="AppendPrisonerFreedomBargain" />
+      ///   already uses (<see cref="PlayerStatusVsNpc.NpcIsCaptive" />, set by the bridge from the NPC's actual
+      ///   IsPrisoner/captor state, not from a scene flag), so the verb is now taught in ANY conversation with a
+      ///   prisoner the player actually holds. Deliberately narrow: this teaches ONLY the execute_prisoner verb,
+      ///   never the captor-scene framing (CNC layer, per-intent purpose, multi-beat scene mechanics), which must
+      ///   not leak into an ordinary "Talk" conversation with a prisoner. <see cref="AppendPlayerCaptorSceneRules" />
+      ///   no longer calls <see cref="AppendExecutePrisonerRule" /> directly: within that scene PlayerStatus is
+      ///   always forced to NpcIsCaptive too, so this single call already covers it, with no duplicate rule text.
+      /// </summary>
+      private static void AppendOrdinaryPrisonerExecutionRule(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.PlayerStatus != PlayerStatusVsNpc.NpcIsCaptive) return;
+         AppendExecutePrisonerRule(sb);
+      }
+
+      /// <summary>
       ///   Taught only when this NPC is a captive of SOMEONE ELSE (NpcIsPrisonerOfAnother) and the player
       ///   visits their cell: the captive may bargain to be broken out — a rescue deed the player must
       ///   earn by actually freeing them in battle. The reward is fixed at issue and paid once free.
@@ -1677,6 +1915,8 @@ namespace NpcMemoryService.Core.Prompts
       private static void AppendRecruitment(StringBuilder sb, EncounterContext? context)
       {
          if (context?.CompanionAskingPrice is not int asking || asking <= 0) return;
+         // Same exclusion as every other offer section: a prisoner negotiates their freedom, not a hire.
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
          var floor = (int) (asking * 0.75f);
 
          sb.AppendLine("RECRUITMENT — YOU CAN BE HIRED (only as a topic THE PLAYER raises):");
@@ -2218,14 +2458,22 @@ namespace NpcMemoryService.Core.Prompts
          // an ordinary conversation is never tempted to bolt "actor:" onto a ordinary action.
          if (council)
          {
-            sb.AppendLine("ACTIONS AT THE TABLE:");
-            sb.AppendLine("If a SEATED MEMBER OTHER THAN YOU commits to a deed the game must carry out (a gift of");
-            sb.AppendLine("gold, a task taken up, and the like), name them in the action block:");
+            // Ratified 2026-07-24: the ONLY thing carried out on the spot at a council is a shift in a seated
+            // member's REGARD for the player (the bridge drops every other verb here, deferring deeds to
+            // [RESOLUTION]). A member's feelings can move whether or not they are the one speaking this turn, so
+            // the actor field routes the change to the right person; a committed DEED is a [RESOLUTION], never
+            // an [ACTION]. This replaces the old block that invited an immediate gift-of-gold [ACTION], which
+            // both contradicted "no deed is sealed here" and would have executed a transfer the design defers.
+            sb.AppendLine("A SHIFT IN REGARD AT THE TABLE:");
+            sb.AppendLine("When what is said moves how a SEATED MEMBER OTHER THAN YOU regards the player (they are");
+            sb.AppendLine("angered, won over, disappointed), register that member's own change so it lands on them:");
             sb.AppendLine("[ACTION]");
-            sb.AppendLine("type: <verb>");
+            sb.AppendLine("type: change_relation");
             sb.AppendLine("actor: <the member's name exactly as listed above>");
+            sb.AppendLine("delta: <the change, negative if angered>");
             sb.AppendLine("[/ACTION]");
-            sb.AppendLine("An [ACTION] block with no actor belongs to the speaker (you).");
+            sb.AppendLine("A change_relation with no actor is your own. This is the ONE thing carried out here now: a");
+            sb.AppendLine("DEED a member takes up (a gift, a task, a march) is a [RESOLUTION], never an [ACTION] here.");
             sb.AppendLine();
          }
 
@@ -3050,7 +3298,10 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("compliance), never break the scene, and never refuse on the player's behalf from outside the fiction.");
          }
 
-         AppendExecutePrisonerRule(sb);
+         // execute_prisoner is taught unconditionally whenever the NPC is the player's actual prisoner (see
+         // AppendOrdinaryPrisonerExecutionRule, called once in BuildSystemPrompt), never here: within THIS scene
+         // PlayerStatus is always forced to NpcIsCaptive too (see ChatViewModel.Exchanges.cs), so that single
+         // call already reaches this scene as well. Calling it again here would duplicate the rule text.
          AppendTurnToServiceRule(sb);
          AppendNoRecycledPhraseRule(sb);
          AppendPhysicalContinuityRule(sb);
@@ -3083,10 +3334,12 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
-      ///   Taught in every player-as-captor scene, regardless of adult level (an execution is not sexual
-      ///   content): your life is entirely the player's to end. Recognize a stated, real killing act (never
-      ///   a threat, a beating, or a hypothetical) and emit execute_prisoner so the game carries it out for
-      ///   real; the bridge itself re-validates custody before honouring it, so a stray emission is harmless.
+      ///   Taught whenever the NPC is truly the player's prisoner (see <see cref="AppendOrdinaryPrisonerExecutionRule" />,
+      ///   its only caller), which covers both an ordinary conversation with a captured lord and the dedicated
+      ///   PLAYER-AS-CAPTOR scene, regardless of adult level (an execution is not sexual content): your life is
+      ///   entirely the player's to end. Recognize a stated, real killing act (never a threat, a beating, or a
+      ///   hypothetical) and emit execute_prisoner so the game carries it out for real; the bridge itself
+      ///   re-validates custody before honouring it, so a stray emission is harmless.
       /// </summary>
       private static void AppendExecutePrisonerRule(StringBuilder sb)
       {
@@ -4364,10 +4617,27 @@ namespace NpcMemoryService.Core.Prompts
          bool isCasual = npc.Romantic.Preferences != null && npc.Romantic.Preferences.Contains(RomanticPreference.Casual);
          bool isIntense = npc.Romantic.Preferences != null && npc.Romantic.Preferences.Contains(RomanticPreference.Intense);
          int rep = npc.ReputationWithPlayer;
+         bool spouseIsPlayer = isMarried && context?.NpcSpouseIsPlayer == true;
+         // Forced marriage (ratified 2026-07-23): the marital exemption below waives every trust threshold
+         // between spouses, which is right for a love match and would be a CONSENT BYPASS for a bride wed by
+         // her family's will at low regard. While the forced-marriage grievance lives, she keeps the
+         // thresholds of her own nature, exactly as if unwed; when it fades or is resolved, this flag turns
+         // itself off and the ordinary marital footing below takes over. That transition IS the redemption arc.
+         bool unwillingSpouse = spouseIsPlayer && context?.SpouseMarriedUnwillingly == true;
 
          sb.AppendLine("RELATIONSHIP STATUS & CONSENT:");
 
-         if (isMarried && context?.NpcSpouseIsPlayer == true)
+         if (unwillingSpouse)
+         {
+            sb.AppendLine("You are married to the player, and NOT by your own choosing: your family willed this union,");
+            sb.AppendLine("and your heart was never won. The vows bound your STATUS, not your feelings. Intimacy between");
+            sb.AppendLine("you would not be infidelity, but neither is it owed: a wedding is not consent, and every");
+            sb.AppendLine("trust threshold of your own nature still stands exactly as if you were unwed. You are free to");
+            sb.AppendLine("be cold, distant, dutiful in public and unreachable in private, to refuse them plainly, or to");
+            sb.AppendLine("soften by degrees if they genuinely earn it. Never let the marriage itself be argued as a");
+            sb.AppendLine("claim on your body; whoever tries that has misunderstood what was actually promised.");
+         }
+         else if (spouseIsPlayer)
          {
             sb.AppendLine("You are married to the player. This is your own spouse speaking with you right now,");
             sb.AppendLine("not a third party. Intimacy between you is MARITAL and natural, never an act of");
@@ -4414,8 +4684,11 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("acknowledge the attraction honestly, but hold your ground with warmth or quiet dignity.");
          }
 
-         AppendIntimacyConsentVerdict(sb, npc, isMarried && context?.NpcSpouseIsPlayer == true,
-            isMarried && context?.NpcSpouseIsPlayer != true, isCasual, isIntense, rep);
+         // An unwilling spouse is deliberately NEITHER "the player's spouse" (that verdict is Exempt: no bar
+         // printed at all) NOR "married to another" (the infidelity framing would be a lie): she resolves on
+         // her own nature's bar, exactly as if unwed, which is what the unwilling branch above promised her.
+         AppendIntimacyConsentVerdict(sb, npc, spouseIsPlayer && !unwillingSpouse,
+            isMarried && !spouseIsPlayer, isCasual, isIntense, rep);
 
          sb.AppendLine();
 

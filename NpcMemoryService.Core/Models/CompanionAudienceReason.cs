@@ -6,6 +6,9 @@ namespace NpcMemoryService.Core.Models
    ///   Why one of the player's own companions asked for a private audience (the popup's "Let us speak of it"
    ///   opened a real conversation). Drives the companion's opening turn and, for a retirement, the in-chat
    ///   surface that lets the player grant their leave or persuade them to stay.
+   ///   ORDINALS ARE FROZEN (persisted nowhere directly today, but treated as if they were, exactly like
+   ///   <c>NotableEventType</c> / <c>GrudgeSource</c>): new reasons are always APPENDED at the end, never
+   ///   inserted or reordered.
    /// </summary>
    public enum CompanionAudienceReason
    {
@@ -20,9 +23,41 @@ namespace NpcMemoryService.Core.Models
 
       /// <summary>
       ///   A faithful, content companion has come to confide genuine affection born of shared war, and wishes
-      ///   to become the player's discreet SECRET LOVER. Never a demand or a bargain. Added last to preserve the
-      ///   serialized ordinals of existing saves.
+      ///   to become the player's discreet SECRET LOVER. Never a demand or a bargain.
       /// </summary>
-      SecretAffection
+      SecretAffection,
+
+      /// <summary>
+      ///   A dispatched companion mission has a result to report (news, intel, gold, or a faction's mood) that
+      ///   the player has not yet heard in conversation. Player-feedback pillar (Nexus): a found-topic audience,
+      ///   never a mood-only "check on me" popup.
+      /// </summary>
+      MissionFollowUp,
+
+      /// <summary>
+      ///   A real, unresolved grudge between this companion and another member of the player's own party: the
+      ///   holder wants the player to take their side. Reads the Grudges pillar's own ledger; never a parallel
+      ///   notion of conflict.
+      /// </summary>
+      CompanionConflict,
+
+      /// <summary>
+      ///   A measurable, currently-true condition of the party worth acting on (food monotony, low morale,
+      ///   wounded troops with no surgeon, an overloaded train). Computed from live state only, so the counsel
+      ///   is never stale advice.
+      /// </summary>
+      PracticalCounsel,
+
+      /// <summary>
+      ///   An old and significant shared memory resurfaces unprompted, paying off a detail the mod already
+      ///   stored but never otherwise brings back on its own.
+      /// </summary>
+      Callback,
+
+      /// <summary>
+      ///   The companion brings word of the world: a rumour they could plausibly have heard (the WorldEventStore's
+      ///   own awareness rules), never one already reported to the player.
+      /// </summary>
+      RumourReport
    }
 }

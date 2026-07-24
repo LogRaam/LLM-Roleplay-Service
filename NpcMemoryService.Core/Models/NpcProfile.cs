@@ -191,6 +191,15 @@ namespace NpcMemoryService.Core.Models
       public double? LastIntimacyGainHour { get; set; }
 
       /// <summary>
+      ///   Duels: the game day on which the player and this NPC last crossed blades. The consumer's cooldown
+      ///   policy reads it to refuse a fresh challenge too soon after the last one, so a duel stays a grave
+      ///   matter instead of a daily treadmill. Null = these two have never dueled, which is never on cooldown.
+      ///   Additive; absent on old saves (reads as null = never dueled).
+      ///   Game-agnostic: the SDK only stores it; the consumer defines the cooldown window.
+      /// </summary>
+      public int? LastDuelDay { get; set; }
+
+      /// <summary>
       ///   Compact per-conversation summaries. Useful for diagnostics.
       ///   Not currently injected into the prompt — see <see cref="Events" />.
       ///   Null means the NPC has never met the player.

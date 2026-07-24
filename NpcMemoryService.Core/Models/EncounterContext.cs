@@ -306,6 +306,51 @@ namespace NpcMemoryService.Core.Models
       public string? CourtshipRivalLadyName { get; init; }
 
       /// <summary>
+      ///   True when the host has already ruled that a duel between the player and this NPC is admissible
+      ///   RIGHT NOW (both able, peers, face to face, not kin, neither holding the other, off cooldown) AND
+      ///   that a venue exists to stage it. Conditional teaching, the same contract as
+      ///   <see cref="CompanionAskingPrice" />: the challenge verb is taught exactly when the game can honour
+      ///   it, so the NPC can never agree to a field that never opens. False in every ordinary conversation.
+      /// </summary>
+      /// <summary>
+      ///   Why a marriage cannot be sealed right now, when <see cref="LoveMatchEligible" /> is false. The host
+      ///   resolves exactly one reason from the same ordered checks that decide eligibility, so the two can
+      ///   never disagree. <see cref="MarriageBlockReason.None" /> in every conversation where the question
+      ///   does not arise. Lets the NPC name the obstacle in character instead of the prompt stating a
+      ///   generality the player can neither see nor act on.
+      /// </summary>
+      public MarriageBlockReason MarriageBlockedBecause { get; init; }
+
+      /// <summary>
+      ///   True when marriage is on offer ONLY through the family's blessing (ratified 2026-07-23): the match
+      ///   is clear in law but this NPC's own regard for the player is still below the marriage bar. A
+      ///   POLITICAL union: the NPC may accept out of duty to their house, coldly, and must never be made to
+      ///   pretend a love that is not there. The host plants the matching resentment when such a union is
+      ///   actually sealed; this flag only shapes the voice of the proposal.
+      /// </summary>
+      public bool LoveMatchReluctant { get; init; }
+
+      /// <summary>
+      ///   True when this NPC is the player's SPOUSE and still resents how the union was sealed (a live
+      ///   forced-marriage grievance, read fresh each turn from the host's ledger). While it is true, the
+      ///   marital consent exemption must NOT apply: the vows bound their status in law, never their heart,
+      ///   and their own nature's intimacy thresholds stand exactly as they would for an unmarried person.
+      ///   Flips back to false by itself once the grievance fades or is resolved, which is the redemption
+      ///   arc: a marriage begun in duty can be won over into an ordinary one.
+      /// </summary>
+      public bool SpouseMarriedUnwillingly { get; init; }
+
+      public bool DuelChallengeAvailable { get; init; }
+
+      /// <summary>
+      ///   Where the duel would be staged, as a short phrase for the NPC's own line ("on the open field",
+      ///   "at the gates of this town"). Flavour only, and only read when
+      ///   <see cref="DuelChallengeAvailable" /> is set; null simply leaves the place unstated. The host, not
+      ///   the model, chooses the venue, so a named place is one the game will actually open.
+      /// </summary>
+      public string? DuelVenueLabel { get; init; }
+
+      /// <summary>
       ///   Negotiation Phase 3 (adult-gated): true when this NPC is the exploiter archetype who may offer
       ///   the female player a favour in exchange for intimacy (a man of low scruple, unrelated). Off by
       ///   default; the prompt section double-checks the adult tier.

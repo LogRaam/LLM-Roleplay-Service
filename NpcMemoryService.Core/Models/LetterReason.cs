@@ -153,6 +153,16 @@ namespace NpcMemoryService.Core.Models
       ///   genuinely repaired bond, not mere words, can still call it off. Added last to preserve old-save
       ///   ordinals.
       /// </summary>
-      SpouseDivorceEscalation
+      SpouseDivorceEscalation,
+
+      // ── Interception fallback ─────────────────────────────────────────────────
+
+      /// <summary>
+      ///   A lord who rode out to intercept the player (a territorial challenge, or reacting to fresh news
+      ///   of the player's deeds) never managed to force the meeting: the chase went stale or was outrun.
+      ///   Rather than the whole thing evaporating, the lord writes the same intent by letter instead. Added
+      ///   last to preserve old-save ordinals.
+      /// </summary>
+      InterceptionMissed
    }
 }
