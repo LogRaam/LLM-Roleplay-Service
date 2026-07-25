@@ -83,6 +83,8 @@ namespace NpcMemoryService.Core.Services
          sb.AppendLine("Write ONE or TWO sentences, in the FIRST PERSON and PAST TENSE, capturing what YOU");
          sb.AppendLine("remember of this conversation — for your own private memory. Be concrete: what was");
          sb.AppendLine("discussed, asked, agreed, refused or learned, and how it left matters between you.");
+         sb.AppendLine("ALWAYS capture any plan, promise, arrangement or stated intention either of you made,");
+         sb.AppendLine("including what was agreed should happen next (word to gather, a meeting, a favor owed).");
          sb.AppendLine("If the visitor left abruptly mid-conversation, remember that too. No preamble, no");
          sb.AppendLine("quotation marks, no section tags — just the memory line itself.");
          sb.AppendLine(string.IsNullOrWhiteSpace(replyLanguage)
