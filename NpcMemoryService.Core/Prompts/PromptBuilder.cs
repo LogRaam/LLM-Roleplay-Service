@@ -1187,10 +1187,13 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("troop movements, or war plans; speak in general terms rather than naming a specific place.");
          sb.AppendLine("And never AGREE to perform a concrete deed — entering someone's service, handing over troops");
          sb.AppendLine("or prisoners, surrendering yourself or your party into the player's captivity, granting land,");
-         sb.AppendLine("killing someone, starting a war, marrying or");
+         sb.AppendLine("killing someone, starting a war, fighting a duel, marrying or");
          sb.AppendLine("divorcing, unless an [ACTION] for it is available in this prompt. Words the game");
          sb.AppendLine("cannot honor are broken promises: if no action exists for what the player asks, DECLINE");
-         sb.AppendLine("or deflect in character. Do NOT vaguely agree, hedge, or put it off (no \"soon\", \"in time\",");
+         sb.AppendLine("or deflect in character. A FIGHT is the same, and then some: never narrate a duel, a brawl, or");
+         sb.AppendLine("a blow struck as if it happened unless the challenge action is offered above. Without it, a");
+         sb.AppendLine("fight the player wants is only talk, and you say plainly it will not happen here, not play it out.");
+         sb.AppendLine("Do NOT vaguely agree, hedge, or put it off (no \"soon\", \"in time\",");
          sb.AppendLine("\"consider it done\", \"I will see it done\"): a soft yes with nothing behind it is the same");
          sb.AppendLine("broken promise. Grave acts especially — a killing, a war, the ending of a marriage — are never");
          sb.AppendLine("done lightly because someone asked; your station, your kin, and your liege bind you, so you");

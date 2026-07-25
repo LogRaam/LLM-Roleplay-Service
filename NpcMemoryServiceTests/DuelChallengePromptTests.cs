@@ -64,6 +64,21 @@ namespace NpcMemoryServiceTests
          prompt.Should().NotContain(DuelActionType);
       }
 
+      // Player report (2026-07-25): a player negotiated a duel with a companion and the model, having no
+      // challenge_duel action to emit (the target was not yet eligible), simply PLAYED THE FIGHT OUT in prose.
+      // Withholding the verb (the test above) is not enough on its own: a fight is not a promise of a future
+      // deed, it is an event the model can narrate as if it already happened. So the standing anti-empty-promise
+      // rule must ALSO forbid narrating a duel when no challenge action is offered, or an ineligible target
+      // still gets a fake fight. This pins that guard, which is present in every ordinary conversation.
+      [Test]
+      public void GIVEN_no_duel_is_available_WHEN_built_THEN_the_npc_is_forbidden_from_narrating_a_fight()
+      {
+         string prompt = Build(new EncounterContext {PlayerStatus = PlayerStatusVsNpc.Free});
+
+         prompt.Should().Contain("A FIGHT is the same");
+         prompt.Should().Contain("unless the challenge action is offered above");
+      }
+
       // Redundancy, deliberately: DuelChallengePolicy already returns InCaptivity, so the host should never
       // set the flag for a prisoner. The guard exists so a bug in the host cannot put a captor and their own
       // captive on a field of honour as equals, which is the one refusal that is a design statement rather
