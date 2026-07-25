@@ -629,9 +629,13 @@ namespace NpcMemoryService.Core.Prompts
       /// <summary>
       ///   Taught when THIS companion asked the player for the private audience that opened this conversation
       ///   (<see cref="EncounterContext.CompanionAudience" />). A grievance leans on the mood note above; a
-      ///   retirement gets its own surface: the companion voices their war-weariness, and the outcome is the
-      ///   player's to decide in the talk — grant their leave (the <c>retire</c> action makes it real) or persuade
-      ///   them to stay. This is where a war-weary veteran can be talked into "one more campaign".
+      ///   genuine <see cref="CompanionAudienceReason.Retirement" /> gets its own surface: the companion voices
+      ///   their war-weariness, and the outcome is the player's to decide in the talk: grant their leave (the
+      ///   <c>retire</c> action makes it real) or persuade them to stay. This is where a war-weary veteran can be
+      ///   talked into "one more campaign". Every OTHER found-topic reason (a mission report, a companion
+      ///   conflict, practical counsel, a callback, a rumour) gets a stay-on-topic guardrail instead: the specific
+      ///   matter is already in the opening cue, and the companion must never be taught they are resigning or
+      ///   war-weary just because a private word was asked for.
       /// </summary>
       private static void AppendCompanionAudience(StringBuilder sb, EncounterContext? context)
       {
@@ -657,6 +661,20 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("yourself, with the courage and vulnerability of a comrade, not a schemer, in your own voice.");
             sb.AppendLine("Let it be tender and honest, never a demand. See the secret-lover guidance below for how it");
             sb.AppendLine("may be named, and for the discretion you would keep.");
+            sb.AppendLine();
+
+            return;
+         }
+
+         // Found-topic audiences (mission report, a grudge against a comrade, practical counsel, an old
+         // memory, a rumour): the SPECIFIC matter is already in the opening cue. Gated out BEFORE the
+         // retirement block so a devoted, non-weary companion is never taught they are resigning.
+         if (reason != CompanionAudienceReason.Retirement)
+         {
+            sb.AppendLine("You sought this word to speak of a SPECIFIC matter, already voiced in your opening line above.");
+            sb.AppendLine("Stay on it. This is an ordinary private word between comrades: you are NOT resigning, you are");
+            sb.AppendLine("NOT threatening to leave, and you are NOT war-weary. Do not claim otherwise, and never ask to");
+            sb.AppendLine("quit their service or to lay down the sword unless that is truly the subject named above.");
             sb.AppendLine();
 
             return;
