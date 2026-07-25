@@ -106,6 +106,16 @@ namespace NpcMemoryService.Core.Models
       public string? CaptiveSceneFocus { get; init; }
 
       /// <summary>
+      ///   This captive scene's WRITING LENS (AUDIT-CAPTIVE-STYLE T1, 2026-07-24), drawn once when the scene
+      ///   opens and never the same two scenes running: an angle for HOW the prose is written (which senses,
+      ///   what sentence rhythm, how close the narration sits), NOT what happens. The reported problem was
+      ///   cross-scene lexical sameness ("sweet", "tendons of his neck") from a byte-identical prompt each
+      ///   scene; a rotating lens breaks that without a fixed vocabulary list (which was the cause, not the
+      ///   cure). Null when no scene is running. Rendered by AppendSceneStyleDirective in the dynamic tail.
+      /// </summary>
+      public string? CaptiveSceneStyle { get; init; }
+
+      /// <summary>
       ///   A brigand captor has learned the player's name (the prisoner gave it up in a scene), so he MAY
       ///   use it despite otherwise living apart from any register. Fed from
       ///   <see cref="NpcProfile.CaptorLearnedPlayerName" />. Meaningless for a lord captor.

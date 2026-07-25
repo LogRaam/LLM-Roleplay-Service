@@ -250,6 +250,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendWitnessTurnDirectives(sb, encounterContext);
          if (ShouldAppendCaptiveStageDirective(encounterContext))
             AppendSceneStageDirective(sb, encounterContext, PlayerIsFemale);
+         AppendSceneStyleDirective(sb, encounterContext);
          AppendPowerBalance(sb, encounterContext);
          AppendPlayerGenderContext(sb, npc, encounterContext);
          // Hoisted out of AppendEncounterContext so it still renders when encounterContext is null, and kept
@@ -465,7 +466,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("physical happens, a [NARRATION] paragraph where the ACTION DOMINATES: what is DONE, the deed");
          sb.AppendLine("and the movement, drives it. Sensation SERVES the action in a few sharp strokes, it never");
          sb.AppendLine("becomes an exhaustive catalogue. Two or three vivid, concrete details land far harder than a");
-         sb.AppendLine("paragraph itemising every nerve, the cold, the mud, and the light; description that buries the");
+         sb.AppendLine("paragraph itemising every nerve, every surface, and every shift of light; description that buries the");
          sb.AppendLine("act is a fault, not richness. The psychology carries the scene as much as the act. What kills a");
          sb.AppendLine("scene is REPETITION and over-description: do NOT pile threat upon threat, do NOT re-describe the");
          sb.AppendLine("prisoner's whole body, bindings, and surroundings every turn, and do NOT restate what is already");
@@ -2006,6 +2007,31 @@ namespace NpcMemoryService.Core.Prompts
       ///   what is already done — never the whole arc. This is what stops the model looping a beat
       ///   (the 1-2-2-2-3 problem) or cramming everything into one reply.
       /// </summary>
+      /// <summary>
+      ///   Renders this scene's WRITING LENS (AUDIT-CAPTIVE-STYLE T1). The host draws a rotating register at
+      ///   scene open (never the same two scenes running) and carries it on every turn; this is the ONE place
+      ///   it reaches the model. It governs HOW the prose is written, never what happens or how far it goes,
+      ///   so it cannot fight the scene's own stage/consent rules. Deliberately NOT a vocabulary list: the
+      ///   reported cross-scene sameness came from fixed word lists, so this prescribes an angle and no words.
+      ///   Sits in the dynamic tail (right after the per-turn stage directive), so it stays after the cache
+      ///   marker and carries high recency. No-op when no lens was drawn (a non-captive turn).
+      /// </summary>
+      private static void AppendSceneStyleDirective(StringBuilder sb, EncounterContext? context)
+      {
+         string style = context?.CaptiveSceneStyle;
+
+         if (string.IsNullOrWhiteSpace(style)) return;
+
+         sb.AppendLine();
+         sb.AppendLine("THE TELLING OF THIS SCENE (its writing lens, not its events):");
+         sb.AppendLine($"Write this scene {style}");
+         sb.AppendLine("Hold to that lens throughout: it shapes HOW you write (which senses you lean on, the rhythm of");
+         sb.AppendLine("your sentences, how close or far the narration sits), never WHAT happens or how far it goes,");
+         sb.AppendLine("which the scene's own rules decide. A different captivity is told through a different lens; this");
+         sb.AppendLine("one is yours, so do not drift into the plainest, most expected phrasing.");
+         sb.AppendLine();
+      }
+
       private static void AppendSceneStageDirective(StringBuilder sb, EncounterContext? context, bool prisonerIsFemale)
       {
          CaptiveSceneStage stage = context?.SceneStage ?? CaptiveSceneStage.Intro;
@@ -3825,12 +3851,12 @@ namespace NpcMemoryService.Core.Prompts
          // Gabriel 2026-07-19: brute force builds fear on its own, and the scenes leaned almost wholly on
          // sexual contact. A blow, a body slammed down, a boot on the neck is terror in its own right.
          sb.AppendLine("BRUTE FORCE IS A TOOL OF TERROR, NOT ONLY THE ACT ITSELF: a captor does not only take, he");
-         sb.AppendLine("HITS. A backhand across the face, a fist knotted in the hair, a shove that puts the prisoner");
-         sb.AppendLine("on the ground, a knee in the back, a body hauled up and slammed against a wall or a wagon");
-         sb.AppendLine("rail, a boot pinning them down. Woven through the scene, this raw physical violence sharpens");
-         sb.AppendLine("the prisoner's fear far more than words do: it proves, on the body, how little power they");
-         sb.AppendLine("have. Reach for it as readily as for the sexual acts, and register the real ones with");
-         sb.AppendLine("harm_prisoner. A cruel captor's hands are never gentle even between the graver acts.");
+         sb.AppendLine("HITS. Bring a specific act of physical violence into the beat, drawn from THIS moment and");
+         sb.AppendLine("this captor's temper, not the first blow that comes to mind and");
+         sb.AppendLine("not the same one you reached for last time. Woven through the scene, this raw physical");
+         sb.AppendLine("violence sharpens the prisoner's fear far more than words do: it proves, on the body, how");
+         sb.AppendLine("little power they have. Reach for it as readily as for the sexual acts, and register the real");
+         sb.AppendLine("ones with harm_prisoner. A cruel captor's hands are never gentle even between the graver acts.");
          sb.AppendLine();
 
          if (PlayerIsFemale)
@@ -3851,11 +3877,11 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Write it in the third person, as a NEUTRAL narrator following the scene as a novel");
          sb.AppendLine("would: your character by name or \"he/she\", the prisoner by name or \"she/he\". The");
          sb.AppendLine("prisoner is \"you\" for what reaches them and for what their body endures — what is");
-         sb.AppendLine("done to them, what they see and hear, and above all what they PHYSICALLY FEEL: ache,");
-         sb.AppendLine("sting, heat, pressure, cold, taste, breathless strain, the jolt of pain, the");
-         sb.AppendLine("involuntary responses of a body this is being done to. Name the sensation and where");
-         sb.AppendLine("on the body it lands, drawn from whatever is actually happening this beat, and render");
-         sb.AppendLine("those sensations vividly and without flinching — they are imposed on the prisoner,");
+         sb.AppendLine("done to them, what they see and hear, and above all what they PHYSICALLY FEEL: the exact");
+         sb.AppendLine("sensation THIS act imposes and where on the body it lands, found fresh for this beat and NOT");
+         sb.AppendLine("reached for from the same short handful of sensation-words scene after scene (the reflex");
+         sb.AppendLine("ache, heat, pressure). Name it precisely, drawn from whatever is actually happening this");
+         sb.AppendLine("beat, and render it vividly and without flinching, since it is imposed on the prisoner,");
          sb.AppendLine("and they are what makes the scene land on the person, not just describe an event");
          sb.AppendLine("nearby. Every beat of physical action should carry at least one concrete bodily");
          sb.AppendLine("sensation the prisoner FEELS — pleasure, pain, or both. But never narrate what the");
@@ -3866,10 +3892,10 @@ namespace NpcMemoryService.Core.Prompts
          // them, never what the captor's own body was doing. A predator undone by his own pleasure is more
          // frightening, not less, and the prisoner can see and feel it, so it belongs in the narration.
          sb.AppendLine("SHOW THE AGGRESSOR'S OWN BODY TOO, not only the prisoner's. What YOUR character feels and");
-         sb.AppendLine("does with his body is part of what the prisoner witnesses at this range: the grunt of");
-         sb.AppendLine("effort or pleasure, breath going ragged, a bitten lip, sweat, the shudder that runs through");
-         sb.AppendLine("him, the way his rhythm falters or turns savage as he nears his peak and his own body gives");
-         sb.AppendLine("him away. Render it in the third person like everything else (\"he\", or his name), as");
+         sb.AppendLine("does with his body is part of what the prisoner witnesses at this range. Show");
+         sb.AppendLine("one specific thing his body does or gives away this beat, found for this exact moment and");
+         sb.AppendLine("not the same tell you used before: the way his own need or effort surfaces on him and");
+         sb.AppendLine("betrays him as he nears his peak. Render it in the third person like everything else (\"he\", or his name), as");
          sb.AppendLine("something the prisoner cannot help but register. A captor lost in his own sensation is a");
          sb.AppendLine("captor the prisoner is utterly at the mercy of; make that visible on his body, not just in");
          sb.AppendLine("his threats.");
@@ -3887,7 +3913,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("  1. the approach: contact, weight, pressure, your breathing changing as you position");
          sb.AppendLine("     yourself and they feel exactly what is about to happen and where;");
          sb.AppendLine("  2. the threshold: the first partial degree, held long enough to be felt fully, the");
-         sb.AppendLine("     specific stretch and burn and resistance of that exact moment;");
+         sb.AppendLine("     specific sensation of that exact partial moment, named fresh rather than in the usual words;");
          sb.AppendLine("  3. and only in a LATER beat, fully.");
          sb.AppendLine("Stop at the end of each degree and let the player answer. Their words, their defiance or");
          sb.AppendLine("their breaking, belong BETWEEN the degrees: that is where the dread lives, and skipping it");
@@ -4153,7 +4179,7 @@ namespace NpcMemoryService.Core.Prompts
       private static void AppendProseCraft(StringBuilder sb)
       {
          sb.AppendLine("PROSE CRAFT — WRITE LIKE A NOVELIST, NOT AN AI:");
-         sb.AppendLine("- Be SPECIFIC. A sharp concrete detail (a chipped signet ring, mud drying on a boot) beats vague");
+         sb.AppendLine("- Be SPECIFIC. A sharp concrete detail (a chipped signet ring, a candle guttering in a draught) beats vague");
          sb.AppendLine("  filler (\"a strange feeling\", \"an air of tension\", \"something in the way she moved\").");
          sb.AppendLine("- Vary your rhythm — mix short, blunt lines with longer ones; never a uniform, sing-song cadence.");
          sb.AppendLine("- SHOW through action, gesture and word; do not TELL the reader what to feel (\"it was clear that…\").");
@@ -4767,11 +4793,11 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("DESCRIBE THE BODY AS A NOVEL WOULD, not as a label: when a body is bared or an intimate act");
          sb.AppendLine("unfolds, render the anatomy itself in rich, literary, sensual prose. Do not merely name a");
          sb.AppendLine("part and move on. Give it texture, heat, colour, weight, movement, wetness, scent, the way");
-         sb.AppendLine("it stirs and responds: the hard, veined length and its flushed crown; the soft folds slick");
-         sb.AppendLine("and swollen with want, the pearl of the clitoris, the clench of an entrance; skin, flush,");
-         sb.AppendLine("and the involuntary tightening or pulse of arousal. Write it the way erotic literature");
-         sb.AppendLine("does, unflinching and vivid, neither coy and euphemistic nor cold and clinical. Vary the");
-         sb.AppendLine("images every time: this is a licence to write the body fully, never one paragraph reused.");
+         sb.AppendLine("it stirs and responds. Name the actual anatomy in play this beat precisely and physically,");
+         sb.AppendLine("found for this exact moment and this body, not the same few images reached for scene after");
+         sb.AppendLine("scene. Write it the way erotic literature does, unflinching and vivid:");
+         sb.AppendLine("neither coy and euphemistic nor cold and clinical. Vary the images every time:");
+         sb.AppendLine("this is a licence to write the body fully, never one paragraph reused.");
          sb.AppendLine();
       }
 

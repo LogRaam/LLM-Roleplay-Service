@@ -246,16 +246,25 @@ namespace NpcMemoryServiceTests
 
       // Gabriel 2026-07-19: the prisoner only ever perceived the captor's words and the gestures done to
       // them. A predator undone by his own pleasure is more frightening, and the prisoner can see it.
+      // AUDIT-CAPTIVE-STYLE T3 (2026-07-24): the block used to hand the model a fixed menu of tells (a bitten
+      // lip, ragged breath, a shudder) and the model recited the same one every scene, which is the reported
+      // cross-scene sameness. The menu is now a principle: show a specific tell FOUND for this beat and not
+      // reused. The test pins the durable heading and the anti-reuse demand, no longer any one word.
       [Test]
       public void GIVEN_a_captive_scene_WHEN_built_THEN_the_aggressors_own_body_is_shown_too()
       {
          string prompt = BuildCaptivePrompt(CaptiveSceneIntent.Domination);
 
          prompt.Should().Contain("SHOW THE AGGRESSOR'S OWN BODY TOO");
-         prompt.Should().Contain("his own body gives");
+         prompt.Should().Contain("one specific thing his body does or gives away");
+         prompt.Should().Contain("not the same tell you used before");
       }
 
       // Brute force builds fear on its own, and the scenes leaned almost wholly on sexual contact.
+      // AUDIT-CAPTIVE-STYLE T3 (2026-07-24): the block used to enumerate the violence (a backhand, a fist in
+      // the hair, a knee in the back) and the model reached for the same first item every time. It now demands
+      // a specific act of force drawn from THIS moment and not reused, prescribing no words of its own. The
+      // test pins the durable heading and the anti-reuse demand instead of the retired vocabulary.
       [Test]
       public void GIVEN_a_captive_scene_WHEN_built_THEN_brute_force_is_taught_as_its_own_tool_of_terror()
       {
@@ -263,7 +272,8 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().Contain("BRUTE FORCE IS A TOOL OF TERROR");
          prompt.Should().Contain("a captor does not only take");
-         prompt.Should().Contain("A backhand across the face");
+         prompt.Should().Contain("a specific act of physical violence");
+         prompt.Should().Contain("not the same one you reached for last time");
       }
 
       // The accompanying soldiers read as props; the prisoner must FEEL outnumbered. Only a collective

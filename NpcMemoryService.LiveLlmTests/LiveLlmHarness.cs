@@ -173,6 +173,40 @@ namespace NpcMemoryService.LiveLlmTests
       }
 
       /// <summary>
+      ///   Runs a whole SCENE: several turns through the real LLM sharing ONE <see cref="ChatSession" /> (so each
+      ///   beat sees the ones before it), against a single <paramref name="context" />. Returns each turn's parsed
+      ///   result in order. Used by the cross-scene variety lane, where a scene must be more than one beat to
+      ///   carry enough prose to compare. Stops early and returns what it has if a turn fails.
+      /// </summary>
+      protected async Task<IReadOnlyList<NpcChatResult>> ChatScene(NpcProfile npc,
+                                                                  IReadOnlyList<string> playerMessages,
+                                                                  EncounterContext? context = null,
+                                                                  AdultContentLevel adultLevel = AdultContentLevel.Off,
+                                                                  int currentDay = 10)
+      {
+         var service = new NpcChatService(Client, new SectionResponseParser(), new PromptBuilder {AdultLevel = adultLevel}) {
+            ChatParameters = new LlmParameters {
+               MaxTokens = Settings.MaxTokens,
+               Creativity = Settings.Temperature,
+               PresencePenalty = Settings.PresencePenalty
+            }
+         };
+
+         var session = new ChatSession();
+         var world = new WorldState {CurrentDay = currentDay};
+         var results = new List<NpcChatResult>();
+         foreach (string message in playerMessages)
+         {
+            NpcChatResult result = await service.ChatAsync(npc, world, session, message, context);
+            results.Add(result);
+
+            if (!result.IsSuccess) break;
+         }
+
+         return results;
+      }
+
+      /// <summary>
       ///   LLM-as-judge: asks the model, strictly, whether <paramref name="transcript" /> satisfies
       ///   <paramref name="criterion" />, and returns the YES/NO verdict. Deliberately literal and low-variance so
       ///   a genuine behaviour is scored, not the judge's mood.
