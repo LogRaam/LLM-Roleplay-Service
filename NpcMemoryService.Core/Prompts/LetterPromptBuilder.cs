@@ -34,15 +34,15 @@ namespace NpcMemoryService.Core.Prompts
 
       // When the host knows where the writer currently is, ground the letter there and forbid drifting to
       // a remembered town; when it does not (null/blank), fall back to the guard against naming any place.
-      private static string WhereaboutsLine(string whereabouts)
+      private static string WhereaboutsLine(string? whereabouts)
          => string.IsNullOrWhiteSpace(whereabouts)
             ? LocationGuard
-            : $"You are presently {whereabouts.Trim()}. If your letter mentions where you are, it is there and " +
+            : $"You are presently {whereabouts!.Trim()}. If your letter mentions where you are, it is there and " +
               "nowhere else; never place yourself in a town merely because an old memory named it.";
 
       // Appends where the writer is, then (when the host knows it) where the PLAYER is / whether they are
       // together, so a letter does not summon a player home who is standing in the same hall.
-      private static void AppendPlace(StringBuilder sb, string whereabouts, string playerSituation)
+      private static void AppendPlace(StringBuilder sb, string? whereabouts, string? playerSituation)
       {
          sb.AppendLine(WhereaboutsLine(whereabouts));
          if (!string.IsNullOrWhiteSpace(playerSituation)) sb.AppendLine(playerSituation);
@@ -52,7 +52,7 @@ namespace NpcMemoryService.Core.Prompts
       ///   Builds the trigger message for an NPC-initiated letter (no player reply).
       /// </summary>
       public static string BuildInitialLetterMessage(
-         NpcProfile npc, LetterReason reason, string triggerContext, string playerName, string whereabouts = null, string playerSituation = null)
+         NpcProfile npc, LetterReason reason, string triggerContext, string playerName, string? whereabouts = null, string? playerSituation = null)
       {
          var sb = new StringBuilder();
          sb.AppendLine("[LETTER GENERATION — INTERNAL INSTRUCTION, DO NOT INCLUDE IN YOUR RESPONSE]");
@@ -80,7 +80,7 @@ namespace NpcMemoryService.Core.Prompts
       ///   waits before dispatching the courier — 1 (urgent) to 7 (considered).
       /// </summary>
       public static string BuildPlayerLetterReplyDecisionMessage(
-         NpcProfile npc, string playerLetterContent, string playerName, string whereabouts = null, string playerSituation = null)
+         NpcProfile npc, string playerLetterContent, string playerName, string? whereabouts = null, string? playerSituation = null)
       {
          var sb = new StringBuilder();
          sb.AppendLine("[PLAYER LETTER RECEIVED — INTERNAL INSTRUCTION, DO NOT INCLUDE IN YOUR RESPONSE]");
@@ -122,7 +122,7 @@ namespace NpcMemoryService.Core.Prompts
       ///   Builds the trigger message for an NPC reply to the player's response.
       /// </summary>
       public static string BuildReplyLetterMessage(
-         NpcProfile npc, string playerReply, LetterReason originalReason, string playerName, string whereabouts = null, string playerSituation = null)
+         NpcProfile npc, string playerReply, LetterReason originalReason, string playerName, string? whereabouts = null, string? playerSituation = null)
       {
          var sb = new StringBuilder();
          sb.AppendLine("[LETTER REPLY GENERATION — INTERNAL INSTRUCTION, DO NOT INCLUDE IN YOUR RESPONSE]");

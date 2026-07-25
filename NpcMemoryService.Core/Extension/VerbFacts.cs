@@ -18,13 +18,13 @@ namespace NpcMemoryService.Core.Extension
    public sealed class VerbFacts
    {
       /// <summary>The conversation partner's stable engine id (a Hero StringId on the Bannerlord side).</summary>
-      public string NpcId { get; set; }
+      public string NpcId { get; set; } = string.Empty;
 
       /// <summary>The partner's personal relation score toward the player.</summary>
       public int RelationToPlayer { get; set; }
 
       /// <summary>The partner's faction id (kingdom/clan StringId), or null when they belong to none.</summary>
-      public string FactionId { get; set; }
+      public string? FactionId { get; set; }
 
       /// <summary>True when the partner holds a lord's rank (governs many "court" verbs' eligibility).</summary>
       public bool IsLord { get; set; }
@@ -36,6 +36,6 @@ namespace NpcMemoryService.Core.Extension
       ///   Free-form extra facts an external verb may need that the base shape doesn't name, keyed by the
       ///   verb's own convention (mirrors how <c>ExternalWorldEvent</c> leaves category/source free-form).
       /// </summary>
-      public IReadOnlyDictionary<string, string> Extra { get; set; }
+      public IReadOnlyDictionary<string, string>? Extra { get; set; }
    }
 }

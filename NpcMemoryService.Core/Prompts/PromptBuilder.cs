@@ -1270,7 +1270,7 @@ namespace NpcMemoryService.Core.Prompts
       /// </summary>
       private void AppendNemesisRecaptureNote(StringBuilder sb, EncounterContext? context)
       {
-         string note = context?.NemesisRecaptureNote;
+         string? note = context?.NemesisRecaptureNote;
          if (string.IsNullOrWhiteSpace(note)) return;
 
          sb.AppendLine(note);
@@ -2039,7 +2039,7 @@ namespace NpcMemoryService.Core.Prompts
       /// </summary>
       private static void AppendSceneStyleDirective(StringBuilder sb, EncounterContext? context)
       {
-         string style = context?.CaptiveSceneStyle;
+         string? style = context?.CaptiveSceneStyle;
 
          if (string.IsNullOrWhiteSpace(style)) return;
 
@@ -2917,9 +2917,10 @@ namespace NpcMemoryService.Core.Prompts
       /// </summary>
       private static void AppendExtraActionTeachings(StringBuilder sb, EncounterContext? context)
       {
-         if (string.IsNullOrWhiteSpace(context?.ExtraActionTeachings)) return;
+         string? teachings = context?.ExtraActionTeachings;
+         if (string.IsNullOrWhiteSpace(teachings)) return;
 
-         sb.AppendLine(context.ExtraActionTeachings.TrimEnd());
+         sb.AppendLine(teachings!.TrimEnd());
          sb.AppendLine();
       }
 
@@ -2993,7 +2994,7 @@ namespace NpcMemoryService.Core.Prompts
       /// </summary>
       private void AppendNativeQuestNote(StringBuilder sb, EncounterContext? context)
       {
-         string note = context?.NativeQuestNote;
+         string? note = context?.NativeQuestNote;
          if (string.IsNullOrWhiteSpace(note)) return;
 
          sb.AppendLine(note);

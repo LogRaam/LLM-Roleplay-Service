@@ -88,7 +88,7 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
                                              && response.Content.Length > retry.Content.Length;
 
                return new LlmResponse {
-                  Content = originalCarriedFurther ? response.Content : retry.Content,
+                  Content = originalCarriedFurther ? response.Content! : retry.Content,
                   IsSuccess = true,
                   Usage = retry.Usage,
                   FinishReason = originalCarriedFurther ? response.FinishReason : retry.FinishReason,

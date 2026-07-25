@@ -23,15 +23,15 @@ namespace NpcMemoryService.Core.Extension
    public sealed class ExternalVerbContract
    {
       /// <summary>The action vocabulary name (matches the [ACTION] "type:" the LLM emits).</summary>
-      public string Name { get; set; }
+      public string Name { get; set; } = string.Empty;
 
-      /// <summary>True when this verb currently applies and should be taught / may be executed.</summary>
-      public Func<VerbFacts, bool> IsEligible { get; set; }
+      /// <summary>True when this verb currently applies and should be taught / may be executed. Null when the verb leaves it unset.</summary>
+      public Func<VerbFacts, bool>? IsEligible { get; set; }
 
-      /// <summary>The prompt text taught to the LLM while this verb is eligible.</summary>
-      public Func<VerbFacts, string> TeachingText { get; set; }
+      /// <summary>The prompt text taught to the LLM while this verb is eligible. Null when the verb teaches nothing.</summary>
+      public Func<VerbFacts, string>? TeachingText { get; set; }
 
-      /// <summary>Executes the verb; the external mod does its own engine work here, keyed off the ids in the request's facts.</summary>
-      public Func<ActionRequest, ActionResult> Execute { get; set; }
+      /// <summary>Executes the verb; the external mod does its own engine work here, keyed off the ids in the request's facts. Null when the verb has no side effect.</summary>
+      public Func<ActionRequest, ActionResult>? Execute { get; set; }
    }
 }
