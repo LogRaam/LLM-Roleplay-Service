@@ -45,6 +45,17 @@ namespace NpcMemoryService.Core.Models
       public string? ExtraActionTeachings { get; init; }
 
       /// <summary>
+      ///   The player-chosen NARRATIVE STYLE: a prompt-ready block of rules describing HOW the prose is written
+      ///   (the voice, the rhythm, how much is shown), loaded by the host from an editable style file and
+      ///   rendered verbatim. Complementary to the behaviour guidelines, which say WHO the character is: a style
+      ///   never changes who they are or what they would do, only how the writing reads. GLOBAL by design, the
+      ///   same style serves every conversation (adult scenes included) and BOTH models, since the roleplay/NSFW
+      ///   model is chosen at the client layer while this rides the shared system prompt. Stable for a whole
+      ///   conversation, so it sits in the cacheable prefix. Null or empty renders nothing.
+      /// </summary>
+      public string? NarrativeStyle { get; init; }
+
+      /// <summary>
       ///   The PLAYER's appearance in the THIRD person (Subject voice), composed by the host from derived body
       ///   facts plus any authored prose. Rendered under THE PLAYER so the NPC pictures the player consistently
       ///   and stops inventing their looks. Null/empty renders nothing.

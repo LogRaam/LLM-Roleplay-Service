@@ -239,6 +239,9 @@ namespace NpcMemoryService.Core.Prompts
          AppendBastardMother(sb, encounterContext);
          AppendMarriage(sb, encounterContext);
          AppendMatchmaker(sb, encounterContext);
+         // The player's chosen writing voice. Last of the cacheable prefix: it is stable for the whole
+         // conversation, so it must never sit after the marker below or it would bust the cache every turn.
+         AppendNarrativeStyle(sb, encounterContext);
          // ── Dynamic tail (changes every turn) — AppendEncounterContext emits EncounterSectionHeading, the
          // literal marker NpcChatService splits the cacheable prefix on. Everything from here on is per-turn
          // volatile (day count, time of day, scene stage, witness turn flags) and MUST stay after the marker,
@@ -2080,6 +2083,30 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("your sentences, how close or far the narration sits), never WHAT happens or how far it goes,");
          sb.AppendLine("which the scene's own rules decide. A different captivity is told through a different lens; this");
          sb.AppendLine("one is yours, so do not drift into the plainest, most expected phrasing.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Renders the player's chosen NARRATIVE STYLE (<see cref="EncounterContext.NarrativeStyle" />): the
+      ///   house voice, loaded by the host from an editable style file and rendered verbatim so a player or
+      ///   modder can rewrite it without touching code. Deliberately about the PROSE only: it is complementary
+      ///   to the behaviour guidelines (who the character is) and to the scene's own consent/stage rules (what
+      ///   may happen), and it must never override either. Coexists with
+      ///   <see cref="AppendSceneStyleDirective" />: this is the standing voice, that one is the per-scene lens
+      ///   which varies within it (the lens exists to break cross-scene repetition, so a chosen style does not
+      ///   replace it). Sits at the end of the cacheable prefix, being stable for the whole conversation.
+      ///   No-op when no style is active.
+      /// </summary>
+      private static void AppendNarrativeStyle(StringBuilder sb, EncounterContext? context)
+      {
+         string? style = context?.NarrativeStyle;
+
+         if (string.IsNullOrWhiteSpace(style)) return;
+
+         sb.AppendLine("NARRATIVE STYLE (how this is WRITTEN, not who you are):");
+         sb.AppendLine(style!.TrimEnd());
+         sb.AppendLine("Hold to that voice. It governs the prose only: your character, what you know, what you would");
+         sb.AppendLine("do, and the scene's own rules are all decided above and are never overridden by a style.");
          sb.AppendLine();
       }
 
