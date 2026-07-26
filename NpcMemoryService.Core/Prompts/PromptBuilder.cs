@@ -4310,7 +4310,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[/DIALOGUE]");
          sb.AppendLine("[EVENT]");
          sb.AppendLine("type: agreement");
-         sb.AppendLine("summary: Agreed to trade grain for a share of the harvest coin.");
+         sb.AppendLine("summary: I agreed to trade grain for a share of the harvest coin.");
          sb.AppendLine("[/EVENT]");
          sb.AppendLine();
       }
@@ -4345,7 +4345,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
             sb.AppendLine("[EVENT]");
             sb.AppendLine("type: first_meeting|farewell|conflict|collaboration|agreement|betrayal|confrontation|other");
-            sb.AppendLine("summary: One sentence.");
+            sb.AppendLine("summary: One sentence, in the first person (\"I ...\"), never your own name.");
             sb.AppendLine("[/EVENT]");
             sb.AppendLine();
 
@@ -4452,7 +4452,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine(AdultLevel != AdultContentLevel.Off
             ? "type: first_meeting|farewell|conflict|collaboration|agreement|flirt|intimacy|betrayal|confrontation|other"
             : "type: first_meeting|farewell|conflict|collaboration|agreement|betrayal|confrontation|other");
-         sb.AppendLine("summary: One sentence; write so a future you can recall what happened and why it mattered.");
+         sb.AppendLine("summary: One sentence, in the FIRST PERSON and past tense (your own memory: \"I ...\", never your own name or \"he\"/\"she\"); write so a future you can recall what happened and why it mattered.");
          sb.AppendLine("[/EVENT]");
          sb.AppendLine();
 
