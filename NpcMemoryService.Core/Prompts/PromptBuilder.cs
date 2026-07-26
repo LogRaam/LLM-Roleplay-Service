@@ -238,6 +238,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendIntimacyBargain(sb, encounterContext);
          AppendBastardMother(sb, encounterContext);
          AppendMarriage(sb, encounterContext);
+         AppendMatchmaker(sb, encounterContext);
          // ── Dynamic tail (changes every turn) — AppendEncounterContext emits EncounterSectionHeading, the
          // literal marker NpcChatService splits the cacheable prefix on. Everything from here on is per-turn
          // volatile (day count, time of day, scene stage, witness turn flags) and MUST stay after the marker,
@@ -1747,6 +1748,35 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("A blessing, granted or earned, makes the player's clan a real ally of yours — it is your political");
          sb.AppendLine("consent to the union, not the wedding itself. Only ever for a person named above.");
          sb.AppendLine("You may raise the prospect of an alliance yourself if the moment and your esteem for the player invite it.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Matchmaker section. Distinct from <see cref="AppendMarriage" />, which is about the PLAYER wedding
+      ///   into this NPC's house: this teaches the THIRD-PARTY offer, the player's own kin wedding one of the
+      ///   NPC's own kin, an alliance of two houses in which the player is neither spouse. Rendered only when
+      ///   the host has supplied BOTH <see cref="EncounterContext.MatchmakerNpcKin" /> and
+      ///   <see cref="EncounterContext.MatchmakerPlayerKin" />, so the NPC only ever names real, eligible people.
+      /// </summary>
+      private static void AppendMatchmaker(StringBuilder sb, EncounterContext? context)
+      {
+         string? playerKin = context?.MatchmakerPlayerKin;
+         string? npcKin = context?.MatchmakerNpcKin;
+         if (string.IsNullOrWhiteSpace(playerKin) || string.IsNullOrWhiteSpace(npcKin)) return;
+
+         sb.AppendLine("MATCHMAKER, YOU MAY ARRANGE A MATCH BETWEEN THE TWO HOUSES:");
+         sb.AppendLine("The player may propose to wed one of THEIR OWN unwed kin to one of YOURS. This is a match in");
+         sb.AppendLine("which the player is neither party, an alliance of two houses.");
+         sb.AppendLine($"The player's unwed kin who could be married: {playerKin}.");
+         sb.AppendLine($"Your own unwed kin you could give: {npcKin}.");
+         sb.AppendLine("Weigh the player's standing and the gain to your house. If you consent, emit exactly:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: arrange_marriage");
+         sb.AppendLine("player_kin: <the player's kinsman or kinswoman, by name>");
+         sb.AppendLine("target_kin: <your own kinsman or kinswoman, by name>");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The match is sealed only when both are truly free to wed and you truly consent; never claim a");
+         sb.AppendLine("wedding you did not emit this action for.");
          sb.AppendLine();
       }
 

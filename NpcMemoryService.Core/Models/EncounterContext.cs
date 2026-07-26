@@ -547,6 +547,20 @@ namespace NpcMemoryService.Core.Models
       public string? MarriageProspects { get; init; }
 
       /// <summary>
+      ///   Matchmaker feature: the SPEAKING NPC's own unwed kin (of another clan) that they could give in
+      ///   marriage, prebuilt by the host as a short "Name (age)" list. Null/empty when the NPC has no such kin
+      ///   or cannot give any. Paired with <see cref="MatchmakerPlayerKin" /> to teach the arrange_marriage offer.
+      /// </summary>
+      public string? MatchmakerNpcKin { get; init; }
+
+      /// <summary>
+      ///   Matchmaker feature: the PLAYER's own unwed adult kin (of the player's clan) who could be married off,
+      ///   prebuilt by the host as a short "Name (age)" list. Null/empty when the player has no such kin. The
+      ///   matchmaker block is taught only when BOTH this and <see cref="MatchmakerNpcKin" /> are present.
+      /// </summary>
+      public string? MatchmakerPlayerKin { get; init; }
+
+      /// <summary>
       ///   Name of the kingdom the NPC belongs to when the player is free (not already
       ///   sworn to any kingdom) and the NPC is a lord who could extend a mercenary
       ///   contract on the kingdom's behalf. Null when the player is already in a kingdom,
