@@ -22,6 +22,6 @@ namespace NpcMemoryService.Core.Prompts
         ///   Omits all NPC-specific identity, romantic, quest, and witness sections;
         ///   only settlement knowledge and basic behavior rules are injected.
         /// </summary>
-        string BuildCommonerSystemPrompt(NpcProfile profile, CommonsKnowledge knowledge);
+        string BuildCommonerSystemPrompt(NpcProfile profile, CommonsKnowledge knowledge, string? narrativeStyle = null);
     }
 }

@@ -114,11 +114,12 @@ namespace NpcMemoryService.Core.Services
          CommonsKnowledge knowledge,
          ChatSession session,
          string playerMessage,
-         CancellationToken ct = default)
+         CancellationToken ct = default,
+         string? narrativeStyle = null)
       {
          session.AddPlayerMessage(playerMessage);
 
-         string systemPrompt = PromptBuilder.BuildCommonerSystemPrompt(profile, knowledge);
+         string systemPrompt = PromptBuilder.BuildCommonerSystemPrompt(profile, knowledge, narrativeStyle);
 
          var request = new LlmRequest {
             SystemPrompt = systemPrompt,

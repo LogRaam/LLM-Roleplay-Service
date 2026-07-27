@@ -132,7 +132,7 @@ namespace NpcMemoryService.Core.Prompts
       ///   the language mirror are injected — no identity, romantic, quest, or witness
       ///   sections.
       /// </summary>
-      public string BuildCommonerSystemPrompt(NpcProfile profile, CommonsKnowledge knowledge)
+      public string BuildCommonerSystemPrompt(NpcProfile profile, CommonsKnowledge knowledge, string? narrativeStyle = null)
       {
          var sb = new StringBuilder();
          AppendCommonerIdentity(sb, profile, knowledge);
@@ -146,6 +146,9 @@ namespace NpcMemoryService.Core.Prompts
          // the player, so there is no reward an invented deed could unlock.
          AppendPlayerActionNarration(sb, LeanPromptLevel.Lean);
          AppendLanguageMirror(sb);
+         // The player's chosen writing voice reaches commoners too: picking "Tolkien" must not leave the
+         // tavernkeeper in the generic voice while the lord next door speaks it. Same cap as the lord path.
+         AppendNarrativeStyle(sb, narrativeStyle);
          // Last of all (highest recency) — the modder's own post-history instructions, if any.
          AppendPostHistoryInstructions(sb);
 
@@ -241,7 +244,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendMatchmaker(sb, encounterContext);
          // The player's chosen writing voice. Last of the cacheable prefix: it is stable for the whole
          // conversation, so it must never sit after the marker below or it would bust the cache every turn.
-         AppendNarrativeStyle(sb, encounterContext);
+         AppendNarrativeStyle(sb, encounterContext?.NarrativeStyle);
          // ── Dynamic tail (changes every turn) — AppendEncounterContext emits EncounterSectionHeading, the
          // literal marker NpcChatService splits the cacheable prefix on. Everything from here on is per-turn
          // volatile (day count, time of day, scene stage, witness turn flags) and MUST stay after the marker,
@@ -2097,14 +2100,31 @@ namespace NpcMemoryService.Core.Prompts
       ///   replace it). Sits at the end of the cacheable prefix, being stable for the whole conversation.
       ///   No-op when no style is active.
       /// </summary>
-      private static void AppendNarrativeStyle(StringBuilder sb, EncounterContext? context)
-      {
-         string? style = context?.NarrativeStyle;
+      /// <summary>
+      ///   Hard ceiling on the injected style text. A style file is player/modder editable and rendered
+      ///   verbatim, so an oversized one could overflow a small local model's context or crowd out the
+      ///   identity and scene sections above it. The shipped styles all sit well under this; only a
+      ///   pathological file is trimmed. Public so the host can warn at read time against the same number.
+      /// </summary>
+      public const int MaxNarrativeStyleChars = 1500;
 
+      private static void AppendNarrativeStyle(StringBuilder sb, string? style)
+      {
          if (string.IsNullOrWhiteSpace(style)) return;
 
+         string body = style!.TrimEnd();
+
+         // Defensive cap (the "bridge is law" layer): enforce the ceiling here, the one choke point every
+         // caller flows through, rather than trusting each caller to have trimmed. Cut back to a line
+         // boundary so a trimmed voice never ends mid-word.
+         if (body.Length > MaxNarrativeStyleChars)
+         {
+            int lineBreak = body.LastIndexOf('\n', MaxNarrativeStyleChars - 1);
+            body = (lineBreak > 0 ? body.Substring(0, lineBreak) : body.Substring(0, MaxNarrativeStyleChars)).TrimEnd();
+         }
+
          sb.AppendLine("NARRATIVE STYLE (how this is WRITTEN, not who you are):");
-         sb.AppendLine(style!.TrimEnd());
+         sb.AppendLine(body);
          sb.AppendLine("Hold to that voice. It governs the prose only: your character, what you know, what you would");
          sb.AppendLine("do, and the scene's own rules are all decided above and are never overridden by a style.");
          sb.AppendLine();
