@@ -43,12 +43,13 @@ namespace NpcMemoryService.Core.Services
          string deeds,
          string styleGuidance,
          string? continuationOf = null,
+         string? language = null,
          CancellationToken ct = default)
       {
          if (string.IsNullOrWhiteSpace(deeds)) return null;
 
          var request = new LlmRequest {
-            SystemPrompt = BuildSystemPrompt(playerName, styleGuidance, continuationOf),
+            SystemPrompt = BuildSystemPrompt(playerName, styleGuidance, continuationOf, language),
             Messages = [new LlmMessage(MessageRole.User, deeds)],
             Parameters = Parameters
          };
@@ -63,16 +64,23 @@ namespace NpcMemoryService.Core.Services
 
       #region private
 
-      private static string BuildSystemPrompt(string playerName, string styleGuidance, string? continuationOf)
+      private static string BuildSystemPrompt(string playerName, string styleGuidance, string? continuationOf, string? language)
       {
          var sb = new StringBuilder();
          sb.AppendLine($"You are a court chronicler writing the life of {playerName}, a lord of {PromptLore.WorldName}.");
          sb.AppendLine("Below is a bare list of their deeds, each with its date. Rewrite them into a flowing");
-         sb.AppendLine("chronicle in a medieval chronicler's voice — grand and vivid, reverent or wry as the");
-         sb.AppendLine("deeds warrant — as connected prose, not a list. Preserve every deed and its order; you");
+         sb.AppendLine("chronicle in a medieval chronicler's voice, grand and vivid, reverent or wry as the");
+         sb.AppendLine("deeds warrant, as connected prose, not a list. Preserve every deed and its order; you");
          sb.AppendLine("may weave a run of them into a single paragraph. Keep the dates legible in the prose.");
          sb.AppendLine("Invent NO events that are not in the list. Period-appropriate language only; no modern");
-         sb.AppendLine("words, no preamble, no headings, no commentary — write only the chronicle itself.");
+         sb.AppendLine("words, no preamble, no headings, no commentary: write only the chronicle itself.");
+
+         if (!string.IsNullOrWhiteSpace(language))
+         {
+            sb.AppendLine();
+            sb.AppendLine($"Write the ENTIRE chronicle in {language!.Trim()}, every word of it, dates included.");
+            sb.AppendLine("Only the proper names of people and places keep their original spelling.");
+         }
 
          if (!string.IsNullOrWhiteSpace(continuationOf))
          {
