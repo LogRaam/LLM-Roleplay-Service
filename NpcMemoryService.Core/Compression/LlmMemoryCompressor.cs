@@ -35,8 +35,12 @@ namespace NpcMemoryService.Core.Compression
       /// <summary>Below this event count, compression is a no-op.</summary>
       public int MinEventsForCompression { get; init; } = 12;
 
+      // 2000, not 400: a REASONING model (GLM, MiMo) spends its whole reply budget on internal thinking before
+      // it writes the [KEEP] list, so a tight budget comes back empty and the compression fails ("the model
+      // spent its entire reply budget on internal reasoning"). A roomier budget leaves space for the answer
+      // after the reasoning; the client still doubles it once on a retry if even this is eaten.
       public LlmParameters Parameters { get; init; } = new() {
-         MaxTokens = 400,
+         MaxTokens = 2000,
          Creativity = 0.2f // deterministic; we want consistent decisions
       };
 
