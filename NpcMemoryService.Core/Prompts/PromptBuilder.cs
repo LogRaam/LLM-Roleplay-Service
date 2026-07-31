@@ -135,6 +135,10 @@ namespace NpcMemoryService.Core.Prompts
       public string BuildCommonerSystemPrompt(NpcProfile profile, CommonsKnowledge knowledge, string? narrativeStyle = null)
       {
          var sb = new StringBuilder();
+         // Local to this call (never a field): a commoner chat and a lord chat can be in flight on the same
+         // PromptBuilder instance at once, so the {{char}}/{{user}} lookup must be built fresh per build, not
+         // cached on the instance, or a concurrent build could leak one NPC's name into another's prompt.
+         Dictionary<string, string> vars = BuildPromptVariables(profile, null);
          AppendCommonerIdentity(sb, profile, knowledge);
          AppendCommonerRules(sb);
          AppendProseCraft(sb);
@@ -148,9 +152,9 @@ namespace NpcMemoryService.Core.Prompts
          AppendLanguageMirror(sb);
          // The player's chosen writing voice reaches commoners too: picking "Tolkien" must not leave the
          // tavernkeeper in the generic voice while the lord next door speaks it. Same cap as the lord path.
-         AppendNarrativeStyle(sb, narrativeStyle);
+         AppendNarrativeStyle(sb, narrativeStyle, vars);
          // Last of all (highest recency) — the modder's own post-history instructions, if any.
-         AppendPostHistoryInstructions(sb);
+         AppendPostHistoryInstructions(sb, vars);
 
          return sb.ToString();
       }
@@ -158,6 +162,11 @@ namespace NpcMemoryService.Core.Prompts
       public string BuildSystemPrompt(NpcProfile npc, WorldState world, EncounterContext? encounterContext = null)
       {
          var sb = new StringBuilder();
+         // Local to this call (never a field) for the same reason as BuildCommonerSystemPrompt above: this
+         // NpcProfile and this EncounterContext belong to THIS build only, and PromptBuilder itself is a
+         // long-lived instance shared across every NPC conversation in the session (see NpcChatService), so a
+         // shared field would let a concurrent build for another NPC clobber {{char}} mid-flight.
+         Dictionary<string, string> vars = BuildPromptVariables(npc, encounterContext);
          // Lean prompt: for a small / short-context model, drop the heavy flavour sections and shorten the rest so
          // the prompt fits (a full prompt overflows a 4k–8k context and the model returns nothing usable). Only the
          // heavy, always-on sections are trimmed; identity, persona, format, stance and the encounter always stay.
@@ -172,8 +181,8 @@ namespace NpcMemoryService.Core.Prompts
          else AppendLeanProseCraft(sb);
          if (LeanPromptPolicy.UseFullBehaviorGuidelines(lean)) AppendBehaviorGuidelines(sb, encounterContext);
          else AppendLeanBehaviorGuidelines(sb, encounterContext);
-         if (LeanPromptPolicy.Include(PromptSection.WorldNarrative, lean)) AppendWorldDescription(sb);
-         AppendPlayerDescription(sb, encounterContext);
+         if (LeanPromptPolicy.Include(PromptSection.WorldNarrative, lean)) AppendWorldDescription(sb, vars);
+         AppendPlayerDescription(sb, encounterContext, vars);
          // ── Per-NPC identity ─────────────────────────────────────────────────
          AppendIdentity(sb, npc);
          AppendNpcSelfAppearance(sb, encounterContext);
@@ -244,7 +253,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendMatchmaker(sb, encounterContext);
          // The player's chosen writing voice. Last of the cacheable prefix: it is stable for the whole
          // conversation, so it must never sit after the marker below or it would bust the cache every turn.
-         AppendNarrativeStyle(sb, encounterContext?.NarrativeStyle);
+         AppendNarrativeStyle(sb, encounterContext?.NarrativeStyle, vars);
          // ── Dynamic tail (changes every turn) — AppendEncounterContext emits EncounterSectionHeading, the
          // literal marker NpcChatService splits the cacheable prefix on. Everything from here on is per-turn
          // volatile (day count, time of day, scene stage, witness turn flags) and MUST stay after the marker,
@@ -275,9 +284,38 @@ namespace NpcMemoryService.Core.Prompts
          // the rule is the last thing it reads before generating.
          AppendFormatReminder(sb, lean);
          // Last of all (highest recency) — the modder's own post-history instructions, if any.
-         AppendPostHistoryInstructions(sb);
+         AppendPostHistoryInstructions(sb, vars);
 
          return sb.ToString();
+      }
+
+      /// <summary>
+      ///   Builds the <c>{{token}}</c> lookup for <see cref="PromptVariableExpander" />, covering the SDK
+      ///   values <see cref="PromptBuilder" /> has on hand for THIS build: the current NPC's identity and the
+      ///   live player facts on <paramref name="context" />. Deliberately returns a fresh dictionary rather
+      ///   than reusing one across calls: see the concurrency note at both call sites above. Only variables
+      ///   with a clean, confirmed source are included; there is no "faction" or "location" key because
+      ///   neither <see cref="EncounterContext" /> nor <see cref="NpcProfile" /> exposes a bare player-faction
+      ///   name or a bare current-settlement name (<see cref="EncounterContext.CurrentLocationNote" /> is a
+      ///   full composed sentence, not a name, so substituting it into "{{location}}" would read wrong).
+      /// </summary>
+      private Dictionary<string, string> BuildPromptVariables(NpcProfile? profile, EncounterContext? context)
+      {
+         var vars = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
+            ["user"] = PlayerName,
+            ["user_gender"] = PlayerIsFemale ? "woman" : "man",
+            ["user_clan"] = PlayerClanName,
+            ["spouse"] = context?.PlayerSpouseName ?? "",
+            ["father"] = context?.PlayerFatherName ?? "",
+            ["mother"] = context?.PlayerMotherName ?? ""
+         };
+         if (profile != null)
+         {
+            vars["char"] = profile.Name;
+            vars["char_gender"] = profile.IsFemale ? "woman" : "man";
+         }
+
+         return vars;
       }
 
       /// <summary>
@@ -2102,7 +2140,8 @@ namespace NpcMemoryService.Core.Prompts
       ///   <see cref="AppendSceneStyleDirective" />: this is the standing voice, that one is the per-scene lens
       ///   which varies within it (the lens exists to break cross-scene repetition, so a chosen style does not
       ///   replace it). Sits at the end of the cacheable prefix, being stable for the whole conversation.
-      ///   No-op when no style is active.
+      ///   No-op when no style is active. Runs the text through <see cref="PromptVariableExpander" /> first,
+      ///   so a player-authored style may use <c>{{char}}</c>/<c>{{user}}</c>-style tokens.
       /// </summary>
       /// <summary>
       ///   Hard ceiling on the injected style text. A style file is player/modder editable and rendered
@@ -2112,11 +2151,11 @@ namespace NpcMemoryService.Core.Prompts
       /// </summary>
       public const int MaxNarrativeStyleChars = 1500;
 
-      private static void AppendNarrativeStyle(StringBuilder sb, string? style)
+      private static void AppendNarrativeStyle(StringBuilder sb, string? style, IReadOnlyDictionary<string, string> vars)
       {
          if (string.IsNullOrWhiteSpace(style)) return;
 
-         string body = style!.TrimEnd();
+         string body = PromptVariableExpander.Expand(style!.TrimEnd(), vars);
 
          // Defensive cap (the "bridge is law" layer): enforce the ceiling here, the one choke point every
          // caller flows through, rather than trusting each caller to have trimmed. Cut back to a line
@@ -4936,7 +4975,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
-      private void AppendPlayerDescription(StringBuilder sb, EncounterContext? context = null)
+      private void AppendPlayerDescription(StringBuilder sb, EncounterContext? context, IReadOnlyDictionary<string, string> vars)
       {
          // A bandit/pirate captor lives outside the world of nobles: they do not know the
          // player's name, clan, or station. Suppress the identity block entirely and give
@@ -4970,7 +5009,7 @@ namespace NpcMemoryService.Core.Prompts
          if (hasCustom)
          {
             sb.AppendLine();
-            sb.AppendLine(PlayerDescription);
+            sb.AppendLine(PromptVariableExpander.Expand(PlayerDescription, vars));
          }
 
          sb.AppendLine();
@@ -5267,25 +5306,26 @@ namespace NpcMemoryService.Core.Prompts
 
       // ── Sprint 9: world description + player description ─────────────────
 
-      private void AppendWorldDescription(StringBuilder sb)
+      private void AppendWorldDescription(StringBuilder sb, IReadOnlyDictionary<string, string> vars)
       {
          if (string.IsNullOrWhiteSpace(WorldDescription)) return;
          sb.AppendLine("WORLD:");
-         sb.AppendLine(WorldDescription);
+         sb.AppendLine(PromptVariableExpander.Expand(WorldDescription, vars));
          sb.AppendLine();
       }
 
       /// <summary>
-      ///   Appends the modder's <c>post_history_instructions.txt</c> verbatim at the very end of the system
-      ///   prompt — the highest-recency position, read immediately before the conversation. Empty → nothing is
-      ///   added (the stock prompt is unchanged). The text is emitted as-is, with no CR-imposed framing, so a
+      ///   Appends the modder's <c>post_history_instructions.txt</c> verbatim (aside from <c>{{token}}</c>
+      ///   expansion, see <see cref="PromptVariableExpander" />) at the very end of the system prompt — the
+      ///   highest-recency position, read immediately before the conversation. Empty → nothing is added (the
+      ///   stock prompt is unchanged). The text is otherwise emitted as-is, with no CR-imposed framing, so a
       ///   modder controls it completely.
       /// </summary>
-      private void AppendPostHistoryInstructions(StringBuilder sb)
+      private void AppendPostHistoryInstructions(StringBuilder sb, IReadOnlyDictionary<string, string> vars)
       {
          if (string.IsNullOrWhiteSpace(PostHistoryInstructions)) return;
          sb.AppendLine();
-         sb.AppendLine(PostHistoryInstructions);
+         sb.AppendLine(PromptVariableExpander.Expand(PostHistoryInstructions, vars));
       }
 
       /// <summary>
