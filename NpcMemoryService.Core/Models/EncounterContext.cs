@@ -247,6 +247,14 @@ namespace NpcMemoryService.Core.Models
       public string? CurrentLocationNote { get; init; }
 
       /// <summary>
+      ///   The bare name of the settlement or scene the player is in ("Pravend"), for the {{location}}
+      ///   prompt variable. Null/empty when the player is roaming the world map (in no settlement), so the
+      ///   token resolves to an empty string rather than a stale place. Distinct from
+      ///   <see cref="CurrentLocationNote" />, which is a whole composed sentence.
+      /// </summary>
+      public string? CurrentLocationName { get; init; }
+
+      /// <summary>
       ///   Ready-to-inject geography grounding, built game-side from the engine's own map data: the
       ///   encyclopedia blurb of the settlement the NPC stands in, plus compact facts (owner, culture,
       ///   bearing) for any place named in the conversation, so the NPC never invents where places sit

@@ -84,6 +84,12 @@ namespace NpcMemoryService.Core.Prompts
       public string PlayerClanName { get; init; } = "";
 
       /// <summary>
+      ///   The player's faction name for the {{faction}} prompt variable: their kingdom if affiliated,
+      ///   otherwise their own clan (the map faction). Empty string omits the token's value.
+      /// </summary>
+      public string PlayerFactionName { get; init; } = "";
+
+      /// <summary>
       ///   Player description loaded from <c>player_description.txt</c>.
       ///   Injected in the static prefix so NPCs always know who they are speaking to.
       ///   Empty string → section omitted.
@@ -305,6 +311,9 @@ namespace NpcMemoryService.Core.Prompts
             ["user"] = PlayerName,
             ["user_gender"] = PlayerIsFemale ? "woman" : "man",
             ["user_clan"] = PlayerClanName,
+            ["user_faction"] = PlayerFactionName,
+            ["faction"] = PlayerFactionName,
+            ["location"] = context?.CurrentLocationName ?? "",
             ["spouse"] = context?.PlayerSpouseName ?? "",
             ["father"] = context?.PlayerFatherName ?? "",
             ["mother"] = context?.PlayerMotherName ?? ""
