@@ -2100,6 +2100,7 @@ namespace NpcMemoryService.Core.Prompts
          if (string.IsNullOrWhiteSpace(npc.Relationships)) return;
          sb.AppendLine("RELATIONSHIPS:");
          sb.AppendLine(npc.Relationships);
+         sb.AppendLine("Different people can share a given name. Someone named in rumor or news is not the same person as a kinsman, child, or ward of yours who merely shares that name; tell people apart by house, age, and standing, not by first name alone.");
          sb.AppendLine();
       }
 
