@@ -174,6 +174,12 @@ namespace NpcMemoryService.Core.Models
       public bool IsFemale { get; set; }
 
       /// <summary>
+      ///   The hero's age in years, refreshed each conversation. 0 when unknown, e.g. a profile
+      ///   from a save written before this field existed.
+      /// </summary>
+      public int Age { get; set; }
+
+      /// <summary>
       ///   Campaign-time hour (<c>CampaignTime.Now.ToHours</c>) of the last
       ///   POSITIVE relation gain granted through a relation-changing action.
       ///   Used by the consumer to throttle relationship growth (at most one

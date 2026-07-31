@@ -1392,10 +1392,17 @@ namespace NpcMemoryService.Core.Prompts
 
       private static void AppendIdentity(StringBuilder sb, NpcProfile npc)
       {
-         sb.AppendLine($"YOU ARE {npc.Name.ToUpperInvariant()}, a {(npc.IsFemale ? "woman" : "man")} of the {npc.Clan} clan, {npc.Faction} faction.");
+         sb.AppendLine(npc.Age > 0
+            ? $"YOU ARE {npc.Name.ToUpperInvariant()}, a {(npc.IsFemale ? "woman" : "man")} of {npc.Age} years, of the {npc.Clan} clan, {npc.Faction} faction."
+            : $"YOU ARE {npc.Name.ToUpperInvariant()}, a {(npc.IsFemale ? "woman" : "man")} of the {npc.Clan} clan, {npc.Faction} faction.");
          sb.AppendLine(npc.IsFemale
             ? "You are female. Always speak of yourself as a woman, using she/her, whatever any older record might imply."
             : "You are male. Always speak of yourself as a man, using he/him, whatever any older record might imply.");
+         if (npc.Age > 0)
+         {
+            string lifeStage = LifeStageDescriber.Describe(npc.Age);
+            sb.AppendLine($"You are {npc.Age} years old, {lifeStage}. Speak as someone of your years: do not look back on a long life, old age, or decades of deeds you are too young to have lived, nor affect a youth you have outgrown. Your age colours what you have seen and done.");
+         }
          sb.AppendLine();
 
          if (!string.IsNullOrWhiteSpace(npc.Personality))
