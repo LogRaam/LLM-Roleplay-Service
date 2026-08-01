@@ -69,6 +69,16 @@ namespace NpcMemoryService.Core.Models
       public string? NpcSelfAppearance { get; init; }
 
       /// <summary>
+      ///   A ready-to-inject second-person line telling a pregnant female NPC that she is aware of her own
+      ///   pregnancy and must never deny being with child (fixes a player report: a pregnant NPC denied it
+      ///   when asked, since her state was never injected into the prompt before this field existed). Built
+      ///   game-side by <c>PregnancyNotePolicy</c>, mirroring <see cref="LifeStageDescriber" />'s pattern of
+      ///   turning a raw fact into identity-section colour. Rendered right after the age/life-stage line, in
+      ///   the NPC's own identity, never the player's. Empty string when the NPC is not pregnant.
+      /// </summary>
+      public string PregnancyNote { get; init; } = "";
+
+      /// <summary>
       ///   True when a bandit captor has ALREADY dealt with the player (his profile carries memories of
       ///   them), so the "brigands do not know your name" perception no longer applies: he greets a captive
       ///   he knows of old, by name. False on a first encounter, where learning the name in-scene stays part

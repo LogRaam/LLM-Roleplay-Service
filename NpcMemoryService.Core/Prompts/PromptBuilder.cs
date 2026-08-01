@@ -190,7 +190,7 @@ namespace NpcMemoryService.Core.Prompts
          if (LeanPromptPolicy.Include(PromptSection.WorldNarrative, lean)) AppendWorldDescription(sb, vars);
          AppendPlayerDescription(sb, encounterContext, vars);
          // ── Per-NPC identity ─────────────────────────────────────────────────
-         AppendIdentity(sb, npc);
+         AppendIdentity(sb, npc, encounterContext);
          AppendNpcSelfAppearance(sb, encounterContext);
          // Voice first, then motive: the backstory says who they SOUND like, the conviction what they WANT.
          // Both ride the same lean gate, because an authored character is the whole reason a player authored one:
@@ -1395,7 +1395,7 @@ namespace NpcMemoryService.Core.Prompts
 
       // ── Identity (Sprint 8.1: includes Trait) ────────────────────────────
 
-      private static void AppendIdentity(StringBuilder sb, NpcProfile npc)
+      private static void AppendIdentity(StringBuilder sb, NpcProfile npc, EncounterContext? encounterContext)
       {
          sb.AppendLine(npc.Age > 0
             ? $"YOU ARE {npc.Name.ToUpperInvariant()}, a {(npc.IsFemale ? "woman" : "man")} of {npc.Age} years, of the {npc.Clan} clan, {npc.Faction} faction."
@@ -1408,6 +1408,11 @@ namespace NpcMemoryService.Core.Prompts
             string lifeStage = LifeStageDescriber.Describe(npc.Age);
             sb.AppendLine($"You are {npc.Age} years old, {lifeStage}. Speak as someone of your years: do not look back on a long life, old age, or decades of deeds you are too young to have lived, nor affect a youth you have outgrown. Your age colours what you have seen and done.");
          }
+         // Pregnancy awareness (fixes a player report: a pregnant NPC denied being with child because her
+         // state was never injected here before). Rendered right after the age/life-stage line, in the
+         // NPC's own second-person identity, never the player's.
+         if (!string.IsNullOrEmpty(encounterContext?.PregnancyNote))
+            sb.AppendLine(encounterContext!.PregnancyNote);
          sb.AppendLine();
 
          if (!string.IsNullOrWhiteSpace(npc.Personality))
