@@ -548,6 +548,12 @@ namespace NpcMemoryService.Core.Prompts
             ? profile.Personality!
             : "a commoner";
          sb.AppendLine($"You are {profile.Name}, {archetype} in {knowledge?.SettlementName ?? $"a {PromptLore.WorldAdjective} settlement"}.");
+         // A commoner prompt carries no traits/relationships block, so the gender line the lord identity relies on
+         // is the ONLY place the model is told this. Without it a female villager was voiced as a man (player report:
+         // "CR refuses to recognize the female villager as female"). State it plainly, as the lord identity does.
+         sb.AppendLine(profile.IsFemale
+            ? "You are a woman; always speak of yourself as a woman, using she/her."
+            : "You are a man; always speak of yourself as a man, using he/him.");
          sb.AppendLine();
 
          if (knowledge != null)
