@@ -138,6 +138,13 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public bool SteppedBackFromWar { get; set; } = false;
 
+      /// <summary>
+      ///   Adaptive correspondence damper (&lt;= 0). Lowered when the player signals disinterest in THIS sender's
+      ///   letters (an Acknowledge, or an explicit "write me less" in a reply), raised back toward 0 by a real
+      ///   reply. Fed into the letter mailbox scheduler's weighting. 0 = neutral. Additive/save-safe (JSON default).
+      /// </summary>
+      public int CorrespondenceInterest { get; set; }
+
       public required string Id { get; init; }
 
       /// <summary>
@@ -282,6 +289,21 @@ namespace NpcMemoryService.Core.Models
       {
          get => _scheduledLetters;
          init => _scheduledLetters = value ?? new List<ScheduledLetter>();
+      }
+
+      private readonly List<LetterCandidateIntent> _letterCandidates = new();
+
+      /// <summary>
+      ///   B2 (mailbox scheduler wiring): unprompted letters this NPC WANTS to write but has not yet been
+      ///   allowed to. An event handler (battle won, tournament taken, birth announced) enqueues one of these
+      ///   instead of writing immediately; the mod's daily mailbox scheduler weighs it against every other
+      ///   candidate and every other correspondent's own backlog, and only releases the winner. Empty on saves
+      ///   made before this existed (graceful, additive).
+      /// </summary>
+      public List<LetterCandidateIntent> LetterCandidates
+      {
+         get => _letterCandidates;
+         init => _letterCandidates = value ?? new List<LetterCandidateIntent>();
       }
 
       private readonly List<TroopLoan> _troopLoans = new();

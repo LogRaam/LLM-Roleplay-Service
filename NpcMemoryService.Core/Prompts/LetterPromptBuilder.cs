@@ -109,7 +109,14 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine($"Write your reply in the SAME language as the quoted letter from {playerName} above, not the");
          sb.AppendLine("language of this internal instruction.");
          sb.AppendLine("Write ONLY the letter body after the DELAY line. Do not emit [EVENT], [ACTION], [STANCE], or");
-         sb.AppendLine("any section other than the letter text. No section headers.");
+         sb.AppendLine("any section other than the letter text, with one narrow exception below. No section headers.");
+         sb.AppendLine();
+         sb.AppendLine("If, and only if, the player's letter clearly asks for MORE or FEWER letters going forward,");
+         sb.AppendLine("append exactly one further line, on its own, after the letter body:");
+         sb.AppendLine("  [CORRESPONDENCE_PREFERENCE] scope=<sender|subject|all> direction=<less|more> strength=<mild|strong>");
+         sb.AppendLine("scope=sender is about letters from you specifically; subject is about this kind of news; all");
+         sb.AppendLine("is about correspondence in general. Omit the line entirely when the player asked for no such");
+         sb.AppendLine("thing; never invent one. It is metadata for the courier system, never part of the letter.");
          sb.AppendLine();
          sb.AppendLine("Example output:");
          sb.AppendLine("DELAY: 3");
