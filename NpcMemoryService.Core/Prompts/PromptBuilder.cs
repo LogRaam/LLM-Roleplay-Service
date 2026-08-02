@@ -1174,7 +1174,21 @@ namespace NpcMemoryService.Core.Prompts
          // narration then put those companions on the road (Gabriel, in play, 2026-07-19). The silence was
          // worse than the error: with no line at all the model furnishes the road itself, so the solitude
          // has to be STATED, not merely left unmentioned.
-         if (context.PlayerPartyTroopCount > 1)
+         if (context.PlayerPartyTroopCount > 1 && IsIndoorScene(context.Scene))
+         {
+            // Player report: NPCs referenced the player's soldiers being present (riders, guards "at their
+            // back") in a city/keep/tavern/dungeon scene, where an army physically cannot be in the room.
+            // Indoors, the force is a STANDING fact about the player (they command men), not a visible
+            // presence in the scene, so it must never be described as riding/marching/waiting "at their back".
+            sb.AppendLine("THE PLAYER'S STANDING (they command a force, but it is not here):");
+            sb.AppendLine($"The player commands {DescribeForceCommanded(context.PlayerPartyTroopCount)}, but those men are not");
+            sb.AppendLine("here with them: they wait beyond these walls.");
+            sb.AppendLine("Do not place their soldiers in this scene, do not give them riders or guards standing with");
+            sb.AppendLine("them, and do not lean on their troops. Weigh only who is actually in the room; you remain aware of the");
+            sb.AppendLine("player's standing as a commander.");
+            sb.AppendLine();
+         }
+         else if (context.PlayerPartyTroopCount > 1)
          {
             sb.AppendLine("THE FORCE AT THE PLAYER'S BACK (visible fact, right now):");
             sb.AppendLine($"The player does not stand alone: {DescribeForce(context.PlayerPartyTroopCount)}");
@@ -1247,6 +1261,43 @@ namespace NpcMemoryService.Core.Prompts
          if (troopCount < 1000) return "several hundred soldiers march at their back.";
 
          return "an army numbering in the thousands marches at their back.";
+      }
+
+      /// <summary>
+      ///   True for a scene where the player's field force cannot physically be present (a city, a keep,
+      ///   a tavern, a dungeon): walls the player walked through alone or under guard, not a road the whole
+      ///   party rides together. Player report: NPCs kept describing riders/guards "at their back" while
+      ///   indoors, where an army of hundreds plainly is not in the room. <see cref="SceneType.Outdoor" />,
+      ///   <see cref="SceneType.Battlefield" />, and <see cref="SceneType.Unknown" /> (no scene resolved,
+      ///   the old default) stay OUTDOOR: the force may genuinely be present.
+      /// </summary>
+      private static bool IsIndoorScene(SceneType scene)
+      {
+         switch (scene)
+         {
+            case SceneType.Settlement:
+            case SceneType.Keep:
+            case SceneType.Tavern:
+            case SceneType.Dungeon:
+               return true;
+            default:
+               return false;
+         }
+      }
+
+      /// <summary>
+      ///   Folds the player's raw troop count into the same coarse qualitative bands as <see cref="DescribeForce" />,
+      ///   but describing the force's SIZE only, never its physical presence (no "rides/marches at their back"):
+      ///   for an indoor scene, where the army waits beyond the walls rather than standing in the room.
+      /// </summary>
+      private static string DescribeForceCommanded(int troopCount)
+      {
+         if (troopCount < 25) return "only a handful of men";
+         if (troopCount < 100) return "a company of a few dozen soldiers";
+         if (troopCount < 400) return "a warband of well over a hundred soldiers";
+         if (troopCount < 1000) return "several hundred soldiers";
+
+         return "an army numbering in the thousands";
       }
 
       /// <summary>
