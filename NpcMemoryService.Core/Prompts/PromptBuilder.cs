@@ -3904,6 +3904,19 @@ namespace NpcMemoryService.Core.Prompts
          CaptiveSceneIntent intent = context?.CaptiveIntent ?? CaptiveSceneIntent.Interrogation;
          int relation = npc?.ReputationWithPlayer ?? 0;
 
+         // Player report: captured by Sea Raiders, the scene was narrated as a land camp with a tent and a
+         // campfire, the ship never registering. Rendered ahead of every branch below (companion-victim,
+         // sexual, and bandit-menace/reckoning all draw on the same physical setting).
+         if (context?.CaptiveSceneAtSea == true)
+         {
+            sb.AppendLine("ABOARD A SHIP: this captivity is happening ON OPEN WATER, aboard the captor's ship, out of");
+            sb.AppendLine("sight of land. There is no camp, no tent, no campfire, no horses or roads here, only the");
+            sb.AppendLine("deck, the hold, the rigging, and the sea. Ground every physical detail accordingly (the");
+            sb.AppendLine("roll of the deck, salt air, creaking timber, the crew about the ship).");
+            sb.AppendLine("Never invent a land camp or a fire (you are on the water).");
+            sb.AppendLine();
+         }
+
          // The scene targets a COMPANION held alongside the player: the captor works on the companion to break
          // the watching (or coerced) player. Its own framing, replacing the player-as-victim rules below.
          if (!string.IsNullOrEmpty(context?.CaptiveVictimName))
@@ -5246,6 +5259,13 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Speak of giving a task without the block and NOTHING is recorded: the player can never");
          sb.AppendLine("complete it, which reads as a broken promise. Never present a task as given, accepted,");
          sb.AppendLine("or underway unless you emit the block with it.");
+         sb.AppendLine();
+         sb.AppendLine("THE MOMENT YOU COMMIT, EMIT IT: the instant you agree, in dialogue, to send the player on a");
+         sb.AppendLine("concrete mission, fetch, delivery, or bandit-clearing, however that agreement is worded, the");
+         sb.AppendLine("[QUEST] block is MANDATORY in that SAME reply. Do not merely discuss it, hint at it across");
+         sb.AppendLine("several turns, or say \"I will have a task for you\" / \"consider it done\" and leave the block");
+         sb.AppendLine("for later: back-and-forth talk with no block behind it is exactly the broken promise this");
+         sb.AppendLine("rule exists to prevent.");
          sb.AppendLine();
          sb.AppendLine("[QUEST]");
          sb.AppendLine("type: one token from the list above");

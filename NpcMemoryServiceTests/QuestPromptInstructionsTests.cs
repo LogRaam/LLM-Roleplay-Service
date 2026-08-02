@@ -117,6 +117,20 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("A task EXISTS only if you emit the [QUEST] block");
       }
 
+      // Player report: "sometimes quests don't get properly added despite being discussed back and forth" -
+      // the NPC agreed to a task in prose over several turns but never emitted the [QUEST] block that turn,
+      // so nothing was ever recorded. The pairing-contract test above pins the general rule; this pins the
+      // firmer, explicit directive that a COMMITMENT (agreeing to a mission/fetch/delivery/bandit-clear)
+      // must produce the block in the SAME reply, not merely be discussed or agreed to in dialogue.
+      [Test]
+      public void GIVEN_quest_teaching_WHEN_rendered_THEN_committing_to_a_task_in_dialogue_demands_the_block_that_same_turn()
+      {
+         string prompt = BuildWithQuests(Npc());
+
+         prompt.Should().Contain("THE MOMENT YOU COMMIT, EMIT IT");
+         prompt.Should().Contain("[QUEST] block is MANDATORY in that SAME reply");
+      }
+
       // Phase C (weak-model parser hardening): the abstract [QUEST] TEMPLATE alone (field names, no real
       // values) leaves a weak model guessing at concrete syntax. A fully-filled worked example, mirroring
       // the existing [DIALOGUE]/[EVENT] example, is the biggest single win for weak-model compliance.

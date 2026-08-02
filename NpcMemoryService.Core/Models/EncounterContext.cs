@@ -117,6 +117,18 @@ namespace NpcMemoryService.Core.Models
       public CaptiveSceneIntent CaptiveIntent { get; init; } = CaptiveSceneIntent.Interrogation;
 
       /// <summary>
+      ///   True when the captive scene is physically happening ABOARD A SHIP on open water (the captor's
+      ///   holding party, or the captor's own live party, is at sea right now). Distinct from
+      ///   <see cref="AtSea" />: that flag tracks the PLAYER's own <c>MobileParty.MainParty</c>, which is
+      ///   moot once the player is a captive (they no longer command a party of their own). Player report:
+      ///   captured by Sea Raiders, the captive scene was narrated as a land camp with a tent and a
+      ///   campfire, because nothing told the model the scene was still aboard the captor's ship. When true,
+      ///   the captive prompt section injects an explicit ABOARD A SHIP cue so the narrator stops inventing
+      ///   a land camp. Meaningless outside a captive scene.
+      /// </summary>
+      public bool CaptiveSceneAtSea { get; init; }
+
+      /// <summary>
       ///   The driving THROUGHLINE of this captive scene (e.g. "an interrogation dressed as intimacy",
       ///   "silence and stillness stretched past bearing"), chosen once when the scene opens and carried on
       ///   EVERY turn so it governs the whole scene, not just the opening line. Null for a scene with no
