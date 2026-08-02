@@ -512,6 +512,30 @@ namespace NpcMemoryService.Core.Models
       public bool IsRoundTableTurn { get; init; }
 
       /// <summary>
+      ///   Council narrator model (2026-08-02): true on a real, player-led council turn, ALONGSIDE
+      ///   <see cref="IsRoundTableTurn" /> (which stays true so every other council rule sharing that block still
+      ///   applies: NO DEED IS SEALED, the [RESOLUTION] channel, the regard-shift ACTION). This flag alone swaps
+      ///   the "whole table / per-member, each will speak in turn" framing for a NARRATOR framing: the LLM is not
+      ///   any single seated member, and does not answer as one leader presiding over the rest. It describes the
+      ///   scene briefly in [NARRATION], then gives the floor to whichever seated member(s) are genuinely moved to
+      ///   speak this turn (each attributed via [WITNESS_REACTION]), picking naturally rather than polling
+      ///   everyone every turn. The profile backing this call (the anchor) is seated like any other member and
+      ///   may use [DIALOGUE] for their own line, never privileged, and may also stay silent. False for the older
+      ///   whole-table/per-member council spike and for the unrelated, non-council round-table lap, both of
+      ///   which keep the original "each will speak in turn" text.
+      /// </summary>
+      public bool IsCouncilNarratorTurn { get; init; }
+
+      /// <summary>
+      ///   Set when the player's last message addressed one seated council member by name (reusing Sprint 15B's
+      ///   address detector): that member must answer THIS turn, in their own [WITNESS_REACTION] (or their own
+      ///   [DIALOGUE], when the addressed member is the anchor themselves), though others may still add their
+      ///   own word. Null when nobody in particular was addressed. Only meaningful alongside
+      ///   <see cref="IsCouncilNarratorTurn" />.
+      /// </summary>
+      public string? AddressedCouncilMemberName { get; init; }
+
+      /// <summary>
       ///   True when this turn is an automatic NPC response to a witness who just
       ///   reacted (Sprint 15C). The final user message in the session is a witness
       ///   statement ([Name]: …), not a player message. When set, the prompt instructs

@@ -1106,13 +1106,18 @@ namespace NpcMemoryService.Core.Prompts
 
          if (context.IsRoundTableTurn)
          {
-            sb.AppendLine("THE COUNCIL PRESENT (each will speak in turn):");
-            sb.AppendLine("The floor is open to everyone here. Speak at more length than a normal reply, a full and");
-            sb.AppendLine("substantive contribution in your own voice. You may respond to, build on, agree or disagree with,");
-            sb.AppendLine("or address by name another person present, not only the player. Do not simply defer back to the player.");
-            sb.AppendLine("Lines written as \"Name: ...\" in the exchange above are what THAT person said aloud in this room.");
-            sb.AppendLine("Speak ONLY as yourself: never write another person's reply, and never answer on their behalf.");
-            sb.AppendLine();
+            if (context.IsCouncilNarratorTurn)
+               AppendCouncilNarratorFraming(sb, context);
+            else
+            {
+               sb.AppendLine("THE COUNCIL PRESENT (each will speak in turn):");
+               sb.AppendLine("The floor is open to everyone here. Speak at more length than a normal reply, a full and");
+               sb.AppendLine("substantive contribution in your own voice. You may respond to, build on, agree or disagree with,");
+               sb.AppendLine("or address by name another person present, not only the player. Do not simply defer back to the player.");
+               sb.AppendLine("Lines written as \"Name: ...\" in the exchange above are what THAT person said aloud in this room.");
+               sb.AppendLine("Speak ONLY as yourself: never write another person's reply, and never answer on their behalf.");
+               sb.AppendLine();
+            }
             // Round-table audit C1/0.1: the council runs on the STANDARD prompt, which teaches every action
             // (quests, gold, troops, marriage), and the host applies NONE of them for a council turn: no
             // ProfileMutator, no Store.Set, no actions. A lord who said "I lend you fifty men" here was
@@ -1242,6 +1247,49 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("truly know of none, say so plainly and send the player to the taverns.");
             sb.AppendLine();
          }
+      }
+
+      /// <summary>
+      ///   The narrator framing for <see cref="EncounterContext.IsCouncilNarratorTurn" /> (2026-08-02), replacing
+      ///   the "THE COUNCIL PRESENT (each will speak in turn)" whole-table framing for a real, player-led council:
+      ///   no single seated member presides over the rest or answers on the table's behalf. Every rule AFTER this
+      ///   block (NO DEED IS SEALED, the [RESOLUTION] channel, the regard-shift ACTION) is unchanged and shared
+      ///   with the older whole-table/per-member framing: only HOW the reply is voiced changes here, never what
+      ///   a council may decide or record. The seated-member roster (name, persona, regard) is rendered earlier
+      ///   in the stable prefix by <see cref="AppendWitnesses" />, so "exactly as listed above" below is literal.
+      /// </summary>
+      private static void AppendCouncilNarratorFraming(StringBuilder sb, EncounterContext context)
+      {
+         sb.AppendLine("YOU ARE THE NARRATOR OF THIS COUNCIL, NOT ITS PRESIDING VOICE:");
+         sb.AppendLine("The player convened this meeting and leads it. For this turn, set aside speaking as a single");
+         sb.AppendLine("leader: you are the NARRATOR/DIRECTOR of the whole room, describing the scene and giving the");
+         sb.AppendLine("floor to whichever seated member(s) are genuinely moved to speak. No one member presides over");
+         sb.AppendLine("the rest, yourself included.");
+         sb.AppendLine("Open with a brief [NARRATION]: a line or two setting the moment (a glance, a pause, the room's");
+         sb.AppendLine("mood) in the neutral third person, never a private thought.");
+         sb.AppendLine("Then give the floor. Each member who speaks gets their own attributed block:");
+         sb.AppendLine("[WITNESS_REACTION]");
+         sb.AppendLine("name: Name (exactly as listed above)");
+         sb.AppendLine("text: their words, a full and substantive contribution in their own voice");
+         sb.AppendLine("[/WITNESS_REACTION]");
+         sb.AppendLine("One block per member who speaks. NOT EVERYONE SPEAKS EVERY TURN: choose who reacts, true to");
+         sb.AppendLine("their own persona, their own regard for the player, and their own memory (listed above), a");
+         sb.AppendLine("natural pace rather than a forced roll call around the table.");
+         sb.AppendLine("You yourself are seated at this table like any other member (your own persona and regard are");
+         sb.AppendLine("described elsewhere in this prompt): if you are moved to speak, use [DIALOGUE] for your own");
+         sb.AppendLine("line exactly as any ordinary turn. You are not privileged and may just as well stay silent and");
+         sb.AppendLine("let others carry the moment; an empty [DIALOGUE] is fine when you have nothing to add this turn.");
+         sb.AppendLine("Never write words for the player, and never invent a member's reply beyond their own block.");
+
+         if (!string.IsNullOrWhiteSpace(context.AddressedCouncilMemberName))
+         {
+            sb.AppendLine();
+            sb.AppendLine($"THE PLAYER ADDRESSED {context.AddressedCouncilMemberName!.ToUpperInvariant()} DIRECTLY THIS TURN:");
+            sb.AppendLine($"{context.AddressedCouncilMemberName} must answer this turn, in their own [WITNESS_REACTION], or");
+            sb.AppendLine("your own [DIALOGUE] if that is you, though others may still add their own word.");
+         }
+
+         sb.AppendLine();
       }
 
       /// <summary>
@@ -2638,9 +2686,11 @@ namespace NpcMemoryService.Core.Prompts
          // to speak at length gave the model two contradictory framings of the same room.
          bool council = context.IsRoundTableTurn;
 
-         sb.AppendLine(council
-            ? "AT THIS TABLE WITH YOU (each speaks in turn, you among them):"
-            : "WITNESSES PRESENT (they can hear this conversation):");
+         sb.AppendLine(context.IsCouncilNarratorTurn
+            ? "AT THIS TABLE WITH YOU (you among them; not everyone speaks every turn):"
+            : council
+               ? "AT THIS TABLE WITH YOU (each speaks in turn, you among them):"
+               : "WITNESSES PRESENT (they can hear this conversation):");
 
          foreach (WitnessEntry w in context.Witnesses)
          {
