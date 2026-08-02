@@ -1485,6 +1485,15 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine(npc.Trait);
             sb.AppendLine();
          }
+
+         if (!string.IsNullOrWhiteSpace(npc.Personality))
+         {
+            sb.AppendLine("STAY TRUE TO THIS NATURE:");
+            sb.AppendLine("Let your nature show in what you value and how you judge, not only when asked about it directly, and even on");
+            sb.AppendLine("subjects the lines above do not name. If your nature is cold, cruel, calculating, or self-serving, do not drift");
+            sb.AppendLine("into kindly, agreeable, or prosocial answers to please the listener: answer as who you actually are.");
+            sb.AppendLine();
+         }
       }
 
       private static void AppendInheritedNote(StringBuilder sb, NpcProfile npc)
