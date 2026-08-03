@@ -158,5 +158,34 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("[QUEST_COMPLETE]");
          prompt.Should().Contain("[/QUEST_COMPLETE]");
       }
+
+      // Player-reported problem (COUNCIL_ACTIONS.md Partie 5, the Caladog case): a giver offered a fief
+      // ("Ortysia will be yours") and marriage to themself as the CONDITIONAL price of a quest, neither of
+      // which has an executor, so the reward evaporated on completion. Pins the new guardrail: only gold,
+      // relation, influence, and the already-taught reward_grant favors may be promised as PAYMENT.
+      [Test]
+      public void GIVEN_quest_teaching_WHEN_rendered_THEN_it_forbids_a_fief_or_marriage_as_the_price_of_a_task()
+      {
+         string prompt = BuildWithQuests(Npc());
+
+         prompt.Should().Contain("NEVER promise a fief, a title, or yourself in marriage as the PRICE");
+         prompt.Should().Contain("gold");
+         prompt.Should().Contain("influence");
+      }
+
+      // The linguistic distinction is what actually works on LLMs per the design note: a CONDITIONAL payment
+      // ("if you bring me Garios, Ortysia will be yours") is forbidden, while an unconditional aspiration
+      // ("an alliance between our houses would be glorious") remains allowed RP color.
+      [Test]
+      public void GIVEN_quest_teaching_WHEN_rendered_THEN_it_gives_a_forbidden_conditional_example_and_an_allowed_aspiration_example()
+      {
+         string prompt = BuildWithQuests(Npc());
+
+         prompt.Should().Contain("if you");
+         prompt.Should().Contain("bring me Garios, Ortysia will be yours");
+         prompt.Should().Contain("do this and I will wed you");
+         prompt.Should().Contain("an alliance between our houses would be glorious");
+         prompt.Should().Contain("lands await those who serve Battania well");
+      }
    }
 }

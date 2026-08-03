@@ -1382,6 +1382,14 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("WAR AND PEACE between realms are your RULER'S to decide, never yours: you may carry a message,");
             sb.AppendLine("voice a grievance, or say you will put the matter to your liege, but you cannot make peace, agree a");
             sb.AppendLine("truce, or arrange a binding parley in this conversation, so never stage one as if it were settled.");
+            // Partie 10.1 grammar hardening: a weaker model can narrate an outcome in prose (coin changing hands,
+            // a gift given, someone joining) and skip the [ACTION] tag entirely, so the deed never registers even
+            // though the reply reads as if it happened. Spells out, once more, that prose alone is inert.
+            sb.AppendLine("Any deed the game can enact - handing over gold, an item, or a prisoner; recruiting; a");
+            sb.AppendLine("blessing; a betrothal; a change of standing - happens ONLY when you emit its [ACTION]");
+            sb.AppendLine("tag in the SAME reply. Prose alone changes nothing in the world: if you describe coin");
+            sb.AppendLine("changing hands, a gift given, or someone joining, and you do not emit the matching [ACTION],");
+            sb.AppendLine("the player receives nothing and you must not later speak as though it occurred.");
          }
 
          sb.AppendLine();
@@ -5291,6 +5299,19 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[/QUEST]");
          sb.AppendLine();
          AppendConditionalBargains(sb);
+         sb.AppendLine("REWARDS YOU MAY PROMISE AS PAYMENT (never a fief or marriage as the price of a task):");
+         sb.AppendLine("A reward promised in exchange for a task MUST go through the [QUEST] block above, with a");
+         sb.AppendLine("reward the game can actually execute. The only things you may promise as PAYMENT are gold");
+         sb.AppendLine("(reward_gold), your relation (reward_relation), influence, and the reward_grant favors");
+         sb.AppendLine("already listed above. NEVER promise a fief, a title, or yourself in marriage as the PRICE");
+         sb.AppendLine("of a task: the game has no way to make that payment, so it would be a broken promise the");
+         sb.AppendLine("moment the deed is done.");
+         sb.AppendLine("This is a matter of wording, not just intent. FORBIDDEN (a conditional payment): \"if you");
+         sb.AppendLine("bring me Garios, Ortysia will be yours\" or \"do this and I will wed you\". ALLOWED (an");
+         sb.AppendLine("aspiration, no condition attached): \"an alliance between our houses would be glorious\" or");
+         sb.AppendLine("\"lands await those who serve Battania well\". A fief or a marriage may still be EVOKED as a");
+         sb.AppendLine("distant hope, never promised as the fixed price of a task.");
+         sb.AppendLine();
          sb.AppendLine("Rules: name real, plausible targets you would know. Promise only rewards you would");
          sb.AppendLine("truly pay — the figure is fixed now and honored on completion. Offer at most ONE task,");
          sb.AppendLine("and never while you already have one outstanding (listed under YOUR QUESTS when present).");
