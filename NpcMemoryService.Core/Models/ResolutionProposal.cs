@@ -86,5 +86,16 @@ namespace NpcMemoryService.Core.Models
         ///   naming exactly. Null for any other kind, or when none was named.
         /// </summary>
         public string? TargetFiefName { get; init; }
+
+        /// <summary>
+        ///   For a "release_prisoner" kind (Parley toolkit, rounding out make_peace + tribute, 2026-08-04): the
+        ///   named hero captive the PLAYER currently holds, whom the seated enemy leader asks freed as a
+        ///   concession, REUSING the existing 1:1 free_prisoner mechanic end to end. A dedicated field rather
+        ///   than reusing TargetRival (that field's own doc already reserves it for pledge_against's own
+        ///   ADVERSARY grounding) or TargetSettlement (a captive is a HERO, not a place): folding a person's
+        ///   name into either would be the same confusing lie TargetRival's own doc warns against. Null for any
+        ///   other kind, or when none was named.
+        /// </summary>
+        public string? TargetPrisonerName { get; init; }
     }
 }

@@ -911,7 +911,12 @@ namespace NpcMemoryService.Core.Parsing
             // both into the entry's one TargetHint slot at record time, split again at the lift,
             // CouncilLift.SettleSwapFiefs).
             PlayerFiefName = NullIfBlank(GetField(fields, "player_fief")),
-            TargetFiefName = NullIfBlank(GetField(fields, "target_fief"))
+            TargetFiefName = NullIfBlank(GetField(fields, "target_fief")),
+            // "release_prisoner"'s own grounding field (Parley toolkit, rounding out make_peace + tribute): the
+            // named hero captive the player holds, read back by the mod (CouncilLift.SettleReleasePrisoner) via
+            // BuyPrisonerVerb's own tolerant name match over the player's held prisoners, exactly like
+            // target_rival is read back by CourtActionResolver's own tolerant match for pledge_against.
+            TargetPrisonerName = NullIfBlank(GetField(fields, "target_prisoner"))
          };
       }
 

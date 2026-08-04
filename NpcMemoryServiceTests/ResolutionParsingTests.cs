@@ -311,5 +311,17 @@ namespace NpcMemoryServiceTests
          resolution.PlayerFiefName.Should().Be("Pravend");
          resolution.TargetFiefName.Should().BeNull();
       }
+
+      // release_prisoner's own grounding field (Parley toolkit, rounding out make_peace + tribute, 2026-08-04,
+      // REUSING the existing free_prisoner mechanic end to end): must survive parsing or the mod has no captive
+      // name to map into TargetHint, and CouncilLift.SettleReleasePrisoner can never resolve who the concession
+      // frees.
+      [Test]
+      public void A_target_prisoner_field_is_parsed_when_present()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: release_prisoner\nactor: Ira\ndetail: Ira asks for Harald's freedom\ntarget_prisoner: Harald\n[/RESOLUTION]";
+
+         _parser.Parse(raw).Resolutions[0].TargetPrisonerName.Should().Be("Harald");
+      }
    }
 }

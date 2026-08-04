@@ -1510,6 +1510,32 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-04): rounds out the Parley toolkit (make_peace + tribute +
+            // release_prisoner) with a THIRD concession, this one on the PLAYER's own side: freeing a captive
+            // lord of the enemy leader's OWN house whom the player currently holds prisoner, REUSING the
+            // existing free_prisoner mechanic end to end (mod CouncilLift.SettleReleasePrisoner ->
+            // EndCaptivityAction.ApplyByReleasedByChoice, the SAME call BannerlordGameStateBridge.ExecuteFreePrisoner
+            // and the 1:1 release_prisoner verb already use). Taught ONLY when the mod's offering has proven the
+            // player actually holds a hero prisoner of the SAME faction this parley was convened against
+            // (AnySeatedPrisonerAvailableToRelease); the named captive is re-resolved against that same pool at
+            // the lift, so a wrong or unrelated name is refused rather than silently doing nothing. The
+            // PRISONERS section elsewhere in this prompt may already name who the player holds and which
+            // faction each belongs to.
+            if (IsKindOffered(context, "release_prisoner"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("At this PARLEY, the enemy leader sitting across from you may also ask the PLAYER,");
+               sb.AppendLine("as a concession in the talks, to FREE a captive lord of their OWN house whom the");
+               sb.AppendLine("player currently holds prisoner. Name the captive plainly in target_prisoner,");
+               sb.AppendLine("exactly as they are known to you:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: release_prisoner");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("target_prisoner: Harald");
+               sb.AppendLine("detail: Ira asks the player to free Harald, a lord of her own house, as a gesture of good faith.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             sb.AppendLine("This is held as the table's decision, not carried out here: it is settled only when the");
             sb.AppendLine("council rises. If the table changes its mind before then, withdraw it:");
             sb.AppendLine("[RESOLUTION]");

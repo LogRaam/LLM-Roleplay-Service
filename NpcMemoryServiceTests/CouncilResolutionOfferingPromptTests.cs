@@ -37,6 +37,7 @@ namespace NpcMemoryServiceTests
       private const string ArrangeMarriageFormat = "type: arrange_marriage";
       private const string SwapFiefsFormat = "type: swap_fiefs";
       private const string TributeFormat = "type: tribute";
+      private const string ReleasePrisonerFormat = "type: release_prisoner";
 
       private static NpcProfile Npc() => new() {
          Id = "npc_test",
@@ -992,6 +993,64 @@ namespace NpcMemoryServiceTests
          string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
          prompt.Should().NotContain(TributeFormat);
+         prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
+      }
+
+      // Parley toolkit, rounding out make_peace + tribute (2026-08-04): release_prisoner REUSES the existing
+      // free_prisoner mechanic end to end, letting the seated enemy leader ask the player to free a captive of
+      // their own house as a concession. Without it in its own vocabulary the model has no way to propose this,
+      // whatever the world allows.
+      [Test]
+      public void GIVEN_a_council_turn_with_release_prisoner_offered_WHEN_building_the_prompt_THEN_its_emission_format_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "release_prisoner"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain(ReleasePrisonerFormat);
+         prompt.Should().Contain("target_prisoner:");
+         prompt.Should().Contain("FREE a captive lord");
+         prompt.Should().Contain("PARLEY");
+      }
+
+      // A council whose world facts satisfy nothing beyond the universal quest pledge (the player holds no
+      // prisoner of the parley enemy's own faction) must not see release_prisoner at all: teaching it would
+      // offer a concession the lift has already proven impossible to honour.
+      [Test]
+      public void GIVEN_a_council_turn_with_only_quest_offered_WHEN_building_the_prompt_THEN_release_prisoner_is_absent()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(ReleasePrisonerFormat);
+         prompt.Should().Contain("type: quest");
+      }
+
+      // An ordinary 1:1 conversation, and any non-council round-table turn, must NEVER see this teaching,
+      // whatever the field happens to hold: freeing a prisoner as a parley concession belongs only to a real
+      // PARLEY turn, never to a private exchange with one NPC.
+      [Test]
+      public void GIVEN_an_ordinary_non_council_turn_WHEN_building_the_prompt_THEN_release_prisoner_is_never_mentioned()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            CouncilOfferedResolutionKinds = new[] {"quest", "release_prisoner"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(ReleasePrisonerFormat);
          prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
       }
    }
