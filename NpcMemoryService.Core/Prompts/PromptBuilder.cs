@@ -1345,6 +1345,25 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-04): Partie 8 (COUNCIL_ACTIONS.md's Kimi review), the
+            // council's harshest INTERNAL sanction. expel_from_clan is taught ONLY when the mod's offering has
+            // proven the player truly leads their own clan AND a seated COMPANION (never a family member or a
+            // fief-holding lord, both out of scope for this build) is actually expellable right now. No target
+            // field beyond the actor: the deed falls on the named companion, nothing else to ground.
+            if (IsKindOffered(context, "expel_from_clan"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("A seated COMPANION may also be CAST OUT OF THE CLAN entirely, a grave and permanent");
+               sb.AppendLine("break. Only the clan's own chief may do this, and only to a companion, never to kin");
+               sb.AppendLine("nor to a lord of their own house. Reserve it for real betrayal or disgrace, never a");
+               sb.AppendLine("passing grievance: once carried out it cannot be undone. Name only the actor:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: expel_from_clan");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("detail: Ira is cast out of the player's clan, never to serve it again.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             // Council resolution offering (2026-08-03): the WarCouncil's first motion, and the FIRST FACTION-CENTRIC
             // one. declare_war is taught ONLY when the mod's offering has proven the player actually leads a
             // faction that could declare a new war (ResolutionOfferingResolver's PlayerCanDeclareWar fact); the

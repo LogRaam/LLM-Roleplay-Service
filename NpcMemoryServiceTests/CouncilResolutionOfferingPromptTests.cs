@@ -32,6 +32,7 @@ namespace NpcMemoryServiceTests
       private const string GiveInfluenceFormat = "type: give_influence";
       private const string GrantFiefFormat = "type: grant_fief";
       private const string RevokeFiefFormat = "type: revoke_fief";
+      private const string ExpelFromClanFormat = "type: expel_from_clan";
 
       private static NpcProfile Npc() => new() {
          Id = "npc_test",
@@ -683,6 +684,62 @@ namespace NpcMemoryServiceTests
          string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
          prompt.Should().NotContain(RevokeFiefFormat);
+         prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
+      }
+
+      // Partie 8 (COUNCIL_ACTIONS.md's Kimi review, 2026-08-04), the council's harshest INTERNAL sanction:
+      // without expel_from_clan in its own vocabulary the model has no way to propose casting a companion out
+      // of the clan, whatever the world allows.
+      [Test]
+      public void GIVEN_a_council_turn_with_expel_from_clan_offered_WHEN_building_the_prompt_THEN_its_emission_format_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "expel_from_clan"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain(ExpelFromClanFormat);
+         prompt.Should().Contain("CAST OUT OF THE CLAN");
+         prompt.Should().Contain("Only the clan's own chief");
+         prompt.Should().Contain("permanent");
+      }
+
+      // A council whose world facts satisfy nothing beyond the universal quest pledge (no clan leadership, or no
+      // expellable companion seated) must not see expel_from_clan at all: teaching it would voice a threat the
+      // lift has already proven hollow.
+      [Test]
+      public void GIVEN_a_council_turn_with_only_quest_offered_WHEN_building_the_prompt_THEN_expel_from_clan_is_absent()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(ExpelFromClanFormat);
+         prompt.Should().Contain("type: quest");
+      }
+
+      // An ordinary 1:1 conversation must NEVER see this teaching, whatever the field happens to hold: casting a
+      // companion out of the clan belongs only to a real council turn, never to a private exchange with one NPC.
+      [Test]
+      public void GIVEN_an_ordinary_non_council_turn_WHEN_building_the_prompt_THEN_expel_from_clan_is_never_mentioned()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            CouncilOfferedResolutionKinds = new[] {"quest", "expel_from_clan"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(ExpelFromClanFormat);
          prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
       }
    }
