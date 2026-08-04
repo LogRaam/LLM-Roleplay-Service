@@ -31,5 +31,8 @@ namespace NpcMemoryService.Core.Models
 
         /// <summary>For an "assign_party_role" kind: the party role named (Scout, Engineer, Quartermaster, or Surgeon), in the model's own words. Null for any other kind, or when none was named.</summary>
         public string? TargetRole { get; init; }
+
+        /// <summary>For a "dispatch_mission" kind: the companion-mission errand named (GatherNews, Spy, Steal, Barter, or Envoy), in the model's own words. Null for any other kind, or when none was named.</summary>
+        public string? TargetMission { get; init; }
     }
 }

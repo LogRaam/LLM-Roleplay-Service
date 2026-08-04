@@ -884,7 +884,8 @@ namespace NpcMemoryService.Core.Parsing
             Actor = NullIfBlank(actor),
             Detail = NullIfBlank(detail),
             TargetSettlement = NullIfBlank(GetField(fields, "target_settlement")),
-            TargetRole = NullIfBlank(GetField(fields, "target_role"))
+            TargetRole = NullIfBlank(GetField(fields, "target_role")),
+            TargetMission = NullIfBlank(GetField(fields, "target_mission"))
          };
       }
 

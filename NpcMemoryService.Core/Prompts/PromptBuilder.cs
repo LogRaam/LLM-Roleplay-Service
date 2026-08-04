@@ -1219,6 +1219,26 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-03): the FOURTH executable menu motion, mirroring
+            // assign_party_role's own gate exactly (dispatch_mission shares its TargetInPlayerParty fact, see
+            // ResolutionCatalog). dispatch_mission is taught ONLY when the mod's offering has proven at least one
+            // seated member currently rides in your own party: sending them off on an errand only makes sense for
+            // someone actually travelling with you.
+            if (IsKindOffered(context, "dispatch_mission"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("A seated member who rides in your own party may also be sent out on an ERRAND: they");
+               sb.AppendLine("leave and return later on their own, you do not choose where they go, only what they");
+               sb.AppendLine("do. Name the errand plainly in target_mission, exactly one of: GatherNews, Spy, Steal,");
+               sb.AppendLine("Barter, or Envoy:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: dispatch_mission");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("target_mission: GatherNews");
+               sb.AppendLine("detail: Ira will ride out to gather news and bring it back when she returns.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             sb.AppendLine("This is held as the table's decision, not carried out here: it is settled only when the");
             sb.AppendLine("council rises. If the table changes its mind before then, withdraw it:");
             sb.AppendLine("[RESOLUTION]");

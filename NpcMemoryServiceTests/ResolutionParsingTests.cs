@@ -169,6 +169,17 @@ namespace NpcMemoryServiceTests
 
          resolution.TargetSettlement.Should().BeNull();
          resolution.TargetRole.Should().BeNull();
+         resolution.TargetMission.Should().BeNull();
+      }
+
+      // dispatch_mission's own grounding field, mirroring target_role: must survive parsing or the mod has no
+      // errand type to map into TargetHint and the lift can never dispatch anything.
+      [Test]
+      public void A_target_mission_field_is_parsed_when_present()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: dispatch_mission\nactor: Sley\ndetail: Sley will ride out for news\ntarget_mission: GatherNews\n[/RESOLUTION]";
+
+         _parser.Parse(raw).Resolutions[0].TargetMission.Should().Be("GatherNews");
       }
    }
 }
