@@ -173,6 +173,8 @@ namespace NpcMemoryServiceTests
          resolution.TargetAmount.Should().BeNull();
          resolution.TargetFaction.Should().BeNull();
          resolution.TargetRival.Should().BeNull();
+         resolution.PlayerKinName.Should().BeNull();
+         resolution.TargetKinName.Should().BeNull();
       }
 
       // dispatch_mission's own grounding field, mirroring target_role: must survive parsing or the mod has no
@@ -250,6 +252,34 @@ namespace NpcMemoryServiceTests
          var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: pledge_against\nactor: Ira\ndetail: Ira will move against Boyar Sevin\ntarget_rival: Boyar Sevin\n[/RESOLUTION]";
 
          _parser.Parse(raw).Resolutions[0].TargetRival.Should().Be("Boyar Sevin");
+      }
+
+      // arrange_marriage's own TWO grounding fields (Partie 1, COUNCIL_ACTIONS.md, "juste arrange_mariage qui est
+      // valide", reusing the existing 1:1 arrange_marriage system end to end): both must survive parsing or the
+      // mod has no kin names to compose into TargetHint, and CouncilLift.SettleArrangeMarriage can never resolve
+      // who the match concerns.
+      [Test]
+      public void Player_kin_and_target_kin_fields_are_parsed_when_present()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: arrange_marriage\nactor: Ira\ndetail: a marriage alliance\nplayer_kin: Elvira\ntarget_kin: Boyar Sevin\n[/RESOLUTION]";
+
+         var resolution = _parser.Parse(raw).Resolutions[0];
+
+         resolution.PlayerKinName.Should().Be("Elvira");
+         resolution.TargetKinName.Should().Be("Boyar Sevin");
+      }
+
+      // Mirrors every other grounding field's own "neither is mandatory" contract: an arrange_marriage block
+      // naming only one of the two kin must leave the other null, never guess or default it.
+      [Test]
+      public void An_arrange_marriage_resolution_missing_one_kin_name_leaves_it_null()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: arrange_marriage\nactor: Ira\ndetail: a marriage alliance\nplayer_kin: Elvira\n[/RESOLUTION]";
+
+         var resolution = _parser.Parse(raw).Resolutions[0];
+
+         resolution.PlayerKinName.Should().Be("Elvira");
+         resolution.TargetKinName.Should().BeNull();
       }
    }
 }

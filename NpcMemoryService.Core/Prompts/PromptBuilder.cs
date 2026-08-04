@@ -1326,6 +1326,36 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-04): Partie 1 (COUNCIL_ACTIONS.md, "juste arrange_mariage qui
+            // est valide"), REUSING the existing 1:1 arrange_marriage system end to end
+            // (CourtActionResolver.TryArrangeMarriage, the SAME shared core the 1:1 action itself calls since
+            // this build's own extraction). Taught ONLY at a WAR COUNCIL when the mod's offering has proven the
+            // player's own clan holds an unwed kin AND at least one seated ally's own house offers one too (a
+            // cheap approximation, mirroring give_gold's own loose gate: the exact pairing, hard eligibility,
+            // and family consent are all re-validated at the lift, bridge is law). Uses the SAME player_kin/
+            // target_kin vocabulary the 1:1 action already teaches (no new wording for the model to learn),
+            // grounded here as a table PLEDGE rather than an immediate deed. Gabriel's own framing
+            // (COUNCIL_ACTIONS.md): a marriage struck at the table is currency, "monnaie d'echange" for the
+            // alliance being sealed, and it carries a real price the table must see spelled out: the match
+            // moves one of the two named kin into the other's own clan (COUNCIL_ACTIONS.md's Kimi review).
+            if (IsKindOffered(context, "arrange_marriage"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("At a WAR COUNCIL, a seated allied lord may also PLEDGE A MARRIAGE ALLIANCE: one of");
+               sb.AppendLine("the player's own unwed kin wed to one of their own, binding the two houses as");
+               sb.AppendLine("currency for whatever this alliance is worth. This has a real price both sides must");
+               sb.AppendLine("weigh: the match will move one of the two named kin into the other house entirely.");
+               sb.AppendLine("Name BOTH plainly by their real names: the player's own kin in player_kin, and the");
+               sb.AppendLine("ally's own kin (or the ally themselves, if unwed) in target_kin:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: arrange_marriage");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("player_kin: Elvira");
+               sb.AppendLine("target_kin: Boyar Sevin");
+               sb.AppendLine("detail: Ira consents to wed her kinsman Boyar Sevin to the player's kinswoman Elvira, binding the two houses.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             // Council resolution offering (2026-08-04): Partie 2 (COUNCIL_ACTIONS.md), the FIRST governance kind
             // to gain a real executor. grant_fief is taught ONLY at a WAR COUNCIL when the mod's offering has
             // proven the player actually rules a kingdom AND their own clan holds a giveable town or castle

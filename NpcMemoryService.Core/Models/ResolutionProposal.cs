@@ -50,5 +50,24 @@ namespace NpcMemoryService.Core.Models
         ///   none was named.
         /// </summary>
         public string? TargetRival { get; init; }
+
+        /// <summary>
+        ///   For an "arrange_marriage" kind (Partie 1, COUNCIL_ACTIONS.md, "juste arrange_mariage qui est
+        ///   valide", WarCouncil only, REUSING the existing 1:1 arrange_marriage system end to end): the
+        ///   player-clan kin named to wed, in the model's own words. Deliberately named "player_kin", the SAME
+        ///   vocabulary the existing 1:1 <c>arrange_marriage</c> GameAction already teaches, rather than a
+        ///   "Target*"-prefixed field: this is a PERSON'S name grounding, not a place/faction/role/rival
+        ///   grounding, and reusing the identical wording means the model learns nothing new to propose this at
+        ///   a council. Null for any other kind, or when none was named.
+        /// </summary>
+        public string? PlayerKinName { get; init; }
+
+        /// <summary>
+        ///   For an "arrange_marriage" kind: the seated ally's own kin (or the ally themselves, if unwed) named
+        ///   to wed <see cref="PlayerKinName" />, in the model's own words. Mirrors the 1:1 action's own
+        ///   "target_kin" parameter exactly, see <see cref="PlayerKinName" />'s own doc for why this is not a
+        ///   "Target*"-prefixed field. Null for any other kind, or when none was named.
+        /// </summary>
+        public string? TargetKinName { get; init; }
     }
 }

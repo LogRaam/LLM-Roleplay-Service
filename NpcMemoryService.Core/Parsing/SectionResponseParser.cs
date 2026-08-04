@@ -898,7 +898,14 @@ namespace NpcMemoryService.Core.Parsing
             // "pledge_against"'s own grounding field (Partie 1, COUNCIL_ACTIONS.md's schemes block): the named
             // rival, read back by the mod's CouncilLift.SettlePledgeAgainst via CourtActionResolver's own
             // tolerant name match, exactly like the 1:1 pledge_against action already resolves its "target" param.
-            TargetRival = NullIfBlank(GetField(fields, "target_rival"))
+            TargetRival = NullIfBlank(GetField(fields, "target_rival")),
+            // "arrange_marriage"'s own TWO grounding fields (Partie 1, COUNCIL_ACTIONS.md, "juste arrange_mariage
+            // qui est valide"): the SAME player_kin/target_kin vocabulary the 1:1 arrange_marriage GameAction
+            // already teaches, read back by the mod (CalradiaRemembers.Logic.Assemblies.ArrangeMarriageGroundingCodec
+            // composes both into the entry's one TargetHint slot at record time, split again at the lift,
+            // CouncilLift.SettleArrangeMarriage).
+            PlayerKinName = NullIfBlank(GetField(fields, "player_kin")),
+            TargetKinName = NullIfBlank(GetField(fields, "target_kin"))
          };
       }
 

@@ -34,6 +34,7 @@ namespace NpcMemoryServiceTests
       private const string GrantFiefFormat = "type: grant_fief";
       private const string RevokeFiefFormat = "type: revoke_fief";
       private const string ExpelFromClanFormat = "type: expel_from_clan";
+      private const string ArrangeMarriageFormat = "type: arrange_marriage";
 
       private static NpcProfile Npc() => new() {
          Id = "npc_test",
@@ -797,6 +798,81 @@ namespace NpcMemoryServiceTests
          string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
          prompt.Should().NotContain(ExpelFromClanFormat);
+         prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
+      }
+
+      // Partie 1 (COUNCIL_ACTIONS.md, "juste arrange_mariage qui est valide", 2026-08-04), REUSING the existing
+      // 1:1 arrange_marriage system end to end: without arrange_marriage in its own vocabulary the model has no
+      // way to propose a marriage alliance at the table, whatever the world allows.
+      [Test]
+      public void GIVEN_a_council_turn_with_arrange_marriage_offered_WHEN_building_the_prompt_THEN_its_emission_format_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "arrange_marriage"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain(ArrangeMarriageFormat);
+         prompt.Should().Contain("player_kin:");
+         prompt.Should().Contain("target_kin:");
+         prompt.Should().Contain("MARRIAGE ALLIANCE");
+      }
+
+      // The visible price the Kimi review demanded (COUNCIL_ACTIONS.md): the taught block must warn that the
+      // match moves one kin's own allegiance into the other house, so the model never voices this as a costless
+      // gift the way it would voice ordinary goodwill.
+      [Test]
+      public void GIVEN_arrange_marriage_offered_WHEN_building_the_prompt_THEN_the_clan_transfer_price_is_stated()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "arrange_marriage"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain("move one of the two named kin into the other house");
+      }
+
+      // A council whose world facts satisfy nothing beyond the universal quest pledge (no unwed kin on either
+      // side) must not see arrange_marriage at all: teaching it would offer a match the lift has already proven
+      // nobody present could actually make.
+      [Test]
+      public void GIVEN_a_council_turn_with_only_quest_offered_WHEN_building_the_prompt_THEN_arrange_marriage_is_absent()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(ArrangeMarriageFormat);
+         prompt.Should().Contain("type: quest");
+      }
+
+      // An ordinary 1:1 conversation must NEVER see this teaching, whatever the field happens to hold: a
+      // council-arranged marriage belongs only to a real WAR COUNCIL turn (the 1:1 arrange_marriage action
+      // already covers the private exchange on its own vocabulary).
+      [Test]
+      public void GIVEN_an_ordinary_non_council_turn_WHEN_building_the_prompt_THEN_arrange_marriage_is_never_mentioned()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            CouncilOfferedResolutionKinds = new[] {"quest", "arrange_marriage"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(ArrangeMarriageFormat);
          prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
       }
    }
