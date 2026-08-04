@@ -147,5 +147,28 @@ namespace NpcMemoryServiceTests
 
          _parser.Parse(raw).Resolutions[0].TargetSettlement.Should().Be("Varcheg");
       }
+
+      // assign_party_role's own grounding field, mirroring target_settlement: must survive parsing or the mod
+      // has no role name to map into TargetHint and the lift can never assign anything.
+      [Test]
+      public void A_target_role_field_is_parsed_when_present()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: assign_party_role\nactor: Sley\ndetail: Sley will scout ahead\ntarget_role: Scout\n[/RESOLUTION]";
+
+         _parser.Parse(raw).Resolutions[0].TargetRole.Should().Be("Scout");
+      }
+
+      // Neither grounding field is mandatory (a quest may name only target_settlement, a role pledge only
+      // target_role): a resolution missing one must simply leave it null, never throw or default the other.
+      [Test]
+      public void A_resolution_missing_both_grounding_fields_leaves_them_null()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: quest\nactor: Sley\ndetail: something vague\n[/RESOLUTION]";
+
+         var resolution = _parser.Parse(raw).Resolutions[0];
+
+         resolution.TargetSettlement.Should().BeNull();
+         resolution.TargetRole.Should().BeNull();
+      }
    }
 }

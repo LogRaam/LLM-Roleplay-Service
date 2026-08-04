@@ -1183,6 +1183,25 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-03): the second executable menu motion, mirroring
+            // appoint_governor's own gate. assign_party_role is taught ONLY when the mod's offering has proven
+            // at least one seated member currently rides in the player's own party: a role held OUTSIDE the
+            // party is meaningless (Scout, Engineer, Quartermaster and Surgeon all act on the party the member
+            // travels with), so the same empty-promise guard applies here.
+            if (IsKindOffered(context, "assign_party_role"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("A seated member who rides in your own party may also be named to a PARTY ROLE:");
+               sb.AppendLine("Scout, Engineer, Quartermaster, or Surgeon (exactly one of these four). Name the role");
+               sb.AppendLine("plainly in target_role:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: assign_party_role");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("target_role: Scout");
+               sb.AppendLine("detail: Ira will scout the road ahead for the party.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             sb.AppendLine("This is held as the table's decision, not carried out here: it is settled only when the");
             sb.AppendLine("council rises. If the table changes its mind before then, withdraw it:");
             sb.AppendLine("[RESOLUTION]");

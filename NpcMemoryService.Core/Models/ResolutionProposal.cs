@@ -28,5 +28,8 @@ namespace NpcMemoryService.Core.Models
 
         /// <summary>For a "quest" kind: a named settlement the task is bound to, when the pledge needs one (e.g. "clear the bandits near X"). Null when the pledge names no place.</summary>
         public string? TargetSettlement { get; init; }
+
+        /// <summary>For an "assign_party_role" kind: the party role named (Scout, Engineer, Quartermaster, or Surgeon), in the model's own words. Null for any other kind, or when none was named.</summary>
+        public string? TargetRole { get; init; }
     }
 }

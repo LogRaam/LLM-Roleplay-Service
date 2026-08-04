@@ -883,7 +883,8 @@ namespace NpcMemoryService.Core.Parsing
             Type = NormalizeActionType(type),
             Actor = NullIfBlank(actor),
             Detail = NullIfBlank(detail),
-            TargetSettlement = NullIfBlank(GetField(fields, "target_settlement"))
+            TargetSettlement = NullIfBlank(GetField(fields, "target_settlement")),
+            TargetRole = NullIfBlank(GetField(fields, "target_role"))
          };
       }
 
