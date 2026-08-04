@@ -175,6 +175,8 @@ namespace NpcMemoryServiceTests
          resolution.TargetRival.Should().BeNull();
          resolution.PlayerKinName.Should().BeNull();
          resolution.TargetKinName.Should().BeNull();
+         resolution.PlayerFiefName.Should().BeNull();
+         resolution.TargetFiefName.Should().BeNull();
       }
 
       // dispatch_mission's own grounding field, mirroring target_role: must survive parsing or the mod has no
@@ -280,6 +282,34 @@ namespace NpcMemoryServiceTests
 
          resolution.PlayerKinName.Should().Be("Elvira");
          resolution.TargetKinName.Should().BeNull();
+      }
+
+      // swap_fiefs' own TWO grounding fields (Partie 8, COUNCIL_ACTIONS.md's Kimi review, REUSING grant_fief's/
+      // revoke_fief's own machinery): both must survive parsing or the mod has no fief names to compose into
+      // TargetHint, and CouncilLift.SettleSwapFiefs can never resolve which two fiefs the trade concerns.
+      [Test]
+      public void Player_fief_and_target_fief_fields_are_parsed_when_present()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: swap_fiefs\nactor: Ira\ndetail: an even exchange\nplayer_fief: Pravend\ntarget_fief: Rhojen\n[/RESOLUTION]";
+
+         var resolution = _parser.Parse(raw).Resolutions[0];
+
+         resolution.PlayerFiefName.Should().Be("Pravend");
+         resolution.TargetFiefName.Should().Be("Rhojen");
+      }
+
+      // Mirrors every other grounding field's own "neither is mandatory" contract: a swap_fiefs block naming
+      // only one of the two fiefs must leave the other null, never guess or default it (the lift's own codec
+      // round-trip then refuses the pledge honestly rather than trading only one side).
+      [Test]
+      public void A_swap_fiefs_resolution_missing_one_fief_name_leaves_it_null()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: swap_fiefs\nactor: Ira\ndetail: an even exchange\nplayer_fief: Pravend\n[/RESOLUTION]";
+
+         var resolution = _parser.Parse(raw).Resolutions[0];
+
+         resolution.PlayerFiefName.Should().Be("Pravend");
+         resolution.TargetFiefName.Should().BeNull();
       }
    }
 }

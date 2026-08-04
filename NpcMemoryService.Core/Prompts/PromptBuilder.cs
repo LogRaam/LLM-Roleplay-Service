@@ -1400,6 +1400,32 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-04): Partie 8 (COUNCIL_ACTIONS.md's Kimi review, "swap_fiefs"),
+            // REUSING grant_fief's/revoke_fief's own machinery end to end. swap_fiefs is taught ONLY at a WAR
+            // COUNCIL when the mod's offering has proven the player rules a kingdom AND their own clan holds a
+            // giveable town or castle AND the seated vassal's own clan holds one too (the literal AND of
+            // grant_fief's and revoke_fief's own gates, ResolutionCatalog.SwapFiefs' own doc): no new world fact
+            // was needed to wire this kind at all. Grounds on TWO fief names (player_fief/target_fief), mirroring
+            // arrange_marriage's own player_kin/target_kin vocabulary.
+            if (IsKindOffered(context, "swap_fiefs"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("At a WAR COUNCIL, ONLY while the player truly RULES a kingdom, one of the player's own");
+               sb.AppendLine("towns or castles may also be TRADED for one of a seated vassal's own, an even exchange");
+               sb.AppendLine("sealed by the crown: both fiefs change hands together, or the trade does not happen at");
+               sb.AppendLine("all. Whether the two are truly of equal worth is a matter for the table to weigh in");
+               sb.AppendLine("the talk itself, not something the crown alone judges. Name BOTH plainly: the player's");
+               sb.AppendLine("own fief offered up in player_fief, and the vassal's own fief taken in exchange in");
+               sb.AppendLine("target_fief:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: swap_fiefs");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("player_fief: Pravend");
+               sb.AppendLine("target_fief: Rhojen");
+               sb.AppendLine("detail: The crown trades Pravend for Ira's own Rhojen, an even exchange of houses.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             // Council resolution offering (2026-08-04): Partie 8 (COUNCIL_ACTIONS.md's Kimi review), the
             // council's harshest INTERNAL sanction. expel_from_clan is taught ONLY when the mod's offering has
             // proven the player truly leads their own clan AND a seated COMPANION (never a family member or a

@@ -69,5 +69,22 @@ namespace NpcMemoryService.Core.Models
         ///   "Target*"-prefixed field. Null for any other kind, or when none was named.
         /// </summary>
         public string? TargetKinName { get; init; }
+
+        /// <summary>
+        ///   For a "swap_fiefs" kind (Partie 8, COUNCIL_ACTIONS.md's Kimi review, the player and a seated
+        ///   WarCouncil vassal atomically exchange one fief each): the PLAYER's own town or castle offered up in
+        ///   the trade, in the model's own words. A "Target*"-prefixed field would be wrong here for the same
+        ///   reason PlayerKinName's own doc gives (this names something the PLAYER's own side gives up, not the
+        ///   counterpart's), so it mirrors PlayerKinName's naming instead. Null for any other kind, or when none
+        ///   was named.
+        /// </summary>
+        public string? PlayerFiefName { get; init; }
+
+        /// <summary>
+        ///   For a "swap_fiefs" kind: the seated vassal's own town or castle offered in exchange for
+        ///   <see cref="PlayerFiefName" />, in the model's own words. Mirrors <see cref="TargetKinName" />'s own
+        ///   naming exactly. Null for any other kind, or when none was named.
+        /// </summary>
+        public string? TargetFiefName { get; init; }
     }
 }

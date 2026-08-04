@@ -905,7 +905,13 @@ namespace NpcMemoryService.Core.Parsing
             // composes both into the entry's one TargetHint slot at record time, split again at the lift,
             // CouncilLift.SettleArrangeMarriage).
             PlayerKinName = NullIfBlank(GetField(fields, "player_kin")),
-            TargetKinName = NullIfBlank(GetField(fields, "target_kin"))
+            TargetKinName = NullIfBlank(GetField(fields, "target_kin")),
+            // "swap_fiefs"'s own TWO grounding fields (Partie 8, COUNCIL_ACTIONS.md's Kimi review): mirrors
+            // player_kin/target_kin's own naming exactly, read back by the mod (FiefSwapGroundingCodec composes
+            // both into the entry's one TargetHint slot at record time, split again at the lift,
+            // CouncilLift.SettleSwapFiefs).
+            PlayerFiefName = NullIfBlank(GetField(fields, "player_fief")),
+            TargetFiefName = NullIfBlank(GetField(fields, "target_fief"))
          };
       }
 
