@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using NpcMemoryService.Core.Models;
 
@@ -1162,6 +1163,26 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("target_settlement: Pravend");
             sb.AppendLine("detail: Ira will ride to Pravend and clear the bandits raiding its roads.");
             sb.AppendLine("[/RESOLUTION]");
+
+            // Council resolution offering (2026-08-03): appoint_governor is taught ONLY when the mod's own
+            // offering (ResolutionOfferingResolver -> ResolutionEligibilityPolicy) has proven the lift could
+            // honour it right now (a member is seated AND the player's clan holds a fief with no governor).
+            // Absent this gate the model would happily promise a governorship the lift then has no way to
+            // grant, the exact empty-promise class the whole [RESOLUTION] channel exists to prevent.
+            if (IsKindOffered(context, "appoint_governor"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("A seated member may also be named to GOVERN one of your fiefs: this is only possible");
+               sb.AppendLine("while the player still leads the clan, and only for a town or castle the player's clan");
+               sb.AppendLine("actually holds with no governor seated. Name the fief plainly in target_settlement:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: appoint_governor");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("target_settlement: Pravend");
+               sb.AppendLine("detail: Ira will govern Pravend in the player's name.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             sb.AppendLine("This is held as the table's decision, not carried out here: it is settled only when the");
             sb.AppendLine("council rises. If the table changes its mind before then, withdraw it:");
             sb.AppendLine("[RESOLUTION]");
@@ -1332,6 +1353,16 @@ namespace NpcMemoryService.Core.Prompts
                return false;
          }
       }
+
+      /// <summary>
+      ///   True when <paramref name="kindKey" /> (e.g. "appoint_governor") is in
+      ///   <see cref="EncounterContext.CouncilOfferedResolutionKinds" />. Null/empty is the ordinary case (no
+      ///   council, or a council with nothing to offer beyond quest), and correctly yields false so no scoped
+      ///   kind's teaching renders outside a real, eligible council turn.
+      /// </summary>
+      private static bool IsKindOffered(EncounterContext context, string kindKey)
+         => context.CouncilOfferedResolutionKinds != null
+         && context.CouncilOfferedResolutionKinds.Any(k => string.Equals(k, kindKey, StringComparison.OrdinalIgnoreCase));
 
       /// <summary>
       ///   Folds the player's raw troop count into the same coarse qualitative bands as <see cref="DescribeForce" />,

@@ -548,6 +548,18 @@ namespace NpcMemoryService.Core.Models
       public string? AddressedCouncilMemberName { get; init; }
 
       /// <summary>
+      ///   ASSEMBLY pillar, council resolution offering (2026-08-03): the executable resolution kind keys
+      ///   (the same strings the [RESOLUTION] "type:" line takes, e.g. "quest", "appoint_governor") a REAL
+      ///   council turn may currently teach, computed by the mod (CalradiaRemembers.Assemblies.ResolutionOfferingResolver)
+      ///   from live world facts run through ResolutionEligibilityPolicy, so a kind is only taught here when the
+      ///   lift could actually honour it (an unmet condition, e.g. no vacant fief, withholds it rather than
+      ///   promising a deed the lift would later fail). Null or empty on any non-council turn, and on a council
+      ///   turn whose facts satisfy nothing beyond the universal quest pledge; <see cref="Prompts.PromptBuilder" />
+      ///   then falls back to teaching quest alone, exactly as before this offering was wired.
+      /// </summary>
+      public IReadOnlyList<string>? CouncilOfferedResolutionKinds { get; init; }
+
+      /// <summary>
       ///   True when this turn is an automatic NPC response to a witness who just
       ///   reacted (Sprint 15C). The final user message in the session is a witness
       ///   statement ([Name]: …), not a player message. When set, the prompt instructs
