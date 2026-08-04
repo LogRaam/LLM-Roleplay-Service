@@ -889,6 +889,8 @@ namespace NpcMemoryService.Core.Parsing
             // Tolerant, like every other numeric field this parser reads (TryParseSignedInt): a model that wraps
             // the figure ("100 denars", "100/day") must not lose the amount, and an absent/unparseable value
             // simply leaves this null rather than throwing, mirroring deadline_days and the relation deltas.
+            // Shared by "grant_stipend" (denars/day) and, Partie 1, "give_gold" (a one-off denars pledge): no
+            // per-kind field needed, since both ground on the same single figure.
             TargetAmount = TryParseSignedInt(fields, "target_amount"),
             // "declare_war"'s own grounding field, mirroring target_settlement: the faction named, read back by
             // the mod's CouncilLift.SettleDeclareWar (the first FACTION-CENTRIC executor).

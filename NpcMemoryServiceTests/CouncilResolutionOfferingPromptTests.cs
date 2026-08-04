@@ -27,6 +27,7 @@ namespace NpcMemoryServiceTests
       private const string GrantStipendFormat = "type: grant_stipend";
       private const string DeclareWarFormat = "type: declare_war";
       private const string MakePeaceFormat = "type: make_peace";
+      private const string GiveGoldFormat = "type: give_gold";
 
       private static NpcProfile Npc() => new() {
          Id = "npc_test",
@@ -432,6 +433,61 @@ namespace NpcMemoryServiceTests
          string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
          prompt.Should().NotContain(MakePeaceFormat);
+         prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
+      }
+
+      // Partie 1 (bringing the existing 1:1 resource verbs to the council, 2026-08-04): without give_gold in its
+      // own vocabulary the model has no way to propose a seated lord's own gold pledge, whatever the world allows.
+      [Test]
+      public void GIVEN_a_council_turn_with_give_gold_offered_WHEN_building_the_prompt_THEN_its_emission_format_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "give_gold"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain(GiveGoldFormat);
+         prompt.Should().Contain("target_amount:");
+         prompt.Should().Contain("PLEDGE GOLD TO YOU");
+         prompt.Should().Contain("their own purse");
+      }
+
+      // A council whose world facts satisfy nothing beyond the universal quest pledge (no seated member holds
+      // any gold of their own) must not see give_gold at all: teaching it would offer a pledge the lift has
+      // already proven nobody present could actually pay.
+      [Test]
+      public void GIVEN_a_council_turn_with_only_quest_offered_WHEN_building_the_prompt_THEN_give_gold_is_absent()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(GiveGoldFormat);
+         prompt.Should().Contain("type: quest");
+      }
+
+      // An ordinary 1:1 conversation must NEVER see this teaching, whatever the field happens to hold: a gold
+      // pledge from a seated lord belongs only to a real council turn, never to a private exchange with one NPC.
+      [Test]
+      public void GIVEN_an_ordinary_non_council_turn_WHEN_building_the_prompt_THEN_give_gold_is_never_mentioned()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            CouncilOfferedResolutionKinds = new[] {"quest", "give_gold"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(GiveGoldFormat);
          prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
       }
    }

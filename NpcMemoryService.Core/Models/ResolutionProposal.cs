@@ -35,7 +35,7 @@ namespace NpcMemoryService.Core.Models
         /// <summary>For a "dispatch_mission" kind: the companion-mission errand named (GatherNews, Spy, Steal, Barter, or Envoy), in the model's own words. Null for any other kind, or when none was named.</summary>
         public string? TargetMission { get; init; }
 
-        /// <summary>For a "grant_stipend" kind: the proposed denars-per-day amount. Null for any other kind, or when none was named/parseable.</summary>
+        /// <summary>For a "grant_stipend" kind: the proposed denars-per-day amount. Also REUSED by "give_gold" (Partie 1, bringing the existing 1:1 resource verbs to the council): a seated lord's own proposed denars pledged to the player, no separate field. Null for any other kind, or when none was named/parseable.</summary>
         public int? TargetAmount { get; init; }
 
         /// <summary>For a "declare_war" kind (the first FACTION-CENTRIC kind, WarCouncil only): the faction named to declare war on, in the model's own words. Null for any other kind, or when none was named.</summary>

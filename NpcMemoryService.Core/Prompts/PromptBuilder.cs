@@ -1260,6 +1260,27 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-04): Partie 1, bringing the existing 1:1 resource verbs to the
+            // council. give_gold is taught ONLY when the mod's offering has proven a seated member (ClanLords or
+            // WarCouncil only, never Companions/Family: a hired hand or dynastic kin is not a moneyed lord)
+            // currently holds gold of their own. Unlike grant_stipend, the money moves the OPPOSITE direction:
+            // the SEATED LORD pledges from their OWN purse TO the player, never the other way round, and the
+            // pledge is a one-off sum, not a recurring 30-day tranche. REUSES grant_stipend's own target_amount
+            // field (no separate proposal field exists): the amount is re-clamped against the giver's ACTUAL
+            // gold at the lift, so this gate only proves SOME gold is held, never the real figure or the cap.
+            if (IsKindOffered(context, "give_gold"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("A seated lord may also PLEDGE GOLD TO YOU, paid from their own purse, never the");
+               sb.AppendLine("player's. Name a whole number of denars in target_amount:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: give_gold");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("target_amount: 200");
+               sb.AppendLine("detail: Ira will give the player 200 denars from her own coffers.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             // Council resolution offering (2026-08-03): the WarCouncil's first motion, and the FIRST FACTION-CENTRIC
             // one. declare_war is taught ONLY when the mod's offering has proven the player actually leads a
             // faction that could declare a new war (ResolutionOfferingResolver's PlayerCanDeclareWar fact); the
