@@ -30,6 +30,8 @@ namespace NpcMemoryServiceTests
       private const string MakePeaceFormat = "type: make_peace";
       private const string GiveGoldFormat = "type: give_gold";
       private const string GiveInfluenceFormat = "type: give_influence";
+      private const string GrantFiefFormat = "type: grant_fief";
+      private const string RevokeFiefFormat = "type: revoke_fief";
 
       private static NpcProfile Npc() => new() {
          Id = "npc_test",
@@ -569,6 +571,118 @@ namespace NpcMemoryServiceTests
          string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
          prompt.Should().NotContain(GiveInfluenceFormat);
+         prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
+      }
+
+      // Partie 2 (COUNCIL_ACTIONS.md, 2026-08-04), the FIRST governance kind to gain a real executor: without
+      // grant_fief in its own vocabulary the model has no way to propose granting a crown fief, whatever the
+      // world allows.
+      [Test]
+      public void GIVEN_a_council_turn_with_grant_fief_offered_WHEN_building_the_prompt_THEN_its_emission_format_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "grant_fief"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain(GrantFiefFormat);
+         prompt.Should().Contain("target_settlement:");
+         prompt.Should().Contain("RULES a kingdom");
+         prompt.Should().Contain("GRANTED to a seated vassal");
+      }
+
+      // A council whose world facts satisfy nothing beyond the universal quest pledge (no kingdom to rule, or
+      // no giveable crown fief) must not see grant_fief at all: teaching it would offer a gift the lift has
+      // already proven impossible.
+      [Test]
+      public void GIVEN_a_council_turn_with_only_quest_offered_WHEN_building_the_prompt_THEN_grant_fief_is_absent()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(GrantFiefFormat);
+         prompt.Should().Contain("type: quest");
+      }
+
+      // An ordinary 1:1 conversation must NEVER see this teaching, whatever the field happens to hold: granting
+      // a fief belongs only to a real WAR COUNCIL turn, never to a private exchange with one NPC.
+      [Test]
+      public void GIVEN_an_ordinary_non_council_turn_WHEN_building_the_prompt_THEN_grant_fief_is_never_mentioned()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            CouncilOfferedResolutionKinds = new[] {"quest", "grant_fief"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(GrantFiefFormat);
+         prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
+      }
+
+      // Partie 2's other governance kind (COUNCIL_ACTIONS.md, 2026-08-04), grant_fief's grim mirror: without
+      // revoke_fief in its own vocabulary the model has no way to threaten stripping a vassal's fief, whatever
+      // the world allows.
+      [Test]
+      public void GIVEN_a_council_turn_with_revoke_fief_offered_WHEN_building_the_prompt_THEN_its_emission_format_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "revoke_fief"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain(RevokeFiefFormat);
+         prompt.Should().Contain("target_settlement:");
+         prompt.Should().Contain("STRIPPED of a fief");
+         prompt.Should().Contain("gravest punishments");
+      }
+
+      // A council whose world facts satisfy nothing beyond the universal quest pledge (no kingdom to rule, or
+      // no seated vassal holds any fief) must not see revoke_fief at all: teaching it would voice a threat the
+      // lift has already proven hollow.
+      [Test]
+      public void GIVEN_a_council_turn_with_only_quest_offered_WHEN_building_the_prompt_THEN_revoke_fief_is_absent()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(RevokeFiefFormat);
+         prompt.Should().Contain("type: quest");
+      }
+
+      // An ordinary 1:1 conversation must NEVER see this teaching, whatever the field happens to hold: revoking
+      // a vassal's fief belongs only to a real WAR COUNCIL turn, never to a private exchange with one NPC.
+      [Test]
+      public void GIVEN_an_ordinary_non_council_turn_WHEN_building_the_prompt_THEN_revoke_fief_is_never_mentioned()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            CouncilOfferedResolutionKinds = new[] {"quest", "revoke_fief"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(RevokeFiefFormat);
          prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
       }
    }

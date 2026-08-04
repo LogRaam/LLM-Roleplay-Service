@@ -1301,6 +1301,50 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-04): Partie 2 (COUNCIL_ACTIONS.md), the FIRST governance kind
+            // to gain a real executor. grant_fief is taught ONLY at a WAR COUNCIL when the mod's offering has
+            // proven the player actually rules a kingdom AND their own clan holds a giveable town or castle
+            // (never ClanLords/Companions/Family: a fief is clan-owned, so "granting" one within the player's
+            // own clan or a hired hand's council is mechanically vacant, COUNCIL_ACTIONS.md's Kimi review).
+            // REUSES the quest/appoint_governor grounding slot (target_settlement) for the fief name, no new field.
+            if (IsKindOffered(context, "grant_fief"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("At a WAR COUNCIL, ONLY while the player truly RULES a kingdom, a crown fief (one of");
+               sb.AppendLine("the player's own towns or castles) may also be GRANTED to a seated vassal. This is a");
+               sb.AppendLine("grave, weighty gift, never handed out lightly: it is fitting only in exchange for");
+               sb.AppendLine("something of real worth (a lasting peace, a sworn promise of no attack, a debt owed).");
+               sb.AppendLine("Name the fief plainly in target_settlement:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: grant_fief");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("target_settlement: Pravend");
+               sb.AppendLine("detail: The crown grants Pravend to Ira's own house.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
+            // Council resolution offering (2026-08-04): Partie 2's other governance kind, grant_fief's grim
+            // mirror. revoke_fief is taught ONLY at a WAR COUNCIL when the mod's offering has proven the player
+            // rules a kingdom AND the seated vassal's own clan actually holds a fief to strip. This is one of
+            // the gravest deeds the table can hand down: it plants a lasting grudge and very likely drives the
+            // stripped lord toward leaving the crown's service, never a consequence-free threat.
+            if (IsKindOffered(context, "revoke_fief"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("At a WAR COUNCIL, ONLY while the player truly RULES a kingdom, a seated vassal may");
+               sb.AppendLine("also be STRIPPED of a fief their own house holds, returning it to the crown. This is");
+               sb.AppendLine("one of the gravest punishments a sovereign can hand down: it earns lasting bitterness");
+               sb.AppendLine("and will very likely drive the wronged lord toward abandoning the crown's service");
+               sb.AppendLine("altogether. Reserve it for real betrayal or defiance, never a passing grievance. Name");
+               sb.AppendLine("the fief plainly in target_settlement:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: revoke_fief");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("target_settlement: Pravend");
+               sb.AppendLine("detail: The crown strips Pravend from Ira's house.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             // Council resolution offering (2026-08-03): the WarCouncil's first motion, and the FIRST FACTION-CENTRIC
             // one. declare_war is taught ONLY when the mod's offering has proven the player actually leads a
             // faction that could declare a new war (ResolutionOfferingResolver's PlayerCanDeclareWar fact); the
