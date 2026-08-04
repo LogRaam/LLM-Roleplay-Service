@@ -1459,6 +1459,31 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-04): Partie 8 (COUNCIL_ACTIONS.md's Kimi review, "tribute"),
+            // the Parley's own submission/buy-off motion. tribute is taught ONLY at this PARLEY when the mod's
+            // offering has proven the seated enemy leader leads a house distinct from the player's own
+            // (AnySeatedTributePayerAvailable); it may be pledged alongside make_peace in the SAME turn (a
+            // tribute is exactly the kind of submission that accompanies a peace, not only a standing war).
+            // REUSES grant_stipend's own target_amount field (no new SDK field): unlike grant_stipend's escrow,
+            // funded whole up front from the PLAYER's own purse, this is paid DAILY from the ENEMY leader's own
+            // coffers for a fixed term, checked fresh each day, so it may lapse if their purse runs dry.
+            if (IsKindOffered(context, "tribute"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("At this PARLEY, the enemy leader sitting across from you may also PLEDGE A DAILY");
+               sb.AppendLine("TRIBUTE: a recurring payment from their OWN coffers to you, paid fresh every day for");
+               sb.AppendLine("30 days, never funded or reserved up front, so it may lapse if their own purse runs");
+               sb.AppendLine("dry. This is a mark of submission or the price of buying off further war, not a");
+               sb.AppendLine("one-time gift. Name a whole number of denars per day, between 50 and 2000, in");
+               sb.AppendLine("target_amount:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: tribute");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("target_amount: 300");
+               sb.AppendLine("detail: Ira will pay the player 300 denars a day from her own coffers for the next 30 days.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             sb.AppendLine("This is held as the table's decision, not carried out here: it is settled only when the");
             sb.AppendLine("council rises. If the table changes its mind before then, withdraw it:");
             sb.AppendLine("[RESOLUTION]");

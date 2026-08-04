@@ -35,6 +35,7 @@ namespace NpcMemoryServiceTests
       private const string RevokeFiefFormat = "type: revoke_fief";
       private const string ExpelFromClanFormat = "type: expel_from_clan";
       private const string ArrangeMarriageFormat = "type: arrange_marriage";
+      private const string TributeFormat = "type: tribute";
 
       private static NpcProfile Npc() => new() {
          Id = "npc_test",
@@ -873,6 +874,65 @@ namespace NpcMemoryServiceTests
          string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
          prompt.Should().NotContain(ArrangeMarriageFormat);
+         prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
+      }
+
+      // Partie 8 (COUNCIL_ACTIONS.md's Kimi review, "tribute", 2026-08-04), the Parley's own submission/buy-off
+      // motion: without tribute in its own vocabulary the model has no way to propose the seated enemy leader's
+      // own daily payment, whatever the world allows.
+      [Test]
+      public void GIVEN_a_council_turn_with_tribute_offered_WHEN_building_the_prompt_THEN_its_emission_format_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "tribute"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain(TributeFormat);
+         prompt.Should().Contain("target_amount:");
+         prompt.Should().Contain("DAILY");
+         prompt.Should().Contain("TRIBUTE");
+         prompt.Should().Contain("50 and 2000");
+         prompt.Should().Contain("their OWN coffers");
+      }
+
+      // A council whose world facts satisfy nothing beyond the universal quest pledge (no seated counterpart
+      // leads a house distinct from the player's own) must not see tribute at all: teaching it would offer a
+      // pledge the lift has already proven nobody present could actually owe.
+      [Test]
+      public void GIVEN_a_council_turn_with_only_quest_offered_WHEN_building_the_prompt_THEN_tribute_is_absent()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(TributeFormat);
+         prompt.Should().Contain("type: quest");
+      }
+
+      // An ordinary 1:1 conversation, and any non-council round-table turn, must NEVER see this teaching,
+      // whatever the field happens to hold: a tribute pledge belongs only to a real PARLEY turn, never to a
+      // private exchange with one NPC.
+      [Test]
+      public void GIVEN_an_ordinary_non_council_turn_WHEN_building_the_prompt_THEN_tribute_is_never_mentioned()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            CouncilOfferedResolutionKinds = new[] {"quest", "tribute"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(TributeFormat);
          prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
       }
    }
