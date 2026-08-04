@@ -1281,6 +1281,26 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-04): Partie 1's other kind, give_influence. Taught ONLY at a
+            // WAR COUNCIL when the mod's offering has proven a seated ALLY's own clan could currently spare some
+            // political influence to the player's clan (never ClanLords/Companions/Family: within the player's
+            // own clan the transfer is clan-to-itself, COUNCIL_ACTIONS.md's Kimi review). Unlike give_gold, NO
+            // AMOUNT is ever named here: the weight of the pledge is fixed by custom (the reused 1:1
+            // give_influence policy computes it fresh at the lift), never an LLM choice, so the model names only
+            // the actor and a plain detail.
+            if (IsKindOffered(context, "give_influence"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("At a WAR COUNCIL, a seated allied lord may also PLEDGE THEIR CLAN'S INFLUENCE TO");
+               sb.AppendLine("YOU, putting their own house's standing at court behind yours. Do not name an");
+               sb.AppendLine("amount: the weight of the pledge is fixed by custom, not by what is said here.");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: give_influence");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("detail: Ira lends her clan's influence at court behind the player.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             // Council resolution offering (2026-08-03): the WarCouncil's first motion, and the FIRST FACTION-CENTRIC
             // one. declare_war is taught ONLY when the mod's offering has proven the player actually leads a
             // faction that could declare a new war (ResolutionOfferingResolver's PlayerCanDeclareWar fact); the

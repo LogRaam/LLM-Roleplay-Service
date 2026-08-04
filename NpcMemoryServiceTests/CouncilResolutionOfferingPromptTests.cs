@@ -8,6 +8,7 @@
 
 #region
 
+using System;
 using FluentAssertions;
 using NpcMemoryService.Core.Models;
 using NpcMemoryService.Core.Prompts;
@@ -28,6 +29,7 @@ namespace NpcMemoryServiceTests
       private const string DeclareWarFormat = "type: declare_war";
       private const string MakePeaceFormat = "type: make_peace";
       private const string GiveGoldFormat = "type: give_gold";
+      private const string GiveInfluenceFormat = "type: give_influence";
 
       private static NpcProfile Npc() => new() {
          Id = "npc_test",
@@ -488,6 +490,85 @@ namespace NpcMemoryServiceTests
          string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
          prompt.Should().NotContain(GiveGoldFormat);
+         prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
+      }
+
+      // Partie 1's other kind (bringing the existing 1:1 resource verbs to the council, 2026-08-04): without
+      // give_influence in its own vocabulary the model has no way to propose a seated ally's own clan influence
+      // pledge, whatever the world allows.
+      [Test]
+      public void GIVEN_a_council_turn_with_give_influence_offered_WHEN_building_the_prompt_THEN_its_emission_format_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "give_influence"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain(GiveInfluenceFormat);
+         prompt.Should().Contain("WAR COUNCIL");
+         prompt.Should().Contain("CLAN'S INFLUENCE TO");
+         prompt.Should().Contain("Do not name an");
+      }
+
+      // The STAKE this test pins: unlike give_gold's target_amount, the amount must NEVER be an LLM choice
+      // (mirroring the 1:1 give_influence verb's own discipline, which the council amount policy reuses at the
+      // lift). The taught block for this kind must never invite a target_amount field.
+      [Test]
+      public void GIVEN_give_influence_offered_WHEN_building_the_prompt_THEN_no_amount_field_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "give_influence"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         int blockStart = prompt.IndexOf(GiveInfluenceFormat, StringComparison.Ordinal);
+         int blockEnd = prompt.IndexOf("[/RESOLUTION]", blockStart, StringComparison.Ordinal);
+         string block = prompt.Substring(blockStart, blockEnd - blockStart);
+
+         block.Should().NotContain("target_amount");
+      }
+
+      // A council whose world facts satisfy nothing beyond the universal quest pledge (no seated ally's clan
+      // could currently spare any influence) must not see give_influence at all: teaching it would offer a
+      // pledge the lift has already proven nobody present could actually keep.
+      [Test]
+      public void GIVEN_a_council_turn_with_only_quest_offered_WHEN_building_the_prompt_THEN_give_influence_is_absent()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(GiveInfluenceFormat);
+         prompt.Should().Contain("type: quest");
+      }
+
+      // An ordinary 1:1 conversation must NEVER see this teaching, whatever the field happens to hold: a clan
+      // influence pledge from a seated ally belongs only to a real council turn, never to a private exchange
+      // with one NPC.
+      [Test]
+      public void GIVEN_an_ordinary_non_council_turn_WHEN_building_the_prompt_THEN_give_influence_is_never_mentioned()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            CouncilOfferedResolutionKinds = new[] {"quest", "give_influence"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(GiveInfluenceFormat);
          prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
       }
    }
