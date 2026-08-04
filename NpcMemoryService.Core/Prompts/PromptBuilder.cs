@@ -1280,6 +1280,26 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-03): the Parley's own motion, and declare_war's symmetric
+            // counterpart. make_peace is taught ONLY when the mod's offering has proven the player leads their
+            // own faction and it is at war with the enemy this parley was convened against (ResolutionOfferingResolver's
+            // PlayerCanMakePeace fact); naming target_faction is optional (unlike declare_war, which needs it to
+            // pick a faction out of the whole world), since a parley already fixes who peace is made WITH, the
+            // very enemy sitting at the table.
+            if (IsKindOffered(context, "make_peace"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("At this PARLEY, the table may also MAKE PEACE with the enemy sitting across from you,");
+               sb.AppendLine("ending the war between your two factions. Only the leader of a faction may make peace");
+               sb.AppendLine("on its behalf, so this is offered only while the player holds that standing. Naming");
+               sb.AppendLine("the faction (target_faction) is optional, since the parley already fixes who peace is");
+               sb.AppendLine("made with:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: make_peace");
+               sb.AppendLine("detail: The council resolves to make peace.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             sb.AppendLine("This is held as the table's decision, not carried out here: it is settled only when the");
             sb.AppendLine("council rises. If the table changes its mind before then, withdraw it:");
             sb.AppendLine("[RESOLUTION]");

@@ -26,6 +26,7 @@ namespace NpcMemoryServiceTests
       private const string DispatchMissionFormat = "type: dispatch_mission";
       private const string GrantStipendFormat = "type: grant_stipend";
       private const string DeclareWarFormat = "type: declare_war";
+      private const string MakePeaceFormat = "type: make_peace";
 
       private static NpcProfile Npc() => new() {
          Id = "npc_test",
@@ -378,6 +379,59 @@ namespace NpcMemoryServiceTests
          string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
          prompt.Should().NotContain(DeclareWarFormat);
+         prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
+      }
+
+      // The Parley's own motion, declare_war's symmetric counterpart (2026-08-03): without make_peace in its own
+      // vocabulary the model has no way to propose ending the war, whatever the world allows.
+      [Test]
+      public void GIVEN_a_council_turn_with_make_peace_offered_WHEN_building_the_prompt_THEN_its_emission_format_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "make_peace"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain(MakePeaceFormat);
+         prompt.Should().Contain("Only the leader of a faction may make peace");
+      }
+
+      // A council whose world facts satisfy nothing beyond the universal quest pledge (the player does not lead
+      // a faction at war with the parley's target) must not see make_peace at all: teaching it would offer a
+      // decision the lift has already proven the player has no standing to make.
+      [Test]
+      public void GIVEN_a_council_turn_with_only_quest_offered_WHEN_building_the_prompt_THEN_make_peace_is_absent()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(MakePeaceFormat);
+         prompt.Should().Contain("type: quest");
+      }
+
+      // An ordinary 1:1 conversation, and any non-council round-table turn, must NEVER see this teaching,
+      // whatever the field happens to hold: a peace offer belongs only to a real PARLEY turn.
+      [Test]
+      public void GIVEN_an_ordinary_non_council_turn_WHEN_building_the_prompt_THEN_make_peace_is_never_mentioned()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            CouncilOfferedResolutionKinds = new[] {"quest", "make_peace"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(MakePeaceFormat);
          prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
       }
    }
