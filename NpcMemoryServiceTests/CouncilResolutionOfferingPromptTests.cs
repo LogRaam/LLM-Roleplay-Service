@@ -25,6 +25,7 @@ namespace NpcMemoryServiceTests
       private const string RejoinPartyFormat = "type: rejoin_party";
       private const string DispatchMissionFormat = "type: dispatch_mission";
       private const string GrantStipendFormat = "type: grant_stipend";
+      private const string DeclareWarFormat = "type: declare_war";
 
       private static NpcProfile Npc() => new() {
          Id = "npc_test",
@@ -323,6 +324,60 @@ namespace NpcMemoryServiceTests
          string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
          prompt.Should().NotContain(GrantStipendFormat);
+         prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
+      }
+
+      // The WarCouncil's first motion, and the first FACTION-CENTRIC kind (2026-08-03): without declare_war in
+      // its own vocabulary the model has no way to propose a war declaration, whatever the world allows.
+      [Test]
+      public void GIVEN_a_council_turn_with_declare_war_offered_WHEN_building_the_prompt_THEN_its_emission_format_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "declare_war"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain(DeclareWarFormat);
+         prompt.Should().Contain("target_faction:");
+         prompt.Should().Contain("Only the leader of a faction may declare war");
+      }
+
+      // A council whose world facts satisfy nothing beyond the universal quest pledge (the player does not lead
+      // a faction that could declare war) must not see declare_war at all: teaching it would offer a decision
+      // the lift has already proven the player has no standing to make.
+      [Test]
+      public void GIVEN_a_council_turn_with_only_quest_offered_WHEN_building_the_prompt_THEN_declare_war_is_absent()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(DeclareWarFormat);
+         prompt.Should().Contain("type: quest");
+      }
+
+      // An ordinary 1:1 conversation, and any non-council round-table turn, must NEVER see this teaching,
+      // whatever the field happens to hold: a war declaration belongs only to a real WAR council turn.
+      [Test]
+      public void GIVEN_an_ordinary_non_council_turn_WHEN_building_the_prompt_THEN_declare_war_is_never_mentioned()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            CouncilOfferedResolutionKinds = new[] {"quest", "declare_war"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(DeclareWarFormat);
          prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
       }
    }

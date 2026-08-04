@@ -37,5 +37,8 @@ namespace NpcMemoryService.Core.Models
 
         /// <summary>For a "grant_stipend" kind: the proposed denars-per-day amount. Null for any other kind, or when none was named/parseable.</summary>
         public int? TargetAmount { get; init; }
+
+        /// <summary>For a "declare_war" kind (the first FACTION-CENTRIC kind, WarCouncil only): the faction named to declare war on, in the model's own words. Null for any other kind, or when none was named.</summary>
+        public string? TargetFaction { get; init; }
     }
 }

@@ -1260,6 +1260,26 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-03): the WarCouncil's first motion, and the FIRST FACTION-CENTRIC
+            // one. declare_war is taught ONLY when the mod's offering has proven the player actually leads a
+            // faction that could declare a new war (ResolutionOfferingResolver's PlayerCanDeclareWar fact); the
+            // actor here is the seated ally advocating the decision, or may be left out entirely, since the
+            // pledge is the table's own about two FACTIONS, never one member's personal fate.
+            if (IsKindOffered(context, "declare_war"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("At a WAR COUNCIL, the table may also DECLARE WAR on a faction the player is not");
+               sb.AppendLine("already at war with. Only the leader of a faction may declare war on another, so");
+               sb.AppendLine("this is offered only while the player holds that standing. Name the faction plainly");
+               sb.AppendLine("in target_faction; naming who spoke for it (actor) is optional, since this is the");
+               sb.AppendLine("table's own decision, not one member's promise:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: declare_war");
+               sb.AppendLine("target_faction: Vlandia");
+               sb.AppendLine("detail: The council resolves to declare war on Vlandia.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             sb.AppendLine("This is held as the table's decision, not carried out here: it is settled only when the");
             sb.AppendLine("council rises. If the table changes its mind before then, withdraw it:");
             sb.AppendLine("[RESOLUTION]");

@@ -171,6 +171,7 @@ namespace NpcMemoryServiceTests
          resolution.TargetRole.Should().BeNull();
          resolution.TargetMission.Should().BeNull();
          resolution.TargetAmount.Should().BeNull();
+         resolution.TargetFaction.Should().BeNull();
       }
 
       // dispatch_mission's own grounding field, mirroring target_role: must survive parsing or the mod has no
@@ -212,6 +213,31 @@ namespace NpcMemoryServiceTests
          var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: grant_stipend\nactor: Sley\ndetail: a stipend\ntarget_amount: plenty\n[/RESOLUTION]";
 
          _parser.Parse(raw).Resolutions[0].TargetAmount.Should().BeNull();
+      }
+
+      // declare_war's own grounding field (the first FACTION-CENTRIC kind, WarCouncil only): must survive
+      // parsing or the mod has no faction name to map into TargetHint and CouncilLift.SettleDeclareWar can
+      // never resolve a target to declare war on.
+      [Test]
+      public void A_target_faction_field_is_parsed_when_present()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: declare_war\ndetail: the council resolves for war\ntarget_faction: Vlandia\n[/RESOLUTION]";
+
+         _parser.Parse(raw).Resolutions[0].TargetFaction.Should().Be("Vlandia");
+      }
+
+      // declare_war's actor is OPTIONAL (the mod's ResolveDeclareWarActor carve-out defaults an omitted one to
+      // the presiding member): the parser itself must not require it, mirroring how every field here stays
+      // simply absent rather than enforced.
+      [Test]
+      public void A_declare_war_resolution_with_no_actor_still_parses()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: declare_war\ndetail: the council resolves for war\ntarget_faction: Vlandia\n[/RESOLUTION]";
+
+         var resolution = _parser.Parse(raw).Resolutions[0];
+
+         resolution.Actor.Should().BeNull();
+         resolution.Type.Should().Be("declare_war");
       }
    }
 }
