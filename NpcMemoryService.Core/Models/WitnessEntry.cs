@@ -45,5 +45,14 @@ namespace NpcMemoryService.Core.Models
       ///   differently from an impulsive one. Null when no profile is available.
       /// </summary>
       public string? Persona { get; init; }
+
+      /// <summary>
+      ///   A council seat's true whereabouts relative to the player right now (e.g. "at your side in your
+      ///   party", "keeping to Pravend"), read from live Hero state by the mod's CouncilRosterResolver. Council
+      ///   bug fix: a seated member is gathered on availability alone, with no distance/travel test, so this is
+      ///   the only thing that stops a member who is NOT actually travelling with the player from being voiced
+      ///   as though they were. Null for an ordinary (non-council) witness, where the concept does not apply.
+      /// </summary>
+      public string? PresenceStatus { get; init; }
    }
 }

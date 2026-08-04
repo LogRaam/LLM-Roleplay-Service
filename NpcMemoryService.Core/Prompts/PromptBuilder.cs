@@ -2712,7 +2712,10 @@ namespace NpcMemoryService.Core.Prompts
             string persona = string.IsNullOrWhiteSpace(w.Persona)
                ? ""
                : $" — {w.Persona}";
-            sb.AppendLine($"- {w.Name} ({role}){persona}");
+            string presence = string.IsNullOrWhiteSpace(w.PresenceStatus)
+               ? ""
+               : $" [{w.PresenceStatus}]";
+            sb.AppendLine($"- {w.Name} ({role}){persona}{presence}");
          }
 
          // The candor rule is about being OVERHEARD, which is not what a council is: everyone here was
@@ -2721,6 +2724,22 @@ namespace NpcMemoryService.Core.Prompts
          {
             sb.AppendLine("Adjust your candor based on who is listening.");
             sb.AppendLine("You will not share secrets or make commitments you would not voice in front of these people.");
+         }
+
+         // Council bug c: a seat is gathered on availability alone, with no distance/travel test by design (see
+         // CouncilRosterPolicy's own header), so a bracketed [presence] above may say a member is keeping to a
+         // settlement or leading their own company, not riding with the player at all. Without this directive
+         // nothing contradicted a member speaking as though they shared the road, which is exactly the
+         // "seated but not present" claim the fix exists to close.
+         if (council)
+         {
+            sb.AppendLine("SPEAK ONLY YOUR TRUE PRESENCE:");
+            sb.AppendLine("The bracketed status after each seat above, and your own presence noted elsewhere in");
+            sb.AppendLine("this prompt, is where that member truly stands right now. Never let a member claim, in");
+            sb.AppendLine("dialogue or narration, to be travelling at the player's side, riding the road with them,");
+            sb.AppendLine("or camped alongside them if their own status says otherwise. A member keeping to a");
+            sb.AppendLine("settlement, leading their own company, or simply abroad may still counsel and commit at");
+            sb.AppendLine("this table, but never as though they share the road with the player this very moment.");
          }
 
          sb.AppendLine();
