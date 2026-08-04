@@ -885,7 +885,11 @@ namespace NpcMemoryService.Core.Parsing
             Detail = NullIfBlank(detail),
             TargetSettlement = NullIfBlank(GetField(fields, "target_settlement")),
             TargetRole = NullIfBlank(GetField(fields, "target_role")),
-            TargetMission = NullIfBlank(GetField(fields, "target_mission"))
+            TargetMission = NullIfBlank(GetField(fields, "target_mission")),
+            // Tolerant, like every other numeric field this parser reads (TryParseSignedInt): a model that wraps
+            // the figure ("100 denars", "100/day") must not lose the amount, and an absent/unparseable value
+            // simply leaves this null rather than throwing, mirroring deadline_days and the relation deltas.
+            TargetAmount = TryParseSignedInt(fields, "target_amount")
          };
       }
 

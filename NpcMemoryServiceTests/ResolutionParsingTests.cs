@@ -170,6 +170,7 @@ namespace NpcMemoryServiceTests
          resolution.TargetSettlement.Should().BeNull();
          resolution.TargetRole.Should().BeNull();
          resolution.TargetMission.Should().BeNull();
+         resolution.TargetAmount.Should().BeNull();
       }
 
       // dispatch_mission's own grounding field, mirroring target_role: must survive parsing or the mod has no
@@ -180,6 +181,37 @@ namespace NpcMemoryServiceTests
          var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: dispatch_mission\nactor: Sley\ndetail: Sley will ride out for news\ntarget_mission: GatherNews\n[/RESOLUTION]";
 
          _parser.Parse(raw).Resolutions[0].TargetMission.Should().Be("GatherNews");
+      }
+
+      // grant_stipend's own grounding field: must survive parsing or the mod has no proposed amount to map into
+      // TargetHint, and the lift can never fund the escrow.
+      [Test]
+      public void A_target_amount_field_is_parsed_when_present()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: grant_stipend\nactor: Sley\ndetail: Sley will draw 100 denars a day\ntarget_amount: 100\n[/RESOLUTION]";
+
+         _parser.Parse(raw).Resolutions[0].TargetAmount.Should().Be(100);
+      }
+
+      // Tolerant like every other numeric field this parser reads (TryParseSignedInt, e.g. deadline_days): a
+      // model that dresses the figure up ("100 denars/day") must not lose the amount just for wrapping it.
+      [Test]
+      public void A_target_amount_field_wrapped_in_extra_words_is_still_parsed()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: grant_stipend\nactor: Sley\ndetail: a stipend\ntarget_amount: 100 denars a day\n[/RESOLUTION]";
+
+         _parser.Parse(raw).Resolutions[0].TargetAmount.Should().Be(100);
+      }
+
+      // A target_amount the model left unparseable (garbage, no digits) must leave the field null rather than
+      // throw: the mod's own lift guard (CouncilLift.SettleGrantStipend) is what turns a missing amount into a
+      // clean MarkFailed, so the parser itself must never crash the whole response over one bad field.
+      [Test]
+      public void An_unparseable_target_amount_field_is_left_null()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: grant_stipend\nactor: Sley\ndetail: a stipend\ntarget_amount: plenty\n[/RESOLUTION]";
+
+         _parser.Parse(raw).Resolutions[0].TargetAmount.Should().BeNull();
       }
    }
 }

@@ -1239,6 +1239,27 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-03): the FIFTH executable menu motion, and the FIRST that
+            // touches persisted save state (a mod-tracked escrow, CouncilStipendBehavior) rather than merely
+            // mutating a live campaign object. grant_stipend is taught ONLY when the mod's offering has proven the
+            // player's purse can fund at least the MINIMUM 30-day tranche (StipendPolicy.MinTrancheCost); the
+            // ACTUAL amount proposed here is re-clamped to [50, 500] and the player's gold re-checked against it
+            // at the lift (bridge is law), so this gate only proves the floor is affordable, never the real figure.
+            if (IsKindOffered(context, "grant_stipend"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("A seated clan companion may also be granted a STIPEND: a recurring purse paid daily");
+               sb.AppendLine("for 30 days from the player's own coffers, funded up front so the promise cannot");
+               sb.AppendLine("fail partway through. Name a whole number of denars per day, between 50 and 500, in");
+               sb.AppendLine("target_amount:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: grant_stipend");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("target_amount: 100");
+               sb.AppendLine("detail: Ira will draw 100 denars a day from the player's coffers for the next 30 days.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             sb.AppendLine("This is held as the table's decision, not carried out here: it is settled only when the");
             sb.AppendLine("council rises. If the table changes its mind before then, withdraw it:");
             sb.AppendLine("[RESOLUTION]");

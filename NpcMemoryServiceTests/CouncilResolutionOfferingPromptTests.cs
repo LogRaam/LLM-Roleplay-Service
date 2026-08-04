@@ -24,6 +24,7 @@ namespace NpcMemoryServiceTests
       private const string AssignPartyRoleFormat = "type: assign_party_role";
       private const string RejoinPartyFormat = "type: rejoin_party";
       private const string DispatchMissionFormat = "type: dispatch_mission";
+      private const string GrantStipendFormat = "type: grant_stipend";
 
       private static NpcProfile Npc() => new() {
          Id = "npc_test",
@@ -266,6 +267,62 @@ namespace NpcMemoryServiceTests
          string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
          prompt.Should().NotContain(DispatchMissionFormat);
+         prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
+      }
+
+      // The FIFTH executable menu motion (2026-08-03), and the FIRST that touches persisted save state: without
+      // grant_stipend in its own vocabulary the model has no way to propose funding a companion's purse, whatever
+      // the world allows.
+      [Test]
+      public void GIVEN_a_council_turn_with_grant_stipend_offered_WHEN_building_the_prompt_THEN_its_emission_format_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "grant_stipend"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain(GrantStipendFormat);
+         prompt.Should().Contain("target_amount:");
+         prompt.Should().Contain("50 and 500");
+         prompt.Should().Contain("30 days");
+      }
+
+      // A council whose world facts satisfy nothing beyond the universal quest pledge (the player cannot afford
+      // even the minimum tranche) must not see grant_stipend at all: teaching it would offer a purse the lift has
+      // already proven the treasury cannot fund at all.
+      [Test]
+      public void GIVEN_a_council_turn_with_only_quest_offered_WHEN_building_the_prompt_THEN_grant_stipend_is_absent()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(GrantStipendFormat);
+         prompt.Should().Contain("type: quest");
+      }
+
+      // An ordinary 1:1 conversation must NEVER see this teaching, whatever the field happens to hold: a stipend
+      // offer belongs only to a real council turn, never to a private exchange with one NPC.
+      [Test]
+      public void GIVEN_an_ordinary_non_council_turn_WHEN_building_the_prompt_THEN_grant_stipend_is_never_mentioned()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            CouncilOfferedResolutionKinds = new[] {"quest", "grant_stipend"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(GrantStipendFormat);
          prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
       }
    }

@@ -34,5 +34,8 @@ namespace NpcMemoryService.Core.Models
 
         /// <summary>For a "dispatch_mission" kind: the companion-mission errand named (GatherNews, Spy, Steal, Barter, or Envoy), in the model's own words. Null for any other kind, or when none was named.</summary>
         public string? TargetMission { get; init; }
+
+        /// <summary>For a "grant_stipend" kind: the proposed denars-per-day amount. Null for any other kind, or when none was named/parseable.</summary>
+        public int? TargetAmount { get; init; }
     }
 }
