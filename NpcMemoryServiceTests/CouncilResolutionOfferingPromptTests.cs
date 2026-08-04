@@ -22,6 +22,7 @@ namespace NpcMemoryServiceTests
    {
       private const string AppointGovernorFormat = "type: appoint_governor";
       private const string AssignPartyRoleFormat = "type: assign_party_role";
+      private const string RejoinPartyFormat = "type: rejoin_party";
 
       private static NpcProfile Npc() => new() {
          Id = "npc_test",
@@ -155,6 +156,60 @@ namespace NpcMemoryServiceTests
          string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
          prompt.Should().NotContain(AssignPartyRoleFormat);
+         prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
+      }
+
+      // The THIRD executable menu motion (bug d, 2026-08-03), mirroring assign_party_role's own wire: without
+      // rejoin_party in its own vocabulary the model has no way to propose bringing an away companion back,
+      // whatever the world allows.
+      [Test]
+      public void GIVEN_a_council_turn_with_rejoin_party_offered_WHEN_building_the_prompt_THEN_its_emission_format_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "rejoin_party"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain(RejoinPartyFormat);
+         prompt.Should().Contain("REJOIN it");
+      }
+
+      // A council whose world facts satisfy nothing beyond the universal quest pledge (no seated companion is
+      // out of the party) must not see rejoin_party at all: teaching it would offer a return the lift has
+      // already proven nobody present needs.
+      [Test]
+      public void GIVEN_a_council_turn_with_only_quest_offered_WHEN_building_the_prompt_THEN_rejoin_party_is_absent()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(RejoinPartyFormat);
+         prompt.Should().Contain("type: quest");
+      }
+
+      // An ordinary 1:1 conversation must NEVER see this teaching, whatever the field happens to hold: a rejoin
+      // pledge belongs only to a real council turn, never to a private exchange with one NPC.
+      [Test]
+      public void GIVEN_an_ordinary_non_council_turn_WHEN_building_the_prompt_THEN_rejoin_party_is_never_mentioned()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            CouncilOfferedResolutionKinds = new[] {"quest", "rejoin_party"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(RejoinPartyFormat);
          prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
       }
    }

@@ -1202,6 +1202,23 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-03): the THIRD executable menu motion, closing bug d and
+            // mirroring assign_party_role's own gate exactly. rejoin_party is taught ONLY when the mod's offering
+            // has proven at least one seated member is a clan companion currently OUTSIDE the player's own party:
+            // without this gate the model could pledge a return for someone already riding along, or for a
+            // seated lord who is not a companion at all, neither of which the lift could honour.
+            if (IsKindOffered(context, "rejoin_party"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("A seated member of your clan who is NOT currently travelling in your party may also");
+               sb.AppendLine("pledge to REJOIN it. No fief or role needs naming, only who pledges:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: rejoin_party");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("detail: Ira will rejoin the player's party.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             sb.AppendLine("This is held as the table's decision, not carried out here: it is settled only when the");
             sb.AppendLine("council rises. If the table changes its mind before then, withdraw it:");
             sb.AppendLine("[RESOLUTION]");
