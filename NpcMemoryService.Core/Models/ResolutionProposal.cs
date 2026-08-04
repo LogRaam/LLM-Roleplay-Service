@@ -40,5 +40,15 @@ namespace NpcMemoryService.Core.Models
 
         /// <summary>For a "declare_war" kind (the first FACTION-CENTRIC kind, WarCouncil only): the faction named to declare war on, in the model's own words. Null for any other kind, or when none was named.</summary>
         public string? TargetFaction { get; init; }
+
+        /// <summary>
+        ///   For a "pledge_against" kind (Partie 1, COUNCIL_ACTIONS.md's schemes block, reusing the existing 1:1
+        ///   pledge_against system end to end): the named RIVAL a seated member pledges to move against, in the
+        ///   model's own words. A dedicated field rather than reusing TargetSettlement: unlike a fief or a
+        ///   settlement, this names a HERO, and folding a person's name into a field literally called
+        ///   "TargetSettlement" would be a confusing lie to the next reader. Null for any other kind, or when
+        ///   none was named.
+        /// </summary>
+        public string? TargetRival { get; init; }
     }
 }

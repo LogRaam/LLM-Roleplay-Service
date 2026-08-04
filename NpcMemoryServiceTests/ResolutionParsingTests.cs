@@ -172,6 +172,7 @@ namespace NpcMemoryServiceTests
          resolution.TargetMission.Should().BeNull();
          resolution.TargetAmount.Should().BeNull();
          resolution.TargetFaction.Should().BeNull();
+         resolution.TargetRival.Should().BeNull();
       }
 
       // dispatch_mission's own grounding field, mirroring target_role: must survive parsing or the mod has no
@@ -238,6 +239,17 @@ namespace NpcMemoryServiceTests
 
          resolution.Actor.Should().BeNull();
          resolution.Type.Should().Be("declare_war");
+      }
+
+      // pledge_against's own grounding field (Partie 1, COUNCIL_ACTIONS.md's schemes block, reusing the existing
+      // 1:1 pledge_against system): must survive parsing or the mod has no rival name to map into TargetHint,
+      // and CouncilLift.SettlePledgeAgainst can never resolve who the pledge concerns.
+      [Test]
+      public void A_target_rival_field_is_parsed_when_present()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: pledge_against\nactor: Ira\ndetail: Ira will move against Boyar Sevin\ntarget_rival: Boyar Sevin\n[/RESOLUTION]";
+
+         _parser.Parse(raw).Resolutions[0].TargetRival.Should().Be("Boyar Sevin");
       }
    }
 }

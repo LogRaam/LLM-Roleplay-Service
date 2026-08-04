@@ -894,7 +894,11 @@ namespace NpcMemoryService.Core.Parsing
             TargetAmount = TryParseSignedInt(fields, "target_amount"),
             // "declare_war"'s own grounding field, mirroring target_settlement: the faction named, read back by
             // the mod's CouncilLift.SettleDeclareWar (the first FACTION-CENTRIC executor).
-            TargetFaction = NullIfBlank(GetField(fields, "target_faction"))
+            TargetFaction = NullIfBlank(GetField(fields, "target_faction")),
+            // "pledge_against"'s own grounding field (Partie 1, COUNCIL_ACTIONS.md's schemes block): the named
+            // rival, read back by the mod's CouncilLift.SettlePledgeAgainst via CourtActionResolver's own
+            // tolerant name match, exactly like the 1:1 pledge_against action already resolves its "target" param.
+            TargetRival = NullIfBlank(GetField(fields, "target_rival"))
          };
       }
 

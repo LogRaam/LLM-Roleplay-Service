@@ -1301,6 +1301,31 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-04): Partie 1's schemes kind (COUNCIL_ACTIONS.md), REUSING the
+            // existing 1:1 pledge_against system end to end (CourtActionResolver.LaunchPledge, the SAME code
+            // path the 1:1 action itself calls). Taught ONLY when the mod's offering has proven a seated member
+            // (ClanLords or Family only, see ResolutionCatalog's two PledgeAgainst entries: a seated lord's own
+            // rivalry is exactly as plausible at the table as within the player's own inner circle) currently
+            // holds no pledge already outstanding. The rival is NEVER a free choice grounded on prose: name them
+            // plainly in target_rival, and the mod re-resolves them by name at the lift exactly like the 1:1
+            // action does (excluding the player, the pledger's own kin, and any faction leader), refusing
+            // outright if the rival named sits at this very council (COUNCIL_ACTIONS.md's Kimi review flags this
+            // "trahison a table" case explicitly; this build refuses it rather than pricing a public betrayal).
+            if (IsKindOffered(context, "pledge_against"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("A seated member may also PLEDGE TO MOVE AGAINST A RIVAL: a real scheme against them");
+               sb.AppendLine("begins the moment the council rises. Only a rival they truly hold in standing enmity");
+               sb.AppendLine("can be named, never a friend, never their own kin, and never someone else seated at");
+               sb.AppendLine("this very table. Name the rival plainly in target_rival:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: pledge_against");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("target_rival: Boyar Sevin");
+               sb.AppendLine("detail: Ira will move against Boyar Sevin.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             // Council resolution offering (2026-08-04): Partie 2 (COUNCIL_ACTIONS.md), the FIRST governance kind
             // to gain a real executor. grant_fief is taught ONLY at a WAR COUNCIL when the mod's offering has
             // proven the player actually rules a kingdom AND their own clan holds a giveable town or castle

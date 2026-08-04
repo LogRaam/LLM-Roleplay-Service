@@ -30,6 +30,7 @@ namespace NpcMemoryServiceTests
       private const string MakePeaceFormat = "type: make_peace";
       private const string GiveGoldFormat = "type: give_gold";
       private const string GiveInfluenceFormat = "type: give_influence";
+      private const string PledgeAgainstFormat = "type: pledge_against";
       private const string GrantFiefFormat = "type: grant_fief";
       private const string RevokeFiefFormat = "type: revoke_fief";
       private const string ExpelFromClanFormat = "type: expel_from_clan";
@@ -572,6 +573,62 @@ namespace NpcMemoryServiceTests
          string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
          prompt.Should().NotContain(GiveInfluenceFormat);
+         prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
+      }
+
+      // Partie 1's schemes kind (COUNCIL_ACTIONS.md, 2026-08-04), reusing the existing 1:1 pledge_against system
+      // end to end: without pledge_against in its own vocabulary the model has no way to propose a seated
+      // member's own scheme against a rival, whatever the world allows.
+      [Test]
+      public void GIVEN_a_council_turn_with_pledge_against_offered_WHEN_building_the_prompt_THEN_its_emission_format_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "pledge_against"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain(PledgeAgainstFormat);
+         prompt.Should().Contain("target_rival:");
+         prompt.Should().Contain("MOVE AGAINST A RIVAL");
+      }
+
+      // A council whose world facts satisfy nothing beyond the universal quest pledge (no seated member without
+      // an outstanding pledge) must not see pledge_against at all: teaching it would offer a scheme the lift has
+      // already proven nobody present could actually launch.
+      [Test]
+      public void GIVEN_a_council_turn_with_only_quest_offered_WHEN_building_the_prompt_THEN_pledge_against_is_absent()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(PledgeAgainstFormat);
+         prompt.Should().Contain("type: quest");
+      }
+
+      // An ordinary 1:1 conversation must NEVER see this teaching, whatever the field happens to hold: a
+      // council-decided scheme belongs only to a real council turn, never to a private exchange with one NPC
+      // (the 1:1 pledge_against action already covers that case on its own vocabulary).
+      [Test]
+      public void GIVEN_an_ordinary_non_council_turn_WHEN_building_the_prompt_THEN_pledge_against_is_never_mentioned()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            CouncilOfferedResolutionKinds = new[] {"quest", "pledge_against"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(PledgeAgainstFormat);
          prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
       }
 
