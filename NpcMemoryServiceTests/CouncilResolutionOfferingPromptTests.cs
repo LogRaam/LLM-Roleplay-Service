@@ -42,6 +42,7 @@ namespace NpcMemoryServiceTests
       private const string GiveTroopsFormat = "type: give_troops";
       private const string SwearOathFormat = "type: swear_oath";
       private const string GiveHostageFormat = "type: give_hostage";
+      private const string NonAggressionPactFormat = "type: non_aggression_pact";
 
       private static NpcProfile Npc() => new() {
          Id = "npc_test",
@@ -1393,6 +1394,109 @@ namespace NpcMemoryServiceTests
          string block = prompt.Substring(blockStart, blockEnd - blockStart);
 
          block.Should().NotContain("move_against");
+      }
+
+      // Rounds out the Parley toolkit with a FIFTH concession (COUNCIL_ACTIONS.md's Partie 8,
+      // "non_aggression_pact", 2026-08-05): without it in its own vocabulary the model has no way to propose the
+      // seated enemy leader's own promise of restraint, whatever the world allows.
+      [Test]
+      public void GIVEN_a_council_turn_with_non_aggression_pact_offered_WHEN_building_the_prompt_THEN_its_emission_format_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "non_aggression_pact"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain(NonAggressionPactFormat);
+         prompt.Should().Contain("NON-AGGRESSION PACT");
+         prompt.Should().Contain("45 days");
+      }
+
+      // STAKE (the whole reason this kind's wording was worded so precisely, see NonAggressionPactPolicy's own
+      // header): this pact is HONEST-LIMITED - vanilla has no native inter-clan non-aggression and vanilla AI
+      // will not respect it, so the taught text must (a) state the EXACT, narrower scope ("companies... will not
+      // attack each other"), (b) explicitly instruct the model never to phrase it as "there will be peace", and
+      // (c) the WORKED EXAMPLE itself (the "detail:" line the model is shown) must actually honor that scoping,
+      // never the false-promise class this whole project exists to close.
+      [Test]
+      public void GIVEN_non_aggression_pact_offered_WHEN_building_the_prompt_THEN_the_wording_is_scoped_not_a_claim_of_peace()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "non_aggression_pact"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain("will not attack each");
+         prompt.Should().Contain("Never say \"there will be peace\"");
+         prompt.Should().Contain("detail: Ira agrees that her company and the player's will not attack each other for 45 days.");
+      }
+
+      // Grounds on NOTHING beyond the actor (mirrors give_influence's/expel_from_clan's own discipline): the
+      // fixed term and the faction pair are never an LLM choice, so the taught block must never invite a
+      // target_amount or target_faction field the model could otherwise be tempted to fill in.
+      [Test]
+      public void GIVEN_non_aggression_pact_offered_WHEN_building_the_prompt_THEN_no_amount_or_faction_field_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "non_aggression_pact"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         int blockStart = prompt.IndexOf(NonAggressionPactFormat, StringComparison.Ordinal);
+         int blockEnd = prompt.IndexOf("[/RESOLUTION]", blockStart, StringComparison.Ordinal);
+         string block = prompt.Substring(blockStart, blockEnd - blockStart);
+
+         block.Should().NotContain("target_amount");
+         block.Should().NotContain("target_faction");
+      }
+
+      // A council whose world facts satisfy nothing beyond the universal quest pledge (nobody seated leads a
+      // house distinct from the player's own, or the two are already bound by a live pact) must not see
+      // non_aggression_pact at all: teaching it would offer a pact the lift has already proven impossible or
+      // redundant.
+      [Test]
+      public void GIVEN_a_council_turn_with_only_quest_offered_WHEN_building_the_prompt_THEN_non_aggression_pact_is_absent()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(NonAggressionPactFormat);
+         prompt.Should().Contain("type: quest");
+      }
+
+      // An ordinary 1:1 conversation, and any non-council round-table turn, must NEVER see this teaching,
+      // whatever the field happens to hold: a non-aggression pact belongs only to a real PARLEY turn, never to a
+      // private exchange with one NPC.
+      [Test]
+      public void GIVEN_an_ordinary_non_council_turn_WHEN_building_the_prompt_THEN_non_aggression_pact_is_never_mentioned()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            CouncilOfferedResolutionKinds = new[] {"quest", "non_aggression_pact"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(NonAggressionPactFormat);
+         prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
       }
    }
 }

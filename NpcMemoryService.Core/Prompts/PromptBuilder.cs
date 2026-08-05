@@ -1612,6 +1612,34 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-05): rounds out the Parley toolkit with a FIFTH concession,
+            // non_aggression_pact (COUNCIL_ACTIONS.md's Partie 8). Taught ONLY when the mod's offering has proven
+            // the seated enemy leader leads a house distinct from the player's own AND the two are not already
+            // bound by a live pact (AnySeatedPactPartnerAvailable). HONEST-LIMITED BY DESIGN, the whole reason
+            // this wording is worded so precisely: vanilla has NO native inter-clan non-aggression, and the
+            // vanilla AI (a kingdom's own war council, an ally's own raid) will NOT respect this pact - it only
+            // ever binds the mod's OWN hostile deeds and is DETECTED, never PREVENTED, if a real battle breaks
+            // it. The taught text must therefore NEVER say "there will be peace" (that promises a kingdom-level
+            // outcome this pact cannot deliver, exactly the false-promise class the whole project exists to
+            // close) - it must state the EXACT, narrower scope: our two companies will not attack each other for
+            // a fixed number of days. Grounds on NOTHING beyond the actor (no amount, no name): the fixed term
+            // and the faction pair are never an LLM choice.
+            if (IsKindOffered(context, "non_aggression_pact"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("At this PARLEY, the enemy leader sitting across from you may also PLEDGE A");
+               sb.AppendLine("NON-AGGRESSION PACT: for the next 45 days, your two companies will not attack each");
+               sb.AppendLine("other. This is NOT a peace between your two factions and does not end any standing");
+               sb.AppendLine("war - it is a narrower, personal promise of restraint between the two of you.");
+               sb.AppendLine("Never say \"there will be peace\" or imply your kingdoms are no longer at odds; say");
+               sb.AppendLine("only that your companies will not raise arms against each other for a set time:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: non_aggression_pact");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("detail: Ira agrees that her company and the player's will not attack each other for 45 days.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             // Council resolution offering (R7-light, COUNCIL_ACTIONS.md's Partie 8, "swear_oath"): taught ONLY
             // when the mod's offering has proven a seated member (ClanLords/Family/WarCouncil) plausibly
             // qualifies for at least one of THREE whitelisted, auto-verifiable oath kinds. This is a BINDING,
