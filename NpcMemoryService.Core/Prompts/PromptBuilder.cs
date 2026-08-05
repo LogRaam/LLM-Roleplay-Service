@@ -259,7 +259,8 @@ namespace NpcMemoryService.Core.Prompts
          AppendPrisonerFreedomBargain(sb, encounterContext);
          AppendOrdinaryPrisonerExecutionRule(sb, encounterContext);
          AppendPrisonerRescueBargain(sb, encounterContext);
-         AppendCompanionMissionOffer(sb, encounterContext);
+         // gather_news was folded into dispatch_mission (2026-08-05): AppendDispatchMissionOffer above is now the
+         // SOLE errand offer, so a companion in the party no longer sees two overlapping errand teachings.
          AppendCompanionRecallOffer(sb, encounterContext);
          AppendCompanionNewsReport(sb, encounterContext);
          AppendCompanionMoodNote(sb, encounterContext);
@@ -649,30 +650,6 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
-      private static void AppendCompanionMissionOffer(StringBuilder sb, EncounterContext? context)
-      {
-         if (context?.CanGatherNews != true) return;
-
-         sb.AppendLine("THE PLAYER MAY SEND YOU ON AN ERRAND (only when THE PLAYER asks you to GO):");
-         sb.AppendLine("You are one of the player's own companions. If the player asks you to ride out and do one of");
-         sb.AppendLine("these for them, you may agree — and emit the action below with the matching 'errand':");
-         sb.AppendLine("  - news  : bring back word of the realm — the latest tidings");
-         sb.AppendLine("  - scout : spy out a town or lord — its strength, holdings, whereabouts");
-         sb.AppendLine("  - steal : lift coin from a place");
-         sb.AppendLine("  - trade : turn a profit at market");
-         sb.AppendLine("  - envoy : take the measure of a faction's mood");
-         sb.AppendLine("[ACTION]");
-         sb.AppendLine("type: gather_news");
-         sb.AppendLine("errand: scout");
-         sb.AppendLine("about: a faction, culture, town, or lord the player named (omit if they left it open)");
-         sb.AppendLine("[/ACTION]");
-         sb.AppendLine("The game sends you off; you leave the party, ride there, and return after some days with the");
-         sb.AppendLine("result. Pick the 'errand' that fits what they asked (default to news if they simply want word of");
-         sb.AppendLine("the world). Only emit this when the player actually asks you to GO and you agree — never on your");
-         sb.AppendLine("own, never for any other request. Do NOT invent the result now; you bring it back later.");
-         sb.AppendLine();
-      }
-
       /// <summary>
       ///   Taught when this companion has grown unhappy in the player's service: the directive in
       ///   <see cref="EncounterContext.CompanionMoodNote" /> (built by the host from the happiness band)
@@ -777,11 +754,6 @@ namespace NpcMemoryService.Core.Prompts
       ///   Taught only when the PLAYER holds this NPC prisoner (NpcIsCaptive) and comes to speak: the
       ///   captive lord may bargain for their own freedom, offering a reward worth more than the ransom,
       ///   and the deal is sealed with the free_prisoner action. Shown nowhere else.
-      /// </summary>
-      /// <summary>
-      ///   Taught only to one of the player's OWN companions who can be sent (CanGatherNews): if the
-      ///   player asks them to ride out and bring back word of the realm, they may agree and emit the
-      ///   gather_news action. The companion returns days later with a report — they do not invent news now.
       /// </summary>
       /// <summary>
       ///   Taught on the homecoming turn, when this companion has just returned from a news errand: the
@@ -2822,9 +2794,12 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: dispatch_mission");
          sb.AppendLine("target_mission: <one of: gathernews, spy, steal, barter, envoy>");
+         sb.AppendLine("about: a faction, culture, town, or lord the player named (omit this line if they left it open)");
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("The game sends you off; you leave the party, ride there, and return after some days with the");
          sb.AppendLine("result. Do NOT invent the result now, and do not name a destination; the game chooses where.");
+         sb.AppendLine("The optional 'about' names only WHAT the player wants word of (a realm, a town, a lord); it is");
+         sb.AppendLine("never a destination, and you omit the line entirely when they simply want word of the world.");
          sb.AppendLine();
       }
 

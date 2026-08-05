@@ -116,13 +116,6 @@ namespace NpcMemoryService.Core.Models
       public CaptiveAggressorKind AggressorKind { get; init; } = CaptiveAggressorKind.Lead;
 
       /// <summary>
-      ///   True when this NPC is one of the player's own companions, in the party, free of an errand and
-      ///   skilled enough to be sent — so the gather_news offer (dispatch them to bring back word of the
-      ///   realm) is taught. The game bridge re-validates every guard before actually dispatching.
-      /// </summary>
-      public bool CanGatherNews { get; init; }
-
-      /// <summary>
       ///   True when the 1:1 conversation path may teach this NPC the appoint_governor action (2026-08-05, the
       ///   reference personal-command verb brought to BOTH pipelines). The host's own EncounterContextBuilder has
       ///   proven, via CalradiaRemembers.Logic.Assemblies.GovernorAppointmentPolicy.CanOfferAppointment (the same
