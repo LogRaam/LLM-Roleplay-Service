@@ -1560,6 +1560,36 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (R7-light, COUNCIL_ACTIONS.md's Partie 8, "swear_oath"): taught ONLY
+            // when the mod's offering has proven a seated member (ClanLords/Family/WarCouncil) plausibly
+            // qualifies for at least one of THREE whitelisted, auto-verifiable oath kinds. This is a BINDING,
+            // TRACKED vow with a real deadline, never a figure of speech: only pay_gold, keep_peace, and protect
+            // may ever be sworn here, because only those three can be checked against a real event (a payment
+            // made, a war declared or not, a battle fought at the player's side). No other kind of promise (a
+            // fief, a marriage, a plea to some distant king) may be phrased as "swear_oath": say it in plain
+            // conversation instead, never as this binding vow. Breaking a sworn oath before this whole table is
+            // costlier than breaking one made in private.
+            if (IsKindOffered(context, "swear_oath"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("A seated member may also SWEAR A BINDING OATH, tracked by the table and checked against a");
+               sb.AppendLine("real deadline. Only THREE kinds of oath exist, because only these can be verified by a real");
+               sb.AppendLine("event, never taken on faith: pay_gold (a sum of denars owed to the player), keep_peace (their");
+               sb.AppendLine("own faction will not go to war with a named house), and protect (they will stand at the");
+               sb.AppendLine("player's side in a real battle). Never phrase any OTHER promise as a sworn oath. Name the");
+               sb.AppendLine("kind plainly in oath_kind:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: swear_oath");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("oath_kind: pay_gold");
+               sb.AppendLine("target_amount: 300");
+               sb.AppendLine("detail: Ira swears before the table to pay the player 300 denars within the season.");
+               sb.AppendLine("[/RESOLUTION]");
+               sb.AppendLine("A keep_peace oath instead names the faction in target_faction (no amount); a protect oath");
+               sb.AppendLine("names neither, only the vow itself. Breaking any of these before this whole table costs");
+               sb.AppendLine("more than breaking one sworn in private: witnesses remember.");
+            }
+
             sb.AppendLine("This is held as the table's decision, not carried out here: it is settled only when the");
             sb.AppendLine("council rises. If the table changes its mind before then, withdraw it:");
             sb.AppendLine("[RESOLUTION]");

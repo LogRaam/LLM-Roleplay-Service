@@ -916,7 +916,11 @@ namespace NpcMemoryService.Core.Parsing
             // named hero captive the player holds, read back by the mod (CouncilLift.SettleReleasePrisoner) via
             // BuyPrisonerVerb's own tolerant name match over the player's held prisoners, exactly like
             // target_rival is read back by CourtActionResolver's own tolerant match for pledge_against.
-            TargetPrisonerName = NullIfBlank(GetField(fields, "target_prisoner"))
+            TargetPrisonerName = NullIfBlank(GetField(fields, "target_prisoner")),
+            // "swear_oath"'s own grounding field (R7-light, COUNCIL_ACTIONS.md's Partie 8): WHICH whitelisted
+            // oath kind (pay_gold/keep_peace/protect), read back by the mod's OathKindParser; that kind's own
+            // TARGET value reuses target_amount (pay_gold) or target_faction (keep_peace) above, no new field.
+            OathKind = NullIfBlank(GetField(fields, "oath_kind"))
          };
       }
 

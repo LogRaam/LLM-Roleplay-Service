@@ -323,5 +323,30 @@ namespace NpcMemoryServiceTests
 
          _parser.Parse(raw).Resolutions[0].TargetPrisonerName.Should().Be("Harald");
       }
+
+      // swear_oath's own grounding field (R7-light, COUNCIL_ACTIONS.md's Partie 8): must survive parsing or the
+      // mod's OathGroundingCodec has no oath kind to compose into TargetHint, and CouncilLift.SettleSwearOath can
+      // never resolve which of the three whitelisted kinds was sworn.
+      [Test]
+      public void An_oath_kind_field_is_parsed_when_present()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: swear_oath\nactor: Ira\ndetail: Ira swears to pay 300 denars\noath_kind: pay_gold\ntarget_amount: 300\n[/RESOLUTION]";
+
+         var resolution = _parser.Parse(raw).Resolutions[0];
+
+         resolution.OathKind.Should().Be("pay_gold");
+         resolution.TargetAmount.Should().Be(300);
+      }
+
+      // A swear_oath naming no kind at all (a model that forgot the field, or emitted a blank one) must leave
+      // OathKind null, never an empty string guessed as a valid kind: the mod's OathKindParser must see a clean
+      // null to refuse the oath honestly rather than silently mis-parsing "" as some default kind.
+      [Test]
+      public void A_swear_oath_resolution_missing_the_oath_kind_leaves_it_null()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: swear_oath\nactor: Ira\ndetail: Ira swears something\n[/RESOLUTION]";
+
+         _parser.Parse(raw).Resolutions[0].OathKind.Should().BeNull();
+      }
    }
 }

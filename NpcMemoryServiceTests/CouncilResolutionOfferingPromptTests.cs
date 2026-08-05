@@ -39,6 +39,7 @@ namespace NpcMemoryServiceTests
       private const string TributeFormat = "type: tribute";
       private const string ReleasePrisonerFormat = "type: release_prisoner";
       private const string LendTroopsFormat = "type: lend_troops";
+      private const string SwearOathFormat = "type: swear_oath";
 
       private static NpcProfile Npc() => new() {
          Id = "npc_test",
@@ -1153,6 +1154,107 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().NotContain(LendTroopsFormat);
          prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
+      }
+
+      // R7-light (COUNCIL_ACTIONS.md's Partie 8, "swear_oath", 2026-08-04): without swear_oath in its own
+      // vocabulary the model has no way to propose a binding, tracked vow, whatever the world allows. The
+      // WHITELIST itself (pay_gold/keep_peace/protect) must be taught by name, since STAKE R7.2 (a kind must be
+      // verifiable by a real event, never the LLM's own word) only holds if the model never invents a fourth.
+      [Test]
+      public void GIVEN_a_council_turn_with_swear_oath_offered_WHEN_building_the_prompt_THEN_its_emission_format_and_whitelist_are_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "swear_oath"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain(SwearOathFormat);
+         prompt.Should().Contain("oath_kind:");
+         prompt.Should().Contain("pay_gold");
+         prompt.Should().Contain("keep_peace");
+         prompt.Should().Contain("protect");
+         prompt.Should().Contain("BINDING OATH");
+      }
+
+      // STAKE (R7.3/COUNCIL_ACTIONS.md's own "cout social des promesses publiques brisees"): the taught text
+      // must warn that a publicly sworn oath costs more to break than a private one, or the model will treat the
+      // vow as weightless small talk rather than the tracked, sanctioned commitment CommitmentBehavior enforces.
+      [Test]
+      public void GIVEN_swear_oath_offered_WHEN_building_the_prompt_THEN_the_public_breach_cost_is_stated()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "swear_oath"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain("costs");
+         prompt.Should().Contain("witnesses remember");
+      }
+
+      // A council whose world facts satisfy nothing beyond the universal quest pledge (no seated member
+      // plausibly qualifies for any of the three whitelisted kinds) must not see swear_oath at all: teaching it
+      // would invite a vow the lift has already proven nobody present could actually swear.
+      [Test]
+      public void GIVEN_a_council_turn_with_only_quest_offered_WHEN_building_the_prompt_THEN_swear_oath_is_absent()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(SwearOathFormat);
+         prompt.Should().Contain("type: quest");
+      }
+
+      // An ordinary 1:1 conversation, and any non-council round-table turn, must NEVER see this teaching,
+      // whatever the field happens to hold: a tracked, sanctioned oath belongs only to a real council turn.
+      [Test]
+      public void GIVEN_an_ordinary_non_council_turn_WHEN_building_the_prompt_THEN_swear_oath_is_never_mentioned()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            CouncilOfferedResolutionKinds = new[] {"quest", "swear_oath"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(SwearOathFormat);
+         prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
+      }
+
+      // STAKE (R7.2, the whole reason the kind whitelist exists): move_against is pledge_against's OWN separate
+      // resolution (a real scheme launched via SchemeStore.ForcePlot); the swear_oath teaching must never offer
+      // it as an oath_kind option, or the model could propose the exact same deed twice under two names, one of
+      // which the mod's OathKindParser will silently refuse to track.
+      [Test]
+      public void GIVEN_swear_oath_offered_WHEN_building_the_prompt_THEN_move_against_is_never_taught_as_an_oath_kind()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "swear_oath"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         int blockStart = prompt.IndexOf(SwearOathFormat, StringComparison.Ordinal);
+         int blockEnd = prompt.IndexOf("[/RESOLUTION]", blockStart, StringComparison.Ordinal);
+         string block = prompt.Substring(blockStart, blockEnd - blockStart);
+
+         block.Should().NotContain("move_against");
       }
    }
 }

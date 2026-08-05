@@ -97,5 +97,20 @@ namespace NpcMemoryService.Core.Models
         ///   other kind, or when none was named.
         /// </summary>
         public string? TargetPrisonerName { get; init; }
+
+        /// <summary>
+        ///   For a "swear_oath" kind (R7-light, COUNCIL_ACTIONS.md's Partie 8): WHICH of the three whitelisted,
+        ///   auto-verifiable oath kinds is being sworn, "pay_gold" / "keep_peace" / "protect", in the model's own
+        ///   words (case-insensitive, resolved by the consumer's own OathKindParser). A dedicated field rather
+        ///   than a fourth reuse of an existing kind-name slot: swear_oath needs to name WHICH commitment kind it
+        ///   is, a different question from every other resolution's own single target. The oath's own TARGET
+        ///   value (a denars figure for pay_gold, a faction name for keep_peace, nothing for protect) is carried
+        ///   by the EXISTING <see cref="TargetAmount" />/<see cref="TargetFaction" /> fields, never a new one:
+        ///   the consumer composes OathKind alongside whichever of those two the kind actually populated into
+        ///   its own single grounding slot. Null for any other kind, or when none was named; a kind outside the
+        ///   whitelist (e.g. "move_against", pledge_against's own separate resolution) is deliberately NEVER
+        ///   resolved by the consumer's parser, so an oath naming it simply fails to be tracked.
+        /// </summary>
+        public string? OathKind { get; init; }
     }
 }
