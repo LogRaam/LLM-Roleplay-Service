@@ -1327,6 +1327,27 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-05): give_troops, the RECIPROCAL of lend_troops (COUNCIL_ACTIONS.md's
+            // Partie 1, give_troops): the PLAYER reinforces a seated lord with soldiers from the PLAYER's OWN
+            // party, rather than the lord giving up their own. Taught ONLY when the mod's offering has proven a
+            // seated lord (ClanLords or WarCouncil, mirroring lend_troops' own two scopes) currently leads a
+            // party with room to receive more AND the player's own party has troops to spare. Unlike give_gold,
+            // NO amount is ever named here (mirrors lend_troops' own discipline): the count and tier split are
+            // computed fresh at the lift from the PLAYER's LIVE roster, never an LLM choice. Unlike lend_troops
+            // this gift is INSTANT (no travelling delegation): the player's own troops are already at the table.
+            if (IsKindOffered(context, "give_troops"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("You may also PLEDGE TO REINFORCE a seated lord with soldiers from your OWN ranks,");
+               sb.AppendLine("handed over on the spot (no delegation needed, they are already at your side). Do");
+               sb.AppendLine("not name an amount: the game decides how many and of what quality you can spare.");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: give_troops");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("detail: The player reinforces Ira with some of their own soldiers.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             // Council resolution offering (2026-08-04): Partie 1's schemes kind (COUNCIL_ACTIONS.md), REUSING the
             // existing 1:1 pledge_against system end to end (CourtActionResolver.LaunchPledge, the SAME code
             // path the 1:1 action itself calls). Taught ONLY when the mod's offering has proven a seated member

@@ -39,6 +39,7 @@ namespace NpcMemoryServiceTests
       private const string TributeFormat = "type: tribute";
       private const string ReleasePrisonerFormat = "type: release_prisoner";
       private const string LendTroopsFormat = "type: lend_troops";
+      private const string GiveTroopsFormat = "type: give_troops";
       private const string SwearOathFormat = "type: swear_oath";
       private const string GiveHostageFormat = "type: give_hostage";
 
@@ -1212,6 +1213,84 @@ namespace NpcMemoryServiceTests
          string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
          prompt.Should().NotContain(LendTroopsFormat);
+         prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
+      }
+
+      // give_troops, the RECIPROCAL of lend_troops (COUNCIL_ACTIONS.md's Partie 1, 2026-08-05): without
+      // give_troops in its own vocabulary the model has no way to propose the PLAYER reinforcing a seated lord,
+      // whatever the world allows.
+      [Test]
+      public void GIVEN_a_council_turn_with_give_troops_offered_WHEN_building_the_prompt_THEN_its_emission_format_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "give_troops"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain(GiveTroopsFormat);
+         prompt.Should().Contain("REINFORCE");
+         prompt.Should().Contain("your OWN ranks");
+      }
+
+      // Mirrors lend_troops' own discipline (this kind's own doc): unlike give_gold's target_amount, the amount
+      // must NEVER be an LLM choice (CouncilTroopLoanPolicy computes the tier split fresh at the lift, from the
+      // PLAYER's roster this time). The taught block for this kind must never invite a target_amount field.
+      [Test]
+      public void GIVEN_give_troops_offered_WHEN_building_the_prompt_THEN_no_amount_field_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "give_troops"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         int blockStart = prompt.IndexOf(GiveTroopsFormat, StringComparison.Ordinal);
+         int blockEnd = prompt.IndexOf("[/RESOLUTION]", blockStart, StringComparison.Ordinal);
+         string block = prompt.Substring(blockStart, blockEnd - blockStart);
+
+         block.Should().NotContain("target_amount");
+      }
+
+      // A council whose world facts satisfy nothing beyond the universal quest pledge (no seated lord has room,
+      // or the player has nothing to spare) must not see give_troops at all: teaching it would offer a
+      // reinforcement the lift has already proven impossible to honour.
+      [Test]
+      public void GIVEN_a_council_turn_with_only_quest_offered_WHEN_building_the_prompt_THEN_give_troops_is_absent()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(GiveTroopsFormat);
+         prompt.Should().Contain("type: quest");
+      }
+
+      // An ordinary 1:1 conversation, and any non-council round-table turn, must NEVER see this teaching,
+      // whatever the field happens to hold: the player's own troops are a council-table pledge only, never a
+      // private exchange with one NPC.
+      [Test]
+      public void GIVEN_an_ordinary_non_council_turn_WHEN_building_the_prompt_THEN_give_troops_is_never_mentioned()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            CouncilOfferedResolutionKinds = new[] {"quest", "give_troops"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(GiveTroopsFormat);
          prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
       }
 
