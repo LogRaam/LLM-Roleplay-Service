@@ -228,6 +228,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendRecruitment(sb, encounterContext);
          AppendMercenaryOffer(sb, encounterContext);
          AppendMercenaryEnd(sb, encounterContext);
+         AppendVassalOffer(sb, encounterContext);
          AppendFollowMe(sb, encounterContext);
          AppendDismissEscort(sb, encounterContext);
          AppendDuelChallenge(sb, encounterContext);
@@ -2658,6 +2659,39 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("The game dissolves the contract immediately. Never claim the contract has ended, or that the");
          sb.AppendLine("player's clan is free of it, unless you emit this action.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Taught only when the NPC is truly the kingdom's ruler (not merely one of its lords, unlike <see
+      ///   cref="AppendMercenaryOffer" />) and the player's clan is not already a full vassal of a kingdom
+      ///   (<see cref="EncounterContext.VassalOfferKingdom" /> non-null). A permanent oath of fealty, distinct
+      ///   from a mercenary contract: only the ruler's own word can grant it. Player report (2026-08-05):
+      ///   a narrated acceptance ("threw 6000 denars") never actually swore the player's clan in.
+      /// </summary>
+      private static void AppendVassalOffer(StringBuilder sb, EncounterContext? context)
+      {
+         string? kingdom = context?.VassalOfferKingdom;
+
+         if (string.IsNullOrWhiteSpace(kingdom)) return;
+         // Same carve-out as every sibling offer: a captor holding the player prisoner is not swearing them
+         // into vassalage this exchange.
+         if (context!.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+         sb.AppendLine($"VASSALAGE, YOU CAN SWEAR THE PLAYER'S CLAN TO {kingdom!.ToUpperInvariant()}:");
+         sb.AppendLine($"You are the ruler of {kingdom}. Only your own word can bind a clan into full");
+         sb.AppendLine("vassalage under your banner: a permanent oath of fealty, not a paid mercenary");
+         sb.AppendLine("contract that either side may later walk away from.");
+         sb.AppendLine();
+         sb.AppendLine("You may raise this yourself if the moment calls for it: the player has proven");
+         sb.AppendLine("their worth, the realm needs their sword and lands, or they are the ones who ask");
+         sb.AppendLine("to kneel and be sworn in.");
+         sb.AppendLine();
+         sb.AppendLine("When both parties have clearly agreed to the oath, and only then, emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: join_as_vassal");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The game swears the player's clan into your kingdom immediately. Never claim the");
+         sb.AppendLine("player's clan is sworn to you, or accept gifts to that end, unless you emit this action.");
          sb.AppendLine();
       }
 

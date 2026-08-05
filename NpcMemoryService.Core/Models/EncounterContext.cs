@@ -685,6 +685,18 @@ namespace NpcMemoryService.Core.Models
       public bool PlayerIsMercenary { get; init; }
 
       /// <summary>
+      ///   Name of the kingdom the NPC rules when the NPC is that kingdom's actual ruler (host fact:
+      ///   <c>Kingdom.Leader == npcHero</c>, not merely a lord of it, unlike <see cref="MercenaryOfferKingdom" />)
+      ///   AND the player's clan is not already a full vassal of a kingdom (a clan currently under mercenary
+      ///   service still counts as free, since <c>ApplyByJoinToKingdom</c> ends that contract on its own). Null
+      ///   otherwise. When non-null, the prompt teaches the <c>join_as_vassal</c> action: a permanent oath of
+      ///   fealty, distinct from a mercenary contract. Player report (2026-08-05): "asked the legitimate ruler
+      ///   to become her vassal, the LLM narrated acceptance and threw 6000 denars, but the game only ever
+      ///   registered the player as a mercenary" - the missing executor this action closes.
+      /// </summary>
+      public string? VassalOfferKingdom { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map
       ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
       ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).
