@@ -1907,6 +1907,36 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   Teaches that the captor MAY choose to actually KILL the player, at the peak of a Torture or
+      ///   Domination scene. Only appended when <see cref="EncounterContext.CaptorMayExecutePlayer" /> is set
+      ///   (the mod's own MCM opt-in + Hardcore/Adult gate, re-validated by the bridge) AND the intent is
+      ///   grave enough to plausibly end in a killing (Torture/Domination) -- never Interrogation, PersonalDesire,
+      ///   Training, or Reward, whose own framing would make a sudden execution nonsensical. Irreversible and
+      ///   deliberate by design: never a threat voiced lightly, never a stray line the model narrates in passing.
+      /// </summary>
+      private static void AppendCaptorExecutionRule(StringBuilder sb, EncounterContext? context, CaptiveSceneIntent intent)
+      {
+         bool mayExecute = context?.CaptorMayExecutePlayer ?? false;
+         if (!mayExecute) return;
+         if (intent != CaptiveSceneIntent.Torture && intent != CaptiveSceneIntent.Domination) return;
+
+         sb.AppendLine("THE PRISONER'S LIFE IS IN YOUR HANDS - ONLY IF YOU GENUINELY MEAN TO END IT:");
+         sb.AppendLine("This is not a threat to voice lightly, and not a line to narrate on a first breath or an");
+         sb.AppendLine("early exchange. If, and ONLY if, you have truly and finally resolved to kill this prisoner,");
+         sb.AppendLine("here, now, at the very peak of this scene, you may end their life. Reach for this only when");
+         sb.AppendLine("THIS character, in THIS moment, would truly go through with it, never as an idle threat meant");
+         sb.AppendLine("to frighten, and never for a wound or a struggle meant to be survived (use harm_prisoner for");
+         sb.AppendLine("those instead). When, and ONLY when, you have genuinely resolved to kill them, narrate the");
+         sb.AppendLine("killing blow and emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: execute_player");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The moment you emit this, it is final and irreversible: their story ends here. Never emit it");
+         sb.AppendLine("and then continue the scene as though they still lived.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
       ///   Renders the host-built <see cref="EncounterContext.NemesisRecaptureNote" /> (this captor is a
       ///   nemesis who has caught the player again after a prior escape), so he acknowledges it and plays
       ///   colder. No-op when the note is absent.
@@ -4563,6 +4593,10 @@ namespace NpcMemoryService.Core.Prompts
          }
 
          sb.AppendLine();
+
+         // Captivity EXECUTION (2026-08-04): the gravest possible turn a Torture/Domination scene can take,
+         // taught only when the mod's own opt-in + Hardcore/Adult gate allowed CaptorMayExecutePlayer through.
+         AppendCaptorExecutionRule(sb, context, intent);
 
          if (relation >= 15)
          {

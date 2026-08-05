@@ -487,6 +487,19 @@ namespace NpcMemoryService.Core.Models
       public bool CaptorAllowsRansomRelease { get; init; }
 
       /// <summary>
+      ///   Captivity EXECUTION (2026-08-04, player request via the "AI Executes" mod, COUNCIL_ACTIONS.md 10.6):
+      ///   true when the captor MAY, as a deliberate, final choice at the peak of a Torture/Domination captive
+      ///   scene, end the player's life for real. Gated all the way down before this is ever true: the MCM
+      ///   opt-in (AllowCaptorExecutions, default OFF), the player genuinely captive to THIS captor, and the
+      ///   same Hardcore/Adult gate the rest of the captive-scene vocabulary already requires. Teaches the
+      ///   execute_player action ONLY when true (see <c>PromptBuilder.AppendCaptorExecutionRule</c>); false
+      ///   means the action is neither taught nor mentioned, so a stray RP line can never end the run. The
+      ///   bridge re-validates everything again before it calls KillCharacterAction: this flag only proposes.
+      ///   Irreversible by design (game over, or heir succession). Default false.
+      /// </summary>
+      public bool CaptorMayExecutePlayer { get; init; }
+
+      /// <summary>
       ///   Native/vanilla quests (from the game's own quest journal) that THIS NPC gave the player and are
       ///   still open, prebuilt into a prompt note by the host (the SDK cannot read the engine quest manager).
       ///   Stops the NPC acting baffled about a task they themselves set outside CR dialogue. Null when none.
