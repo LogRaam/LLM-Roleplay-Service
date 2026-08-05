@@ -939,7 +939,13 @@ namespace NpcMemoryService.Core.Parsing
             // the named young companion of the player's own clan, read back by the mod
             // (CalradiaRemembers.Assemblies.WardCandidateResolver.ResolveByName) via the same tolerant name match
             // pattern target_rival/target_prisoner/target_hostage already use.
-            TargetWardName = NullIfBlank(GetField(fields, "target_ward"))
+            TargetWardName = NullIfBlank(GetField(fields, "target_ward")),
+            // "give_item"'s own grounding field (Partie 1, COUNCIL_ACTIONS.md's give_item): the named item a
+            // seated lord gives the player from their own party's stores, read back by the mod
+            // (CouncilLift.SettleGiveItem) via a tolerant, case-insensitive match over the giver's live
+            // ItemRoster, exactly like target_rival/target_prisoner/target_hostage/target_ward are read back by
+            // their own tolerant name matches.
+            TargetItemName = NullIfBlank(GetField(fields, "target_item"))
          };
       }
 

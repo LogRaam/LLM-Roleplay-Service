@@ -348,6 +348,17 @@ namespace NpcMemoryServiceTests
          _parser.Parse(raw).Resolutions[0].TargetWardName.Should().Be("Aldric");
       }
 
+      // give_item's own grounding field (Partie 1, COUNCIL_ACTIONS.md's give_item): must survive parsing or the
+      // mod has no item name to map into TargetHint, and CouncilLift.SettleGiveItem can never resolve which item
+      // the giver's own party is asked to part with.
+      [Test]
+      public void A_target_item_field_is_parsed_when_present()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: give_item\nactor: Ira\ndetail: Ira gives the player a fine mail shirt\ntarget_item: Fine Mail\n[/RESOLUTION]";
+
+         _parser.Parse(raw).Resolutions[0].TargetItemName.Should().Be("Fine Mail");
+      }
+
       // swear_oath's own grounding field (R7-light, COUNCIL_ACTIONS.md's Partie 8): must survive parsing or the
       // mod's OathGroundingCodec has no oath kind to compose into TargetHint, and CouncilLift.SettleSwearOath can
       // never resolve which of the three whitelisted kinds was sworn.

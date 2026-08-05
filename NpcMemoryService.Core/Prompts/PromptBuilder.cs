@@ -1284,6 +1284,28 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-05): Partie 1's give_item (COUNCIL_ACTIONS.md, "cadeau
+            // d'objet... comme un pot de vin"), the REVERSE of the 1:1 give_item action (player's party -> NPC):
+            // a seated lord gives the PLAYER a named item from THEIR OWN party's stores. Taught ONLY when the
+            // mod's offering has proven a seated lord (ClanLords or WarCouncil, mirroring give_gold's own two
+            // scopes) currently LEADS their own party whose stores hold at least one real (non-quest) item.
+            // Unlike a free-text name in a 1:1 exchange, the named item is resolved against the giver's LIVE
+            // roster at the lift (bridge is law): a name that matches nothing genuinely held is refused, never
+            // invented, so the model must name something plausible, never a fantastical or unlisted item.
+            if (IsKindOffered(context, "give_item"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("A seated lord may also GIVE YOU AN ITEM from their own stores, a gift, a bribe, or");
+               sb.AppendLine("a reward. Name a real item plainly in target_item; if it is not truly theirs to");
+               sb.AppendLine("give, the gift will fail, so never invent one:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: give_item");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("target_item: Fine Mail");
+               sb.AppendLine("detail: Ira gives the player a fine mail shirt from her own stores as a token of favor.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             // Council resolution offering (2026-08-04): Partie 1's other kind, give_influence. Taught ONLY at a
             // WAR COUNCIL when the mod's offering has proven a seated ALLY's own clan could currently spare some
             // political influence to the player's clan (never ClanLords/Companions/Family: within the player's

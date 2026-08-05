@@ -138,5 +138,17 @@ namespace NpcMemoryService.Core.Models
         ///   honest. Null for any other kind, or when none was named.
         /// </summary>
         public string? TargetWardName { get; init; }
+
+        /// <summary>
+        ///   For a "give_item" kind (Partie 1, COUNCIL_ACTIONS.md's give_item, "cadeau d'objet... comme un pot de
+        ///   vin"): the named ITEM a seated lord gives the player from their OWN party's stores, the REVERSE of
+        ///   the 1:1 give_item action (player's party -> NPC). A dedicated field rather than reusing
+        ///   TargetSettlement/TargetRival/TargetHostageName/TargetWardName: none of those name a THING held in a
+        ///   roster, so folding an item name into any of them would be the same confusing lie those fields' own
+        ///   docs already warn against. Resolved against the giver's LIVE ItemRoster at the lift (bridge is law,
+        ///   see CouncilLift.SettleGiveItem): a name that matches nothing genuinely held is refused, never
+        ///   invented. Null for any other kind, or when none was named.
+        /// </summary>
+        public string? TargetItemName { get; init; }
     }
 }

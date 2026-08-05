@@ -29,6 +29,7 @@ namespace NpcMemoryServiceTests
       private const string DeclareWarFormat = "type: declare_war";
       private const string MakePeaceFormat = "type: make_peace";
       private const string GiveGoldFormat = "type: give_gold";
+      private const string GiveItemFormat = "type: give_item";
       private const string GiveInfluenceFormat = "type: give_influence";
       private const string PledgeAgainstFormat = "type: pledge_against";
       private const string GrantFiefFormat = "type: grant_fief";
@@ -504,6 +505,67 @@ namespace NpcMemoryServiceTests
          string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
          prompt.Should().NotContain(GiveGoldFormat);
+         prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
+      }
+
+      // Partie 1 (COUNCIL_ACTIONS.md's give_item, "cadeau d'objet... comme un pot de vin"): without give_item in
+      // its own vocabulary the model has no way to propose a seated lord's own item gift, whatever the world
+      // allows.
+      [Test]
+      public void GIVEN_a_council_turn_with_give_item_offered_WHEN_building_the_prompt_THEN_its_emission_format_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "give_item"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain(GiveItemFormat);
+         prompt.Should().Contain("target_item:");
+         prompt.Should().Contain("GIVE YOU AN ITEM");
+         prompt.Should().Contain("own stores");
+      }
+
+      // A council whose world facts satisfy nothing beyond the universal quest pledge (no seated lord leads a
+      // party holding a real item) must not see give_item at all: teaching it would offer a gift the lift has
+      // already proven nobody present could actually give. NOTE: "type: give_item" alone is NOT the right probe
+      // here, the ORDINARY 1:1 give_item ACTION (player's party -> NPC, always taught outside captivity) already
+      // emits that same literal string; "target_item:" is this RESOLUTION kind's own unique grounding field, the
+      // one string that only ever appears in the council teaching this test guards.
+      [Test]
+      public void GIVEN_a_council_turn_with_only_quest_offered_WHEN_building_the_prompt_THEN_give_item_is_absent()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain("target_item:");
+         prompt.Should().Contain("type: quest");
+      }
+
+      // An ordinary 1:1 conversation must NEVER see this teaching, whatever the field happens to hold: an item
+      // gift from a seated lord belongs only to a real council turn, never to a private exchange with one NPC.
+      // Same NOTE as above: probe on "target_item:", not "type: give_item" (the ordinary 1:1 give_item action
+      // teaches that same literal string regardless of council status).
+      [Test]
+      public void GIVEN_an_ordinary_non_council_turn_WHEN_building_the_prompt_THEN_give_item_is_never_mentioned()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            CouncilOfferedResolutionKinds = new[] {"quest", "give_item"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain("target_item:");
          prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
       }
 
