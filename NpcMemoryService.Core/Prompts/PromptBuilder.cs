@@ -227,6 +227,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendWitnesses(sb, encounterContext, lean);
          AppendRecruitment(sb, encounterContext);
          AppendMercenaryOffer(sb, encounterContext);
+         AppendMercenaryEnd(sb, encounterContext);
          AppendDuelChallenge(sb, encounterContext);
          AppendLordRecruitment(sb, encounterContext);
          AppendSchemeRecruitment(sb, encounterContext);
@@ -2391,6 +2392,34 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("The game enrolls the player's clan into your kingdom's mercenary service immediately. If the");
          sb.AppendLine("player is already sworn to another lord, remind them they must settle that obligation before");
          sb.AppendLine("they can take a new contract.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Taught only when the player's clan is CURRENTLY under mercenary service ANYWHERE (<see
+      ///   cref="EncounterContext.PlayerIsMercenary" />), the mirror of <see cref="AppendMercenaryOffer" />.
+      ///   Deliberately not scoped to the speaking NPC's own kingdom: the King who hired the player's clan,
+      ///   one of his lords, or the player themselves may raise ending it, and the game bridge only enacts
+      ///   the dissolution once agreed, whoever raised it. Player report (2026-08-04): "The King agreed to
+      ///   free me from my mercenary contract. Nothing happens."
+      /// </summary>
+      private static void AppendMercenaryEnd(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.PlayerIsMercenary != true) return;
+         // Same carve-out as AppendMercenaryOffer: a captor holding the player prisoner is not renegotiating
+         // their clan's contract this exchange.
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+         sb.AppendLine("ENDING MERCENARY SERVICE, THE CONTRACT CAN BE DISSOLVED:");
+         sb.AppendLine("The player's clan currently fights as hired swords under a mercenary contract, for pay and");
+         sb.AppendLine("not by oath. Either the employing King (or one of his lords, speaking with that authority),");
+         sb.AppendLine("or the player themselves, may raise ending it.");
+         sb.AppendLine();
+         sb.AppendLine("When it is clearly agreed in conversation, whichever side raised it, emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: end_mercenary");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The game dissolves the contract immediately. Never claim the contract has ended, or that the");
+         sb.AppendLine("player's clan is free of it, unless you emit this action.");
          sb.AppendLine();
       }
 

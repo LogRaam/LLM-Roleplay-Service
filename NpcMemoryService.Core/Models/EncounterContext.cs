@@ -646,6 +646,17 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public string? MercenaryOfferKingdom { get; init; }
 
+      /// <summary>
+      ///   True when the player's clan is CURRENTLY under mercenary service to any kingdom, right now (host
+      ///   fact: <c>Clan.PlayerClan.IsUnderMercenaryService</c>). Unlike <see cref="MercenaryOfferKingdom" />,
+      ///   this is not scoped to the speaking NPC's own kingdom: either the employer's King, one of his lords,
+      ///   or the player themselves may raise ending the contract in ANY conversation, so the teaching does
+      ///   not require this NPC to be the exact employer. Drives the <c>end_mercenary</c> action, the mirror
+      ///   of <c>join_as_mercenary</c>. Player report (2026-08-04): "The King agreed to free me from my
+      ///   mercenary contract. Nothing happens." False when the player's clan owes no such contract.
+      /// </summary>
+      public bool PlayerIsMercenary { get; init; }
+
       /// <summary>Display name of the faction holding this NPC captive, for the rescue bargain. Null when free.</summary>
       public string? NpcCaptorName { get; init; }
 
