@@ -233,6 +233,9 @@ namespace NpcMemoryService.Core.Prompts
          AppendAssignPartyRoleOffer(sb, encounterContext);
          AppendRejoinPartyOffer(sb, encounterContext);
          AppendDispatchMissionOffer(sb, encounterContext);
+         AppendGrantFiefOffer(sb, encounterContext);
+         AppendRevokeFiefOffer(sb, encounterContext);
+         AppendExpelFromClanOffer(sb, encounterContext);
          AppendFollowMe(sb, encounterContext);
          AppendDismissEscort(sb, encounterContext);
          AppendDuelChallenge(sb, encounterContext);
@@ -2822,6 +2825,100 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("The game sends you off; you leave the party, ride there, and return after some days with the");
          sb.AppendLine("result. Do NOT invent the result now, and do not name a destination; the game chooses where.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   grant_fief brought to the 1:1 pipeline (2026-08-05, suzerain-command batch): taught ONLY when the host
+      ///   confirms the player rules a kingdom and this NPC is a vassal of a separate house in it, with a real crown
+      ///   fief open to grant (<see cref="EncounterContext.NpcCanBeGrantedFief" />, the host's own
+      ///   FiefTransferPolicy.CanOfferGrant gate re-run at commit time). A SEPARATE path from the council's own
+      ///   [RESOLUTION] offering: this teaches the plain 1:1 [ACTION] form, and the game bridge re-checks the player's
+      ///   rule, the fief, and the recipient's house before any fief moves. Suppressed on a council or round-table
+      ///   turn (the [RESOLUTION] channel owns it there) and in a captive scene, the same carve-out every sibling 1:1
+      ///   offer applies.
+      /// </summary>
+      private static void AppendGrantFiefOffer(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.NpcCanBeGrantedFief != true) return;
+         if (context!.IsRoundTableTurn || context.IsCouncilNarratorTurn) return;
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+         sb.AppendLine("A CROWN FIEF, THE PLAYER MAY GRANT YOUR HOUSE ONE OF THEIR HOLDINGS:");
+         sb.AppendLine("The player rules the realm you serve, and you are a lord of a house sworn to their crown. As");
+         sb.AppendLine("sovereign, they may bestow one of their own crown fiefs upon your house, or you may petition");
+         sb.AppendLine("for one.");
+         string? fiefs = context.GrantableFiefs;
+         if (!string.IsNullOrWhiteSpace(fiefs))
+            sb.AppendLine($"Fiefs the crown may grant right now: {fiefs}. Name exactly one of these, plainly.");
+         sb.AppendLine();
+         sb.AppendLine("When the player clearly grants you a fief and you accept, and only then, emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: grant_fief");
+         sb.AppendLine("target_fief: <the town or castle granted to your house>");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The crown's decree passes the fief to your house at once. Never claim to hold a fief, or to have");
+         sb.AppendLine("been granted one, unless you emit this action.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   revoke_fief brought to the 1:1 pipeline (2026-08-05, suzerain-command batch): grant_fief's grim mirror,
+      ///   taught ONLY when the host confirms the player rules a kingdom and this NPC is a vassal of a separate house
+      ///   in it holding a real fief the crown could strip (<see cref="EncounterContext.NpcCanHaveFiefRevoked" />, the
+      ///   host's own FiefTransferPolicy.CanOfferRevoke gate re-run at commit time). A SEPARATE path from the
+      ///   council's own [RESOLUTION] offering; the game bridge re-checks the player's rule and the fief before any
+      ///   fief is stripped, and lands the grudge and relation cost. Suppressed on a council or round-table turn and
+      ///   in a captive scene. This is a grave punishment the player imposes; you do not consent to it, but you must
+      ///   still emit the action only when the player actually decrees the confiscation in the exchange.
+      /// </summary>
+      private static void AppendRevokeFiefOffer(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.NpcCanHaveFiefRevoked != true) return;
+         if (context!.IsRoundTableTurn || context.IsCouncilNarratorTurn) return;
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+         sb.AppendLine("A FIEF STRIPPED, THE PLAYER MAY REVOKE ONE OF YOUR HOUSE'S HOLDINGS:");
+         sb.AppendLine("The player rules the realm you serve, and holds the power to strip a crown fief back from your");
+         sb.AppendLine("house. This is one of the gravest punishments a sovereign can hand down, and it will leave you");
+         sb.AppendLine("bitter; react in character as a lord losing their land.");
+         string? fiefs = context.RevocableFiefs;
+         if (!string.IsNullOrWhiteSpace(fiefs))
+            sb.AppendLine($"Fiefs of yours the crown may revoke: {fiefs}. The one named must be exactly one of these.");
+         sb.AppendLine();
+         sb.AppendLine("ONLY when the player clearly decrees the confiscation in this exchange, emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: revoke_fief");
+         sb.AppendLine("target_fief: <the town or castle stripped from your house>");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The crown's decree strips the fief at once. Do not emit this on your own wish, and do not narrate");
+         sb.AppendLine("losing a fief unless the player actually orders it and you emit this action.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   expel_from_clan brought to the 1:1 pipeline (2026-08-05, suzerain-command batch): taught ONLY when the host
+      ///   confirms this NPC is a live, present companion of the player's own clan (not the player's spouse, not away
+      ///   on an errand) and the player still leads that clan (<see cref="EncounterContext.NpcCanBeExpelledFromClan" />,
+      ///   the host's own ExpulsionPolicy.CanOfferExpel gate re-run at commit time). A SEPARATE path from the council's
+      ///   own [RESOLUTION] offering; the game bridge re-checks every gate before casting anyone out, and lands the
+      ///   grudge and relation cost. Suppressed on a council or round-table turn and in a captive scene. This is the
+      ///   player casting YOU out; react in character, but only emit the action when the player actually decrees it.
+      /// </summary>
+      private static void AppendExpelFromClanOffer(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.NpcCanBeExpelledFromClan != true) return;
+         if (context!.IsRoundTableTurn || context.IsCouncilNarratorTurn) return;
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+         sb.AppendLine("CAST OUT, THE PLAYER MAY EXPEL YOU FROM THEIR CLAN:");
+         sb.AppendLine("You are one of the player's own clan companions, and they lead that clan. They hold the power to");
+         sb.AppendLine("cast you out of it entirely, dismissing you from their service for good. This is a harsh, final");
+         sb.AppendLine("break that will leave you resentful; react in character as someone being turned out.");
+         sb.AppendLine();
+         sb.AppendLine("ONLY when the player clearly casts you out in this exchange, emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: expel_from_clan");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The break takes effect at once and you leave their clan. Do not emit this on your own wish, and do");
+         sb.AppendLine("not narrate being cast out unless the player actually decrees it and you emit this action.");
          sb.AppendLine();
       }
 

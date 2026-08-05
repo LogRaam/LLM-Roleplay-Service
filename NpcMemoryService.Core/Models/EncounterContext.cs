@@ -175,6 +175,50 @@ namespace NpcMemoryService.Core.Models
       public bool NpcCanBeDispatchedOnMission { get; init; }
 
       /// <summary>
+      ///   True when the 1:1 conversation path may teach this NPC the grant_fief action (2026-08-05, the
+      ///   suzerain-command batch brought to BOTH pipelines). The host's own EncounterContextBuilder has proven, via
+      ///   CalradiaRemembers.Logic.Assemblies.FiefTransferPolicy.CanOfferGrant (the same eligibility the council's own
+      ///   offering reduces to), that the player actually RULES a kingdom, this NPC is a vassal of a separate house in
+      ///   that kingdom, and the player's own clan holds a grantable crown fief. A PARALLEL, separate teaching path to
+      ///   the council's [RESOLUTION] offering; the game bridge re-checks every gate before any fief moves. Default false.
+      /// </summary>
+      public bool NpcCanBeGrantedFief { get; init; }
+
+      /// <summary>
+      ///   Only meaningful with <see cref="NpcCanBeGrantedFief" />: the player-clan crown fiefs (towns or castles) the
+      ///   sovereign could grant to this vassal, as a ready "Name, Name" list the prompt names verbatim so the model
+      ///   grounds the target_fief field on a real holding rather than inventing one. Null or empty otherwise.
+      /// </summary>
+      public string? GrantableFiefs { get; init; }
+
+      /// <summary>
+      ///   True when the 1:1 conversation path may teach this NPC the revoke_fief action (2026-08-05, the
+      ///   suzerain-command batch). The host has proven, via
+      ///   CalradiaRemembers.Logic.Assemblies.FiefTransferPolicy.CanOfferRevoke, that the player actually RULES a
+      ///   kingdom, this NPC is a vassal of a separate house in that kingdom, and that vassal's own clan holds a
+      ///   revocable fief. A PARALLEL path to the council's [RESOLUTION] offering; the game bridge re-checks every gate
+      ///   before any fief is stripped. Default false.
+      /// </summary>
+      public bool NpcCanHaveFiefRevoked { get; init; }
+
+      /// <summary>
+      ///   Only meaningful with <see cref="NpcCanHaveFiefRevoked" />: this NPC's own clan's fiefs (towns or castles)
+      ///   the sovereign could strip from them, as a ready "Name, Name" list the prompt names verbatim so the model
+      ///   grounds the target_fief field on a real fief the vassal actually holds. Null or empty otherwise.
+      /// </summary>
+      public string? RevocableFiefs { get; init; }
+
+      /// <summary>
+      ///   True when the 1:1 conversation path may teach this NPC the expel_from_clan action (2026-08-05, the
+      ///   suzerain-command batch). The host has proven, via
+      ///   CalradiaRemembers.Logic.Assemblies.ExpulsionPolicy.CanOfferExpel, that the player still LEADS their clan
+      ///   and this NPC is a live, present companion of it who is not the player's own spouse and not away on an
+      ///   errand. A PARALLEL path to the council's [RESOLUTION] offering; the game bridge re-checks every gate before
+      ///   casting anyone out. Default false.
+      /// </summary>
+      public bool NpcCanBeExpelledFromClan { get; init; }
+
+      /// <summary>
       ///   The captor's intent for this encounter. Only meaningful when
       ///   <see cref="PlayerStatus" /> == <see cref="PlayerStatusVsNpc.Captive" />.
       ///   Controls the specific framing injected into the captive prompt section
