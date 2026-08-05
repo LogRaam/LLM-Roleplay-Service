@@ -229,6 +229,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendMercenaryOffer(sb, encounterContext);
          AppendMercenaryEnd(sb, encounterContext);
          AppendVassalOffer(sb, encounterContext);
+         AppendAppointGovernorOffer(sb, encounterContext);
          AppendFollowMe(sb, encounterContext);
          AppendDismissEscort(sb, encounterContext);
          AppendDuelChallenge(sb, encounterContext);
@@ -2692,6 +2693,44 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("The game swears the player's clan into your kingdom immediately. Never claim the");
          sb.AppendLine("player's clan is sworn to you, or accept gifts to that end, unless you emit this action.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   appoint_governor brought to the 1:1 pipeline (2026-08-05, the reference personal-command verb): taught
+      ///   ONLY when the host confirms this NPC is a viable governor for a player-clan fief with no governor right
+      ///   now (<see cref="EncounterContext.NpcCanBeAppointedGovernor" />, the host's own
+      ///   GovernorAppointmentPolicy.CanOfferAppointment gate re-run at commit time). A SEPARATE path from the
+      ///   council's own [RESOLUTION] appoint_governor offering: this teaches the plain 1:1 [ACTION] form, and the
+      ///   game bridge re-checks the leadership, the fief, and the appointee's standing before seating anyone.
+      ///   Suppressed on a council or round-table turn (the [RESOLUTION] channel owns it there) and in a captive
+      ///   scene, the same carve-out every sibling 1:1 offer applies.
+      /// </summary>
+      private static void AppendAppointGovernorOffer(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.NpcCanBeAppointedGovernor != true) return;
+         // The council teaches this through its own [RESOLUTION] channel; never double-teach the 1:1 [ACTION]
+         // form on a council or round-table turn.
+         if (context!.IsRoundTableTurn || context.IsCouncilNarratorTurn) return;
+         // Same carve-out as every other 1:1 offer: a captor holding the player prisoner is not handing them a
+         // governorship this exchange.
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+         sb.AppendLine("GOVERNORSHIP, THE PLAYER MAY NAME YOU TO GOVERN ONE OF THEIR FIEFS:");
+         sb.AppendLine("You are of the player's own clan, and they hold a town or castle with no governor. Either");
+         sb.AppendLine("you or the player may raise your taking it in hand: governing it in their name, tending its");
+         sb.AppendLine("prosperity, its loyalty, and its garrison while they are away.");
+         string? fiefs = context.AppointableFiefs;
+         if (!string.IsNullOrWhiteSpace(fiefs))
+            sb.AppendLine($"Fiefs open to you right now: {fiefs}. Name exactly one of these, plainly.");
+         sb.AppendLine();
+         sb.AppendLine("When you clearly agree to take a post, and only then, emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: appoint_governor");
+         sb.AppendLine("target_fief: <the town or castle you will govern>");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The game seats you as its governor at once. Never claim to govern a fief, or to have been");
+         sb.AppendLine("named to one, unless you emit this action: if your standing with the player is too low they");
+         sb.AppendLine("may still decline, so do not narrate the post as taken until it is done.");
          sb.AppendLine();
       }
 

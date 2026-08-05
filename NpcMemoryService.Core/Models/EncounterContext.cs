@@ -123,6 +123,27 @@ namespace NpcMemoryService.Core.Models
       public bool CanGatherNews { get; init; }
 
       /// <summary>
+      ///   True when the 1:1 conversation path may teach this NPC the appoint_governor action (2026-08-05, the
+      ///   reference personal-command verb brought to BOTH pipelines). The host's own EncounterContextBuilder has
+      ///   proven, via CalradiaRemembers.Logic.Assemblies.GovernorAppointmentPolicy.CanOfferAppointment (the same
+      ///   eligibility the council's own ResolutionOfferingResolver reduces to), that the player still leads their
+      ///   clan, this NPC is an available member of that clan, and the clan holds at least one town or castle with
+      ///   no governor. A PARALLEL, separate teaching path to the council's [RESOLUTION] offering
+      ///   (<see cref="CouncilOfferedResolutionKinds" />): this drives a normal 1:1 [ACTION] instead, and the game
+      ///   bridge re-checks every gate before seating anyone (the prompt is advice, the bridge is law). Default
+      ///   false, so an ordinary conversation teaches nothing.
+      /// </summary>
+      public bool NpcCanBeAppointedGovernor { get; init; }
+
+      /// <summary>
+      ///   Only meaningful with <see cref="NpcCanBeAppointedGovernor" />: the player-clan fiefs (towns or castles)
+      ///   with no governor seated that this NPC could be named to, as a ready "Name, Name" list the prompt names
+      ///   verbatim so the model grounds the target_fief field on a real, currently-vacant holding rather than
+      ///   inventing one. Null or empty otherwise.
+      /// </summary>
+      public string? AppointableFiefs { get; init; }
+
+      /// <summary>
       ///   The captor's intent for this encounter. Only meaningful when
       ///   <see cref="PlayerStatus" /> == <see cref="PlayerStatusVsNpc.Captive" />.
       ///   Controls the specific framing injected into the captive prompt section
