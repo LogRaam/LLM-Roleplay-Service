@@ -112,5 +112,17 @@ namespace NpcMemoryService.Core.Models
         ///   resolved by the consumer's parser, so an oath naming it simply fails to be tracked.
         /// </summary>
         public string? OathKind { get; init; }
+
+        /// <summary>
+        ///   For a "give_hostage" kind (Kimi's "v1 invite d'honneur", COUNCIL_ACTIONS.md's Partie 8): the named
+        ///   ELIGIBLE RELATIVE (an adult child, sibling, or spouse of the seated Parley leader) offered up as a
+        ///   guest-hostage of good faith, in the model's own words. A dedicated field rather than reusing
+        ///   TargetPrisonerName (that field's own doc already reserves it for a captive the PLAYER holds, the
+        ///   opposite direction of custody) or TargetRival (pledge_against's own ADVERSARY grounding, a hostile
+        ///   relationship, not a kinsman offered up peacefully): folding this into either would be the same
+        ///   confusing lie those fields' own docs already warn against. Null for any other kind, or when none was
+        ///   named.
+        /// </summary>
+        public string? TargetHostageName { get; init; }
     }
 }

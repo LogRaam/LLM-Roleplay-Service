@@ -177,6 +177,7 @@ namespace NpcMemoryServiceTests
          resolution.TargetKinName.Should().BeNull();
          resolution.PlayerFiefName.Should().BeNull();
          resolution.TargetFiefName.Should().BeNull();
+         resolution.TargetHostageName.Should().BeNull();
       }
 
       // dispatch_mission's own grounding field, mirroring target_role: must survive parsing or the mod has no
@@ -322,6 +323,17 @@ namespace NpcMemoryServiceTests
          var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: release_prisoner\nactor: Ira\ndetail: Ira asks for Harald's freedom\ntarget_prisoner: Harald\n[/RESOLUTION]";
 
          _parser.Parse(raw).Resolutions[0].TargetPrisonerName.Should().Be("Harald");
+      }
+
+      // give_hostage's own grounding field (Kimi's "v1 invite d'honneur", COUNCIL_ACTIONS.md's Partie 8): must
+      // survive parsing or the mod has no relative's name to map into TargetHint, and
+      // CouncilLift.SettleGiveHostage can never resolve who the pledge concerns.
+      [Test]
+      public void A_target_hostage_field_is_parsed_when_present()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: give_hostage\nactor: Ira\ndetail: Ira gives her kinsman as a hostage\ntarget_hostage: Boyar Sevin\n[/RESOLUTION]";
+
+         _parser.Parse(raw).Resolutions[0].TargetHostageName.Should().Be("Boyar Sevin");
       }
 
       // swear_oath's own grounding field (R7-light, COUNCIL_ACTIONS.md's Partie 8): must survive parsing or the

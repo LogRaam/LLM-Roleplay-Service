@@ -920,7 +920,12 @@ namespace NpcMemoryService.Core.Parsing
             // "swear_oath"'s own grounding field (R7-light, COUNCIL_ACTIONS.md's Partie 8): WHICH whitelisted
             // oath kind (pay_gold/keep_peace/protect), read back by the mod's OathKindParser; that kind's own
             // TARGET value reuses target_amount (pay_gold) or target_faction (keep_peace) above, no new field.
-            OathKind = NullIfBlank(GetField(fields, "oath_kind"))
+            OathKind = NullIfBlank(GetField(fields, "oath_kind")),
+            // "give_hostage"'s own grounding field (Kimi's "v1 invite d'honneur", COUNCIL_ACTIONS.md's Partie 8):
+            // the named eligible relative of the seated Parley leader, read back by the mod
+            // (CalradiaRemembers.Assemblies.HostageCandidateResolver.ResolveByName) via the same tolerant name
+            // match pattern target_rival/target_prisoner already use.
+            TargetHostageName = NullIfBlank(GetField(fields, "target_hostage"))
          };
       }
 

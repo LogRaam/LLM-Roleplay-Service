@@ -1560,6 +1560,35 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-04): rounds out the Parley toolkit with a FOURTH concession,
+            // Kimi's "v1 invite d'honneur" (COUNCIL_ACTIONS.md's Partie 8, "give_hostage"): the seated enemy
+            // leader gives an eligible KINSMAN (never themselves) to reside at the player's own court as a living
+            // guarantee of the accord, for a fixed term. Taught ONLY when the mod's offering has proven the
+            // seated leader actually has at least one eligible relative to give (an adult child, sibling, or
+            // spouse - never a minor, never the clan's own chief, never their sole remaining heir); the named
+            // relative is re-resolved against that SAME eligible pool at the lift (bridge is law), so a wrong or
+            // ineligible name is refused rather than silently doing nothing. CRITICAL honesty clause: this is a
+            // GUEST, not a captive - the hostage rides in the player's own party and is honour-bound only, never
+            // chained, imprisoned, or guarded, and returns home the moment the term ends. Never phrase it as
+            // imprisonment.
+            if (IsKindOffered(context, "give_hostage"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("At this PARLEY, the enemy leader sitting across from you may also GIVE A HOSTAGE OF");
+               sb.AppendLine("GOOD FAITH: an eligible kinsman of theirs (an adult child, a sibling, or their spouse -");
+               sb.AppendLine("never a minor, never their own clan's chief, never their only remaining kin) comes to");
+               sb.AppendLine("live at the player's own court as a living guarantee of whatever is agreed here, for a");
+               sb.AppendLine("fixed term, then returns home. This is a GUEST, not a prisoner: they are never chained,");
+               sb.AppendLine("imprisoned, or guarded, only honour-bound to stay. Name the real kinsman plainly in");
+               sb.AppendLine("target_hostage, exactly as known to you:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: give_hostage");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("target_hostage: Boyar Sevin");
+               sb.AppendLine("detail: Ira sends her kinsman Boyar Sevin to reside at the player's own court as a hostage of good faith.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             // Council resolution offering (R7-light, COUNCIL_ACTIONS.md's Partie 8, "swear_oath"): taught ONLY
             // when the mod's offering has proven a seated member (ClanLords/Family/WarCouncil) plausibly
             // qualifies for at least one of THREE whitelisted, auto-verifiable oath kinds. This is a BINDING,

@@ -40,6 +40,7 @@ namespace NpcMemoryServiceTests
       private const string ReleasePrisonerFormat = "type: release_prisoner";
       private const string LendTroopsFormat = "type: lend_troops";
       private const string SwearOathFormat = "type: swear_oath";
+      private const string GiveHostageFormat = "type: give_hostage";
 
       private static NpcProfile Npc() => new() {
          Id = "npc_test",
@@ -1053,6 +1054,64 @@ namespace NpcMemoryServiceTests
          string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
          prompt.Should().NotContain(ReleasePrisonerFormat);
+         prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
+      }
+
+      // Kimi's "v1 invite d'honneur" (COUNCIL_ACTIONS.md's Partie 8, "give_hostage"), rounding out the Parley
+      // toolkit with a FOURTH concession: without give_hostage in its own vocabulary the model has no way to
+      // propose the seated enemy leader's own kinsman coming to reside at the player's court, whatever the world
+      // allows.
+      [Test]
+      public void GIVEN_a_council_turn_with_give_hostage_offered_WHEN_building_the_prompt_THEN_its_emission_format_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "give_hostage"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain(GiveHostageFormat);
+         prompt.Should().Contain("target_hostage:");
+         prompt.Should().Contain("HOSTAGE OF");
+         prompt.Should().Contain("GUEST, not a prisoner");
+      }
+
+      // A council whose world facts satisfy nothing beyond the universal quest pledge (the seated enemy leader
+      // has no eligible relative to give) must not see give_hostage at all: teaching it would offer a pledge the
+      // lift has already proven nobody eligible exists to fulfil.
+      [Test]
+      public void GIVEN_a_council_turn_with_only_quest_offered_WHEN_building_the_prompt_THEN_give_hostage_is_absent()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(GiveHostageFormat);
+         prompt.Should().Contain("type: quest");
+      }
+
+      // An ordinary 1:1 conversation, and any non-council round-table turn, must NEVER see this teaching,
+      // whatever the field happens to hold: giving a hostage belongs only to a real PARLEY turn, never to a
+      // private exchange with one NPC.
+      [Test]
+      public void GIVEN_an_ordinary_non_council_turn_WHEN_building_the_prompt_THEN_give_hostage_is_never_mentioned()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            CouncilOfferedResolutionKinds = new[] {"quest", "give_hostage"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(GiveHostageFormat);
          prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
       }
 
