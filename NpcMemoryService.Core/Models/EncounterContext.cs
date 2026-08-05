@@ -684,6 +684,23 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public bool PlayerIsMercenary { get; init; }
 
+      /// <summary>
+      ///   True when the game confirms this lord could genuinely escort the player's party across the map
+      ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
+      ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).
+      ///   Drives the <c>follow_me</c> action: a 1:1 bridge action distinct from <c>join_party</c> (the lord
+      ///   keeps their own troops and command, riding alongside the player for a bounded term rather than
+      ///   joining their party or clan). False when the game cannot honour it right now.
+      /// </summary>
+      public bool NpcCanEscortPlayer { get; init; }
+
+      /// <summary>
+      ///   True while THIS NPC's own party is CURRENTLY escorting the player (an active <c>follow_me</c> in
+      ///   force), the mirror of <see cref="NpcCanEscortPlayer" />. Drives the <c>dismiss_escort</c> action,
+      ///   which ends the escort early, before its bounded term runs out.
+      /// </summary>
+      public bool NpcIsEscortingPlayer { get; init; }
+
       /// <summary>Display name of the faction holding this NPC captive, for the rescue bargain. Null when free.</summary>
       public string? NpcCaptorName { get; init; }
 

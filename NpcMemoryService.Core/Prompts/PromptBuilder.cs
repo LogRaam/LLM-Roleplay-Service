@@ -228,6 +228,8 @@ namespace NpcMemoryService.Core.Prompts
          AppendRecruitment(sb, encounterContext);
          AppendMercenaryOffer(sb, encounterContext);
          AppendMercenaryEnd(sb, encounterContext);
+         AppendFollowMe(sb, encounterContext);
+         AppendDismissEscort(sb, encounterContext);
          AppendDuelChallenge(sb, encounterContext);
          AppendLordRecruitment(sb, encounterContext);
          AppendSchemeRecruitment(sb, encounterContext);
@@ -2532,6 +2534,55 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("The game dissolves the contract immediately. Never claim the contract has ended, or that the");
          sb.AppendLine("player's clan is free of it, unless you emit this action.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   follow_me (1:1 bridge action, player wish: a companion promising to "stay by my side", this is the
+      ///   map-escort half that is doable now, the battlefield version stays roadmapped). Taught only when the
+      ///   game confirms this lord could genuinely escort the player right now
+      ///   (<see cref="EncounterContext.NpcCanEscortPlayer" />, the mod's own EscortEligibilityPolicy.CanEscort
+      ///   gate re-run at commit time). Distinct from join_party: the lord keeps their own troops and command,
+      ///   never joining the player's party or clan.
+      /// </summary>
+      private static void AppendFollowMe(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.NpcCanEscortPlayer != true) return;
+         // Same carve-out as every other 1:1 offer above: a captor holding the player prisoner is not offering
+         // to escort them anywhere.
+         if (context!.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+         sb.AppendLine("ESCORT, YOU MAY RIDE WITH THE PLAYER FOR A WHILE:");
+         sb.AppendLine("You lead your own party and are free to travel. Either you or the player may raise having");
+         sb.AppendLine("your party ESCORT theirs on the road for a time, keeping your own troops under your own");
+         sb.AppendLine("command the whole while: this is NOT joining their party, and NOT swearing to their clan,");
+         sb.AppendLine("merely riding alongside them for a while as an ally or a friend would.");
+         sb.AppendLine();
+         sb.AppendLine("When you clearly agree, emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: follow_me");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The game then has your party travel alongside the player's for a while, after which you");
+         sb.AppendLine("resume your own business. Never claim to be riding with the player unless you emit this");
+         sb.AppendLine("action, and never claim it lasts forever: the arrangement is only for a time.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   dismiss_escort: the MIRROR of follow_me, taught only while THIS NPC's own party is CURRENTLY
+      ///   escorting the player (<see cref="EncounterContext.NpcIsEscortingPlayer" />): either side may end
+      ///   the arrangement early, before its bounded term runs out.
+      /// </summary>
+      private static void AppendDismissEscort(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.NpcIsEscortingPlayer != true) return;
+         sb.AppendLine("ENDING THE ESCORT, YOUR PARTY CURRENTLY RIDES WITH THE PLAYER:");
+         sb.AppendLine("Your party travels alongside the player's right now, on your own earlier word. If the");
+         sb.AppendLine("player asks you to part ways, or you yourself judge it time to return to your own affairs,");
+         sb.AppendLine("emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: dismiss_escort");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("Your party then breaks off and resumes its own course.");
          sb.AppendLine();
       }
 
