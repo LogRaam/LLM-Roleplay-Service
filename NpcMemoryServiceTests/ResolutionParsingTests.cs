@@ -178,6 +178,7 @@ namespace NpcMemoryServiceTests
          resolution.PlayerFiefName.Should().BeNull();
          resolution.TargetFiefName.Should().BeNull();
          resolution.TargetHostageName.Should().BeNull();
+         resolution.TargetWardName.Should().BeNull();
       }
 
       // dispatch_mission's own grounding field, mirroring target_role: must survive parsing or the mod has no
@@ -334,6 +335,17 @@ namespace NpcMemoryServiceTests
          var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: give_hostage\nactor: Ira\ndetail: Ira gives her kinsman as a hostage\ntarget_hostage: Boyar Sevin\n[/RESOLUTION]";
 
          _parser.Parse(raw).Resolutions[0].TargetHostageName.Should().Be("Boyar Sevin");
+      }
+
+      // sponsor_ward's own grounding field (Kimi's design, MINIMAL v1, COUNCIL_ACTIONS.md's Partie 8): must
+      // survive parsing or the mod has no companion's name to map into TargetHint, and
+      // CouncilLift.SettleSponsorWard can never resolve who the mentorship pledge concerns.
+      [Test]
+      public void A_target_ward_field_is_parsed_when_present()
+      {
+         var raw = "[DIALOGUE]hi[/DIALOGUE]\n[RESOLUTION]\ntype: sponsor_ward\nactor: Ira\ndetail: Ira takes Aldric under her wing\ntarget_ward: Aldric\n[/RESOLUTION]";
+
+         _parser.Parse(raw).Resolutions[0].TargetWardName.Should().Be("Aldric");
       }
 
       // swear_oath's own grounding field (R7-light, COUNCIL_ACTIONS.md's Partie 8): must survive parsing or the

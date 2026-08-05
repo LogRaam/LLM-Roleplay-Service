@@ -124,5 +124,19 @@ namespace NpcMemoryService.Core.Models
         ///   named.
         /// </summary>
         public string? TargetHostageName { get; init; }
+
+        /// <summary>
+        ///   For a "sponsor_ward" kind (Kimi's design, MINIMAL v1, COUNCIL_ACTIONS.md's Partie 8): the named
+        ///   YOUNG COMPANION of the player's own clan taken up as a protege by the seated mentor. A dedicated
+        ///   field rather than reusing TargetHostageName (that field's own doc already reserves it for an
+        ///   ENEMY leader's kinsman given up in a Parley concession, the opposite relationship: this is the
+        ///   player's OWN clan, at a Family/ClanLords table, no concession involved) or TargetRival
+        ///   (pledge_against's own ADVERSARY grounding, a hostile relationship, not a kindness offered): folding
+        ///   this into either would be the same confusing lie those fields' own docs already warn against. ADOPTION
+        ///   WARNING: this names a MENTORSHIP bond only, never a change of parentage, heritage, or clan
+        ///   membership - see PromptBuilder's own sponsor_ward teaching for the exact wording that keeps this
+        ///   honest. Null for any other kind, or when none was named.
+        /// </summary>
+        public string? TargetWardName { get; init; }
     }
 }

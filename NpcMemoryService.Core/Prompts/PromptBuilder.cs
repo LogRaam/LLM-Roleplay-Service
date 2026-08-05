@@ -1670,6 +1670,33 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("more than breaking one sworn in private: witnesses remember.");
             }
 
+            // Council resolution offering (2026-08-05): Kimi's design, MINIMAL v1 (COUNCIL_ACTIONS.md's Partie 8,
+            // "sponsor_ward"). Taught ONLY at ClanLords/Family when the mod's offering has proven a seated member
+            // is alive/free AND the player's own clan currently has at least one eligible young companion
+            // (WardEligibilityPolicy: young, alive, free, not already sponsored) - never Companions (a hired
+            // hand has no standing to sponsor a fellow companion) nor WarCouncil (which already carries its own
+            // faction-scale motions). CRITICAL honesty clause, Kimi's own explicit warning: this is a MENTORSHIP
+            // bond, NEVER an adoption - it must never be phrased as making the companion a son/daughter/heir, and
+            // never implies any change to the player's own clan, family tree, or succession. The only real effect
+            // is a quiet daily skill lesson while the two travel together; do not promise anything beyond that
+            // (no future inheritance, no guaranteed marriage, no protection from harm).
+            if (IsKindOffered(context, "sponsor_ward"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("A seated member may also TAKE A YOUNG COMPANION OF THE PLAYER'S OWN CLAN UNDER THEIR");
+               sb.AppendLine("WING as a protege: an ongoing mentorship, teaching them a little of their own skill");
+               sb.AppendLine("while the two travel together. This is NOT AN ADOPTION: never say the companion");
+               sb.AppendLine("becomes their child, their heir, or family by blood - nothing about parentage, the");
+               sb.AppendLine("clan's own lineage, or succession changes. Name the real companion plainly in");
+               sb.AppendLine("target_ward:");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: sponsor_ward");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("target_ward: Aldric");
+               sb.AppendLine("detail: Ira takes the young companion Aldric under her wing as a protege.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             sb.AppendLine("This is held as the table's decision, not carried out here: it is settled only when the");
             sb.AppendLine("council rises. If the table changes its mind before then, withdraw it:");
             sb.AppendLine("[RESOLUTION]");

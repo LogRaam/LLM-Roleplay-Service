@@ -934,7 +934,12 @@ namespace NpcMemoryService.Core.Parsing
             // the named eligible relative of the seated Parley leader, read back by the mod
             // (CalradiaRemembers.Assemblies.HostageCandidateResolver.ResolveByName) via the same tolerant name
             // match pattern target_rival/target_prisoner already use.
-            TargetHostageName = NullIfBlank(GetField(fields, "target_hostage"))
+            TargetHostageName = NullIfBlank(GetField(fields, "target_hostage")),
+            // "sponsor_ward"'s own grounding field (Kimi's design, MINIMAL v1, COUNCIL_ACTIONS.md's Partie 8):
+            // the named young companion of the player's own clan, read back by the mod
+            // (CalradiaRemembers.Assemblies.WardCandidateResolver.ResolveByName) via the same tolerant name match
+            // pattern target_rival/target_prisoner/target_hostage already use.
+            TargetWardName = NullIfBlank(GetField(fields, "target_ward"))
          };
       }
 
