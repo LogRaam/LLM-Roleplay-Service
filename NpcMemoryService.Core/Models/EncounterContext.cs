@@ -96,6 +96,20 @@ namespace NpcMemoryService.Core.Models
       public string? ViableQuestMenu { get; init; }
 
       /// <summary>
+      ///   COUNCIL_ACTIONS.md Partie 5 (the "Caladog" case): true only when the host's own MCM opt-in
+      ///   (mod: <c>ModSettings.AllowFiefAndMarriageQuestRewards</c>) is ON. Default FALSE preserves today's
+      ///   behavior byte for byte: <c>PromptBuilder.AppendQuestInstructions</c> renders the existing
+      ///   guardrail exactly as before (never promise a fief, a title, or yourself in marriage as the price
+      ///   of a task) and teaches neither <c>grant_fief</c> nor <c>marriage_reward</c> as a reward_grant.
+      ///   When true, the guardrail is relaxed to ALLOW a fief or a marriage as a quest reward, but only
+      ///   through the reward_grant channel (never a bare narrative promise), and only when the giver's own
+      ///   house can truly honor it: the consumer (<c>QuestFactory.ResolveReward</c>) re-checks that at
+      ///   issuance regardless of what this flag teaches, and again at payout, so the flag only ever
+      ///   widens what the NPC is TAUGHT to offer, never what the bridge will actually deliver.
+      /// </summary>
+      public bool FiefAndMarriageQuestRewardsAllowed { get; init; }
+
+      /// <summary>
       ///   Who is acting this beat: the lead captor, another single member of the band taking
       ///   their turn, or the remaining members acting on the prisoner together at once.
       /// </summary>

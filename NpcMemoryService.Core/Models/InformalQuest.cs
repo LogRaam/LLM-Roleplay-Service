@@ -123,15 +123,29 @@ namespace NpcMemoryService.Core.Models
         public int RequiredItemCount { get; set; }
 
         /// <summary>
-        ///   For a <see cref="RewardGrant.MarriageConsent" /> bargain: the hero whose hand the
-        ///   blessing covers — the intended spouse, distinct from the deed's <see cref="TargetHeroId" />
-        ///   (which may name a rival to capture, a town to take, etc.). The blessing is recorded for
-        ///   this person on completion. Null for non-marriage bargains.
+        ///   For a <see cref="RewardGrant.MarriageConsent" /> bargain, or a <see cref="RewardGrant.MarriageReward" />
+        ///   (COUNCIL_ACTIONS.md Partie 5): the hero whose hand is at stake, the intended spouse, distinct from
+        ///   the deed's <see cref="TargetHeroId" /> (which may name a rival to capture, a town to take, etc.).
+        ///   MarriageConsent records only a blessing for this person on completion; MarriageReward seals the
+        ///   actual union. Both kinds share this field (the resolution rules, whose hand, whose authority, are
+        ///   identical; only the payout differs). Null for non-marriage bargains.
         /// </summary>
         public string? MarriageSpouseId { get; set; }
 
         /// <summary>Display name of <see cref="MarriageSpouseId" />.</summary>
         public string? MarriageSpouseName { get; set; }
+
+        /// <summary>
+        ///   For a <see cref="RewardGrant.GrantFief" /> bargain (COUNCIL_ACTIONS.md Partie 5, the "Caladog"
+        ///   case): the stable id of the town or castle the giver's own clan promised, resolved by StringId
+        ///   (never a display name, which homonyms/translation could betray) at issuance. Re-validated by the
+        ///   consumer at payout, since the giver's clan may lose it between the promise and the completion.
+        ///   Null for non-fief bargains.
+        /// </summary>
+        public string? PromisedSettlementId { get; set; }
+
+        /// <summary>Display name of <see cref="PromisedSettlementId" />, for prompt and UI text.</summary>
+        public string? PromisedSettlementName { get; set; }
 
         /// <summary>
         ///   For a <see cref="QuestType.External" /> mission: the registering mod's stable mission id. CR

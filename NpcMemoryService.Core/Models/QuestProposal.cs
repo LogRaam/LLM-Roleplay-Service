@@ -65,10 +65,20 @@ namespace NpcMemoryService.Core.Models
         public int RequiredCount { get; init; }
 
         /// <summary>
-        ///   For a <see cref="RewardGrant.MarriageConsent" /> bargain: the name of the intended
-        ///   spouse the blessing covers (the candidate the player asked after), as the LLM wrote
-        ///   it. Resolved and validated game-side. Null for non-marriage bargains.
+        ///   For a <see cref="RewardGrant.MarriageConsent" /> or <see cref="RewardGrant.MarriageReward" />
+        ///   bargain: the name of the intended spouse (the candidate the player asked after, or the giver's
+        ///   own name for "wed me"), as the LLM wrote it. Resolved and validated game-side. Null for
+        ///   non-marriage bargains.
         /// </summary>
         public string? MarriageSpouse { get; init; }
+
+        /// <summary>
+        ///   For a <see cref="RewardGrant.GrantFief" /> bargain (COUNCIL_ACTIONS.md Partie 5): the name of
+        ///   the town or castle the giver named as the promised fief, as the LLM wrote it. Distinct from
+        ///   <see cref="TargetSettlement" />, which is the DEED's own target (they may differ, e.g. clear
+        ///   bandits near Pravend in exchange for the fief of Ortysia). Resolved and validated game-side.
+        ///   Null for non-fief bargains.
+        /// </summary>
+        public string? RewardSettlement { get; init; }
     }
 }

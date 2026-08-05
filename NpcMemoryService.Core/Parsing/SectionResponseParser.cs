@@ -679,7 +679,8 @@ namespace NpcMemoryService.Core.Parsing
             RequiredValue = ClampNonNegative(TryParseSignedInt(fields, "required_value")),
             Category = NullIfBlank(GetField(fields, "category")),
             RequiredCount = ClampNonNegative(TryParseSignedInt(fields, "required_count")),
-            MarriageSpouse = NullIfBlank(GetField(fields, "spouse"))
+            MarriageSpouse = NullIfBlank(GetField(fields, "spouse")),
+            RewardSettlement = NullIfBlank(GetField(fields, "reward_settlement"))
          };
       }
 
@@ -785,6 +786,14 @@ namespace NpcMemoryService.Core.Parsing
             "release_prisoner"
                or "free_prisoner"
                or "hand_over_prisoner" => RewardGrant.ReleasePrisoner,
+            "grant_fief"
+               or "fief"
+               or "reward_fief"
+               or "give_fief" => RewardGrant.GrantFief,
+            "marriage_reward"
+               or "reward_marriage"
+               or "wed_reward"
+               or "marry_reward" => RewardGrant.MarriageReward,
             _ => RewardGrant.None
          };
       }

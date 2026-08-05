@@ -33,6 +33,31 @@ namespace NpcMemoryService.Core.Models
         MarriageConsent,
 
         /// <summary>STUB: the NPC releases a prisoner they hold into the player's custody.</summary>
-        ReleasePrisoner
+        ReleasePrisoner,
+
+        /// <summary>
+        ///   COUNCIL_ACTIONS.md Partie 5 (the "Caladog" case): the giver's own clan transfers one of its
+        ///   towns or castles to the player on completion. Gated ALL THE WAY DOWN behind the host's own
+        ///   opt-in (mod: <c>ModSettings.AllowFiefAndMarriageQuestRewards</c>, mirrored here by
+        ///   <see cref="EncounterContext.FiefAndMarriageQuestRewardsAllowed" />): with the toggle off the
+        ///   consumer refuses this at issuance exactly like the GiveItem/GiveTroops/ReleasePrisoner stubs
+        ///   above, never a broken promise. Distinct from a council <c>grant_fief</c> resolution (which moves
+        ///   a fief FROM the player's own crown TO a vassal): this moves one FROM the giver's clan TO the
+        ///   player, so it reuses the transfer machinery but not the sovereignty direction.
+        /// </summary>
+        GrantFief,
+
+        /// <summary>
+        ///   COUNCIL_ACTIONS.md Partie 5 (the "Caladog" case, Kimi review "Trou 2"): a HEAVIER sibling of
+        ///   <see cref="MarriageConsent" />. Where MarriageConsent only records a family's BLESSING (the
+        ///   player must still separately seal the wedding), this reward is the actual union itself,
+        ///   sealed the moment the quest completes, the honest mechanical answer to a giver who promised
+        ///   "do this and I will wed you" rather than merely "do this and you may court me". Same toggle
+        ///   gate as <see cref="GrantFief" />; the spouse (the giver themselves, or a kin of their house
+        ///   they have authority over) is carried on the SAME <see cref="InformalQuest.MarriageSpouseId" />
+        ///   / <see cref="InformalQuest.MarriageSpouseName" /> fields MarriageConsent already uses, since
+        ///   the resolution rules (whose hand, whose authority) are identical; only the payout differs.
+        /// </summary>
+        MarriageReward
     }
 }

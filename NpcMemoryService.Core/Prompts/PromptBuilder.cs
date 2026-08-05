@@ -5832,6 +5832,14 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("reward_gold: N (denars you promise, 0 if none)");
          sb.AppendLine("reward_relation: N (personal regard you promise, 0 if none)");
          sb.AppendLine("reward_grant: a favor you grant on completion instead of coin (omit for an ordinary task). One of: join_party, marriage_consent, give_item, give_troops, release_prisoner. See CONDITIONAL BARGAINS.");
+
+         if (context?.FiefAndMarriageQuestRewardsAllowed == true)
+         {
+            sb.AppendLine("reward_grant may ALSO be grant_fief or marriage_reward when your own house can truly pay it");
+            sb.AppendLine("(see TENABLE HEAVY REWARDS below); for grant_fief set reward_settlement to the exact town or");
+            sb.AppendLine("castle your clan holds, for marriage_reward set spouse to the exact name of yourself or a kin.");
+         }
+
          sb.AppendLine("category: for provide_goods only, one of: horses, livestock, grain");
          sb.AppendLine("required_count: for provide_goods only, how many head/units you need (e.g. 15)");
          sb.AppendLine("description: one or two sentences in your own voice");
@@ -5847,19 +5855,28 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[/QUEST]");
          sb.AppendLine();
          AppendConditionalBargains(sb);
-         sb.AppendLine("REWARDS YOU MAY PROMISE AS PAYMENT (never a fief or marriage as the price of a task):");
-         sb.AppendLine("A reward promised in exchange for a task MUST go through the [QUEST] block above, with a");
-         sb.AppendLine("reward the game can actually execute. The only things you may promise as PAYMENT are gold");
-         sb.AppendLine("(reward_gold), your relation (reward_relation), influence, and the reward_grant favors");
-         sb.AppendLine("already listed above. NEVER promise a fief, a title, or yourself in marriage as the PRICE");
-         sb.AppendLine("of a task: the game has no way to make that payment, so it would be a broken promise the");
-         sb.AppendLine("moment the deed is done.");
-         sb.AppendLine("This is a matter of wording, not just intent. FORBIDDEN (a conditional payment): \"if you");
-         sb.AppendLine("bring me Garios, Ortysia will be yours\" or \"do this and I will wed you\". ALLOWED (an");
-         sb.AppendLine("aspiration, no condition attached): \"an alliance between our houses would be glorious\" or");
-         sb.AppendLine("\"lands await those who serve Battania well\". A fief or a marriage may still be EVOKED as a");
-         sb.AppendLine("distant hope, never promised as the fixed price of a task.");
-         sb.AppendLine();
+
+         if (context?.FiefAndMarriageQuestRewardsAllowed == true)
+            AppendHeavyQuestRewardRules(sb);
+         else
+         {
+            // COUNCIL_ACTIONS.md Partie 5 (the "Caladog" case): with the host's opt-in OFF (the default),
+            // this guardrail renders EXACTLY as it always has. Do not touch this branch when adding to the
+            // ON path above; the toggle-off prompt must stay byte-for-byte identical to before this feature.
+            sb.AppendLine("REWARDS YOU MAY PROMISE AS PAYMENT (never a fief or marriage as the price of a task):");
+            sb.AppendLine("A reward promised in exchange for a task MUST go through the [QUEST] block above, with a");
+            sb.AppendLine("reward the game can actually execute. The only things you may promise as PAYMENT are gold");
+            sb.AppendLine("(reward_gold), your relation (reward_relation), influence, and the reward_grant favors");
+            sb.AppendLine("already listed above. NEVER promise a fief, a title, or yourself in marriage as the PRICE");
+            sb.AppendLine("of a task: the game has no way to make that payment, so it would be a broken promise the");
+            sb.AppendLine("moment the deed is done.");
+            sb.AppendLine("This is a matter of wording, not just intent. FORBIDDEN (a conditional payment): \"if you");
+            sb.AppendLine("bring me Garios, Ortysia will be yours\" or \"do this and I will wed you\". ALLOWED (an");
+            sb.AppendLine("aspiration, no condition attached): \"an alliance between our houses would be glorious\" or");
+            sb.AppendLine("\"lands await those who serve Battania well\". A fief or a marriage may still be EVOKED as a");
+            sb.AppendLine("distant hope, never promised as the fixed price of a task.");
+            sb.AppendLine();
+         }
          sb.AppendLine("Rules: name real, plausible targets you would know. Promise only rewards you would");
          sb.AppendLine("truly pay — the figure is fixed now and honored on completion. Offer at most ONE task,");
          sb.AppendLine("and never while you already have one outstanding (listed under YOUR QUESTS when present).");
@@ -5890,6 +5907,40 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[/QUEST_ABANDON]");
          sb.AppendLine("Emit this ONLY when the player has clearly chosen to give up the task — never on your");
          sb.AppendLine("own initiative, and never merely because they are slow.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   COUNCIL_ACTIONS.md Partie 5 (the "Caladog" case), the ON side of the toggle
+      ///   <see cref="EncounterContext.FiefAndMarriageQuestRewardsAllowed" />: replaces the blanket "never a
+      ///   fief or marriage" guardrail with one that ALLOWS both, but ONLY through the reward_grant channel
+      ///   above (never a bare narrative promise) and ONLY when the giver's own house can truly pay it. The
+      ///   tenability rules mirror what the consumer (QuestFactory.ResolveReward / the game bridge at payout)
+      ///   actually re-checks, so the NPC is never taught to offer more than the engine can honor.
+      /// </summary>
+      private void AppendHeavyQuestRewardRules(StringBuilder sb)
+      {
+         sb.AppendLine("TENABLE HEAVY REWARDS (a fief, or a marriage, as the price of a task):");
+         sb.AppendLine("Your house's own opt-in lets you go further than gold, relation, and the ordinary favors:");
+         sb.AppendLine("you may promise one of your OWN clan's towns or castles, or a real marriage (your own hand,");
+         sb.AppendLine("or a kin's you have authority over), as the fixed PRICE of a task, but ONLY through the");
+         sb.AppendLine("[QUEST] block's reward_grant, never as a bare line in your dialogue: a promise spoken but");
+         sb.AppendLine("not recorded in the block is exactly the broken promise this whole section exists to stop.");
+         sb.AppendLine();
+         sb.AppendLine("grant_fief: name a town or castle YOUR OWN clan holds right now, and only if you truly lead");
+         sb.AppendLine("that clan (a vassal cannot give away a fief that is not truly in their own gift). Set");
+         sb.AppendLine("reward_settlement to its exact name. It passes to the player the moment the task is done.");
+         sb.AppendLine();
+         sb.AppendLine("marriage_reward: promise an ACTUAL wedding sealed the instant the task is done, not merely a");
+         sb.AppendLine("blessing (that lighter case is marriage_consent above). Name yourself, or a kin of your own");
+         sb.AppendLine("house you have real authority to give, as spouse. Never a spouse from another house, and");
+         sb.AppendLine("never yourself if you already rule a realm: a reigning sovereign cannot be married off by a");
+         sb.AppendLine("quest reward without risking the crown itself, so that case is refused by the game.");
+         sb.AppendLine();
+         sb.AppendLine("Both are re-verified again the moment the task completes: the fief must still be yours to");
+         sb.AppendLine("give, the marriage still yours to grant. If the world has moved (the fief lost, the spouse");
+         sb.AppendLine("wed elsewhere, war declared meanwhile), the game refuses the delivery honestly rather than");
+         sb.AppendLine("faking it, and you should acknowledge the debt in character rather than pretend it paid.");
          sb.AppendLine();
       }
 
