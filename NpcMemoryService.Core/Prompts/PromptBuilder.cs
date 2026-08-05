@@ -3886,7 +3886,7 @@ namespace NpcMemoryService.Core.Prompts
             : $" (promised: {string.Join(", ", parts)})";
       }
 
-      private void AppendActionInstructions(StringBuilder sb)
+      private void AppendActionInstructions(StringBuilder sb, LeanPromptLevel lean)
       {
          if (ActionVocabulary == null || ActionVocabulary.Count == 0) return;
 
@@ -3919,6 +3919,21 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("delta: 1");
          sb.AppendLine("[/ACTION]");
          sb.AppendLine();
+         // Cause 1 of the DeepSeek player report (2026-08-05): a whole playthrough where actions were narrated
+         // in prose but change_relation was never once emitted, while the SAME dialogues emitted it fine on
+         // Grok. Full only (the Lean budget has ~50 chars of slack, so the equivalent nudge lives compressed
+         // in the Lean FORMAT REMINDER instead): spells out that a shift in regard is itself a change the
+         // game only learns about from the block, parallel to the STAY WITHIN WHAT YOU KNOW deed-hardening.
+         if (lean != LeanPromptLevel.Lean)
+         {
+            sb.AppendLine("CHANGE_RELATION IS HOW THE GAME LEARNS YOUR REGARD SHIFTED:");
+            sb.AppendLine("Whenever this exchange truly moves how you regard the player, praise, an insult, a");
+            sb.AppendLine("kindness done to you, an affront, a bold or a foolish claim, emit a change_relation");
+            sb.AppendLine("[ACTION] in the SAME reply. The game records the shift ONLY from that block: warmer or");
+            sb.AppendLine("colder words in [DIALOGUE] alone leave your relation with them exactly where it was.");
+            sb.AppendLine();
+         }
+
          // The ONE global emission contract for every action below and throughout this prompt (recruitment,
          // consort, love match, defection, mercenary, give_item, give_prisoner, scheme_assist, scheme_heed,
          // recall_companion, retire, free_prisoner, and any other [ACTION] taught anywhere): each section below
@@ -5373,7 +5388,7 @@ namespace NpcMemoryService.Core.Prompts
             }
 
             AppendFormatExample(sb);
-            AppendActionInstructions(sb);
+            AppendActionInstructions(sb, lean);
             // ExtraActionTeachings (the extended verb set) is deliberately NOT rendered in Lean mode:
             // a small / short-context model gets only the minimal action contract above.
             // YOUR QUESTS (elsewhere in the Lean prompt) may ask you to acknowledge a done task with
@@ -5491,7 +5506,7 @@ namespace NpcMemoryService.Core.Prompts
          }
 
          AppendFormatExample(sb);
-         AppendActionInstructions(sb);
+         AppendActionInstructions(sb, lean);
          AppendExtraActionTeachings(sb, context);
          AppendSpouseDivorceDemandNote(sb, context);
          AppendPlayerEndOwnMarriageNote(sb, context);
@@ -6335,8 +6350,8 @@ namespace NpcMemoryService.Core.Prompts
             // A small / short-context model needs the reminder most, but has the least room: keep it to the
             // essential contract in three lines so it fits the Lean budget.
             sb.AppendLine("FORMAT REMINDER: put speech in [DIALOGUE] ... [/DIALOGUE]. When a concrete change happens this");
-            sb.AppendLine("turn (coin, a deal, a status change, a parting), you MUST emit its block ([ACTION]/[EVENT]) as");
-            sb.AppendLine("taught, or the game cannot see it and it will not take effect.");
+            sb.AppendLine("turn (coin, a deal, a status change, a shift in regard, a parting), you MUST emit its block");
+            sb.AppendLine("([ACTION]/[EVENT]) as taught, or the game cannot see it and it will not take effect.");
             sb.AppendLine("Never think out loud — only the character's words and the taught blocks.");
 
             return;
@@ -6352,6 +6367,16 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Never think out loud: no analysis of the situation, no weighing of options, no mention of");
          sb.AppendLine("the player as 'the player' — only the character's words and the taught blocks.");
          sb.AppendLine("e.g.  [DIALOGUE]your spoken words[/DIALOGUE]   then, only on a real change:   [ACTION] type: change_relation  delta: 1 [/ACTION]");
+         // Cause 1 of the DeepSeek player report (2026-08-05): good prose, but the structured blocks were
+         // dropped, change_relation not once across a whole playthrough. This is the LAST thing the model
+         // reads before it generates, so a tight checklist here is the highest-leverage restatement of the
+         // two rules above (the change_relation directive near its teaching, and the anti-empty-promise
+         // deed rule in STAY WITHIN WHAT YOU KNOW): one line per must-emit case, kept to four lines total.
+         sb.AppendLine();
+         sb.AppendLine("ACTION CHECKLIST, BEFORE YOU FINISH THIS REPLY:");
+         sb.AppendLine("- Your regard for them shifted (praise, insult, a kindness, an affront, a bold or foolish claim) -> change_relation.");
+         sb.AppendLine("- A gift, payment, transfer, or recruitment truly happened -> its own [ACTION].");
+         sb.AppendLine("- The talk is ending -> end_conversation. Emit the block THIS SAME reply: prose describing it is not enough.");
       }
 
       private bool IsPlayerCompatible(RomanticProfile romantic)
