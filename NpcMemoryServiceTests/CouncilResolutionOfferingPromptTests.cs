@@ -38,6 +38,7 @@ namespace NpcMemoryServiceTests
       private const string SwapFiefsFormat = "type: swap_fiefs";
       private const string TributeFormat = "type: tribute";
       private const string ReleasePrisonerFormat = "type: release_prisoner";
+      private const string LendTroopsFormat = "type: lend_troops";
 
       private static NpcProfile Npc() => new() {
          Id = "npc_test",
@@ -1051,6 +1052,106 @@ namespace NpcMemoryServiceTests
          string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
          prompt.Should().NotContain(ReleasePrisonerFormat);
+         prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
+      }
+
+      // Partie 1's own lend_troops (COUNCIL_ACTIONS.md, Gabriel's own CONDITIONS, the highest-detail item in the
+      // spec): without lend_troops in its own vocabulary the model has no way to propose a seated lord's own
+      // troops, whatever the world allows.
+      [Test]
+      public void GIVEN_a_council_turn_with_lend_troops_offered_WHEN_building_the_prompt_THEN_its_emission_format_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "lend_troops"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain(LendTroopsFormat);
+         prompt.Should().Contain("COMMIT TROOPS TO YOU");
+         prompt.Should().Contain("permanent gift");
+         prompt.Should().Contain("delegation");
+      }
+
+      // The STAKE this test pins: Gabriel's condition A (the lord never rides with the delegation himself) and
+      // condition B (the gift is permanent, never a loan) both have real mechanical teeth (CouncilTroopDeliveryBehavior,
+      // TroopLoanPolicy), so the prompt must actually say both, not just emit the bare RESOLUTION block - a model
+      // that thinks the lord marches with his own troops, or that they will be recalled later, would narrate a
+      // false promise the game never intended to keep.
+      [Test]
+      public void GIVEN_lend_troops_offered_WHEN_building_the_prompt_THEN_the_delegation_and_permanence_conditions_are_both_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "lend_troops"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain("never rides with them");
+         prompt.Should().Contain("never a loan that returns");
+      }
+
+      // Mirrors give_influence's own discipline: unlike give_gold's target_amount, the amount must NEVER be an
+      // LLM choice (TroopLoanPolicy computes the tier split fresh at the lift). The taught block for this kind
+      // must never invite a target_amount field.
+      [Test]
+      public void GIVEN_lend_troops_offered_WHEN_building_the_prompt_THEN_no_amount_field_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "lend_troops"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         int blockStart = prompt.IndexOf(LendTroopsFormat, StringComparison.Ordinal);
+         int blockEnd = prompt.IndexOf("[/RESOLUTION]", blockStart, StringComparison.Ordinal);
+         string block = prompt.Substring(blockStart, blockEnd - blockStart);
+
+         block.Should().NotContain("target_amount");
+      }
+
+      // A council whose world facts satisfy nothing beyond the universal quest pledge (no seated lord could
+      // currently spare any troops) must not see lend_troops at all: teaching it would offer a delegation the
+      // lift has already proven impossible to honour.
+      [Test]
+      public void GIVEN_a_council_turn_with_only_quest_offered_WHEN_building_the_prompt_THEN_lend_troops_is_absent()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(LendTroopsFormat);
+         prompt.Should().Contain("type: quest");
+      }
+
+      // An ordinary 1:1 conversation, and any non-council round-table turn, must NEVER see this teaching,
+      // whatever the field happens to hold: a lord's own troops belong only to a real council turn, never to a
+      // private exchange with one NPC.
+      [Test]
+      public void GIVEN_an_ordinary_non_council_turn_WHEN_building_the_prompt_THEN_lend_troops_is_never_mentioned()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            CouncilOfferedResolutionKinds = new[] {"quest", "lend_troops"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(LendTroopsFormat);
          prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
       }
    }

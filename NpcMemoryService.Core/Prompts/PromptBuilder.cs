@@ -1302,6 +1302,29 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-04): Partie 1's own lend_troops (COUNCIL_ACTIONS.md, Gabriel's
+            // own CONDITIONS, the highest-detail item in the spec). Taught ONLY when the mod's offering has proven
+            // a seated lord (ClanLords or WarCouncil, never Companions/Family: a hired hand or dynastic kin is not
+            // a lord fielding a real party of his own) currently leads a party with troops to spare and is not at
+            // war with the player. Unlike give_gold, NO amount is ever named here (mirrors give_influence's own
+            // discipline): the count and its tier split are computed fresh at the lift by TroopLoanPolicy, never
+            // an LLM choice. Two things the model must know that make this pledge honest: (A) the soldiers never
+            // travel with the lord himself - a delegation carries them, so the lord's own person is never at risk
+            // and never actually arrives; (B) this is a permanent gift, never a loan that returns.
+            if (IsKindOffered(context, "lend_troops"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("A seated lord may also COMMIT TROOPS TO YOU: real soldiers from their own ranks,");
+               sb.AppendLine("sent as a permanent gift, never a loan that returns. The lord never rides with them");
+               sb.AppendLine("himself (too easy to trap) - a delegation carries the troops to you. Do not name an");
+               sb.AppendLine("amount: the game decides how many and of what quality can be spared.");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: lend_troops");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("detail: Ira commits some of her own soldiers to the player, sent on by a delegation.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             // Council resolution offering (2026-08-04): Partie 1's schemes kind (COUNCIL_ACTIONS.md), REUSING the
             // existing 1:1 pledge_against system end to end (CourtActionResolver.LaunchPledge, the SAME code
             // path the 1:1 action itself calls). Taught ONLY when the mod's offering has proven a seated member
