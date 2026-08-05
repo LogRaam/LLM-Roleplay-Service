@@ -230,6 +230,9 @@ namespace NpcMemoryService.Core.Prompts
          AppendMercenaryEnd(sb, encounterContext);
          AppendVassalOffer(sb, encounterContext);
          AppendAppointGovernorOffer(sb, encounterContext);
+         AppendAssignPartyRoleOffer(sb, encounterContext);
+         AppendRejoinPartyOffer(sb, encounterContext);
+         AppendDispatchMissionOffer(sb, encounterContext);
          AppendFollowMe(sb, encounterContext);
          AppendDismissEscort(sb, encounterContext);
          AppendDuelChallenge(sb, encounterContext);
@@ -2731,6 +2734,94 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("The game seats you as its governor at once. Never claim to govern a fief, or to have been");
          sb.AppendLine("named to one, unless you emit this action: if your standing with the player is too low they");
          sb.AppendLine("may still decline, so do not narrate the post as taken until it is done.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   assign_party_role brought to the 1:1 pipeline (2026-08-05, party-command batch): taught ONLY when the
+      ///   host confirms this NPC is one of the player's own companions currently riding in the main party
+      ///   (<see cref="EncounterContext.NpcCanBeAssignedPartyRole" />, the host's own
+      ///   PartyCommandOfferPolicy.CanOfferAssignRole gate re-run at commit time). A SEPARATE path from the
+      ///   council's own [RESOLUTION] offering: this teaches the plain 1:1 [ACTION] form, and the game bridge
+      ///   re-checks that they still ride in the party and the role resolves before setting it. Suppressed on a
+      ///   council or round-table turn (the [RESOLUTION] channel owns it there) and in a captive scene, the same
+      ///   carve-out every sibling 1:1 offer applies.
+      /// </summary>
+      private static void AppendAssignPartyRoleOffer(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.NpcCanBeAssignedPartyRole != true) return;
+         if (context!.IsRoundTableTurn || context.IsCouncilNarratorTurn) return;
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+         sb.AppendLine("A POST IN THE PARTY, THE PLAYER MAY NAME YOU TO A ROLE IN THEIR WARBAND:");
+         sb.AppendLine("You ride in the player's own party. They may set you to one of these duties, or you may offer");
+         sb.AppendLine("to take one on. Name exactly one of these words, plainly:");
+         sb.AppendLine("  - scout        : range ahead, spy the land and the enemy's movements");
+         sb.AppendLine("  - engineer     : tend the siege engines and the works");
+         sb.AppendLine("  - quartermaster: keep the stores, the baggage, and the coin of supply");
+         sb.AppendLine("  - surgeon      : tend the wounded after a fight");
+         sb.AppendLine();
+         sb.AppendLine("When you clearly agree to take a post, and only then, emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: assign_party_role");
+         sb.AppendLine("target_role: <one of: scout, engineer, quartermaster, surgeon>");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The game sets you to that duty at once. Do not claim a post unless you emit this action.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   rejoin_party brought to the 1:1 pipeline (2026-08-05, party-command batch): taught ONLY when the host
+      ///   confirms this NPC is one of the player's companions, alive and free, currently AWAY from the main party
+      ///   and not leading their own company (<see cref="EncounterContext.NpcCanRejoinParty" />, the host's own
+      ///   PartyCommandOfferPolicy.CanOfferRejoinParty gate re-run at commit time). A SEPARATE path from the
+      ///   council's own [RESOLUTION] offering; the game bridge re-checks every gate and releases any governorship
+      ///   first. Suppressed on a council or round-table turn and in a captive scene.
+      /// </summary>
+      private static void AppendRejoinPartyOffer(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.NpcCanRejoinParty != true) return;
+         if (context!.IsRoundTableTurn || context.IsCouncilNarratorTurn) return;
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+         sb.AppendLine("RETURN TO THE PLAYER'S SIDE, YOU MAY REJOIN THEIR PARTY:");
+         sb.AppendLine("You are one of the player's companions, but you are not with their party right now. If the");
+         sb.AppendLine("player asks you to come back and ride with them, and you agree, emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: rejoin_party");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The game brings you back to their party at once (stepping you down from any post you hold");
+         sb.AppendLine("elsewhere). Only emit this when you truly agree to return; do not narrate rejoining otherwise.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   dispatch_mission brought to the 1:1 pipeline (2026-08-05, party-command batch): taught ONLY when the host
+      ///   confirms this NPC is a companion in the main party, free to ride out
+      ///   (<see cref="EncounterContext.NpcCanBeDispatchedOnMission" />, the host's own
+      ///   PartyCommandOfferPolicy.CanOfferDispatchMission gate re-run at commit time). A SEPARATE path from the
+      ///   council's own [RESOLUTION] offering; the game bridge re-checks every gate, and the game picks the
+      ///   destination (never named here). Suppressed on a council or round-table turn and in a captive scene.
+      /// </summary>
+      private static void AppendDispatchMissionOffer(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.NpcCanBeDispatchedOnMission != true) return;
+         if (context!.IsRoundTableTurn || context.IsCouncilNarratorTurn) return;
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+         sb.AppendLine("AN ERRAND ABROAD, THE PLAYER MAY SEND YOU OUT ON A MISSION:");
+         sb.AppendLine("You ride in the player's own party. If the player asks you to go and do one of these for them,");
+         sb.AppendLine("and you agree, name exactly one of these words, plainly:");
+         sb.AppendLine("  - gathernews: bring back word of the realm, the latest tidings");
+         sb.AppendLine("  - spy       : spy out a town or lord, its strength and whereabouts");
+         sb.AppendLine("  - steal     : lift coin from a place");
+         sb.AppendLine("  - barter    : turn a profit at market");
+         sb.AppendLine("  - envoy     : take the measure of a faction's mood");
+         sb.AppendLine();
+         sb.AppendLine("When you clearly agree to go, and only then, emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: dispatch_mission");
+         sb.AppendLine("target_mission: <one of: gathernews, spy, steal, barter, envoy>");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The game sends you off; you leave the party, ride there, and return after some days with the");
+         sb.AppendLine("result. Do NOT invent the result now, and do not name a destination; the game chooses where.");
          sb.AppendLine();
       }
 

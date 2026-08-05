@@ -144,6 +144,37 @@ namespace NpcMemoryService.Core.Models
       public string? AppointableFiefs { get; init; }
 
       /// <summary>
+      ///   True when the 1:1 conversation path may teach this NPC the assign_party_role action (2026-08-05, the
+      ///   party-command batch brought to BOTH pipelines). The host's own EncounterContextBuilder has proven, via
+      ///   CalradiaRemembers.Logic.Assemblies.PartyCommandOfferPolicy.CanOfferAssignRole (the same
+      ///   TargetInPlayerParty eligibility the council's own offering reads), that this NPC is one of the player's
+      ///   companions who currently rides in the main party. A PARALLEL, separate teaching path to the council's
+      ///   [RESOLUTION] offering: this drives a normal 1:1 [ACTION], and the game bridge re-checks every gate before
+      ///   setting a role (the prompt is advice, the bridge is law). Default false.
+      /// </summary>
+      public bool NpcCanBeAssignedPartyRole { get; init; }
+
+      /// <summary>
+      ///   True when the 1:1 conversation path may teach this NPC the rejoin_party action (2026-08-05, the
+      ///   party-command batch). The host has proven, via
+      ///   CalradiaRemembers.Logic.Assemblies.PartyCommandOfferPolicy.CanOfferRejoinParty (the council's own
+      ///   TargetOutOfPlayerParty fact), that this NPC is one of the player's companions, alive and free, currently
+      ///   OUTSIDE the main party and not leading a company of their own. A PARALLEL path to the council's
+      ///   [RESOLUTION] offering; the game bridge re-checks every gate before adding anyone back. Default false.
+      /// </summary>
+      public bool NpcCanRejoinParty { get; init; }
+
+      /// <summary>
+      ///   True when the 1:1 conversation path may teach this NPC the dispatch_mission action (2026-08-05, the
+      ///   party-command batch). The host has proven, via
+      ///   CalradiaRemembers.Logic.Assemblies.PartyCommandOfferPolicy.CanOfferDispatchMission (the same
+      ///   TargetInPlayerParty fact assign_party_role reads, plus that they are free to ride out), that this NPC is
+      ///   a companion in the main party not already away on an errand. A PARALLEL path to the council's [RESOLUTION]
+      ///   offering; the game bridge re-checks every gate, and the mission system picks the destination. Default false.
+      /// </summary>
+      public bool NpcCanBeDispatchedOnMission { get; init; }
+
+      /// <summary>
       ///   The captor's intent for this encounter. Only meaningful when
       ///   <see cref="PlayerStatus" /> == <see cref="PlayerStatusVsNpc.Captive" />.
       ///   Controls the specific framing injected into the captive prompt section
