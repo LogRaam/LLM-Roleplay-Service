@@ -45,6 +45,7 @@ namespace NpcMemoryServiceTests
       private const string GiveHostageFormat = "type: give_hostage";
       private const string NonAggressionPactFormat = "type: non_aggression_pact";
       private const string SponsorWardFormat = "type: sponsor_ward";
+      private const string SupportClaimantFormat = "type: support_claimant";
 
       private static NpcProfile Npc() => new() {
          Id = "npc_test",
@@ -1635,6 +1636,105 @@ namespace NpcMemoryServiceTests
          string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
          prompt.Should().NotContain(SponsorWardFormat);
+         prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
+      }
+
+      // Partie 8 (COUNCIL_ACTIONS.md's Kimi review, "support_claimant"), the LAST catalogue kind: without
+      // support_claimant in its own vocabulary the model has no way to propose a seated vassal's own public
+      // backing of the player's political standing, whatever the world allows.
+      [Test]
+      public void GIVEN_a_council_turn_with_support_claimant_offered_WHEN_building_the_prompt_THEN_its_emission_format_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "support_claimant"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain(SupportClaimantFormat);
+         prompt.Should().Contain("WAR COUNCIL");
+         prompt.Should().Contain("PUBLICLY PLEDGE THEIR");
+      }
+
+      // STAKE (the SAFE v1's own honesty discipline, Kimi's spike warning about a live KingdomDecision/Election
+      // hook): this pledge is a real, general influence backing, NEVER a claim that it decides a specific vote
+      // or guarantees an election outcome. If the taught text let the model imply otherwise, the player would be
+      // promised a mechanical result (winning a particular claim) the engine never actually delivers - exactly
+      // the false-promise class this whole project exists to close.
+      [Test]
+      public void GIVEN_support_claimant_offered_WHEN_building_the_prompt_THEN_it_is_framed_as_general_backing_not_a_decided_vote()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "support_claimant"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain("not a vote cast in any specific");
+         prompt.Should().Contain("never claim it decides a particular vote or guarantees an outcome");
+      }
+
+      // The STAKE this test pins: unlike give_gold's target_amount, the amount must NEVER be an LLM choice
+      // (mirroring the give_influence council kind's own discipline, which the reused CourtActionPolicy amount
+      // math computes fresh at the lift). The taught block for this kind must never invite a target_amount field.
+      [Test]
+      public void GIVEN_support_claimant_offered_WHEN_building_the_prompt_THEN_no_amount_field_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest", "support_claimant"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         int blockStart = prompt.IndexOf(SupportClaimantFormat, StringComparison.Ordinal);
+         int blockEnd = prompt.IndexOf("[/RESOLUTION]", blockStart, StringComparison.Ordinal);
+         string block = prompt.Substring(blockStart, blockEnd - blockStart);
+
+         block.Should().NotContain("target_amount");
+      }
+
+      // A council whose world facts satisfy nothing beyond the universal quest pledge (no seated vassal's clan
+      // could currently spare any influence) must not see support_claimant at all: teaching it would offer a
+      // public backing the lift has already proven nobody present could actually keep.
+      [Test]
+      public void GIVEN_a_council_turn_with_only_quest_offered_WHEN_building_the_prompt_THEN_support_claimant_is_absent()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            IsRoundTableTurn = true,
+            IsCouncilNarratorTurn = true,
+            CouncilOfferedResolutionKinds = new[] {"quest"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(SupportClaimantFormat);
+         prompt.Should().Contain("type: quest");
+      }
+
+      // An ordinary 1:1 conversation, and any non-council round-table turn, must NEVER see this teaching,
+      // whatever the field happens to hold: a public political backing belongs only to a real WAR COUNCIL turn,
+      // never to a private exchange with one NPC.
+      [Test]
+      public void GIVEN_an_ordinary_non_council_turn_WHEN_building_the_prompt_THEN_support_claimant_is_never_mentioned()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            CouncilOfferedResolutionKinds = new[] {"quest", "support_claimant"}
+         };
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().NotContain(SupportClaimantFormat);
          prompt.Should().NotContain("RECORDING WHAT THE TABLE DECIDES:");
       }
    }

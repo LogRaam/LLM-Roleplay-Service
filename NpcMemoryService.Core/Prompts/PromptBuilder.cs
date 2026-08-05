@@ -1719,6 +1719,32 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("[/RESOLUTION]");
             }
 
+            // Council resolution offering (2026-08-05): Partie 8's LAST catalogue kind, "support_claimant"
+            // (COUNCIL_ACTIONS.md's Kimi review). Taught ONLY at a WAR COUNCIL when the mod's offering has
+            // proven a seated vassal's OWN clan could currently spare influence to back the player - never
+            // ClanLords/Companions/Family, mirroring give_influence's own single-scope discipline. SAFE v1
+            // (Gabriel's own instruction, over a risky live KingdomDecision/Election vote injection): this is a
+            // PUBLIC PLEDGE OF POLITICAL SUPPORT that lends the player real influence at court right now, NOT a
+            // vote cast in any specific election or claim - the model must never claim it decides a particular
+            // vote or guarantees an outcome, only that it strengthens the player's own hand. Unlike give_gold, NO
+            // AMOUNT is ever named here (mirrors give_influence's own discipline): the weight of the pledge is
+            // fixed by custom, never an LLM choice.
+            if (IsKindOffered(context, "support_claimant"))
+            {
+               sb.AppendLine();
+               sb.AppendLine("At a WAR COUNCIL, a seated vassal of your own kingdom may also PUBLICLY PLEDGE THEIR");
+               sb.AppendLine("SUPPORT FOR YOUR STANDING IN KINGDOM POLITICS, lending their own house's influence at");
+               sb.AppendLine("court behind you right now. This is real backing, not a vote cast in any specific");
+               sb.AppendLine("election or claim: never claim it decides a particular vote or guarantees an outcome,");
+               sb.AppendLine("only that it strengthens your hand. Do not name an amount: the weight of the pledge is");
+               sb.AppendLine("fixed by custom, not by what is said here.");
+               sb.AppendLine("[RESOLUTION]");
+               sb.AppendLine("type: support_claimant");
+               sb.AppendLine("actor: Ira");
+               sb.AppendLine("detail: Ira publicly throws her house's weight behind the player's standing at court.");
+               sb.AppendLine("[/RESOLUTION]");
+            }
+
             sb.AppendLine("This is held as the table's decision, not carried out here: it is settled only when the");
             sb.AppendLine("council rises. If the table changes its mind before then, withdraw it:");
             sb.AppendLine("[RESOLUTION]");
