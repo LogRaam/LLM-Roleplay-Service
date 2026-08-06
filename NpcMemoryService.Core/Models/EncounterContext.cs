@@ -212,6 +212,27 @@ namespace NpcMemoryService.Core.Models
       public bool NpcCanBeExpelledFromClan { get; init; }
 
       /// <summary>
+      ///   True when the 1:1 conversation path may teach this NPC the grant_stipend action (2026-08-05, one of the two
+      ///   personal-command verbs that touch PERSISTED save state, brought to BOTH pipelines). The host's own
+      ///   EncounterContextBuilder has proven, via CalradiaRemembers.Logic.Assemblies.StipendPolicy.CanOfferStipend
+      ///   (the same eligibility the council's own offering reduces to), that this NPC is one of the player's own clan
+      ///   companions, no stipend is already running for them, and the player can cover at least the cheapest tranche.
+      ///   A PARALLEL, separate teaching path to the council's [RESOLUTION] offering; the game bridge re-checks every
+      ///   gate (including the already-running one, against live persisted state) before funding a tranche. Default false.
+      /// </summary>
+      public bool NpcCanBeGrantedStipend { get; init; }
+
+      /// <summary>
+      ///   True when the 1:1 conversation path may teach this NPC the swear_oath action (2026-08-05, one of the two
+      ///   personal-command verbs that touch PERSISTED save state). The host has proven, via
+      ///   CalradiaRemembers.Logic.Assemblies.OathOfferPolicy.CanOfferOath (the same eligibility the council's own
+      ///   ChatViewModel.AnySeatedMemberCanSwearOath reduces to), that this NPC is alive, free, not the player, carries
+      ///   no oath already outstanding, and plausibly qualifies for at least one verifiable oath kind. A PARALLEL path
+      ///   to the council's [RESOLUTION] offering; the game bridge re-checks every gate before recording an oath. Default false.
+      /// </summary>
+      public bool NpcCanSwearOath { get; init; }
+
+      /// <summary>
       ///   The captor's intent for this encounter. Only meaningful when
       ///   <see cref="PlayerStatus" /> == <see cref="PlayerStatusVsNpc.Captive" />.
       ///   Controls the specific framing injected into the captive prompt section

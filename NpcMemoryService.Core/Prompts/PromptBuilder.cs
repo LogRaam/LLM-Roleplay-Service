@@ -236,6 +236,8 @@ namespace NpcMemoryService.Core.Prompts
          AppendGrantFiefOffer(sb, encounterContext);
          AppendRevokeFiefOffer(sb, encounterContext);
          AppendExpelFromClanOffer(sb, encounterContext);
+         AppendGrantStipendOffer(sb, encounterContext);
+         AppendSwearOathOffer(sb, encounterContext);
          AppendFollowMe(sb, encounterContext);
          AppendDismissEscort(sb, encounterContext);
          AppendDuelChallenge(sb, encounterContext);
@@ -2894,6 +2896,73 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("The break takes effect at once and you leave their clan. Do not emit this on your own wish, and do");
          sb.AppendLine("not narrate being cast out unless the player actually decrees it and you emit this action.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   grant_stipend brought to the 1:1 pipeline (2026-08-05, one of the two personal-command verbs that touch
+      ///   persisted save state): taught ONLY when the host confirms this NPC is one of the player's own clan
+      ///   companions with no stipend already running, and the player can afford one
+      ///   (<see cref="EncounterContext.NpcCanBeGrantedStipend" />, the host's own StipendPolicy.CanOfferStipend gate
+      ///   re-run at commit time). A SEPARATE path from the council's own [RESOLUTION] offering: this teaches the plain
+      ///   1:1 [ACTION] form, and the game bridge re-checks the companion status, the already-running guard, and the
+      ///   full tranche against the player's purse before a single denar is escrowed. Suppressed on a council or
+      ///   round-table turn (the [RESOLUTION] channel owns it there) and in a captive scene, the same carve-out every
+      ///   sibling 1:1 offer applies.
+      /// </summary>
+      private static void AppendGrantStipendOffer(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.NpcCanBeGrantedStipend != true) return;
+         if (context!.IsRoundTableTurn || context.IsCouncilNarratorTurn) return;
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+         sb.AppendLine("A STIPEND, THE PLAYER MAY PUT YOU ON A DAILY WAGE:");
+         sb.AppendLine("You are one of the player's own clan companions, and they may set you a recurring daily stipend");
+         sb.AppendLine("drawn from their coffers, funded for the next thirty days. Either you or the player may raise it.");
+         sb.AppendLine("The daily amount must be between 50 and 500 denars; a figure outside that is trimmed to fit.");
+         sb.AppendLine();
+         sb.AppendLine("When you clearly agree to a stipend at a named daily amount, and only then, emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: grant_stipend");
+         sb.AppendLine("target_amount: <the daily wage in denars, 50 to 500>");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The stipend begins at once, paid daily. Never claim to draw a wage unless you emit this action: if");
+         sb.AppendLine("the player cannot afford the full thirty-day sum they may still decline, so do not narrate the");
+         sb.AppendLine("stipend as set until it is done.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   swear_oath brought to the 1:1 pipeline (2026-08-05, one of the two personal-command verbs that touch
+      ///   persisted save state): taught ONLY when the host confirms this NPC is a viable swearer with no oath already
+      ///   outstanding (<see cref="EncounterContext.NpcCanSwearOath" />, the host's own OathOfferPolicy.CanOfferOath
+      ///   gate re-run at commit time). A SEPARATE path from the council's own [RESOLUTION] offering: this teaches the
+      ///   plain 1:1 [ACTION] form, and the game bridge re-checks the swearer, the kind, and that kind's own payload
+      ///   before recording anything. Only THREE oath kinds exist, each verified later by a real event; a kind outside
+      ///   the three is refused. Suppressed on a council or round-table turn (the [RESOLUTION] channel owns it there)
+      ///   and in a captive scene, the same carve-out every sibling 1:1 offer applies.
+      /// </summary>
+      private static void AppendSwearOathOffer(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.NpcCanSwearOath != true) return;
+         if (context!.IsRoundTableTurn || context.IsCouncilNarratorTurn) return;
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+         sb.AppendLine("AN OATH, YOU MAY SWEAR A BINDING VOW TO THE PLAYER:");
+         sb.AppendLine("You may swear the player a solemn, verifiable oath the world itself will hold you to. There are");
+         sb.AppendLine("exactly three oaths you can swear, and no others:");
+         sb.AppendLine(" - pay_gold: you vow to pay the player a sum of denars within the coming weeks. Names an amount.");
+         sb.AppendLine(" - keep_peace: you vow your OWN faction will not make war on a named faction (you must lead a");
+         sb.AppendLine("   faction of your own for this). Names that faction.");
+         sb.AppendLine(" - protect: you vow to fight at the player's side in a real battle in the coming weeks. Names nothing.");
+         sb.AppendLine();
+         sb.AppendLine("When you clearly swear one of these, and only then, emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: swear_oath");
+         sb.AppendLine("oath_kind: <pay_gold, keep_peace, or protect>");
+         sb.AppendLine("target_amount: <denars owed, for pay_gold only>");
+         sb.AppendLine("target_faction: <the faction to keep peace with, for keep_peace only>");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The oath is recorded at once and a later breach will cost you dearly. Swear only one of the three");
+         sb.AppendLine("kinds above, and never narrate an oath as sworn unless you emit this action.");
          sb.AppendLine();
       }
 
