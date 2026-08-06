@@ -1313,7 +1313,7 @@ namespace NpcMemoryService.Core.Prompts
             // a seated lord (ClanLords or WarCouncil, never Companions/Family: a hired hand or dynastic kin is not
             // a lord fielding a real party of his own) currently leads a party with troops to spare and is not at
             // war with the player. Unlike give_gold, NO amount is ever named here (mirrors give_influence's own
-            // discipline): the count and its tier split are computed fresh at the lift by TroopLoanPolicy, never
+            // discipline): the count and its tier split are computed fresh at the lift by CouncilTroopLoanPolicy, never
             // an LLM choice. Two things the model must know that make this pledge honest: (A) the soldiers never
             // travel with the lord himself - a delegation carries them, so the lord's own person is never at risk
             // and never actually arrives; (B) this is a permanent gift, never a loan that returns.

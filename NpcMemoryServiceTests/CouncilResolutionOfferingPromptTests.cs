@@ -1204,7 +1204,7 @@ namespace NpcMemoryServiceTests
 
       // The STAKE this test pins: Gabriel's condition A (the lord never rides with the delegation himself) and
       // condition B (the gift is permanent, never a loan) both have real mechanical teeth (CouncilTroopDeliveryBehavior,
-      // TroopLoanPolicy), so the prompt must actually say both, not just emit the bare RESOLUTION block - a model
+      // CouncilTroopLoanPolicy), so the prompt must actually say both, not just emit the bare RESOLUTION block - a model
       // that thinks the lord marches with his own troops, or that they will be recalled later, would narrate a
       // false promise the game never intended to keep.
       [Test]
@@ -1224,7 +1224,7 @@ namespace NpcMemoryServiceTests
       }
 
       // Mirrors give_influence's own discipline: unlike give_gold's target_amount, the amount must NEVER be an
-      // LLM choice (TroopLoanPolicy computes the tier split fresh at the lift). The taught block for this kind
+      // LLM choice (CouncilTroopLoanPolicy computes the tier split fresh at the lift). The taught block for this kind
       // must never invite a target_amount field.
       [Test]
       public void GIVEN_lend_troops_offered_WHEN_building_the_prompt_THEN_no_amount_field_is_taught()
