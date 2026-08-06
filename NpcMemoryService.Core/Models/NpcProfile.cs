@@ -145,6 +145,17 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public int CorrespondenceInterest { get; set; }
 
+      /// <summary>
+      ///   True once the player has paid for an ARMED ESCORT on this correspondent's whole thread: every courier
+      ///   between the player and this NPC (that outgoing letter, this NPC's replies, and every later leg both
+      ///   directions) then rides under guard and is immune to bandit interception. Paid once per thread; replies
+      ///   and later legs inherit it for free, which is why a single per-correspondent flag drives everything
+      ///   rather than a per-letter one. Additive and save-safe: an older save loads this false (unescorted, the
+      ///   existing vulnerable-courier behaviour), so no migration is needed. Player report 2026-08-05: letters to
+      ///   a far correspondent were lost almost every time, and this is the premium opt-out that guarantees the road.
+      /// </summary>
+      public bool EscortedChannel { get; set; }
+
       public required string Id { get; init; }
 
       /// <summary>
