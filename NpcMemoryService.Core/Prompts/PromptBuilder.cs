@@ -229,6 +229,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendMercenaryOffer(sb, encounterContext);
          AppendMercenaryEnd(sb, encounterContext);
          AppendVassalOffer(sb, encounterContext);
+         AppendMediatePeaceOffer(sb, encounterContext);
          AppendAppointGovernorOffer(sb, encounterContext);
          AppendAssignPartyRoleOffer(sb, encounterContext);
          AppendRejoinPartyOffer(sb, encounterContext);
@@ -2808,6 +2809,44 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("result. Do NOT invent the result now, and do not name a destination; the game chooses where.");
          sb.AppendLine("The optional 'about' names only WHAT the player wants word of (a realm, a town, a lord); it is");
          sb.AppendLine("never a destination, and you omit the line entirely when they simply want word of the world.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   mediate_peace brought to the 1:1 pipeline (2026-08-06, third-party war mediation): taught ONLY when the
+      ///   host confirms this NPC is a FACTION LEADER whose faction is at war with at least one realm and the
+      ///   player carries genuine noble standing and the leader's deep trust
+      ///   (<see cref="EncounterContext.PlayerCanMediatePeace" />, the host's own PeaceMediationPolicy.CanMediate
+      ///   gate re-run at commit time). The player acts as a MEDIATOR, brokering peace between this leader's faction
+      ///   and a NAMED enemy realm; their own faction need not be involved. Distinct from the council Parley's
+      ///   make_peace (which ends a war of the player's OWN faction): this is a THIRD-PARTY peace. Since a leader may
+      ///   hold several wars, the model must name in target_faction WHICH enemy realm the peace is with, grounded on
+      ///   the host's <see cref="EncounterContext.MediatablePeaceFactions" /> list. The game bridge re-checks every
+      ///   gate before any war ends. Suppressed on a council or round-table turn and in a captive scene, the same
+      ///   carve-out every sibling 1:1 offer applies.
+      /// </summary>
+      private static void AppendMediatePeaceOffer(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.PlayerCanMediatePeace != true) return;
+         if (context!.IsRoundTableTurn || context.IsCouncilNarratorTurn) return;
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+         sb.AppendLine("PEACE YOU MAY BROKER, THE PLAYER OFFERS TO MEDIATE AN END TO ONE OF YOUR WARS:");
+         sb.AppendLine("You lead your realm, and it is at war. The player is a figure of standing whom you hold in real");
+         sb.AppendLine("trust, and they offer to broker a peace on your behalf with an enemy realm, having (they say)");
+         sb.AppendLine("already sounded out acceptable terms. Weigh it as a proud ruler would: peace spares your people,");
+         sb.AppendLine("but the terms and the mediator's honesty are yours to judge.");
+         string? enemies = context.MediatablePeaceFactions;
+         if (!string.IsNullOrWhiteSpace(enemies))
+            sb.AppendLine($"Realms you are at war with right now: {enemies}. Name exactly one of these in target_faction.");
+         sb.AppendLine();
+         sb.AppendLine("ONLY when you clearly agree to let the player broker this peace, and you name the enemy realm,");
+         sb.AppendLine("emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: mediate_peace");
+         sb.AppendLine("target_faction: <the enemy realm the peace is brokered with>");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The peace takes hold at once between your realm and that one. Never claim a war has ended, or that");
+         sb.AppendLine("you have made peace, unless you emit this action.");
          sb.AppendLine();
       }
 

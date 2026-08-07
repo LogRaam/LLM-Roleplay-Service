@@ -233,6 +233,28 @@ namespace NpcMemoryService.Core.Models
       public bool NpcCanSwearOath { get; init; }
 
       /// <summary>
+      ///   True when the 1:1 conversation path may teach this NPC the mediate_peace action (2026-08-06, third-party
+      ///   war mediation). The host's own EncounterContextBuilder has proven, via
+      ///   CalradiaRemembers.Logic.PeaceMediationPolicy.CanMediate, that this NPC is a FACTION LEADER whose faction
+      ///   is at war with at least one other realm AND the player carries genuine noble standing (clan tier) and
+      ///   the leader's deep trust. The player, acting as a MEDIATOR, brokers peace between this leader's faction
+      ///   and a NAMED enemy realm (see <see cref="MediatablePeaceFactions" /> for the grounded target list); the
+      ///   player's own faction need not be involved. Distinct from the council Parley's make_peace, which ends a
+      ///   war of the player's OWN faction: this is a THIRD-PARTY peace. The game bridge re-checks every gate
+      ///   before any war ends (the prompt is advice, the bridge is law), and in v1 only this talked-to leader
+      ///   consents (the enemy's assent is abstracted). Default false, so an ordinary conversation teaches nothing.
+      /// </summary>
+      public bool PlayerCanMediatePeace { get; init; }
+
+      /// <summary>
+      ///   Only meaningful with <see cref="PlayerCanMediatePeace" />: the enemy realms this leader's faction is
+      ///   currently at war with, as a ready "Name, Name" list the prompt names verbatim so the model grounds the
+      ///   target_faction field on a real war rather than inventing one. Since a leader may hold several wars at
+      ///   once, this lets the model name WHICH enemy realm the peace is brokered with. Null or empty otherwise.
+      /// </summary>
+      public string? MediatablePeaceFactions { get; init; }
+
+      /// <summary>
       ///   The captor's intent for this encounter. Only meaningful when
       ///   <see cref="PlayerStatus" /> == <see cref="PlayerStatusVsNpc.Captive" />.
       ///   Controls the specific framing injected into the captive prompt section
