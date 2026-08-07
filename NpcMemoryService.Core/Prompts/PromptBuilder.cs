@@ -1966,6 +1966,11 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("tag in the SAME reply. Prose alone changes nothing in the world: if you describe coin");
             sb.AppendLine("changing hands, a gift given, or someone joining, and you do not emit the matching [ACTION],");
             sb.AppendLine("the player receives nothing and you must not later speak as though it occurred.");
+            // v1.34.3, GLM-5.2 player report cause 2: with no escort offered (a governor or notable who leads
+            // no field party), the model still narrated "we ride out" and the party never followed. Name the
+            // ride-out deed explicitly so it falls under the same un-offered-deed rule as the deeds above.
+            sb.AppendLine("This covers RIDING OUT together or your party following the player's on the map: unless an");
+            sb.AppendLine("escort [ACTION] is offered to you above, never agree to it or narrate it as if you rode out.");
          }
 
          sb.AppendLine();
@@ -2994,6 +2999,14 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("The game then has your party travel alongside the player's for a while, after which you");
          sb.AppendLine("resume your own business. Never claim to be riding with the player unless you emit this");
          sb.AppendLine("action, and never claim it lasts forever: the arrangement is only for a time.");
+         // v1.34.3, GLM-5.2 player report: a weaker model AGREED to ride out and NARRATED it in purple prose
+         // ("as if we rode out from the city") but never emitted follow_me, so the lord's party never moved.
+         // Same weak-model non-compliance class already reinforced for change_relation: spell out, imperative,
+         // that the escort is real ONLY from the block and prose alone moves nothing.
+         sb.AppendLine("follow_me IS THE ONLY THING THAT MAKES THE ESCORT REAL. If you agree to ride out with them,");
+         sb.AppendLine("emit the [ACTION] in the SAME reply: your party follows theirs ONLY from that block. Narrating");
+         sb.AppendLine("riding out in prose (\"as if we rode out from the city\") moves no party at all and leaves the");
+         sb.AppendLine("player standing alone. Agreeing in [DIALOGUE] without emitting follow_me does nothing.");
          sb.AppendLine();
       }
 

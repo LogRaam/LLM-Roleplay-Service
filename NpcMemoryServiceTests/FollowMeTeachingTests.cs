@@ -6,6 +6,13 @@
 // MercenaryEndTeachingTests): follow_me is taught only when EncounterContext.NpcCanEscortPlayer is true, never
 // otherwise (a model must not invent an escort the game bridge cannot honor), and its mirror, dismiss_escort,
 // is taught only while EncounterContext.NpcIsEscortingPlayer is true.
+//
+// v1.34.3 (GLM-5.2 player report): a player asked a keep lord to follow them on the map; the model NARRATED
+// riding out in purple ("as if we rode out from the city") but never emitted [ACTION] type: follow_me, so the
+// lord's party never moved. Two prompt-side reinforcements, mirroring the proven change_relation weak-model
+// fix: (1) inside the NpcCanEscortPlayer gate, an imperative "if you agree, emit follow_me; narration alone
+// does nothing"; (2) the anti-empty-promise block (STAY WITHIN WHAT YOU KNOW) names riding out as an
+// un-offered deed, so a lord with no field party is not agreed-to-in-prose either. The tests below pin both.
 
 #region
 
@@ -108,6 +115,66 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().NotContain(DismissEscortHeading);
          prompt.Should().NotContain(DismissEscortActionType);
+      }
+
+      // v1.34.3 reinforcement 1 (STAKE: GLM 5.2 agreed to ride out and narrated it in purple prose but never
+      // emitted follow_me, so the lord's party never followed and the player was left standing). Inside the
+      // escort gate, the prompt must carry the imperative that the action is the ONLY thing that moves the
+      // party, mirroring the change_relation "recorded ONLY from that block" fix for the same weak-model class.
+      [Test]
+      public void GIVEN_the_npc_can_escort_the_player_WHEN_built_THEN_the_emit_or_nothing_directive_is_present()
+      {
+         string prompt = Build(new EncounterContext {
+            PlayerStatus = PlayerStatusVsNpc.Free,
+            NpcCanEscortPlayer = true
+         });
+
+         prompt.Should().Contain("follow_me IS THE ONLY THING THAT MAKES THE ESCORT REAL");
+         prompt.Should().Contain("your party follows theirs ONLY from that block");
+         prompt.Should().Contain("Agreeing in [DIALOGUE] without emitting follow_me does nothing");
+      }
+
+      // v1.34.3 reinforcement 1, kept inside its gate (STAKE: the emit-or-nothing directive must never leak
+      // into a prompt where no escort is offered, or the model is told to emit an action it was never handed).
+      [Test]
+      public void GIVEN_the_npc_cannot_escort_the_player_WHEN_built_THEN_the_emit_or_nothing_directive_is_absent()
+      {
+         string prompt = Build(new EncounterContext {
+            PlayerStatus = PlayerStatusVsNpc.Free,
+            NpcCanEscortPlayer = false
+         });
+
+         prompt.Should().NotContain("follow_me IS THE ONLY THING THAT MAKES THE ESCORT REAL");
+      }
+
+      // v1.34.3 reinforcement 2 (STAKE: GLM 5.2 also narrated "we ride out" when follow_me was NOT offered at
+      // all, e.g. a governor or notable leading no field party). The anti-empty-promise block must name riding
+      // out as an un-offered deed, so it is refused/deflected instead of narrated as accomplished. This is
+      // Full-only, following the same Lean/Full split as the change_relation reinforcement (Lean has no budget).
+      [Test]
+      public void GIVEN_a_full_prompt_WHEN_built_THEN_the_anti_empty_promise_block_covers_riding_out()
+      {
+         string prompt = Build(new EncounterContext {
+            PlayerStatus = PlayerStatusVsNpc.Free,
+            LeanLevel = LeanPromptLevel.Full
+         });
+
+         prompt.Should().Contain("This covers RIDING OUT together or your party following the player's on the map");
+         prompt.Should().Contain("never agree to it or narrate it as if you rode out");
+      }
+
+      // The other half of the Lean/Full split: the Full-only ride-out elaboration must not leak into Lean,
+      // which the LeanPromptPolicyTests byte budget cannot spare (STAKE: a regrown Lean prompt overflows a
+      // small model's context and it returns nothing usable).
+      [Test]
+      public void GIVEN_a_lean_prompt_WHEN_built_THEN_the_ride_out_elaboration_is_absent()
+      {
+         string prompt = Build(new EncounterContext {
+            PlayerStatus = PlayerStatusVsNpc.Free,
+            LeanLevel = LeanPromptLevel.Lean
+         });
+
+         prompt.Should().NotContain("This covers RIDING OUT together");
       }
    }
 }
