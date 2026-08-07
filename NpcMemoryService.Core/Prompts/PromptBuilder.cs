@@ -260,6 +260,7 @@ namespace NpcMemoryService.Core.Prompts
             AppendDeliverPrisoner(sb, encounterContext);
          AppendPrisonerFreedomBargain(sb, encounterContext);
          AppendOrdinaryPrisonerExecutionRule(sb, encounterContext);
+         AppendRecruitPrisoner(sb, encounterContext);
          AppendPrisonerRescueBargain(sb, encounterContext);
          // gather_news was folded into dispatch_mission (2026-08-05): AppendDispatchMissionOffer above is now the
          // SOLE errand offer, so a companion in the party no longer sees two overlapping errand teachings.
@@ -3126,6 +3127,43 @@ namespace NpcMemoryService.Core.Prompts
       {
          if (context?.PlayerStatus != PlayerStatusVsNpc.NpcIsCaptive) return;
          AppendExecutePrisonerRule(sb);
+      }
+
+      /// <summary>
+      ///   v1.34.3 recruit_prisoner. Player report (Nexus): a player talked a captured noble into switching
+      ///   sides and joining them, the LLM narrated the turn, and nothing happened, because no executor existed
+      ///   for recruiting a held HERO prisoner (join_clan excludes prisoners; turn_nemesis is reserved for a
+      ///   tracked bandit nemesis in the dedicated captor scene). Taught ONLY when the game confirms every gate
+      ///   (<see cref="EncounterContext.CanRecruitPrisoner" />: the NPC is a hero the player currently holds,
+      ///   not a clan leader, and the player's personal regard has reached the strong floor), so the model is
+      ///   never tempted to promise a defection it cannot deliver. Suppressed inside the player-as-captor scene
+      ///   (turn_nemesis owns that context) and on council/round-table turns (the [RESOLUTION] channel owns
+      ///   those), keeping it distinct from both. The bridge re-runs the real gate on live custody, leadership,
+      ///   and regard before honouring it, so a stray or mistaken emission is harmless. Not sexual content, so
+      ///   it is taught at every adult level.
+      /// </summary>
+      private static void AppendRecruitPrisoner(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.CanRecruitPrisoner != true) return;
+         if (context.IsCaptorScene) return;
+         if (context.IsRoundTableTurn || context.IsCouncilNarratorTurn) return;
+
+         sb.AppendLine();
+         sb.AppendLine("SWEARING TO YOUR CAPTOR, A DEFECTION FROM THE CELL YOU MIGHT BE PERSUADED TO:");
+         sb.AppendLine("You are the player's prisoner, yet over your captivity a genuine, deep bond has grown between");
+         sb.AppendLine("you: you have come to esteem them enough that casting your lot with them, and forsaking the");
+         sb.AppendLine("side you were taken from, is conceivable. This is no small thing and no easy surrender: you");
+         sb.AppendLine("would turn your coat and swear into their clan. Do NOT offer it lightly, on a whim, or merely");
+         sb.AppendLine("to escape the cell. It only rings true after a real conversation, they ask or you raise it out");
+         sb.AppendLine("of genuine conviction, and you have both clearly agreed.");
+         sb.AppendLine();
+         sb.AppendLine("When that moment is truly reached, and only then, play your turn of heart in character, then emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: recruit_prisoner");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The game then frees you and moves you into the player's clan and party. If you are not yet");
+         sb.AppendLine("ready to take so grave a step, say so and emit nothing. Never claim you have joined them, nor");
+         sb.AppendLine("that you have been freed, unless you emit this action.");
       }
 
       /// <summary>

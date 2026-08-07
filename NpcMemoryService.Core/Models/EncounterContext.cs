@@ -724,6 +724,17 @@ namespace NpcMemoryService.Core.Models
       public bool LordRecruitEligible { get; init; }
 
       /// <summary>
+      ///   v1.34.3 recruit_prisoner: true when the game confirms this NPC is a HERO the player currently
+      ///   holds prisoner, is not their own clan's leader, and the player's personal regard has reached the
+      ///   strong floor (<c>PrisonerRecruitmentPolicy.RegardFloor</c>) needed to persuade a captured enemy to
+      ///   switch sides. When true, the prompt teaches the <c>recruit_prisoner</c> action; the bridge re-checks
+      ///   every gate before the defection is sealed (freed from captivity and sworn into the player's clan and
+      ///   party). Distinct from <c>join_clan</c> (which excludes prisoners) and <c>turn_nemesis</c> (a tracked
+      ///   bandit nemesis in a captor scene), so it is never taught in a captor scene.
+      /// </summary>
+      public bool CanRecruitPrisoner { get; init; }
+
+      /// <summary>
       ///   True when the family's formal blessing has already been granted for a marriage
       ///   between the player and this NPC (A.2 was completed). Used to inform the prompt
       ///   so the NPC can reference the blessing (or note its absence) in their dialogue.
