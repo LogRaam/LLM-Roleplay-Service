@@ -163,6 +163,15 @@ namespace NpcMemoryService.Core.Models
       ///   Rather than the whole thing evaporating, the lord writes the same intent by letter instead. Added
       ///   last to preserve old-save ordinals.
       /// </summary>
-      InterceptionMissed
+      InterceptionMissed,
+
+      // ── Realm tidings (news of the realm) ─────────────────────────────────────
+
+      /// <summary>
+      ///   An NPC who holds the player in genuine regard writes unbidden with news stirring in their realm
+      ///   (a looming war, hard times fallen on a town, a rumour that reached them). They RELAY a real world
+      ///   event they know of, in character, never inventing a fact. Added last to preserve old-save ordinals.
+      /// </summary>
+      RealmTidings
    }
 }
