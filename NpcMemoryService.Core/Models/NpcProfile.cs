@@ -287,6 +287,21 @@ namespace NpcMemoryService.Core.Models
          init => _sentLetters = value ?? new List<PendingLetter>();
       }
 
+      private readonly List<string> _relayedWorldEventIds = new();
+
+      /// <summary>
+      ///   Realm-tidings dedup ledger: the ids of world events this NPC has already RELAYED to the player in an
+      ///   unbidden "news of the realm" letter, so one friend never relays the same event twice. The realm-tidings
+      ///   selection reads this as the already-sent set; the mod appends to it (capped, drop-oldest) when it queues
+      ///   such a letter. Additive and save-safe: a save written before this feature loads this empty, which reads
+      ///   correctly as "this NPC has relayed nothing yet" rather than needing a migration.
+      /// </summary>
+      public List<string> RelayedWorldEventIds
+      {
+         get => _relayedWorldEventIds;
+         init => _relayedWorldEventIds = value ?? new List<string>();
+      }
+
       private readonly List<ScheduledLetter> _scheduledLetters = new();
 
       /// <summary>
