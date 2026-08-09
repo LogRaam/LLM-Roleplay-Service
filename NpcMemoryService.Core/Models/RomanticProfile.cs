@@ -82,6 +82,18 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public bool IsOpenArrangement { get; set; }
 
+      /// <summary>
+      ///   The StringId of the NPC hero this OPEN partner has taken as HER OWN lover: an affair she is free
+      ///   to have under the reciprocal open arrangement (<see cref="IsOpenArrangement" />), formed
+      ///   autonomously over time when she exercises that same freedom (especially when the player neglects
+      ///   her). Distinct from <see cref="IsSecretLover" />, which is about the PLAYER being a companion's
+      ///   secret lover: this points the other way, at a third party SHE loves. Null until she takes one.
+      ///   Set by the open-partner autonomy; a future increment surfaces it to the player and can parent her
+      ///   child by him TO HIM, not the player. Additive and save-safe: absent on older saves, where it
+      ///   defaults to null (no migration).
+      /// </summary>
+      public string? TakenLoverId { get; set; }
+
       public bool IsFemale { get; init; }
 
       // ── Layer 4: kinks (set at creation, Hardcore only) ──────────────
