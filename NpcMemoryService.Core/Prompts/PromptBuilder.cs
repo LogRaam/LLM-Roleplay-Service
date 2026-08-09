@@ -543,6 +543,11 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("prisoner's whole body, bindings, and surroundings every turn, and do NOT restate what is already");
          sb.AppendLine("established. Land the beat with weight, then stop and let the player react.");
          sb.AppendLine();
+         sb.AppendLine("NEVER REUSE YOUR OWN WORDS ACROSS BEATS: do not repeat a sentence, a line of dialogue, or a vivid");
+         sb.AppendLine("image you already wrote in an earlier beat. Reusing the same phrasing or signature description");
+         sb.AppendLine("verbatim reads as a stuck loop, even when the wider action has moved on. Reach for fresh wording");
+         sb.AppendLine("every beat: a new detail, a new angle, a new turn of phrase, never a line the reader has already seen.");
+         sb.AppendLine();
          sb.AppendLine("YOUR DIALOGUE IS SPEECH, NOT NARRATION: your [DIALOGUE] is what you SAY aloud — commands,");
          sb.AppendLine("taunts, demands, reactions. Do NOT use it to recite the scene or the prisoner's appearance");
          sb.AppendLine("and situation back to them. Physical description belongs in [NARRATION], stated ONCE — your");
