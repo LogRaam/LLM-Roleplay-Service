@@ -94,6 +94,16 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public string? TakenLoverId { get; set; }
 
+      /// <summary>
+      ///   True when <see cref="TakenLoverId" /> is a HIDDEN affair rather than an openly held lover: a wife of a
+      ///   harem / patriarchal (submissive-wife) culture who keeps her lover secret from her husband, or ANY
+      ///   infidelity taken OUTSIDE a reciprocal open arrangement. False for an OPEN lover held under such an
+      ///   arrangement, whom the partner does not hide. This distinguishes how a later increment (3b) surfaces
+      ///   the lover: an open lover is already known to the player, whereas a secret affair must be DISCOVERED.
+      ///   Additive and save-safe: absent on older saves, where it defaults to false (an open lover, no migration).
+      /// </summary>
+      public bool LoverIsSecret { get; set; }
+
       public bool IsFemale { get; init; }
 
       // ── Layer 4: kinks (set at creation, Hardcore only) ──────────────
