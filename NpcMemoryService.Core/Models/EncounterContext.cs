@@ -399,6 +399,15 @@ namespace NpcMemoryService.Core.Models
       public bool SecretLoverEligible { get; init; }
 
       /// <summary>
+      ///   True when this NPC is a COMMITTED partner of the player (spouse or consort) with whom an OPEN
+      ///   ARRANGEMENT could be named, and one is not already in force. When true, the prompt teaches the
+      ///   <c>open_relationship</c> action in BOTH directions: the player may offer reciprocal open terms, or
+      ///   the partner herself may raise it (ask leave to love another, or propose the player take another).
+      ///   Only ever set for a committed partner, never a stranger or a non-partner.
+      /// </summary>
+      public bool OpenRelationshipEligible { get; init; }
+
+      /// <summary>
       ///   Ready-to-inject hint about heroes the player mentioned in their last message.
       ///   Null when no hero names were detected. Built by the game-side resolver so the
       ///   NPC can accurately answer questions about third parties — friends, enemies, or

@@ -70,6 +70,18 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public bool IsSecretLover { get; set; }
 
+      /// <summary>
+      ///   True when this partner and the player hold RECIPROCAL OPEN TERMS: an open couple, each free to
+      ///   love others, and neither wronged by the other's loves. Set via the <c>open_relationship</c> action,
+      ///   which either the player or the partner herself may propose (she may ask leave to love another, or
+      ///   urge the player to take another). Because the arrangement is mutual, she is NOT jealous of the
+      ///   player's other partners: it suppresses her competition and event-triggered jealousy alike. Layers
+      ///   on top of an existing spouse or consort bond, it does not replace it. Additive and save-safe:
+      ///   absent on older saves, where it defaults to false (no migration). Distinct from
+      ///   <see cref="IsConsort" /> (a committed bond) and <see cref="IsSecretLover" /> (a hidden one).
+      /// </summary>
+      public bool IsOpenArrangement { get; set; }
+
       public bool IsFemale { get; init; }
 
       // ── Layer 4: kinks (set at creation, Hardcore only) ──────────────

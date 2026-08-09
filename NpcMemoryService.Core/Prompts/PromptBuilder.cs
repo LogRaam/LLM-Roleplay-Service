@@ -250,6 +250,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendLoveMatchProposal(sb, npc, encounterContext);
          AppendConsortProposal(sb, encounterContext);
          AppendSecretLoverProposal(sb, encounterContext);
+         AppendOpenRelationshipProposal(sb, encounterContext);
          AppendGiveItem(sb, encounterContext);
          // Dropped entirely in Lean (a small local model has no headroom for a favor it is unlikely to use), and
          // gated on WarStatus being resolved (task 6d): a live faction lord has a diplomatic WarStatus computed by
@@ -889,6 +890,37 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("type: take_as_secret_lover");
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("Never emit it on your own confession alone, only once the feeling is truly returned.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Open-arrangement section, rendered only for a COMMITTED partner (spouse or consort) via
+      ///   <see cref="EncounterContext.OpenRelationshipEligible" />. Teaches the <c>open_relationship</c>
+      ///   action in BOTH directions: the player may offer reciprocal open terms, or the partner herself may
+      ///   raise it (ask leave to love another, or propose the player take another wife or consort). Emitted
+      ///   only once BOTH have clearly and explicitly agreed. Never taught to a stranger or a non-partner (the
+      ///   eligibility gate lives game-side, alongside the consort/secret-lover gates).
+      /// </summary>
+      private static void AppendOpenRelationshipProposal(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.OpenRelationshipEligible != true) return;
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+
+         sb.AppendLine("AN OPEN BOND, IF BOTH OF YOU TRULY WISH IT:");
+         sb.AppendLine("You are the player's committed partner. Some couples, by mutual and honest agreement, hold");
+         sb.AppendLine("their bond OPEN: each free to love another, and neither wronged by it. This is never assumed");
+         sb.AppendLine("and never demanded; it is a thing the two of you may choose together, out loud.");
+         sb.AppendLine();
+         sb.AppendLine("It can arise either way. The PLAYER may offer you reciprocal open terms (each of you free to");
+         sb.AppendLine("love others). Or YOU yourself may raise it, if it is true to your heart: ask their leave to");
+         sb.AppendLine("love another, or urge them to take another wife or consort, telling them plainly that it would");
+         sb.AppendLine("not wound you. Speak it in character, grounded in the story you have lived together.");
+         sb.AppendLine();
+         sb.AppendLine("Only when BOTH of you have clearly and explicitly agreed to open the bond, emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: open_relationship");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("Once named, the bond is open: you will no longer resent the player's other loves.");
          sb.AppendLine();
       }
 
