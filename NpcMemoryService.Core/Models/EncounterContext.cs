@@ -408,6 +408,32 @@ namespace NpcMemoryService.Core.Models
       public bool OpenRelationshipEligible { get; init; }
 
       /// <summary>
+      ///   Inc 3b-b: true when this COMMITTED partner has taken a lover the player already KNOWS about (her
+      ///   <c>TakenLoverId</c> is set AND <c>LoverKnownToPlayer</c>), so the conversation may turn to that lover.
+      ///   Gates <see cref="Prompts.PromptBuilder.AppendPartnerLoverKnown" />, which teaches her to speak of an
+      ///   OPEN lover openly, to answer a CONFRONTATION over a discovered secret affair per her nature, and gives
+      ///   the model the vocabulary for the two player levers (<c>end_affair</c>, <c>close_relationship</c>).
+      ///   Never set before the lover is known to the player. Default false, so an ordinary conversation renders
+      ///   nothing. Not persisted (EncounterContext is rebuilt each turn).
+      /// </summary>
+      public bool PartnerLoverKnown { get; init; }
+
+      /// <summary>
+      ///   Only meaningful with <see cref="PartnerLoverKnown" />: the partner's lover named through
+      ///   <c>HeroLabel</c> ("Luichan of Fen Company (Battanian)"), so she can speak of him by name rather than
+      ///   the model inventing one. Null or empty when the lover cannot be resolved.
+      /// </summary>
+      public string? PartnerLoverName { get; init; }
+
+      /// <summary>
+      ///   Only meaningful with <see cref="PartnerLoverKnown" />: true when the lover is a DISCOVERED SECRET
+      ///   affair (a scandal the player uncovered), false when he is an OPEN lover held under reciprocal open
+      ///   terms (nothing hidden). Drives whether the section frames the beat as a confrontation or as an openly
+      ///   acknowledged bond. Default false.
+      /// </summary>
+      public bool PartnerLoverIsSecret { get; init; }
+
+      /// <summary>
       ///   Ready-to-inject hint about heroes the player mentioned in their last message.
       ///   Null when no hero names were detected. Built by the game-side resolver so the
       ///   NPC can accurately answer questions about third parties — friends, enemies, or

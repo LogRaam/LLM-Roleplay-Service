@@ -251,6 +251,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendConsortProposal(sb, encounterContext);
          AppendSecretLoverProposal(sb, encounterContext);
          AppendOpenRelationshipProposal(sb, encounterContext);
+         AppendPartnerLoverKnown(sb, encounterContext);
          AppendGiveItem(sb, encounterContext);
          // Dropped entirely in Lean (a small local model has no headroom for a favor it is unlikely to use), and
          // gated on WarStatus being resolved (task 6d): a live faction lord has a diplomatic WarStatus computed by
@@ -921,6 +922,52 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("type: open_relationship");
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("Once named, the bond is open: you will no longer resent the player's other loves.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Inc 3b-b: the conversation around a lover the player already KNOWS about, rendered only when
+      ///   <see cref="EncounterContext.PartnerLoverKnown" />. Teaches the partner to speak of an OPEN lover
+      ///   openly (she hid nothing), to answer a CONFRONTATION over a DISCOVERED secret affair in character
+      ///   (contrite, defiant, or coldly honest per her nature and regard, never blandly neutral), and gives
+      ///   the model the vocabulary for BOTH player levers: <c>end_affair</c> (she gives up her lover when she
+      ///   agrees) and <c>close_relationship</c> (the player revokes the open terms). A refusal is simply no
+      ///   action. The eligibility and both executors live game-side (the prompt is advice, the bridge is law).
+      /// </summary>
+      private static void AppendPartnerLoverKnown(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.PartnerLoverKnown != true) return;
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+
+         string lover = string.IsNullOrWhiteSpace(context.PartnerLoverName) ? "the one you have taken" : context.PartnerLoverName!;
+
+         sb.AppendLine("YOUR LOVER, AND WHAT THE PLAYER MAY ASK OF IT:");
+         sb.AppendLine($"The player knows you have taken a lover: {lover}.");
+         sb.AppendLine();
+
+         if (context.PartnerLoverIsSecret)
+         {
+            sb.AppendLine("This was a SECRET affair, and it has been DISCOVERED. If the player confronts you over it,");
+            sb.AppendLine("meet it as YOU would, shaped by your nature and by your regard for them: contrite and ashamed,");
+            sb.AppendLine("defiant and unrepentant, or coldly honest, but NEVER blandly neutral. Do not pretend it never");
+            sb.AppendLine("happened; the player already knows.");
+         }
+         else
+         {
+            sb.AppendLine("This is an OPEN lover, held under the open terms the two of you agreed. You hid nothing, and");
+            sb.AppendLine("you may speak of him plainly if it comes up: you are not ashamed and you owe no apology.");
+         }
+
+         sb.AppendLine();
+         sb.AppendLine("If the player asks you to END it and you truly agree (a refusal is simply no such promise), emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: end_affair");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("If instead the player REVOKES your open terms (you are to take no new lovers), that is:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: close_relationship");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("Emit either only when it truly happens in the exchange, never to narrate a wish.");
          sb.AppendLine();
       }
 
