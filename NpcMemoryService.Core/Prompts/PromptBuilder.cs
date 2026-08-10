@@ -6564,6 +6564,11 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("The game then pays the reward you promised. NEVER emit [QUEST_COMPLETE] for a task not");
          sb.AppendLine("shown as done — if the player only claims success without proof, doubt them and ask for");
          sb.AppendLine("specifics. Words are cheap; you reward deeds, not stories.");
+         sb.AppendLine("THE PROOF IS THE DEED, NEVER A KEEPSAKE: if YOUR QUESTS shows the task done, complete it,");
+         sb.AppendLine("even if your own earlier words spoke of a ring, a head, a token, or any object to bring");
+         sb.AppendLine("back. No such object exists or can be handed over, and the game cannot track it, so NEVER");
+         sb.AppendLine("withhold completion waiting for it, and never hold the player to fetching a thing that is not");
+         sb.AppendLine("real. The verified deed alone is what you reward.");
          sb.AppendLine("Do NOT use give_gold to pay a quest reward yourself — the game pays the promised reward");
          sb.AppendLine("automatically through [QUEST_COMPLETE]. Reserve give_gold for separate gifts or bribes,");
          sb.AppendLine("never for a task the player reports completing, or they would be paid twice.");
@@ -6574,8 +6579,10 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[QUEST_ABANDON]");
          sb.AppendLine("type: the abandoned task's type token");
          sb.AppendLine("[/QUEST_ABANDON]");
-         sb.AppendLine("Emit this ONLY when the player has clearly chosen to give up the task — never on your");
-         sb.AppendLine("own initiative, and never merely because they are slow.");
+         sb.AppendLine("Emit this whenever the player makes clear, in ANY wording, that they are done with the");
+         sb.AppendLine("task (they cannot do it, will not, want out, ask to be released, or say to forget it): take");
+         sb.AppendLine("them at their word and let them go. Never abandon on your own initiative, and never merely");
+         sb.AppendLine("because they are slow.");
          sb.AppendLine();
       }
 
