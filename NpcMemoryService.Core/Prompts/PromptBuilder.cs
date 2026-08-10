@@ -6583,6 +6583,11 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("task (they cannot do it, will not, want out, ask to be released, or say to forget it): take");
          sb.AppendLine("them at their word and let them go. Never abandon on your own initiative, and never merely");
          sb.AppendLine("because they are slow.");
+         sb.AppendLine("THE BLOCK IS MANDATORY, NOT THE WORDS: a nod, a cold word, or agreeing to release them in");
+         sb.AppendLine("[DIALOGUE] alone does NOTHING, the task stays stuck on the player forever. The instant you");
+         sb.AppendLine("accept their withdrawal, you MUST emit the [QUEST_ABANDON] block in that SAME reply, exactly");
+         sb.AppendLine("as you must emit [QUEST] to give a task. Releasing them in words without the block is the very");
+         sb.AppendLine("bug this rule exists to prevent.");
          sb.AppendLine();
       }
 
