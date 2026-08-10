@@ -104,6 +104,32 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public bool LoverIsSecret { get; set; }
 
+      /// <summary>
+      ///   How many TRYSTS this partner has had with her <see cref="TakenLoverId" /> lover: private meetings that
+      ///   happen when the player is away, each nudging their bond a little. Rises by one per tryst. Feeds two
+      ///   later things: the discovery chance of a SECRET affair (which climbs with this count) and the
+      ///   pregnancy-by-the-lover hook (Inc 3c). Additive and save-safe: absent on older saves, where it
+      ///   defaults to 0 (no migration).
+      /// </summary>
+      public int LoverTrystCount { get; set; }
+
+      /// <summary>
+      ///   True once the player has become AWARE of this partner's <see cref="TakenLoverId" /> lover: gently for
+      ///   an OPEN lover (word simply reaches him, she was free), or as a SCANDAL when a SECRET affair
+      ///   (<see cref="LoverIsSecret" />) is discovered. Gates the one-time surfacing so it never repeats.
+      ///   Additive and save-safe: absent on older saves, where it defaults to false (no migration).
+      /// </summary>
+      public bool LoverKnownToPlayer { get; set; }
+
+      /// <summary>
+      ///   True once a SECRET affair (<see cref="LoverIsSecret" />) has been DISCOVERED by the player: a hidden
+      ///   affair leaks over time, the likelier the more trysts it has seen. Distinct from
+      ///   <see cref="LoverKnownToPlayer" />, which an OPEN lover also sets WITHOUT any scandal: this marks
+      ///   specifically the betrayal beat, so a later increment (3b-b) can gate a confrontation on it. Never set
+      ///   for an open lover. Additive and save-safe: absent on older saves, where it defaults to false (no migration).
+      /// </summary>
+      public bool AffairDiscovered { get; set; }
+
       public bool IsFemale { get; init; }
 
       // ── Layer 4: kinks (set at creation, Hardcore only) ──────────────
