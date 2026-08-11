@@ -264,6 +264,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendPrisonerFreedomBargain(sb, encounterContext);
          AppendOrdinaryPrisonerExecutionRule(sb, encounterContext);
          AppendRecruitPrisoner(sb, encounterContext);
+         AppendRecruitNotable(sb, encounterContext);
          AppendPrisonerRescueBargain(sb, encounterContext);
          // gather_news was folded into dispatch_mission (2026-08-05): AppendDispatchMissionOffer above is now the
          // SOLE errand offer, so a companion in the party no longer sees two overlapping errand teachings.
@@ -3300,6 +3301,43 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("The game then frees you and moves you into the player's clan and party. If you are not yet");
          sb.AppendLine("ready to take so grave a step, say so and emit nothing. Never claim you have joined them, nor");
          sb.AppendLine("that you have been freed, unless you emit this action.");
+      }
+
+      /// <summary>
+      ///   recruit_notable: a settlement NOTABLE (a town gang leader, headman, merchant, artisan, rural notable
+      ///   or preacher) can be persuaded to leave their post and take service in the player's clan as a
+      ///   companion, once a genuine, deep bond has been earned. Taught ONLY when the game confirms every gate
+      ///   (<see cref="EncounterContext.CanRecruitNotable" />: the NPC is a free notable, not already the
+      ///   player's, one of their own people can inherit the gang/role so the settlement is not left without a
+      ///   notable, and the player's personal regard has reached the strong floor), so the model is never
+      ///   tempted to promise a defection it cannot deliver. Suppressed in a captor scene and on
+      ///   council/round-table turns (those channels own their own resolutions), keeping it distinct from
+      ///   <c>join_clan</c>, <c>join_party</c> and <c>recruit_prisoner</c>. The bridge re-runs the real gate
+      ///   before honouring it, so a stray emission is harmless. Not sexual content, taught at every adult level.
+      /// </summary>
+      private static void AppendRecruitNotable(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.CanRecruitNotable != true) return;
+         if (context.IsCaptorScene) return;
+         if (context.IsRoundTableTurn || context.IsCouncilNarratorTurn) return;
+
+         sb.AppendLine();
+         sb.AppendLine("LEAVING YOUR POST TO TAKE SERVICE, A STEP YOU MIGHT BE PERSUADED TO:");
+         sb.AppendLine("You are a notable of your town or village, with a standing and a following of your own. Yet over");
+         sb.AppendLine("your dealings with the player a real, deep regard has grown, and casting your lot with them, riding");
+         sb.AppendLine("at their side as a sworn member of their clan, has become conceivable. This is no small thing: you");
+         sb.AppendLine("would give up your place here. You would not leave your people leaderless, though. One of your own,");
+         sb.AppendLine("a trusted supporter, would take up the gang and your role after you. Do NOT offer this lightly or on");
+         sb.AppendLine("a whim. It only rings true after a real conversation, when they ask or you raise it out of genuine");
+         sb.AppendLine("conviction, and you have both clearly agreed.");
+         sb.AppendLine();
+         sb.AppendLine("When that moment is truly reached, and only then, play your turn of heart in character, then emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: recruit_notable");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The game then hands your role to a successor and moves you into the player's clan and party. If you");
+         sb.AppendLine("are not yet ready, say so and emit nothing. Never claim you have joined them, or named a successor,");
+         sb.AppendLine("unless you emit this action.");
       }
 
       /// <summary>

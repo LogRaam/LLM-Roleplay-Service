@@ -792,6 +792,19 @@ namespace NpcMemoryService.Core.Models
       public bool CanRecruitPrisoner { get; init; }
 
       /// <summary>
+      ///   recruit_notable: true when the game confirms this NPC is a settlement NOTABLE (a gang leader,
+      ///   headman, merchant, artisan, rural notable or preacher) who is free (not a prisoner), not already in
+      ///   the player's clan, still has a supporter or eligible commoner in their settlement who can inherit
+      ///   the gang/role, and the player's personal regard has reached the strong floor
+      ///   (<c>NotableRecruitmentPolicy.RegardFloor</c>) needed to persuade them to leave their post. When true,
+      ///   the prompt teaches the <c>recruit_notable</c> action; the bridge re-checks every gate before the
+      ///   notable is converted to a companion, their role bequeathed to the chosen successor, and a starting
+      ///   relation bonus applied. Distinct from <c>join_clan</c> (lords), <c>join_party</c> (wanderers) and
+      ///   <c>recruit_prisoner</c> (a held prisoner), and never taught in a captor scene.
+      /// </summary>
+      public bool CanRecruitNotable { get; init; }
+
+      /// <summary>
       ///   True when the family's formal blessing has already been granted for a marriage
       ///   between the player and this NPC (A.2 was completed). Used to inform the prompt
       ///   so the NPC can reference the blessing (or note its absence) in their dialogue.
