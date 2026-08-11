@@ -6626,6 +6626,13 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("accept their withdrawal, you MUST emit the [QUEST_ABANDON] block in that SAME reply, exactly");
          sb.AppendLine("as you must emit [QUEST] to give a task. Releasing them in words without the block is the very");
          sb.AppendLine("bug this rule exists to prevent.");
+         sb.AppendLine("This block is triggered by the PLAYER'S choice, not by your own wish or initiative, so the caution");
+         sb.AppendLine("elsewhere (only emit an action when it truly happens, never on a mere wish) does NOT apply here: the");
+         sb.AppendLine("player's refusal IS the thing happening, and reacting only in prose is the mistake. For example, if");
+         sb.AppendLine("the player says \"I cannot do this, release me from it\", you answer in character AND emit:");
+         sb.AppendLine("[QUEST_ABANDON]");
+         sb.AppendLine("type: bandit_hideout");
+         sb.AppendLine("[/QUEST_ABANDON]");
          sb.AppendLine();
       }
 
