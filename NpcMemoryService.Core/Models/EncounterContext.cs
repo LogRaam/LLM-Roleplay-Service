@@ -904,6 +904,27 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public bool NpcIsEscortingPlayer { get; init; }
 
+      /// <summary>
+      ///   True when the game confirms this lord could genuinely ride IN the player's OWN party right now (host
+      ///   fact: a lord/lady who does NOT lead a field party of their own, alive, free, not of the player's clan,
+      ///   at peace with the player, and holding them in sufficient regard; see the mod's own
+      ///   <c>RideWithMeEligibilityPolicy.CanRideWithPlayer</c>). Drives the <c>ride_with_me</c> action, the exact
+      ///   complement of <see cref="NpcCanEscortPlayer" />: where follow_me is for a lord who leads their own
+      ///   party (that party escorts the player's), ride_with_me is the idle-lord case, they ride personally in
+      ///   the player's party while staying in their OWN clan (no marriage, no clan-join). The two are mutually
+      ///   exclusive on the leads-a-party fact, so a hero is ever offered at most one. Gated OFF by the host until
+      ///   the party-screen feel is validated in-game.
+      /// </summary>
+      public bool NpcCanRideWithPlayer { get; init; }
+
+      /// <summary>
+      ///   True while THIS NPC is CURRENTLY riding in the player's party as a retainer (an active
+      ///   <c>ride_with_me</c> in force), the mirror of <see cref="NpcCanRideWithPlayer" /> and the exact analogue
+      ///   of <see cref="NpcIsEscortingPlayer" />. Drives the <c>part_ways</c> action, which ends the arrangement
+      ///   and hands the lord back to their own clan.
+      /// </summary>
+      public bool NpcIsRidingWithPlayer { get; init; }
+
       /// <summary>Display name of the faction holding this NPC captive, for the rescue bargain. Null when free.</summary>
       public string? NpcCaptorName { get; init; }
 

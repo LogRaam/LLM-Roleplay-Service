@@ -241,6 +241,8 @@ namespace NpcMemoryService.Core.Prompts
          AppendSwearOathOffer(sb, encounterContext);
          AppendFollowMe(sb, encounterContext);
          AppendDismissEscort(sb, encounterContext);
+         AppendRideWithMe(sb, encounterContext);
+         AppendPartWays(sb, encounterContext);
          AppendDuelChallenge(sb, encounterContext);
          AppendLordRecruitment(sb, encounterContext);
          AppendSchemeRecruitment(sb, encounterContext);
@@ -3150,6 +3152,66 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("type: dismiss_escort");
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("Your party then breaks off and resumes its own course.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   ride_with_me (1:1 bridge action): the idle-lord complement of follow_me. Taught only when the game
+      ///   confirms this lord could genuinely ride IN the player's own party right now
+      ///   (<see cref="EncounterContext.NpcCanRideWithPlayer" />, the mod's own
+      ///   RideWithMeEligibilityPolicy.CanRideWithPlayer gate re-run at commit time, and only while the feature is
+      ///   enabled). For a lord who LEADS their own field party this is never offered, that is follow_me's job;
+      ///   this is for a lord WITHOUT an army of their own (idle, at court, in a settlement) who agrees to ride at
+      ///   the player's side for a time. Kept general on purpose: the reason can be anything the scene gives
+      ///   (friendship, alliance, a shared cause, a courtship trial), not marriage alone. Suppressed on a captive,
+      ///   council or round-table turn, the same carve-out every sibling 1:1 offer applies.
+      /// </summary>
+      private static void AppendRideWithMe(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.NpcCanRideWithPlayer != true) return;
+         if (context!.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+         if (context.IsRoundTableTurn || context.IsCouncilNarratorTurn) return;
+         sb.AppendLine("RIDE AT THE PLAYER'S SIDE, YOU MAY JOIN THEIR PARTY FOR A WHILE:");
+         sb.AppendLine("You lead no army of your own right now. Either you or the player may raise your riding");
+         sb.AppendLine("ALONGSIDE them, IN their own party, for a time, for whatever reason fits the moment: a");
+         sb.AppendLine("friendship, an alliance, a shared cause, admiration, or a trial of courtship. You keep your");
+         sb.AppendLine("OWN clan and name the whole while: this is NOT marriage and NOT joining their clan, merely");
+         sb.AppendLine("travelling at their side as a free lord who chooses to, and you may part ways when you wish.");
+         sb.AppendLine();
+         sb.AppendLine("When you clearly agree, emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: ride_with_me");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The game then has you ride in the player's party. Later, when either of you judges it time,");
+         sb.AppendLine("the arrangement ends with the part_ways action and you return to your own affairs. Never");
+         sb.AppendLine("claim to be riding with the player unless you emit ride_with_me, and never claim it is");
+         sb.AppendLine("forever: you keep your own clan and are free to leave.");
+         sb.AppendLine("ride_with_me IS THE ONLY THING THAT MAKES IT REAL. If you agree to ride with them, emit the");
+         sb.AppendLine("[ACTION] in the SAME reply: you join their party ONLY from that block. Narrating riding");
+         sb.AppendLine("along in prose moves nothing. Agreeing in [DIALOGUE] without emitting ride_with_me does");
+         sb.AppendLine("nothing.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   part_ways: the MIRROR of ride_with_me, taught only while THIS NPC is CURRENTLY riding in the player's
+      ///   party as a retainer (<see cref="EncounterContext.NpcIsRidingWithPlayer" />): either side may end the
+      ///   arrangement, after which the lord returns to their own clan and business. The exact analogue of
+      ///   dismiss_escort for the idle-lord path.
+      /// </summary>
+      private static void AppendPartWays(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.NpcIsRidingWithPlayer != true) return;
+         if (context!.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+         if (context.IsRoundTableTurn || context.IsCouncilNarratorTurn) return;
+         sb.AppendLine("PARTING WAYS, YOU CURRENTLY RIDE IN THE PLAYER'S PARTY:");
+         sb.AppendLine("You travel in the player's own party right now, on your own earlier word, still of your own");
+         sb.AppendLine("clan. If the player asks you to part ways, or you yourself judge it time to return to your");
+         sb.AppendLine("own affairs, emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: part_ways");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("You then leave the player's party and resume your own course.");
          sb.AppendLine();
       }
 
