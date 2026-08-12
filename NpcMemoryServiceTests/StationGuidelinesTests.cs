@@ -100,5 +100,38 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().Contain("how a noble of");
       }
+
+      // Player report (gemini-3.5-flash-lite, all defaults): "almost every character was super mean, I never
+      // met a good person." The built-in guidelines leaned hard on the guarded, transactional signals (words
+      // are cheap, a cold answer, size up the stranger) with no explicit baseline of ordinary decency, so a
+      // weak model collapsed every NPC into hostility. This pins the counterweight: the default noble
+      // guidelines must state that guardedness is not cruelty and a stranger who gave no offense is met with
+      // courtesy, or the "everyone is mean" regression is back for small-model users.
+      [Test]
+      public void GIVEN_the_builtin_noble_guidelines_WHEN_building_a_full_prompt_THEN_they_carry_the_decency_baseline()
+      {
+         var builder = new PromptBuilder();
+         var context = new EncounterContext {LeanLevel = LeanPromptLevel.Full};
+
+         string prompt = builder.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain("how a noble of"); // proves the built-in default (not an override) is what ran
+         prompt.Should().Contain("guarded, not cruel");
+      }
+
+      // The lean fallback is the exact path a small model like gemini-3.5-flash-lite tends to take, so the
+      // decency baseline matters MOST here. Without this the compressed guidelines would keep only the cold
+      // half of the register, which is what produced the report in the first place.
+      [Test]
+      public void GIVEN_the_builtin_noble_guidelines_WHEN_building_a_lean_prompt_THEN_they_carry_the_decency_baseline()
+      {
+         var builder = new PromptBuilder();
+         var context = new EncounterContext {LeanLevel = LeanPromptLevel.Lean};
+
+         string prompt = builder.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain("You speak as a lord of"); // proves the lean built-in default is what ran
+         prompt.Should().Contain("guarded, not cruel");
+      }
    }
 }
