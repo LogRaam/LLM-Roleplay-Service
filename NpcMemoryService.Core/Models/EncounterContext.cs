@@ -821,6 +821,14 @@ namespace NpcMemoryService.Core.Models
       public bool LoveMatchEligible { get; init; }
 
       /// <summary>
+      ///   True when the eligible marriage partner is one of the player's OWN companions (the "marry your own
+      ///   companion" carve-out). Wedding them promotes a hired wanderer retainer into the player's spouse and a
+      ///   full member of the house; the prompt adds a line so the NPC does not narrate themselves as still a
+      ///   mere companion after the vow. Only meaningful when <see cref="LoveMatchEligible" /> is true.
+      /// </summary>
+      public bool PartnerIsOwnCompanion { get; init; }
+
+      /// <summary>
       ///   True when THIS NPC's own spouse IS the player themselves. Distinguishes the "married to
       ///   the player" case from the ordinary "married to some third party" case in the RELATIONSHIP
       ///   STATUS &amp; CONSENT block: with a third-party spouse, intimacy with the player is an act of

@@ -2564,6 +2564,15 @@ namespace NpcMemoryService.Core.Prompts
          else
             sb.AppendLine("Your family has not been formally consulted about a match — their blessing is still unearned.");
          sb.AppendLine();
+         // "Marry your own companion": the partner is one of the player's own retainers. Say plainly what the
+         // wedding changes, so the model never plays them as still a hired hand after the vow.
+         if (context.PartnerIsOwnCompanion)
+         {
+            sb.AppendLine("YOU ARE ONE OF THE PLAYER'S OWN COMPANIONS. To wed them is to stop being a hired retainer");
+            sb.AppendLine("and become their spouse and a full member of their house. Do not speak or act, once wed, as");
+            sb.AppendLine("though you still merely serve for pay; this is a bond of family now, not a contract of service.");
+            sb.AppendLine();
+         }
          // The POLITICAL union (ratified 2026-07-23): the family's blessing opens the match even where the
          // NPC's own heart is not won. The voice must say so, or the model plays a bride in love that the
          // ledger says is nearly a stranger, and the resentment the wedding will plant comes out of nowhere.
