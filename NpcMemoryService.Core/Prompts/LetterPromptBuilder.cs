@@ -196,7 +196,7 @@ namespace NpcMemoryService.Core.Prompts
          LetterReason.TournamentVictory     => "The player recently won a tournament. You are writing to congratulate — or to challenge.",
          LetterReason.BattleVictory         => "The player recently won a notable battle. You are acknowledging their victory.",
          LetterReason.QuestUpdate           => "You have a task outstanding with the player and wish to check on its progress.",
-         LetterReason.MarriageProposal      => "You are proposing a match between your family and the player — a matter of alliance and honour.",
+         LetterReason.MarriageProposal      => "You are writing about a marriage between the player and your house, a matter of alliance and honour. The Context tells you WHO you are in this match and in whose voice to write (the head of a house offering their kin, a parent blessing a child, or the prospective spouse themselves accepting), and what has moved you to write now. Follow it, and write as the person the Context names rather than as a generic matchmaker.",
          LetterReason.ReinforcementRequest  => "Your faction is at war and you need the player's military support. You are calling in favour or obligation.",
          LetterReason.GangFavor             => "You want the player to strike a rival gang on your behalf — a dangerous request that comes with a reward.",
          LetterReason.PoliticalAlliance     => "You are hinting at or proposing a formal political alignment between your interests.",
