@@ -71,7 +71,10 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
                      PresencePenalty = request.Parameters.PresencePenalty
                   },
                   StableSystemPrompt = request.StableSystemPrompt,
-                  SystemPrompt = request.SystemPrompt
+                  SystemPrompt = request.SystemPrompt,
+                  // Carry the per-request model override across the retry too, or the bigger-budget retry
+                  // would silently fall back to the resolved model on exactly the extractor calls that set it.
+                  ModelOverride = request.ModelOverride
                }
                : request;
 
@@ -339,7 +342,7 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
       ///   (providers that reject the array form, e.g. NanoGPT), it is sent as a
       ///   plain OpenAI string — the maximally-portable form.
       /// </summary>
-      private object ToWireFormat(LlmRequest request)
+      internal object ToWireFormat(LlmRequest request)
       {
          var messages = new List<object> {BuildSystemMessage(request)};
 
@@ -351,8 +354,14 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
                content = msg.Content
             });
 
+         // A non-blank per-request override wins for this one call; otherwise the client's normally-resolved
+         // model. This is what lets a single extractor call target a cheaper model with no global state change.
+         string model = string.IsNullOrWhiteSpace(request.ModelOverride)
+            ? _config.ResolveModel() ?? string.Empty
+            : request.ModelOverride!.Trim();
+
          var payload = new Dictionary<string, object> {
-            ["model"] = _config.ResolveModel() ?? string.Empty,
+            ["model"] = model,
             ["messages"] = messages,
             // Explicitly non-streaming: we parse one JSON object, not an SSE "data: ..." chunk stream. Some
             // OpenAI-compatible providers (e.g. Chub) stream by default, which would arrive as unparseable text.
