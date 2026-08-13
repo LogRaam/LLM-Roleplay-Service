@@ -64,6 +64,31 @@ namespace NpcMemoryServiceTests
          prefix.Should().Contain("Do NOT rewrite");
       }
 
+      // A real spike run had the extractor label the player "the coward" in the memory summary, because nothing
+      // told it how to refer to the player and the old wording ("never a name") pushed it to an epithet. The
+      // memory record must name the player consistently, or the NPC's remembered history rots into a mix of
+      // epithets that also bakes a one-time insult into a permanent record.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_it_names_the_player_and_forbids_epithets()
+      {
+         string prefix = ExtractionPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("Refer to the PLAYER by the name given in the facts");
+         prefix.Should().Contain("the coward"); // named as a forbidden example, not a licence
+      }
+
+      // The extractor gets a situational digest (place, who is present, the player's standing) so memories are
+      // grounded ("near Veron Castle"), but that context must ANCHOR only, never license invention: without this
+      // guard the extractor could write "he threatened me with his army" from a mere "player has an army" fact.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_it_grounds_in_facts_without_inventing()
+      {
+         string prefix = ExtractionPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("GROUND IN THE FACTS, DO NOT INVENT");
+         prefix.Should().Contain("record ONLY what actually happened");
+      }
+
       // Caching aside, correctness requires the per-turn data to sit AFTER the invariant head: the extractor must
       // see the context facts and the prose it is meant to analyze, and they must be the variable tail, not woven
       // into the cached prefix (which would defeat caching and change the "stable" head every call).

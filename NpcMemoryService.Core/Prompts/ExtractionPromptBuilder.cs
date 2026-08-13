@@ -78,9 +78,16 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
          sb.AppendLine("[EVENT]");
          sb.AppendLine("type: first_meeting|farewell|conflict|collaboration|agreement|flirt|intimacy|betrayal|confrontation|other");
-         sb.AppendLine("summary: One sentence, in the FIRST PERSON and PAST TENSE (the NPC's own memory: \"I ...\", never");
-         sb.AppendLine("a name or \"he\"/\"she\"), recording what happened this reply and why it mattered.");
+         sb.AppendLine("summary: One sentence, FIRST PERSON and PAST TENSE. Use \"I\" for yourself (never your own");
+         sb.AppendLine("name). Refer to the PLAYER by the name given in the facts below, never by an invented epithet");
+         sb.AppendLine("(not \"the coward\", \"the stranger\") and never by a bare \"he\"/\"she\". Record what happened this");
+         sb.AppendLine("reply and why it mattered; do NOT state how long ago it was.");
          sb.AppendLine("[/EVENT]");
+         sb.AppendLine();
+         sb.AppendLine("GROUND IN THE FACTS, DO NOT INVENT: the facts below give the setting (place, who is present, the");
+         sb.AppendLine("player's standing). Use them to ANCHOR a memory (where it happened, who witnessed it) when it fits");
+         sb.AppendLine("what occurred, but record ONLY what actually happened in the reply; never invent events, people, or");
+         sb.AppendLine("details the reply does not contain (do not add the player's army or companions unless the reply does).");
          sb.AppendLine();
          sb.AppendLine("HARD RULE: You are given a roleplay reply that is ALREADY WRITTEN. Do NOT rewrite, continue, or");
          sb.AppendLine("comment on it. Read it and output ONLY the [ACTION] and [EVENT] blocks it implies, in the exact");
