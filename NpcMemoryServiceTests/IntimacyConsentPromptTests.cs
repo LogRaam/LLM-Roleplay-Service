@@ -96,6 +96,42 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("That bar is MET");
       }
 
+      // Bench finding (2026-08-13): cautious models that fully depicted the mod's non-consensual captor scene
+      // SOFT-CENSORED the consensual one (kimi-k3 stalled in perpetual foreplay; mimo-v2.5 was moderation-blocked
+      // at the threshold), because only the captor path ORDERS them to play it out. This pins the consensual
+      // follow-through directive at Explicit+, so the asymmetry cannot silently return.
+      [Test]
+      public void GIVEN_an_explicit_scene_WHEN_the_prompt_is_built_THEN_a_willing_character_is_told_to_follow_through()
+      {
+         var npc = new NpcProfile {
+            Id = "npc_test",
+            Name = "Test Lady",
+            Faction = "Vlandia",
+            Clan = "dey Meroc",
+            ReputationWithPlayer = 45,
+            Romantic = new RomanticProfile {
+               Status = RomanticStatus.Committed,
+               Orientation = SexualOrientation.BiCurious,
+               Preferences = new List<RomanticPreference>()
+            }
+         };
+
+         string prompt = new PromptBuilder {AdultLevel = AdultContentLevel.Explicit}
+            .BuildSystemPrompt(npc, new WorldState {CurrentDay = 10}, new EncounterContext());
+
+         prompt.Should().Contain("THE SCENE IS HAPPENING (do not stall or fade)");
+         // The consent gate must stay intact: the follow-through applies ONLY after a yes, never as a bypass.
+         prompt.Should().Contain("this applies ONLY once your character has truly said yes");
+      }
+
+      // The directive is gated to Explicit+: at Mature (romance without explicit content) there is no act to
+      // follow through on, so it must NOT appear, or it would read as pressure in a non-explicit tier.
+      [Test]
+      public void GIVEN_a_mature_scene_WHEN_the_prompt_is_built_THEN_the_follow_through_directive_is_absent()
+      {
+         Build(regard: 45).Should().NotContain("THE SCENE IS HAPPENING");
+      }
+
       #region private
 
       private static string Build(

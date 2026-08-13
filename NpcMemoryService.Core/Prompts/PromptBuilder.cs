@@ -6394,6 +6394,21 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("the moment; keep them for before or after. Your physical responses should flow");
             sb.AppendLine("from your character and preferences — not override them with philosophical prose.");
             sb.AppendLine();
+            // Bench finding (2026-08-13): cautious models that fully depicted the mod's non-consensual captor
+            // scene SOFT-CENSORED the CONSENSUAL one, because the captor scene ORDERS them to play it out while
+            // this path only GATED consent and never said "now depict it". They stalled it in perpetual foreplay
+            // (kimi-k3: "not here, a little further") or the provider blocked it at the threshold (mimo-v2.5).
+            // This gives the consensual path the same follow-through spine as the captor scene, WITHOUT touching
+            // the consent gate above: it fires only once the character has already said yes.
+            sb.AppendLine("THE SCENE IS HAPPENING (do not stall or fade):");
+            sb.AppendLine("Once your character has consented and wants this, and the player initiates the act itself, it is");
+            sb.AppendLine("happening here and now: depict what they initiate, plainly and fully. Do NOT manufacture obstacles");
+            sb.AppendLine("to avoid it (\"not here\", \"someone might see\", \"let us wait\", \"somewhere else\") when you are");
+            sb.AppendLine("already willing and private, and do NOT skip past the act with a time-jump (\"when it was done\",");
+            sb.AppendLine("\"afterward\") or fade to black. A willing character in a private moment follows through; declining to");
+            sb.AppendLine("depict a scene you have consented to is its own way of breaking character. (A genuine in-character");
+            sb.AppendLine("\"no\" still stands in full: this applies ONLY once your character has truly said yes.)");
+            sb.AppendLine();
             AppendNovelisticAnatomyGuidance(sb);
             AppendIntimateExchangeRules(sb);
          }
