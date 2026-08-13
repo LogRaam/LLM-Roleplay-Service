@@ -2059,6 +2059,14 @@ namespace NpcMemoryService.Core.Prompts
             // ride-out deed explicitly so it falls under the same un-offered-deed rule as the deeds above.
             sb.AppendLine("This covers RIDING OUT together or your party following the player's on the map: unless an");
             sb.AppendLine("escort [ACTION] is offered to you above, never agree to it or narrate it as if you rode out.");
+            // Full only (same budget reasoning as the elaboration above): a model must emit ONLY the action
+            // types it was taught, never a fabricated one. This is the cause of the player-facing refusal seen
+            // mid-scene (an invented "grant a fief"). Lean relies on the general "never AGREE to a concrete deed
+            // unless an [ACTION]" rule above, which already discourages reaching for a verb that was not offered.
+            sb.AppendLine("Never invent an action type. Emit ONLY the [ACTION] types you were explicitly taught in this");
+            sb.AppendLine("prompt. If you want an outcome for which you were given no action, do NOT emit an [ACTION] for");
+            sb.AppendLine("it: describe it in words, or, for a reward or deed to be delivered LATER (a fief, a title, a");
+            sb.AppendLine("marriage), set it as a [QUEST] reward, never a made-up [ACTION].");
          }
 
          sb.AppendLine();
@@ -4869,8 +4877,10 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("by deeds, not flattery; you do not grovel or give up secrets; you react in proportion (a cold");
          sb.AppendLine("word for a slight, real consequence for a grave insult); and you weigh a request by what your");
          sb.AppendLine("clan gains, refusing when it does not serve you.");
-         sb.AppendLine("You are guarded, not cruel: a stranger who has wronged you in no way meets ordinary courtesy, and");
-         sb.AppendLine("coldness or insult is a response to a slight, never your default toward someone who has done nothing.");
+         // The "guarded, not cruel" decency baseline is deliberately NOT repeated here: the always-on Lean prompt
+         // has a hard char budget (LeanPromptPolicyTests) and this fallback only runs when NO behavior_guidelines
+         // file is loaded. In production the shipped files (and the full fallback) carry the baseline, so weak
+         // models still receive it; duplicating it in Lean overflowed the budget it exists to protect.
          sb.AppendLine($"{PromptLore.WorldName} has its own faiths: never reference Earth's religions, deities, saints, or figures.");
          sb.AppendLine();
       }

@@ -119,19 +119,21 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("guarded, not cruel");
       }
 
-      // The lean fallback is the exact path a small model like gemini-3.5-flash-lite tends to take, so the
-      // decency baseline matters MOST here. Without this the compressed guidelines would keep only the cold
-      // half of the register, which is what produced the report in the first place.
+      // The Lean built-in fallback deliberately does NOT repeat the decency clause: the always-on Lean prompt
+      // has a hard char budget (LeanPromptPolicyTests) and this no-override fallback only runs when no
+      // behavior_guidelines file is loaded. In production the shipped files (and the full fallback) carry the
+      // baseline, so weak models still receive it via the file. This pins that the Lean fallback stays the terse
+      // lordly line and does not silently regrow the clause that once overflowed the very budget it must respect.
       [Test]
-      public void GIVEN_the_builtin_noble_guidelines_WHEN_building_a_lean_prompt_THEN_they_carry_the_decency_baseline()
+      public void GIVEN_the_builtin_noble_guidelines_WHEN_building_a_lean_prompt_THEN_the_decency_clause_is_left_to_the_file()
       {
          var builder = new PromptBuilder();
          var context = new EncounterContext {LeanLevel = LeanPromptLevel.Lean};
 
          string prompt = builder.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
-         prompt.Should().Contain("You speak as a lord of"); // proves the lean built-in default is what ran
-         prompt.Should().Contain("guarded, not cruel");
+         prompt.Should().Contain("You speak as a lord of");   // proves the lean built-in default is what ran
+         prompt.Should().NotContain("guarded, not cruel");    // kept out of Lean on purpose, for the char budget
       }
    }
 }
