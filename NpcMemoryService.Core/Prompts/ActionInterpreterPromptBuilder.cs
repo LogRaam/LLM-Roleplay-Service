@@ -2,7 +2,9 @@
 
 #region
 
+using System.Collections.Generic;
 using System.Text;
+using NpcMemoryService.Core.Actions;
 
 #endregion
 
@@ -50,6 +52,54 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       #region private
+
+      /// <summary>
+      ///   Renders every <see cref="GameActionCatalog" /> entry NOT already hand-taught above as a compact
+      ///   reference block: one line per action, its description, and its parameters. Built once from the static
+      ///   catalog (no per-turn data), so it stays part of the cacheable stable prefix. A LOCAL set, not a static
+      ///   field: this method runs from <see cref="_stablePrefix" />'s own field initializer, which runs before any
+      ///   static field declared later in the file would be assigned, so a static exclusion set here would still
+      ///   read null at that point.
+      /// </summary>
+      private static void AppendOtherActions(StringBuilder sb)
+      {
+         sb.AppendLine("OTHER ACTIONS YOU MAY EMIT: ONLY when the prose UNAMBIGUOUSLY shows this exact concrete deed");
+         sb.AppendLine("happening in the reply. When in doubt, do not emit. Format each as an [ACTION] block with a");
+         sb.AppendLine("'type:' line and the listed parameters, exactly like the actions above:");
+         sb.AppendLine();
+
+         // The five reactive signals already taught above by hand, with carefully-tuned wording that must never be
+         // diluted: excluded here so they are never taught twice. end_conversation is a ChatViewModel chat-flow
+         // control (like witness_leaves/request_privacy), not a GameActionCatalog entry, so it never appears in
+         // GameActionCatalog.Types in the first place; it is listed here only so the exclusion reads as the same
+         // five signals by name.
+         var coreTaughtTypes = new HashSet<string> {
+            "change_relation", "end_conversation", "give_gold", "take_gold"
+         };
+
+         foreach (GameActionSpec spec in GameActionCatalog.All)
+         {
+            if (coreTaughtTypes.Contains(spec.Type)) continue;
+
+            var line = new StringBuilder();
+            line.Append("- ").Append(spec.Type).Append(": ").Append(spec.Description);
+
+            if (spec.Parameters.Count > 0)
+            {
+               line.Append(" (params: ");
+               for (var i = 0; i < spec.Parameters.Count; i++)
+               {
+                  if (i > 0) line.Append("; ");
+                  line.Append(spec.Parameters[i].Name).Append('=').Append(spec.Parameters[i].Meaning);
+               }
+               line.Append(')');
+            }
+
+            sb.AppendLine(line.ToString());
+         }
+
+         sb.AppendLine();
+      }
 
       private static string BuildStablePrefix()
       {
@@ -101,6 +151,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("reply and why it mattered; do NOT state how long ago it was.");
          sb.AppendLine("[/EVENT]");
          sb.AppendLine();
+         AppendOtherActions(sb);
          sb.AppendLine("GROUND IN THE FACTS, DO NOT INVENT: the facts below give the setting (place, who is present, the");
          sb.AppendLine("player's standing). Use them to ANCHOR a memory (where it happened, who witnessed it) when it fits");
          sb.AppendLine("what occurred, but record ONLY what actually happened in the reply; never invent events, people, or");

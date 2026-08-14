@@ -154,6 +154,40 @@ namespace NpcMemoryServiceTests
                .Should().BeLessThan(prompt.IndexOf(SampleProse, System.StringComparison.Ordinal));
       }
 
+      // The whole point of the Unified Action Catalog (Stage 1): before this, the interpreter only knew 5 verbs
+      // while the bridge dispatched 60+, so a real deed the prose narrated (a marriage, a granted fief, a
+      // dispatched companion) could never be turned into a matching [ACTION] and silently never fired. This pins
+      // that the catalog's verbs actually reached the taught prefix, spanning a governance verb (grant_fief), a
+      // personal-command verb (dispatch_mission), and a romance verb (marry) so the whole breadth is covered, not
+      // just one corner of it.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_it_teaches_a_sample_of_the_catalog_verbs_beyond_the_core_five()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("marry");
+         prefix.Should().Contain("grant_fief");
+         prefix.Should().Contain("dispatch_mission");
+      }
+
+      // The rich, hand-tuned wording for the five core reactive signals is the one thing this catalog wiring must
+      // never weaken. If the catalog-rendered "OTHER ACTIONS" section were spliced in BEFORE them, or interleaved
+      // with them, a provider's prompt cache would still work (the whole thing is still the stable prefix), but a
+      // careless future edit could start treating the core block as just more catalog output and erode its
+      // carefully-tuned framing. Pinning the ORDER (core signals first, catalog reference after) keeps the two
+      // concerns visually and structurally separate.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_the_catalog_section_comes_after_the_core_five_signals()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         int coreEnd = prefix.IndexOf("[/EVENT]", System.StringComparison.Ordinal);
+         int catalogStart = prefix.IndexOf("OTHER ACTIONS YOU MAY EMIT", System.StringComparison.Ordinal);
+
+         coreEnd.Should().BeGreaterThan(-1);
+         catalogStart.Should().BeGreaterThan(coreEnd);
+      }
+
       // The load-bearing claim of the whole spike: an interpreter OUTPUT written in the format this builder teaches
       // must parse, through the SAME SectionResponseParser the live chat uses, into a real change_relation with its
       // delta, an end_conversation, and an [EVENT] with type and summary. If this round-trip fails, the builder is
