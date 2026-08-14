@@ -1050,6 +1050,15 @@ namespace NpcMemoryService.Core.Prompts
          // field of honour. The host's own eligibility rule already refuses this, so the guard is redundancy,
          // not policy.
          if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+         // A witness-exchange turn (Sprint 15C: the main NPC answering what a witness just said, see
+         // IsWitnessExchangeTurn) must never teach this verb either. challenge_duel carries no target parameter
+         // (a deliberate gap: true NPC-vs-NPC duels are a separate future increment), so whoever speaks on such
+         // a turn becomes "opponent" no matter which two people the fiction actually names: a witness reacting
+         // to another witness could get armed against the PLAYER by mistake (Gabriel 2026-08-14: a quarrel
+         // written as one NPC against another got armed as that NPC against the player). Withholding the verb
+         // here stops the model reaching for it where it can never correctly express who the challenge targets;
+         // the matching runtime guard lives in the mod's ResolveDuelChallenge/DuelInterlocutorPolicy.
+         if (context.IsWitnessExchangeTurn) return;
 
          string venue = string.IsNullOrWhiteSpace(context.DuelVenueLabel)
             ? string.Empty
@@ -1063,6 +1072,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("A duel is a grave thing. Do not reach for one over a trifle and do not raise it out of");
          sb.AppendLine("nowhere: it belongs to a real affront, a grudge you carry, or a rivalry words have failed to");
          sb.AppendLine("settle. If the player merely speaks OF duels, or boasts, that is talk and nothing more.");
+         sb.AppendLine("This puts YOU and the PLAYER, and no one else, to steel. If your quarrel is with someone ELSE");
+         sb.AppendLine("present (another lord in the room), this does NOT apply: it cannot name them, only you and the");
+         sb.AppendLine("player, so do NOT emit it for a grievance against a third party, settle that in words instead.");
          sb.AppendLine("When a duel is genuinely called for THIS TURN, whether the player calls you out or you");
          sb.AppendLine("resolve to demand satisfaction of them, emit alongside your dialogue:");
          sb.AppendLine("[ACTION]");

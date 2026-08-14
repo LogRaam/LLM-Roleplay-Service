@@ -129,5 +129,25 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().Contain("at the gates of this town");
       }
+
+      // Player report (2026-08-14): a duel challenge came from a witness "speaking on their own turn" (the
+      // Sprint 15C auto-exchange, where the main NPC answers what a witness just said) and got armed as a
+      // player-vs-NPC duel with the wrong target. challenge_duel carries no target parameter, so whoever this
+      // dispatch's speaker is becomes "opponent" no matter which two people the fiction actually names: a
+      // group quarrel written between two OTHER NPCs still got mechanically armed against the player.
+      // Withholding the verb on a witness-exchange turn stops the model reaching for it in a context where it
+      // can never correctly express who the challenge is really aimed at (the matching mod-side guard is
+      // ResolveDuelChallenge's interlocutor check).
+      [Test]
+      public void GIVEN_a_witness_exchange_turn_WHEN_built_THEN_the_challenge_verb_is_withheld()
+      {
+         string prompt = Build(new EncounterContext {
+            DuelChallengeAvailable = true,
+            IsWitnessExchangeTurn = true
+         });
+
+         prompt.Should().NotContain(DuelHeading);
+         prompt.Should().NotContain(DuelActionType);
+      }
    }
 }
