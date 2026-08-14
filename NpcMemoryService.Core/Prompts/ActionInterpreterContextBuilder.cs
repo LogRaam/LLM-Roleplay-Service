@@ -14,11 +14,11 @@ namespace NpcMemoryService.Core.Prompts
 {
    /// <summary>
    ///   Projects a live <see cref="EncounterContext" /> (plus the speaking NPC's <see cref="NpcProfile" />) into the
-   ///   compact SETTING / PLAYER / YOU digest the PROSE+EXTRACT extractor receives as its VARIABLE per-turn tail,
-   ///   after <see cref="ExtractionPromptBuilder.StablePrefix" />. The digest GROUNDS the memories the extractor
-   ///   writes (where it happened, who witnessed it, the player's standing) and CALIBRATES them to the NPC's own
-   ///   nature and regard, so a recorded event is anchored in the real scene instead of invented. This replaces the
-   ///   hardcoded context-facts string the prose/extract spike hand-built.
+   ///   compact SETTING / PLAYER / YOU digest the PROSE + INTERPRETER action interpreter receives as its VARIABLE
+   ///   per-turn tail, after <see cref="ActionInterpreterPromptBuilder.StablePrefix" />. The digest GROUNDS the
+   ///   memories the interpreter writes (where it happened, who witnessed it, the player's standing) and CALIBRATES
+   ///   them to the NPC's own nature and regard, so a recorded event is anchored in the real scene instead of
+   ///   invented. This replaces the hardcoded context-facts string the prose + interpreter spike hand-built.
    ///   <para>
    ///     Pure and defensive: it reads ONLY fields that exist on the two inputs, OMITS a clause whenever its source
    ///     is null/empty (never printing the word "null"), never throws on a partial (or null) context, and refers to
@@ -26,12 +26,12 @@ namespace NpcMemoryService.Core.Prompts
    ///     recency when a stored memory is reinjected, so baking "days ago" here would double it and stale it.
    ///   </para>
    /// </summary>
-   public static class ExtractionContextBuilder
+   public static class ActionInterpreterContextBuilder
    {
       /// <summary>
       ///   The neutral, non-epithet fallback used for the player when the caller supplies no real label. "the
       ///   player" is a plain reference, not an epithet: it never bakes a one-time insult ("the coward") into a
-      ///   permanent memory the way the spike's first extractor did.
+      ///   permanent memory the way the spike's first interpreter did.
       /// </summary>
       private const string DefaultPlayerLabel = "the player";
 
@@ -187,7 +187,7 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
-      ///   The NPC's nature descriptor to calibrate the extractor's tone: the derived <see cref="NpcProfile.Trait" />
+      ///   The NPC's nature descriptor to calibrate the interpreter's tone: the derived <see cref="NpcProfile.Trait" />
       ///   archetype if present, else the free-text <see cref="NpcProfile.Personality" />. The SDK profile has no raw
       ///   five-trait levels (those live engine-side in the mod), so this projects only what genuinely exists here.
       /// </summary>

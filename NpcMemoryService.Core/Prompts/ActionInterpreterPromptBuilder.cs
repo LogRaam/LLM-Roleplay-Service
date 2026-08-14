@@ -9,29 +9,29 @@ using System.Text;
 namespace NpcMemoryService.Core.Prompts
 {
    /// <summary>
-   ///   Builds the lean system prompt for the PROSE+EXTRACT spike's SECOND model: an EXTRACTOR that reads a
-   ///   roleplay reply already written by a first model and emits only the structured [ACTION]/[EVENT] tags the
-   ///   prose implies. The emitted format mirrors what <see cref="Parsing.SectionResponseParser" /> already
-   ///   parses, so the existing pipeline consumes the extractor's output unchanged.
+   ///   Builds the lean system prompt for the PROSE + INTERPRETER spike's SECOND model: an ACTION INTERPRETER that
+   ///   reads a roleplay reply already written by a first model and emits only the structured [ACTION]/[EVENT] tags
+   ///   the prose implies. The emitted format mirrors what <see cref="Parsing.SectionResponseParser" /> already
+   ///   parses, so the existing pipeline consumes the interpreter's output unchanged.
    ///   <para>
    ///     The prompt is assembled STABLE-PREFIX FIRST (<see cref="StablePrefix" />, identical on every call, so a
    ///     provider can prompt-cache it) followed by the VARIABLE per-turn tail (the caller's context facts and the
    ///     prose to analyze). Pure and stateless: no engine or per-turn data leaks into the cacheable prefix.
    ///   </para>
    /// </summary>
-   public static class ExtractionPromptBuilder
+   public static class ActionInterpreterPromptBuilder
    {
       private static readonly string _stablePrefix = BuildStablePrefix();
 
       /// <summary>
-      ///   The invariant head of every extraction prompt: the extractor's role, the tag vocabulary, the exact
-      ///   output format, and the hard "do NOT rewrite" rule. Exposed so a test can assert a built prompt STARTS
-      ///   with it (the prefix-first ordering that lets a provider cache this part across calls).
+      ///   The invariant head of every interpreter prompt: the action interpreter's role, the tag vocabulary, the
+      ///   exact output format, and the hard "do NOT rewrite" rule. Exposed so a test can assert a built prompt
+      ///   STARTS with it (the prefix-first ordering that lets a provider cache this part across calls).
       /// </summary>
       internal static string StablePrefix => _stablePrefix;
 
       /// <summary>
-      ///   Assembles a full extraction prompt: the stable prefix, then the caller's <paramref name="contextFacts" />
+      ///   Assembles a full interpreter prompt: the stable prefix, then the caller's <paramref name="contextFacts" />
       ///   (a short line such as the NPC name and current regard), then a delimiter, then the
       ///   <paramref name="prose" /> to analyze. The result always begins with <see cref="StablePrefix" />.
       /// </summary>
