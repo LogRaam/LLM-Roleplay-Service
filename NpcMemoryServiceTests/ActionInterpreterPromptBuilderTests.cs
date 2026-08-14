@@ -78,6 +78,44 @@ namespace NpcMemoryServiceTests
          prefix.Should().Contain("the coward"); // named as a forbidden example, not a licence
       }
 
+      // A real run had an NPC press a purse into the player's hands in the prose, yet no give_gold was emitted, so the
+      // gift never became concrete (the player's coin never moved). The interpreter must be taught the economic tags
+      // with their DIRECTION rule, or money that changes hands in the prose is silently lost from the game state.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_it_teaches_give_gold_and_take_gold_with_direction()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("give_gold");
+         prefix.Should().Contain("take_gold");
+         prefix.Should().Contain("amount:");
+         // The one rule that keeps the two apart: who hands coin to whom.
+         prefix.Should().Contain("Direction is what matters");
+      }
+
+      // The give_gold round-trip: an interpreter reading "she pressed a purse into your hands" must produce a
+      // give_gold the live parser turns into a real transfer with an amount. Without this the prose depicts a gift the
+      // game never grants, exactly the disconnect this tag exists to close.
+      [Test]
+      public void GIVEN_a_give_gold_interpreter_output_WHEN_parsed_THEN_it_yields_a_give_gold_action_with_an_amount()
+      {
+         const string interpreterOutput =
+            "[ACTION]\n" +
+            "type: give_gold\n" +
+            "amount: 100\n" +
+            "[/ACTION]\n" +
+            "[EVENT]\n" +
+            "type: collaboration\n" +
+            "summary: I pressed a purse into the player's hands to see them through the winter.\n" +
+            "[/EVENT]";
+
+         var parser = new SectionResponseParser();
+         ParsedResponse parsed = parser.Parse(interpreterOutput);
+
+         parsed.Actions.Should().ContainSingle(a => a.Type == "give_gold")
+               .Which.Parameters["amount"].Should().Be("100");
+      }
+
       // The interpreter gets a situational digest (place, who is present, the player's standing) so memories are
       // grounded ("near Veron Castle"), but that context must ANCHOR only, never license invention: without this
       // guard the interpreter could write "he threatened me with his army" from a mere "player has an army" fact.
