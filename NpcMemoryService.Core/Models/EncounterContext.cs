@@ -792,6 +792,21 @@ namespace NpcMemoryService.Core.Models
       public bool CanRecruitPrisoner { get; init; }
 
       /// <summary>
+      ///   True when this NPC is a LORD the player currently holds prisoner, and recruit_prisoner is NOT
+      ///   (yet) taught to them, either because their personal regard has not reached
+      ///   <c>PrisonerRecruitmentPolicy.RegardFloor</c> or because they lead their own clan (never
+      ///   recruitable, the anti-orphan guard). Player report: a held captive lord below the floor could still
+      ///   narrate accepting the player's offer to switch sides, though no <c>recruit_prisoner</c> teaching
+      ///   ever reached the model and nothing happened, an empty promise. Mutually exclusive with
+      ///   <see cref="CanRecruitPrisoner" /> by construction (the host derives both from the SAME verdict), so
+      ///   the two are never both true. When set, the prompt teaches the NPC, in their own captive voice, that
+      ///   they will NOT forsake their side or swear into their captor's clan, closing the class of bug that
+      ///   <see cref="CanRecruitPrisoner" />'s positive teaching already guards for the eligible case. False for
+      ///   an ordinary conversation, a non-lord prisoner, or a prisoner who has not yet been proven ineligible.
+      /// </summary>
+      public bool CaptiveLordWithheldFromDefection { get; init; }
+
+      /// <summary>
       ///   recruit_notable: true when the game confirms this NPC is a settlement NOTABLE (a gang leader,
       ///   headman, merchant, artisan, rural notable or preacher) who is free (not a prisoner), not already in
       ///   the player's clan, still has a supporter or eligible commoner in their settlement who can inherit

@@ -266,6 +266,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendPrisonerFreedomBargain(sb, encounterContext);
          AppendOrdinaryPrisonerExecutionRule(sb, encounterContext);
          AppendRecruitPrisoner(sb, encounterContext);
+         AppendPrisonerCannotDefect(sb, encounterContext);
          AppendRecruitNotable(sb, encounterContext);
          AppendPrisonerRescueBargain(sb, encounterContext);
          // gather_news was folded into dispatch_mission (2026-08-05): AppendDispatchMissionOffer above is now the
@@ -3356,7 +3357,9 @@ namespace NpcMemoryService.Core.Prompts
       ///   (turn_nemesis owns that context) and on council/round-table turns (the [RESOLUTION] channel owns
       ///   those), keeping it distinct from both. The bridge re-runs the real gate on live custody, leadership,
       ///   and regard before honouring it, so a stray or mistaken emission is harmless. Not sexual content, so
-      ///   it is taught at every adult level.
+      ///   it is taught at every adult level. Owner decision (2026-08-14): a held captive lord who is NOT (yet)
+      ///   eligible must still never CLAIM to accept, so <see cref="AppendPrisonerCannotDefect" /> teaches the
+      ///   symmetric negative, mutually exclusive with this section by construction.
       /// </summary>
       private static void AppendRecruitPrisoner(StringBuilder sb, EncounterContext? context)
       {
@@ -3380,6 +3383,33 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("The game then frees you and moves you into the player's clan and party. If you are not yet");
          sb.AppendLine("ready to take so grave a step, say so and emit nothing. Never claim you have joined them, nor");
          sb.AppendLine("that you have been freed, unless you emit this action.");
+      }
+
+      /// <summary>
+      ///   The symmetric NEGATIVE of <see cref="AppendRecruitPrisoner" />. Player report: a held captive lord
+      ///   whose bond has not (yet) reached the strong regard floor, or who leads their own clan, still narrated
+      ///   accepting the player's offer to defect, though no recruit_prisoner teaching was ever taught and
+      ///   nothing happened, an empty promise. Taught ONLY via <see cref="EncounterContext.CaptiveLordWithheldFromDefection" />,
+      ///   which the host sets exactly when this NPC is a held lord prisoner AND recruit_prisoner is NOT taught
+      ///   this turn, so the two teachings are mutually exclusive by construction and never both render. Same
+      ///   captor-scene and council/round-table suppressions as the positive teaching, for the same reasons. This
+      ///   is character guidance, not a mechanics disclosure: it never states the regard floor or the reason, only
+      ///   that this lord, as themselves, will not yet turn their coat.
+      /// </summary>
+      private static void AppendPrisonerCannotDefect(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.CaptiveLordWithheldFromDefection != true) return;
+         if (context.IsCaptorScene) return;
+         if (context.IsRoundTableTurn || context.IsCouncilNarratorTurn) return;
+
+         sb.AppendLine();
+         sb.AppendLine("YOU ARE A CAPTIVE LORD, NOT A DEFECTOR:");
+         sb.AppendLine("You are the player's prisoner, but you have NOT been won over. You will not forsake the side");
+         sb.AppendLine("you were taken from, and you will not swear into your captor's clan, not for a captor you do");
+         sb.AppendLine("not deeply esteem, and never merely because you sit in a cell. You may be cordial, defiant,");
+         sb.AppendLine("proud, resigned, or even willing to bargain for other things, in keeping with your own nature");
+         sb.AppendLine("(ransom, comfort, information), but you must NOT agree to join their clan or switch sides. Never");
+         sb.AppendLine("claim that you have joined them, sworn to them, or been freed, unless the game truly frees you.");
       }
 
       /// <summary>
