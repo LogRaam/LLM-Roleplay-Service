@@ -150,6 +150,13 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("(not \"the coward\", \"the stranger\") and never by a bare \"he\"/\"she\". Record what happened this");
          sb.AppendLine("reply and why it mattered; do NOT state how long ago it was.");
          sb.AppendLine("[/EVENT]");
+         sb.AppendLine("first_meeting is ONLY for a genuine first-ever encounter: the two of you have never spoken");
+         sb.AppendLine("before. If the facts below show any regard other than +0 toward the player, or name an");
+         sb.AppendLine("existing bond (a spouse, consort, lover, or kin), you already know each other, so do NOT use");
+         sb.AppendLine("first_meeting. Likewise, if this reply is a later turn of an exchange already under way rather");
+         sb.AppendLine("than its opening line, do NOT use first_meeting either: pick whichever type actually fits what");
+         sb.AppendLine("happened this reply instead (collaboration, agreement, flirt, intimacy, confrontation, farewell,");
+         sb.AppendLine("or other).");
          sb.AppendLine();
          AppendOtherActions(sb);
          sb.AppendLine("GROUND IN THE FACTS, DO NOT INVENT: the facts below give the setting (place, who is present, the");

@@ -116,6 +116,22 @@ namespace NpcMemoryServiceTests
                .Which.Parameters["amount"].Should().Be("100");
       }
 
+      // A real rp_bench run had the interpreter tag turns 2, 3, and 4 of the SAME ongoing conversation as
+      // first_meeting, and separately tag turn 1 with a committed consort (regard +45, long history) as
+      // first_meeting even though its own summary said "after twenty days apart" (it knew there was history). The
+      // type list alone gave no guidance on WHEN first_meeting applies, so the model defaulted to it. This pins
+      // that the prefix now restricts first_meeting to a genuine first-ever encounter, keyed on the regard/bond
+      // facts the digest always carries and on this not being a later turn of an exchange already under way.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_it_restricts_first_meeting_to_a_genuine_first_encounter()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("first_meeting is ONLY for a genuine first-ever encounter");
+         prefix.Should().Contain("any regard other than +0");
+         prefix.Should().Contain("a later turn of an exchange already under way");
+      }
+
       // The interpreter gets a situational digest (place, who is present, the player's standing) so memories are
       // grounded ("near Veron Castle"), but that context must ANCHOR only, never license invention: without this
       // guard the interpreter could write "he threatened me with his army" from a mere "player has an army" fact.
