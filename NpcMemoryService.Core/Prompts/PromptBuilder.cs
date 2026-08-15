@@ -3695,13 +3695,15 @@ namespace NpcMemoryService.Core.Prompts
          switch (who)
          {
             case CaptiveAggressorKind.AnotherSingle:
-               sb.AppendLine("IT IS NOT YOU ACTING NOW: ANOTHER member of your band steps up and takes his turn on the");
-               sb.AppendLine($"prisoner. Narrate him using {them} while you watch, direct, or hold {them} down.");
+               sb.AppendLine("IT IS NOT YOU ACTING NOW: at YOUR command, ANOTHER member of your band steps up and takes his");
+               sb.AppendLine($"turn on the prisoner for HIS OWN pleasure, not merely to serve your dominance. Narrate him");
+               sb.AppendLine($"using {them} to satisfy himself while you watch, direct, or hold {them} down.");
 
                break;
             case CaptiveAggressorKind.GroupTogether:
-               sb.AppendLine($"THE REMAINING MEN TAKE {(prisonerIsFemale ? "HER" : "HIM")} TOGETHER NOW, all at once. Narrate them using {them} at the");
-               sb.AppendLine("same time (every opening, hands, mouths, positions) while you watch or join in.");
+               sb.AppendLine($"AT YOUR COMMAND, THE REMAINING MEN TAKE {(prisonerIsFemale ? "HER" : "HIM")} TOGETHER NOW, all at once, for THEIR OWN");
+               sb.AppendLine($"pleasure. Narrate them using {them} to satisfy themselves (every opening, hands, mouths,");
+               sb.AppendLine("positions) at the same time while you watch or join in.");
 
                break;
          }
