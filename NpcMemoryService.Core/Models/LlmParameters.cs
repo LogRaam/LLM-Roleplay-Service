@@ -27,5 +27,17 @@ namespace NpcMemoryService.Core.Models
         ///   </para>
         /// </summary>
         public float PresencePenalty { get; init; }
+
+        /// <summary>
+        ///   Whether <see cref="NpcMemoryService.Core.LlmClient.OpenRouter.OpenRouterClient.CompleteAsync" /> may
+        ///   retry once on a truncated/empty/content-filtered reply (see that method's own XML doc for the full
+        ///   rule). Default TRUE preserves that existing safety net for every ordinary call (Integrated chat, the
+        ///   action interpreter, the summarizers). Set to FALSE to make a single request fail fast on the first
+        ///   incomplete reply instead of paying for the client's own bigger-budget retry: the PROSE call in the
+        ///   mod's Prose + Interpreter composition mode uses this so a beat the prose model could not finish is
+        ///   handed, immediately, to the mod's own fallback (redo the turn once on a reliable explicit model)
+        ///   rather than two slow calls back to back.
+        /// </summary>
+        public bool AllowTruncationRetry { get; init; } = true;
     }
 }

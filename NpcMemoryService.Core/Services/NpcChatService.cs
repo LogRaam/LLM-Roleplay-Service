@@ -63,7 +63,9 @@ namespace NpcMemoryService.Core.Services
          ChatSession session,
          string playerMessage,
          EncounterContext? encounterContext = null,
-         CancellationToken ct = default)
+         CancellationToken ct = default,
+         bool allowTruncationRetry = true,
+         string? modelOverride = null)
       {
          session.AddPlayerMessage(playerMessage);
 
@@ -78,11 +80,28 @@ namespace NpcMemoryService.Core.Services
             ? systemPrompt.Substring(0, splitAt)
             : null;
 
+         // allowTruncationRetry defaults true, so every existing caller (Integrated chat, captive/commoner/escape
+         // turns) sends ChatParameters unchanged, byte-for-byte. Only the Prose + Interpreter mod flow sets it
+         // false, for its PROSE call only, to fail fast on a truncated reply instead of paying for the client's
+         // own bigger-budget retry (see LlmParameters.AllowTruncationRetry).
+         LlmParameters parameters = allowTruncationRetry
+            ? ChatParameters
+            : new LlmParameters {
+               MaxTokens = ChatParameters.MaxTokens,
+               Creativity = ChatParameters.Creativity,
+               PresencePenalty = ChatParameters.PresencePenalty,
+               AllowTruncationRetry = false
+            };
+
          var request = new LlmRequest {
             SystemPrompt = systemPrompt,
             StableSystemPrompt = stablePrefix,
             Messages = session.Messages,
-            Parameters = ChatParameters
+            Parameters = parameters,
+            // Null by default, exactly as before this parameter existed (the client resolves its own model).
+            // Non-null lets a single call (the mod's Prose Fallback: redo this turn on a reliable explicit
+            // model) target a model other than whatever the client is normally configured for.
+            ModelOverride = modelOverride
          };
 
          LlmResponse llmResponse = await _llmClient

@@ -51,8 +51,10 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          // (MiMo, GLM, R1...) can also return an empty content with finish_reason "stop" when the
          // template closes on reasoning alone; an empty chat reply is never legitimate, so it earns
          // the same retry. Bounded to a single retry so a model that always truncates cannot loop
-         // or double-bill.
-         if (response.IsSuccess && (IsLengthTruncated(response.FinishReason) || IsContentFiltered(response.FinishReason) || string.IsNullOrWhiteSpace(response.Content)))
+         // or double-bill. AllowTruncationRetry=false skips this whole block regardless of the reply, so a
+         // caller that wants to fail FAST on the first incomplete reply (the mod's PROSE call, whose own
+         // fallback takes over from here) never pays for it.
+         if (request.Parameters.AllowTruncationRetry && response.IsSuccess && (IsLengthTruncated(response.FinishReason) || IsContentFiltered(response.FinishReason) || string.IsNullOrWhiteSpace(response.Content)))
          {
             // A reply that hit the completion cap, EMPTY or cut mid-sentence, means the budget ran out before
             // the prose finished: a reasoning model spent it thinking (some, notably certain DeepSeek
