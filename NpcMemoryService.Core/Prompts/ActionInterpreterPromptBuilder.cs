@@ -123,8 +123,11 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: end_conversation");
          sb.AppendLine("[/ACTION]");
-         sb.AppendLine("Emit end_conversation ONLY when the prose shows the NPC ending or breaking off the exchange");
-         sb.AppendLine("(turning away, dismissing the player, storming off, or a final farewell).");
+         sb.AppendLine("Emit end_conversation whenever the prose brings THIS exchange to a close, warm or cold: storming");
+         sb.AppendLine("off, dismissing the player, turning away to your own business and leaving them, OR an amicable");
+         sb.AppendLine("parting (a farewell, a goodnight, sending them off to rest, saying you will speak again later). It");
+         sb.AppendLine("ends the current conversation, not the relationship, so a warm \"we will talk in the morning\" as the");
+         sb.AppendLine("NPC leaves the player STILL closes it. If the reply plainly reads as a parting, emit it.");
          sb.AppendLine();
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: give_gold");
