@@ -3745,10 +3745,14 @@ namespace NpcMemoryService.Core.Prompts
 
                break;
             case CaptiveSceneStage.Climax:
-               sb.AppendLine("STAGE — CLIMAX: you have built and escalated. NOW bring THIS act to its finish — reach your");
-               sb.AppendLine("satisfaction, complete THIS act, the peak of this aggressor's turn. STOP at the finish: do NOT");
-               sb.AppendLine("begin a new position or a new act in this beat, and do NOT roll straight into more. If there is");
-               sb.AppendLine("to be another round, it comes as its OWN later beat — not now. ONE beat, ending on the finish.");
+               sb.AppendLine("STAGE - CLIMAX: you have built and escalated. NOW DEPICT the peak of this act AS IT HAPPENS this");
+               sb.AppendLine("beat, the physical climax itself, shown in the moment and in explicit, concrete detail, never");
+               sb.AppendLine("just named in passing or implied. Whatever the aggressor's body does at its finish (a man");
+               sb.AppendLine("spending, a woman's release), render THAT, happening now. Do NOT skip over it, fade past it, or");
+               sb.AppendLine("open already spent with the peak treated as something that just occurred offstage: that");
+               sb.AppendLine("come-down belongs to the AFTERMATH beat, not this one. STOP at the finish: do NOT begin a new");
+               sb.AppendLine("position or a new act in this beat, and do NOT roll straight into more; another round, if any,");
+               sb.AppendLine("is its OWN later beat. ONE beat, ending ON the depicted peak.");
 
                break;
             case CaptiveSceneStage.Aftermath:
