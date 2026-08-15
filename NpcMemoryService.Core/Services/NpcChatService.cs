@@ -41,7 +41,7 @@ namespace NpcMemoryService.Core.Services
       ///   LLM what to do with that headroom.
       /// </summary>
       public LlmParameters ChatParameters { get; init; } = new() {
-         MaxTokens = 1500,
+         MaxTokens = 3000,
          Creativity = 0.7f
       };
 
