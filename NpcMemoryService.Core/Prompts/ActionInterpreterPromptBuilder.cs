@@ -153,6 +153,11 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("(not \"the coward\", \"the stranger\") and never by a bare \"he\"/\"she\". Record what happened this");
          sb.AppendLine("reply and why it mattered; do NOT state how long ago it was.");
          sb.AppendLine("[/EVENT]");
+         sb.AppendLine("These [EVENT] type words (first_meeting, farewell, conflict, collaboration, agreement, flirt,");
+         sb.AppendLine("intimacy, betrayal, confrontation, other) label the [EVENT] block ONLY. NEVER emit one as an");
+         sb.AppendLine("[ACTION]: an [ACTION] type is ALWAYS one of the action verbs (change_relation, end_conversation,");
+         sb.AppendLine("give_gold, take_gold, or one listed under OTHER ACTIONS below). A moment that is intimate or a");
+         sb.AppendLine("flirt is recorded as an [EVENT], never emitted as an action.");
          sb.AppendLine("first_meeting is ONLY for a genuine first-ever encounter: the two of you have never spoken");
          sb.AppendLine("before. If the facts below show any regard other than +0 toward the player, or name an");
          sb.AppendLine("existing bond (a spouse, consort, lover, or kin), you already know each other, so do NOT use");
