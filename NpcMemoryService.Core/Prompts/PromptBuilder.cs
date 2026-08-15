@@ -6097,7 +6097,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine(AdultLevel != AdultContentLevel.Off
             ? "type: first_meeting|farewell|conflict|collaboration|agreement|flirt|intimacy|betrayal|confrontation|other"
             : "type: first_meeting|farewell|conflict|collaboration|agreement|betrayal|confrontation|other");
-         sb.AppendLine("summary: One sentence, in the FIRST PERSON and past tense (your own memory: \"I ...\", never your own name or \"he\"/\"she\"); write so a future you can recall what happened and why it mattered.");
+         sb.AppendLine("summary: One sentence, in the FIRST PERSON and past tense (your own memory: \"I ...\", never your own name or \"he\"/\"she\"); write so a future you can recall what happened and why it mattered. Use \"I\" ONLY for what YOU did: an act your soldiers or men carried out at your command is \"I had my men do X\" or \"my men did X while I watched\", never \"I did X\" for what someone else performed.");
          sb.AppendLine("[/EVENT]");
          sb.AppendLine();
 

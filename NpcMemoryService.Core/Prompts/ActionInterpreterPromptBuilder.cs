@@ -148,8 +148,12 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
          sb.AppendLine("[EVENT]");
          sb.AppendLine("type: first_meeting|farewell|conflict|collaboration|agreement|flirt|intimacy|betrayal|confrontation|other");
-         sb.AppendLine("summary: One sentence, FIRST PERSON and PAST TENSE. Use \"I\" for yourself (never your own");
-         sb.AppendLine("name). Refer to the PLAYER by the name given in the facts below, never by an invented epithet");
+         sb.AppendLine("summary: One sentence, FIRST PERSON and PAST TENSE. Use \"I\" for yourself (never your own name),");
+         sb.AppendLine("and ONLY for what YOU personally did: if the reply shows someone ELSE performing the act (a soldier,");
+         sb.AppendLine("a bandmate, anyone at your command) while you order, watch, or hold the prisoner, the deed is");
+         sb.AppendLine("THEIRS, so write \"I had my man do X\" or \"my men did X while I watched\", never \"I did X\" for an act");
+         sb.AppendLine("you did not perform yourself.");
+         sb.AppendLine("Refer to the PLAYER by the name given in the facts below, never by an invented epithet");
          sb.AppendLine("(not \"the coward\", \"the stranger\") and never by a bare \"he\"/\"she\". Record what happened this");
          sb.AppendLine("reply and why it mattered; do NOT state how long ago it was.");
          sb.AppendLine("[/EVENT]");
