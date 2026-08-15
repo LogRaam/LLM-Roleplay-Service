@@ -54,12 +54,15 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          // or double-bill.
          if (response.IsSuccess && (IsLengthTruncated(response.FinishReason) || IsContentFiltered(response.FinishReason) || string.IsNullOrWhiteSpace(response.Content)))
          {
-            // An EMPTY reply means a reasoning model spent the whole completion budget thinking
-            // (or closed on reasoning alone) and never wrote any text. Retry with double the
-            // budget so there is room for prose after the thinking; a truncated-but-present
-            // reply keeps the original budget (a fresh roll usually lands shorter).
-            bool thinkingAteBudget = string.IsNullOrWhiteSpace(response.Content);
-            LlmRequest retryRequest = thinkingAteBudget
+            // A reply that hit the completion cap, EMPTY or cut mid-sentence, means the budget ran out before
+            // the prose finished: a reasoning model spent it thinking (some, notably certain DeepSeek
+            // deployments, reason INTERNALLY even when reasoning is set OFF, so the visible reply is a couple of
+            // words or stops mid-act), or the prose genuinely ran long. A fresh roll at the SAME budget just
+            // truncates again, so retry with DOUBLE the budget to leave room for the thinking AND the full reply.
+            // A content-filter cut is not a budget problem, so it keeps the original budget (the filter trips at
+            // a different point each roll).
+            bool budgetExhausted = string.IsNullOrWhiteSpace(response.Content) || IsLengthTruncated(response.FinishReason);
+            LlmRequest retryRequest = budgetExhausted
                ? new LlmRequest {
                   Messages = request.Messages,
                   Parameters = new LlmParameters {
@@ -99,10 +102,12 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
                };
             }
 
-            if (!thinkingAteBudget) return response; // original had text; keep it over a failed retry
+            // Retry failed: keep any text the ORIGINAL carried (a truncated beat still beats an error); only a
+            // truly empty original falls through to the hard failure.
+            if (!string.IsNullOrWhiteSpace(response.Content)) return response;
 
             return Failure("The model spent its entire reply budget on internal reasoning twice and produced " +
-                           "no text (reasoning models such as MiMo or GLM think at length before writing). " +
+                           "no text (reasoning models such as MiMo, GLM, or DeepSeek think at length before writing). " +
                            "Lower the Reasoning Effort in Mod Options, or use a model that reasons less." +
                            (retry.ErrorMessage != null ? $" Last error: {retry.ErrorMessage}" : string.Empty));
          }
