@@ -158,6 +158,37 @@ namespace NpcMemoryServiceTests
          digest.Should().Contain("-8");
       }
 
+      // The exact bug this flag exists to fix (rp_bench scene 1, 2026-08-14): a STRANGER scene reads "regard +0,
+      // never met before" on EVERY turn (the digest carries no per-turn recency), so the interpreter kept re-tagging
+      // turns 2-7 of the SAME ongoing exchange as first_meeting, when only turn 1 genuinely was. The caller (the mod's
+      // live chat / bench) is the only one who knows the turn index, so it must be able to hand the builder a hard
+      // fact to key on, and that fact must actually reach the digest text the interpreter reads.
+      [Test]
+      public void GIVEN_conversationInProgress_true_WHEN_projected_THEN_the_digest_states_the_conversation_is_already_under_way()
+      {
+         string digest = ActionInterpreterContextBuilder.Project(
+            new EncounterContext {PlayerStatus = PlayerStatusVsNpc.Stranger}, Profile(), "Aldric", conversationInProgress: true);
+
+         digest.Should().Contain("Aldric");
+         digest.Should().Contain("already been speaking with Aldric");
+         digest.Should().Contain("later turn");
+      }
+
+      // The flip side: a false flag (every existing caller, and turn 1 of a fresh scene) must leave the digest
+      // untouched, byte-for-byte identical to the 3-argument overload. Otherwise every caller that has not been
+      // taught about the new flag yet would see its prompt silently change shape.
+      [Test]
+      public void GIVEN_conversationInProgress_false_WHEN_projected_THEN_the_digest_is_identical_to_the_flagless_overload()
+      {
+         var context = new EncounterContext {PlayerStatus = PlayerStatusVsNpc.Stranger};
+
+         string withFlag = ActionInterpreterContextBuilder.Project(context, Profile(), "Aldric", conversationInProgress: false);
+         string withoutFlag = ActionInterpreterContextBuilder.Project(context, Profile(), "Aldric");
+
+         withFlag.Should().Be(withoutFlag);
+         withFlag.Should().NotContain("already been speaking");
+      }
+
       #region private
 
       /// <summary>A minimal but valid scene-1-style profile: the required identity fields, plus regard and nature under test.</summary>

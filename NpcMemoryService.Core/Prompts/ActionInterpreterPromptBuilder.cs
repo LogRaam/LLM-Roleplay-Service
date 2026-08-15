@@ -154,9 +154,10 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("before. If the facts below show any regard other than +0 toward the player, or name an");
          sb.AppendLine("existing bond (a spouse, consort, lover, or kin), you already know each other, so do NOT use");
          sb.AppendLine("first_meeting. Likewise, if this reply is a later turn of an exchange already under way rather");
-         sb.AppendLine("than its opening line, do NOT use first_meeting either: pick whichever type actually fits what");
-         sb.AppendLine("happened this reply instead (collaboration, agreement, flirt, intimacy, confrontation, farewell,");
-         sb.AppendLine("or other).");
+         sb.AppendLine("than its opening line, do NOT use first_meeting either: when the facts below state the");
+         sb.AppendLine("conversation is already under way, that IS this case, take it as decisive over anything else in");
+         sb.AppendLine("the prose. Pick whichever type actually fits what happened this reply instead (collaboration,");
+         sb.AppendLine("agreement, flirt, intimacy, confrontation, farewell, or other).");
          sb.AppendLine();
          AppendOtherActions(sb);
          sb.AppendLine("GROUND IN THE FACTS, DO NOT INVENT: the facts below give the setting (place, who is present, the");

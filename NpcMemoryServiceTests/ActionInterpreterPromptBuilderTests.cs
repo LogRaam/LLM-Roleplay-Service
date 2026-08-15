@@ -132,6 +132,20 @@ namespace NpcMemoryServiceTests
          prefix.Should().Contain("a later turn of an exchange already under way");
       }
 
+      // rp_bench scene 1 (2026-08-14): the clause above already taught the RULE, but the interpreter had no hard
+      // FACT to key on (a stranger scene reads regard +0 on every turn), so it kept guessing first_meeting anyway.
+      // ActionInterpreterContextBuilder.Project now threads a conversationInProgress flag into the digest for exactly
+      // this; this pins that the prefix's clause actually POINTS AT that digest fact as decisive, so the two halves
+      // (the taught rule and the fact the caller supplies) line up instead of the fact sitting unused in the digest.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_the_first_meeting_clause_points_at_the_digest_fact()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("when the facts below state the");
+         prefix.Should().Contain("conversation is already under way");
+      }
+
       // The interpreter gets a situational digest (place, who is present, the player's standing) so memories are
       // grounded ("near Veron Castle"), but that context must ANCHOR only, never license invention: without this
       // guard the interpreter could write "he threatened me with his army" from a mere "player has an army" fact.

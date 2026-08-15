@@ -47,9 +47,25 @@ namespace NpcMemoryService.Core.Prompts
       ///   Projects <paramref name="context" /> and <paramref name="npc" /> into the three-line SETTING / PLAYER / YOU
       ///   digest, referring to the player by <paramref name="playerLabel" /> (the SAME prompt-safe label the rest of
       ///   the system prompt uses, e.g. the live hero name the mod feeds to <see cref="PromptBuilder.PlayerName" />).
-      ///   A null/blank label degrades to the neutral <see cref="DefaultPlayerLabel" />, never an epithet.
+      ///   A null/blank label degrades to the neutral <see cref="DefaultPlayerLabel" />, never an epithet. Degrades to
+      ///   <c>conversationInProgress:false</c>, so the digest is byte-for-byte what it always was.
       /// </summary>
       public static string Project(EncounterContext? context, NpcProfile? npc, string? playerLabel)
+         => Project(context, npc, playerLabel, false);
+
+      /// <summary>
+      ///   Projects <paramref name="context" /> and <paramref name="npc" /> into the SETTING / PLAYER / YOU digest,
+      ///   referring to the player by <paramref name="playerLabel" />, and, when <paramref name="conversationInProgress" />
+      ///   is true, appends ONE explicit continuation clause: the two of you have already exchanged turns THIS
+      ///   meeting, so this reply is not the opening line. This is the hard fact the interpreter has no other way to
+      ///   know: a stranger scene reads "regard +0, never met before" on EVERY turn (the digest carries no per-turn
+      ///   recency, see the type header), so without this flag the interpreter kept re-tagging turn 2, 3, 4... of the
+      ///   SAME ongoing exchange as first_meeting (the exact rp_bench scene-1 bug
+      ///   <see cref="ActionInterpreterPromptBuilder" />'s first_meeting clause already teaches against, but had no
+      ///   fact to key on). The caller (the mod's live chat / bench) is the one that knows the turn index or session
+      ///   state, so it computes and passes this flag; the builder itself stays a pure projection.
+      /// </summary>
+      public static string Project(EncounterContext? context, NpcProfile? npc, string? playerLabel, bool conversationInProgress)
       {
          string player = string.IsNullOrWhiteSpace(playerLabel) ? DefaultPlayerLabel : playerLabel!.Trim();
 
@@ -57,6 +73,13 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("SETTING: " + BuildSetting(context));
          sb.AppendLine("PLAYER: " + BuildPlayer(context, player));
          sb.Append("YOU: " + BuildYou(npc, player));
+
+         if (conversationInProgress)
+         {
+            sb.AppendLine();
+            sb.Append("You have already been speaking with " + player
+                      + " in this meeting; this reply is a later turn, not your first encounter.");
+         }
 
          return sb.ToString();
       }
