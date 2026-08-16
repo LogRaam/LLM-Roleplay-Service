@@ -5740,6 +5740,22 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("says something), and you react to it. This interplay is what makes a collective scene live.");
             sb.AppendLine("Their agendas must not derail the host's scene-stage directive, but they color every beat.");
             sb.AppendLine();
+            // Gabriel 2026-08-16: a less-explicit prose model composes well but skips the graphic peak and lets
+            // the men fall quiet during the act. The player projects into the scene through exactly those two
+            // things: what the men SAY while using them, and the detailed moment each man FINISHES.
+            sb.AppendLine("THEY TALK AS THEY USE THE PRISONER, NOT ONLY BETWEEN TURNS: while a man takes his part he VOICES");
+            sb.AppendLine("it - crude praise of the captive's body and the way it betrays them, mocking insults, comparing");
+            sb.AppendLine("the prisoner to the last one, ordering them to feel it or to look, goading and laughing with the");
+            sb.AppendLine("others. Several men enjoying the prisoner OUT LOUD is a large part of the humiliation; keep that");
+            sb.AppendLine("running commentary flowing THROUGH the act, in each acting man's own [WITNESS_REACTION], not saved");
+            sb.AppendLine("for the gaps between beats.");
+            sb.AppendLine("DEPICT EACH MAN'S FINISH, DO NOT SKIP IT: when a soldier reaches his peak, render it EXPLICITLY in");
+            sb.AppendLine("his OWN [WITNESS_REACTION] - the moment he spends, where and how (in or on the prisoner), the sound");
+            sb.AppendLine("torn out of him, what it leaves behind - and let the prisoner feel it on and in their body. This");
+            sb.AppendLine("graphic finish is what makes the use REAL and lets the player feel it; never fade past it, sum it up");
+            sb.AppendLine("in a word, or let a man simply \"finish and step back\". Each man's climax is its own concrete,");
+            sb.AppendLine("described moment, and the next man does not simply repeat the last - vary the act, the words, the end.");
+            sb.AppendLine();
          }
          else if (!hasOthers)
          {
