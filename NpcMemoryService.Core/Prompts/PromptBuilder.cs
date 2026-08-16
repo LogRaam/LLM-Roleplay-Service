@@ -2230,9 +2230,16 @@ namespace NpcMemoryService.Core.Prompts
 
       private static void AppendIdentity(StringBuilder sb, NpcProfile npc, EncounterContext? encounterContext)
       {
+         // A clanless NPC (a hunted notable, a landless wanderer) has no house to name. Older data stored the
+         // literal "No clan" sentinel, which read as "of the No clan clan"; treat both an empty value and that
+         // sentinel as clanless so the line stays natural ("of no noble clan") instead of naming a fake house.
+         bool hasClan = !string.IsNullOrWhiteSpace(npc.Clan)
+                        && !string.Equals(npc.Clan.Trim(), "No clan", StringComparison.OrdinalIgnoreCase);
+         string clanPhrase = hasClan ? $"of the {npc.Clan} clan" : "of no noble clan";
+
          sb.AppendLine(npc.Age > 0
-            ? $"YOU ARE {npc.Name.ToUpperInvariant()}, a {(npc.IsFemale ? "woman" : "man")} of {npc.Age} years, of the {npc.Clan} clan, {npc.Faction} faction."
-            : $"YOU ARE {npc.Name.ToUpperInvariant()}, a {(npc.IsFemale ? "woman" : "man")} of the {npc.Clan} clan, {npc.Faction} faction.");
+            ? $"YOU ARE {npc.Name.ToUpperInvariant()}, a {(npc.IsFemale ? "woman" : "man")} of {npc.Age} years, {clanPhrase}, {npc.Faction} faction."
+            : $"YOU ARE {npc.Name.ToUpperInvariant()}, a {(npc.IsFemale ? "woman" : "man")} {clanPhrase}, {npc.Faction} faction.");
          sb.AppendLine(npc.IsFemale
             ? "You are female. Always speak of yourself as a woman, using she/her, whatever any older record might imply."
             : "You are male. Always speak of yourself as a man, using he/him, whatever any older record might imply.");
