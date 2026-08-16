@@ -189,6 +189,73 @@ namespace NpcMemoryServiceTests
          withFlag.Should().NotContain("already been speaking");
       }
 
+      // rp_bench scene 4 finding (2026-08-15): the interpret step kept MISSING end_conversation at a captive scene's
+      // close, because the integrated (direct) path gets an explicit "STAGE - CONCLUDE: emit end_conversation"
+      // directive and the interpreter had no scene-stage signal at all. Keyed on the same director stage the direct
+      // prompt uses, the digest must now cue the close so the interpreter emits end_conversation as reliably as direct.
+      [Test]
+      public void GIVEN_scene_stage_conclude_WHEN_projected_THEN_the_digest_cues_end_conversation()
+      {
+         string digest = ActionInterpreterContextBuilder.Project(
+            new EncounterContext {PlayerStatus = PlayerStatusVsNpc.Captive, SceneStage = CaptiveSceneStage.Conclude},
+            Profile(), "Aldric", conversationInProgress: true);
+
+         digest.Should().Contain("CLOSE this beat");
+         digest.Should().Contain("end_conversation");
+      }
+
+      // The flip side: a mid-scene stage must NOT cue the close, or the interpreter would end the scene early on every
+      // beat. The conclude cue is precise to the director's terminal stage; anything else leaves the digest silent on it.
+      [Test]
+      public void GIVEN_a_mid_scene_stage_WHEN_projected_THEN_no_conclude_cue_appears()
+      {
+         string digest = ActionInterpreterContextBuilder.Project(
+            new EncounterContext {PlayerStatus = PlayerStatusVsNpc.Captive, SceneStage = CaptiveSceneStage.Intensify},
+            Profile(), "Aldric", conversationInProgress: true);
+
+         digest.Should().NotContain("end_conversation");
+      }
+
+      // rp_bench scene 2 finding (2026-08-15): the interpret step inflated change_relation (five straight +8 beats)
+      // because the interpreter saw only a bare regard number, while the direct path carries the full romantic bond
+      // and calibrates accordingly. Stating the standing bond in the digest gives the interpreter the same basis:
+      // warmth between committed partners is the expression of the bond, not a fresh +8 each beat.
+      [Test]
+      public void GIVEN_a_committed_romantic_status_WHEN_projected_THEN_the_bond_is_stated_on_the_you_line()
+      {
+         NpcProfile p = Profile(regard: 45);
+         p.Romantic = new RomanticProfile {Status = RomanticStatus.Committed};
+
+         string digest = ActionInterpreterContextBuilder.Project(new EncounterContext(), p, "Aldric");
+
+         digest.Should().Contain("committed partner");
+      }
+
+      // An intimate PAST is the other half of the calibration signal: a bond with history is not new, so a warm beat
+      // is continuation, not a first spark worth a large delta. A recorded Intimacy (or Flirt) event must surface as a
+      // stated history so the interpreter reads the escalation as expression, not a fresh gain.
+      [Test]
+      public void GIVEN_an_intimate_event_in_history_WHEN_projected_THEN_the_digest_states_an_intimate_history()
+      {
+         NpcProfile p = Profile(regard: 30);
+         p.Events.Add(new NotableEvent(1, NotableEventType.Intimacy, "A night shared."));
+
+         string digest = ActionInterpreterContextBuilder.Project(new EncounterContext(), p, "Aldric");
+
+         digest.Should().Contain("intimate history");
+      }
+
+      // The default case (a stranger or a plain acquaintance with no romantic status and no intimate memory) must add
+      // NO bond clause: inventing one would misframe an ordinary exchange as a romance and skew every tag from it.
+      [Test]
+      public void GIVEN_no_romantic_bond_or_history_WHEN_projected_THEN_no_bond_clause_appears()
+      {
+         string digest = ActionInterpreterContextBuilder.Project(new EncounterContext(), Profile(), "Aldric");
+
+         digest.Should().NotContain("committed partner");
+         digest.Should().NotContain("intimate history");
+      }
+
       #region private
 
       /// <summary>A minimal but valid scene-1-style profile: the required identity fields, plus regard and nature under test.</summary>

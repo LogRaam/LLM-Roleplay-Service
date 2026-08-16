@@ -81,6 +81,17 @@ namespace NpcMemoryService.Core.Prompts
                       + " in this meeting; this reply is a later turn, not your first encounter.");
          }
 
+         // The integrated (direct) path gets an explicit "STAGE - CONCLUDE: emit end_conversation" directive at
+         // the end of a captive scene; the interpreter has no scene-stage signal and so kept missing the close.
+         // Stating it here, keyed on the same director stage the direct prompt uses, lets the interpreter emit
+         // end_conversation as reliably as the direct model does.
+         if (context?.SceneStage == CaptiveSceneStage.Conclude)
+         {
+            sb.AppendLine();
+            sb.Append("This exchange is at its CLOSE this beat: if the reply dismisses " + player
+                      + ", sends them away, releases them, or otherwise ends the meeting, emit end_conversation.");
+         }
+
          return sb.ToString();
       }
 
@@ -196,7 +207,64 @@ namespace NpcMemoryService.Core.Prompts
          int regard = npc?.ReputationWithPlayer ?? 0;
          sb.Append(". Your current regard toward " + player + ": " + FormatRegard(regard) + ".");
 
+         string? bond = DescribeBond(npc, player);
+         if (!string.IsNullOrEmpty(bond)) sb.Append(" " + bond);
+
          return sb.ToString();
+      }
+
+      /// <summary>
+      ///   The standing romantic tie and any intimate history toward the player. The integrated (direct) path
+      ///   already carries this in its full romantic/relationships sections and calibrates change_relation
+      ///   accordingly; the interpreter otherwise sees only a bare regard number and inflates every warm beat.
+      ///   Stating the bond here lets the interpreter apply the same calibration: warmth between two who are
+      ///   already bonded is the EXPRESSION of that bond, not a fresh regard gain each beat. Null when there is
+      ///   no romantic status worth stating and no intimate memory on record.
+      /// </summary>
+      private static string? DescribeBond(NpcProfile? npc, string player)
+      {
+         if (npc == null) return null;
+
+         string? tie = DescribeRomanticStatus(npc.Romantic?.Status, player);
+         bool intimateHistory = HasIntimateHistory(npc);
+         if (tie == null && !intimateHistory) return null;
+
+         var sb = new StringBuilder();
+         if (tie != null) sb.Append(tie);
+         if (intimateHistory)
+         {
+            if (sb.Length > 0) sb.Append(' ');
+            sb.Append("You already share an intimate history with " + player + ".");
+         }
+
+         return sb.ToString();
+      }
+
+      /// <summary>Names the standing romantic bond toward the player; null for statuses not worth a token (None/Curious).</summary>
+      private static string? DescribeRomanticStatus(RomanticStatus? status, string player)
+      {
+         switch (status)
+         {
+            case RomanticStatus.Committed:   return "You are " + player + "'s committed partner, a bond the equal of marriage.";
+            case RomanticStatus.Intimate:    return "You are " + player + "'s lover.";
+            case RomanticStatus.SecretLover: return "You are " + player + "'s secret lover.";
+            case RomanticStatus.Courting:    return "You are courting " + player + ".";
+            case RomanticStatus.Estranged:   return "You and " + player + " are estranged, though feeling lingers.";
+            case RomanticStatus.Broken:      return "Whatever bond you had with " + player + " is broken.";
+            default:                         return null; // None / Curious: nothing worth stating.
+         }
+      }
+
+      /// <summary>True when a past intimate or flirtatious moment is on record, so the interpreter knows the bond is not new.</summary>
+      private static bool HasIntimateHistory(NpcProfile? npc)
+      {
+         if (npc?.Events == null) return false;
+
+         foreach (NotableEvent e in npc.Events)
+            if (e != null && (e.type == NotableEventType.Intimacy || e.type == NotableEventType.Flirt))
+               return true;
+
+         return false;
       }
 
       /// <summary>"Name of Clan" when a house is known, else the bare name, else a neutral placeholder (never null).</summary>

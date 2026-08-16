@@ -107,7 +107,7 @@ namespace NpcMemoryService.Core.Parsing
          string? questSection = ExtractSectionTolerant(rawResponse, QuestTag);
          string? questCompleteSection = ExtractSectionTolerant(rawResponse, QuestCompleteTag);
          string? questAbandonSection = ExtractSectionTolerant(rawResponse, QuestAbandonTag);
-         IReadOnlyList<GameAction> actions = ParseActions(rawResponse);
+         IReadOnlyList<GameAction> actions = ActionTagSanitizer.StripEventTypeActions(ParseActions(rawResponse));
          IReadOnlyList<WitnessReaction> witnessReactions = ParseWitnessReactions(rawResponse);
          IReadOnlyList<ResolutionProposal> resolutions = ParseResolutions(rawResponse);
          QuestProposal? questGiven = ParseQuestProposal(questSection);
