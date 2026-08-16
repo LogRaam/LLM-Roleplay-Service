@@ -5715,6 +5715,12 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("for them to obey (\"show me you are obedient\" over and over until they comply). If they");
          sb.AppendLine("resist, you FORCE the matter and carry out this turn's beat anyway: their non-cooperation");
          sb.AppendLine("changes how, not whether.");
+         sb.AppendLine("BUT AN ACT ONLY THEY CAN CHOOSE TO DO IS NOT YOURS TO PERFORM OR TO ASSUME: when you COMMAND the");
+         sb.AppendLine("prisoner to do something with their own will and body (touch themselves, confess, beg, kneel of");
+         sb.AppendLine("their own accord), you cannot carry it out for them, and you must NEVER narrate or assume they");
+         sb.AppendLine("obeyed. Unless the reply plainly shows them choosing to comply, treat it as still refused: make");
+         sb.AppendLine("good on the consequence you threatened, escalate the pressure, or act on their defiance. Do not");
+         sb.AppendLine("put obedience they did not give into their body, hands, or words: their choices are the player's.");
          sb.AppendLine("But the beat itself is FIXED: perform the one you are given and STOP there. Never jump ahead");
          sb.AppendLine("to a later stage of the act because they resisted, complied, or provoked you. The stage cue");
          sb.AppendLine("below is the only authority on how far the scene has gone.");
