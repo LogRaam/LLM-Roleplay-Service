@@ -40,6 +40,17 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("DEPICT EACH MAN'S FINISH");
       }
 
+      // Gabriel (2026-08-16): a synchronised group climax (all four taking him at once and all spending together)
+      // reads as staged, not real. The block must push the men to take turns or overlap but land their finishes at
+      // DIFFERENT moments, so the scene stays believable.
+      [Test]
+      public void GIVEN_a_collective_captive_scene_WHEN_building_the_prompt_THEN_the_finishes_must_be_staggered()
+      {
+         string prompt = Build(collective: true);
+
+         prompt.Should().Contain("STAGGER THEM, DO NOT SYNCHRONISE");
+      }
+
       // Both directives are about the OTHER men, so a solo captor scene (no witnesses, not collective) must not carry
       // them - there is no one to voice a running commentary or to take a separate turn and finish.
       [Test]
@@ -49,6 +60,7 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().NotContain("THEY TALK AS THEY USE THE PRISONER");
          prompt.Should().NotContain("DEPICT EACH MAN'S FINISH");
+         prompt.Should().NotContain("STAGGER THEM, DO NOT SYNCHRONISE");
       }
 
       #region private

@@ -5751,10 +5751,16 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("for the gaps between beats.");
             sb.AppendLine("DEPICT EACH MAN'S FINISH, DO NOT SKIP IT: when a soldier reaches his peak, render it EXPLICITLY in");
             sb.AppendLine("his OWN [WITNESS_REACTION] - the moment he spends, where and how (in or on the prisoner), the sound");
-            sb.AppendLine("torn out of him, what it leaves behind - and let the prisoner feel it on and in their body. This");
-            sb.AppendLine("graphic finish is what makes the use REAL and lets the player feel it; never fade past it, sum it up");
-            sb.AppendLine("in a word, or let a man simply \"finish and step back\". Each man's climax is its own concrete,");
-            sb.AppendLine("described moment, and the next man does not simply repeat the last - vary the act, the words, the end.");
+            sb.AppendLine("AND the words torn out of him (a taunt, a filthy boast, a claim spoken AS he finishes), what it leaves");
+            sb.AppendLine("behind - and let the prisoner feel it on and in their body. Put this in HIS block, in his voice, NOT");
+            sb.AppendLine("merged into one grouped narration of everyone at once. This graphic finish is what makes the use REAL;");
+            sb.AppendLine("never fade past it, sum it up in a word, or let a man simply \"finish and step back\".");
+            sb.AppendLine("STAGGER THEM, DO NOT SYNCHRONISE: real men do not all take the prisoner in the same instant, nor all");
+            sb.AppendLine("spend together. Vary it beat to beat - one takes his turn while the others watch, wait, and goad, or");
+            sb.AppendLine("two use different holes at once - but their FINISHES land at DIFFERENT moments: one spends and pulls");
+            sb.AppendLine("back, another takes his place, a third is still working while the first is already done and jeering.");
+            sb.AppendLine("NEVER a tidy group climax where all erupt at once; that reads as staged, not real. Keep the timing");
+            sb.AppendLine("ragged - men trading places, some slower, some rougher, one waiting his turn and growing impatient.");
             sb.AppendLine();
          }
          else if (!hasOthers)
