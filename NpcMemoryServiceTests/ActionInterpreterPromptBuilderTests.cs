@@ -53,6 +53,20 @@ namespace NpcMemoryServiceTests
          prefix.Should().Contain("end_conversation");
       }
 
+      // rp_bench scene 4 finding (2026-08-15): a captive scene closes with no spoken goodbye - the captor has the
+      // prisoner hauled back to the cell / staked / left for the night - and the interpreter kept reading that as a
+      // Confrontation and missing end_conversation, while the integrated model caught it as a Farewell + close. The
+      // prefix must teach that a prisoner REMOVAL ends the meeting, so the interpreter emits end_conversation there.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_it_teaches_that_a_prisoner_removal_ends_the_scene()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("CAPTIVE scene");
+         prefix.Should().Contain("REMOVED");
+         prefix.Should().Contain("That removal ENDS the meeting");
+      }
+
       // The single sentence that makes an ACTION INTERPRETER different from a roleplay model: it must NOT continue or
       // rewrite the prose it is handed, only tag it. Without this rule a chat-tuned model reads the prose as a turn to
       // answer and writes fresh dialogue, which the parser would then mine for tags from text the NPC never said.

@@ -137,6 +137,12 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("parting (a farewell, a goodnight, sending them off to rest, saying you will speak again later). It");
          sb.AppendLine("ends the current conversation, not the relationship, so a warm \"we will talk in the morning\" as the");
          sb.AppendLine("NPC leaves the player STILL closes it. If the reply plainly reads as a parting, emit it.");
+         sb.AppendLine("A CAPTIVE scene often closes with NO spoken goodbye: the captor is DONE with the prisoner and has");
+         sb.AppendLine("them REMOVED - hauled back to the cell, cage, wagon, or the line of captives, chained or staked for");
+         sb.AppendLine("the night, dragged off, or simply left there as the captor turns away. That removal ENDS the meeting:");
+         sb.AppendLine("emit end_conversation, and record the event as a farewell/parting, not a confrontation. Do NOT");
+         sb.AppendLine("confuse it with mid-scene handling (a guard merely holding or repositioning the prisoner while the");
+         sb.AppendLine("scene goes on): the close is when the prisoner is SENT AWAY or LEFT, not simply gripped or moved.");
          sb.AppendLine();
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: give_gold");
