@@ -68,13 +68,15 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("'type:' line and the listed parameters, exactly like the actions above:");
          sb.AppendLine();
 
-         // The five reactive signals already taught above by hand, with carefully-tuned wording that must never be
-         // diluted: excluded here so they are never taught twice. end_conversation is a ChatViewModel chat-flow
-         // control (like witness_leaves/request_privacy), not a GameActionCatalog entry, so it never appears in
-         // GameActionCatalog.Types in the first place; it is listed here only so the exclusion reads as the same
-         // five signals by name.
+         // The signals already taught above by hand, with carefully-tuned wording that must never be diluted:
+         // excluded here so they are never taught twice. The four reactive signals (change_relation, give_gold,
+         // take_gold, plus end_conversation) and harm_prisoner, whose captive-injury cue needs the same explicit
+         // wording rather than the generic one-liner this block would give it. end_conversation is a ChatViewModel
+         // chat-flow control (like witness_leaves/request_privacy), not a GameActionCatalog entry, so it never
+         // appears in GameActionCatalog.Types in the first place; it is listed here only so the exclusion reads by
+         // name alongside the others.
          var coreTaughtTypes = new HashSet<string> {
-            "change_relation", "end_conversation", "give_gold", "take_gold"
+            "change_relation", "end_conversation", "give_gold", "take_gold", "harm_prisoner"
          };
 
          foreach (GameActionSpec spec in GameActionCatalog.All)
@@ -119,6 +121,13 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("from the emotional tenor of the prose: negative for anger, insult, or coldness; positive for");
          sb.AppendLine("warmth, gratitude, or affection. Use roughly -15 (a grave affront) to +10 (deep warmth). A");
          sb.AppendLine("value of 0 means no change, so emit nothing at all.");
+         sb.AppendLine("CALIBRATE, DO NOT INFLATE: most replies move regard only a LITTLE or not at all. A small kindness,");
+         sb.AppendLine("a warm exchange, one more step in an encounter already under way is +1 to +3. The high end (+8 to");
+         sb.AppendLine("+10) is a RARE, genuine turning point (a first declaration of love, a life saved, a betrayal");
+         sb.AppendLine("forgiven), never the routine tenor of a scene. When the moment is already captured as an [EVENT]");
+         sb.AppendLine("(an intimate beat, a flirt), that EVENT carries its weight: do NOT also stack a large change_relation");
+         sb.AppendLine("on top of it. Physical escalation between two who are already close is the EXPRESSION of that bond,");
+         sb.AppendLine("not a fresh large gain each beat, so emit 0 or a small value unless the reply marks a real shift.");
          sb.AppendLine();
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: end_conversation");
@@ -145,6 +154,17 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Emit take_gold when the prose shows the PLAYER paying, handing over, or surrendering money TO the");
          sb.AppendLine("NPC (a fee, tribute, ransom, or debt). Direction is what matters: money moving from the NPC to the");
          sb.AppendLine("player is give_gold; money moving from the player to the NPC is take_gold.");
+         sb.AppendLine();
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: harm_prisoner");
+         sb.AppendLine("severity: light|moderate|severe");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("Emit harm_prisoner ONLY when the facts below show the PLAYER is the captive being held (\"your");
+         sb.AppendLine("prisoner\") AND the prose shows them taking REAL bodily injury THIS reply: a lash that draws blood,");
+         sb.AppendLine("a blow that wounds, a cut, a burn, a broken bone. Match severity to the injury: light for a welt or");
+         sb.AppendLine("a slap, moderate for blood drawn or a heavy blow, severe for a grievous wound. Do NOT emit it for");
+         sb.AppendLine("acts that are not bodily injury (stripping, binding, restraint, humiliation, threats, or a sexual");
+         sb.AppendLine("act), and NEVER when the player is not the one held captive.");
          sb.AppendLine();
          sb.AppendLine("[EVENT]");
          sb.AppendLine("type: first_meeting|farewell|conflict|collaboration|agreement|flirt|intimacy|betrayal|confrontation|other");
