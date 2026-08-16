@@ -63,8 +63,34 @@ namespace NpcMemoryServiceTests
          string prefix = ActionInterpreterPromptBuilder.StablePrefix;
 
          prefix.Should().Contain("CAPTIVE scene");
-         prefix.Should().Contain("REMOVED");
-         prefix.Should().Contain("That removal ENDS the meeting");
+         prefix.Should().Contain("REMOVED FROM THE SCENE");
+         prefix.Should().Contain("ENDS the meeting");
+      }
+
+      // The flip side (rp_bench 2026-08-16): grok fired end_conversation when the captor HANDED the prisoner to her
+      // men and sat back to watch - the assault was BEGINNING, not ending. The removal cue must carve that out, or
+      // "step back and delegate" reads as a close and the scene is cut off exactly when it should escalate.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_delegating_or_watching_is_not_a_close()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("stepping back to WATCH");
+         prefix.Should().Contain("is NOT a close");
+      }
+
+      // Gabriel's design call (2026-08-16): a player who is a CNC victim must FEEL the gravity - a forced sexual
+      // assault is a violent bodily violation, not a mere "sexual act" to be waved past. The interpreter used to
+      // EXCLUDE sexual acts from harm_prisoner; it must now treat a rape/forced penetration as real harm (HP loss),
+      // while still sparing a consensual intimate act.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_a_forced_sexual_assault_is_taught_as_harm_prisoner()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("harm_prisoner");
+         prefix.Should().Contain("FORCED sexual assault");
+         prefix.Should().Contain("CONSENSUAL intimate act"); // the narrowed exclusion that remains
       }
 
       // The single sentence that makes an ACTION INTERPRETER different from a roleplay model: it must NOT continue or
