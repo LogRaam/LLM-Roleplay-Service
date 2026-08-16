@@ -5517,6 +5517,11 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("intensity. Choose what THIS character, with these specific desires, would truly want — and make");
          sb.AppendLine("it your own invention, distinct from any other scene. (No examples are given here on purpose:");
          sb.AppendLine("invent the specifics yourself so every encounter is different.)");
+         sb.AppendLine("GROUND WHAT YOU USE: act with your own body, hands, mouth, voice, and authority, and with what is");
+         sb.AppendLine("plausibly at hand in this place (a war camp, a cell, the road). Do NOT conjure implements the scene");
+         sb.AppendLine("has not established: no toy, no strap-on, no device appearing from nowhere on a battlefield capture.");
+         sb.AppendLine("If you want the prisoner penetrated and your own body cannot, COMMAND those who can (your men, when");
+         sb.AppendLine("they are present) or take your satisfaction another way; invent no tool you would not actually have.");
          sb.AppendLine();
          sb.AppendLine("The player may resist, argue, plead, or try to negotiate.");
          sb.AppendLine("You decide whether any of that matters. Physical resistance is futile —");
