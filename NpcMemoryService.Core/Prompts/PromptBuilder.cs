@@ -4790,6 +4790,43 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   What a NON-bandit captor (a lord holding the player prisoner) actually knows of their captive. Unlike a
+      ///   brigand, a lord moves among nobles, so IF they already knew this person (met before, or the prisoner has
+      ///   given their name this scene) they know the name and house and may use both. But a FRESH capture is a
+      ///   stranger taken on the field: they can read rank from the captive's arms and bearing, yet do NOT know the
+      ///   name or the clan until the prisoner gives them up. This stops a captor naming the player's house off the
+      ///   prompt ("a Thais whelp") when in the fiction they have never been told it. The captor's OWN house is
+      ///   named elsewhere (AppendIdentity) and is untouched.
+      /// </summary>
+      private void AppendCaptorPlayerPerception(StringBuilder sb, EncounterContext context)
+      {
+         sb.AppendLine("YOUR PRISONER (what you can tell):");
+
+         bool knows = context.CaptorKnowsPlayer
+                      || (context.CaptorKnowsPlayerName && !string.IsNullOrWhiteSpace(PlayerName));
+         if (knows)
+         {
+            string house = string.IsNullOrWhiteSpace(PlayerClanName) ? "" : " of " + PlayerClanName;
+            sb.AppendLine($"You know this prisoner: {PlayerName}{house} ({(PlayerIsFemale ? "a woman" : "a man")}). "
+                          + "You had their name before this, or they have given it to you, so use it and their house as you please.");
+            if (!string.IsNullOrWhiteSpace(context.PlayerAppearance))
+               sb.AppendLine($"What you can SEE of them (do not invent past this): {context.PlayerAppearance}");
+            sb.AppendLine();
+
+            return;
+         }
+
+         sb.AppendLine($"This captive is a {(PlayerIsFemale ? "woman" : "man")} of evident rank: their arms, their bearing,");
+         sb.AppendLine("and the make of their gear mark them a noble worth a ransom. But you do NOT know their NAME or");
+         sb.AppendLine("their HOUSE. You took a stranger on the field, not a name from a herald's roll. Do not call them by");
+         sb.AppendLine("a name, and do not name their clan, until THEY give it to you; never invent one, and never claim to");
+         sb.AppendLine("have \"heard the name\" or that \"word travels\".");
+         if (!string.IsNullOrWhiteSpace(context.PlayerAppearance))
+            sb.AppendLine($"What you can SEE of them (do not invent past this): {context.PlayerAppearance}");
+         sb.AppendLine();
+      }
+
+      /// <summary>
       ///   Bastards: when this NPC is the mother of a still-hidden child of the player's, teach her to raise it
       ///   in conversation in her own register — extort (mercenary), long (fond), reproach (resentful), or ask
       ///   for the child's keep (pragmatic). Adult-gated; the mechanic (silence bought with gold) runs through
@@ -6566,6 +6603,18 @@ namespace NpcMemoryService.Core.Prompts
          if (context?.CaptorIsBandit == true)
          {
             AppendBanditPlayerPerception(sb, context);
+
+            return;
+         }
+
+         // A non-bandit captor (a lord holding the player) is not handed the prisoner's identity either: on a fresh
+         // capture they hold a noble of evident rank but do NOT know their name or house until the prisoner gives it
+         // (CaptorKnowsPlayerName flips then) or they already knew them (CaptorKnowsPlayer). Without this a lord captor
+         // read the player's name and clan straight off the prompt and used them, as if a stranger's house were plain
+         // to see (player report, 2026-08-15: "a Thais whelp under an Osticos hand").
+         if (context?.PlayerStatus == PlayerStatusVsNpc.Captive)
+         {
+            AppendCaptorPlayerPerception(sb, context!);
 
             return;
          }
