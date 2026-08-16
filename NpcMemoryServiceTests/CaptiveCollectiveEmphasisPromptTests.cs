@@ -48,7 +48,7 @@ namespace NpcMemoryServiceTests
       {
          string prompt = Build(collective: true);
 
-         prompt.Should().Contain("STAGGER THEM, DO NOT SYNCHRONISE");
+         prompt.Should().Contain("STAGGER THEM ACROSS BEATS, DO NOT SYNCHRONISE");
       }
 
       // Both directives are about the OTHER men, so a solo captor scene (no witnesses, not collective) must not carry
@@ -60,7 +60,7 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().NotContain("THEY TALK AS THEY USE THE PRISONER");
          prompt.Should().NotContain("DEPICT EACH MAN'S FINISH");
-         prompt.Should().NotContain("STAGGER THEM, DO NOT SYNCHRONISE");
+         prompt.Should().NotContain("STAGGER THEM ACROSS BEATS, DO NOT SYNCHRONISE");
       }
 
       #region private

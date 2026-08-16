@@ -5755,12 +5755,16 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("behind - and let the prisoner feel it on and in their body. Put this in HIS block, in his voice, NOT");
             sb.AppendLine("merged into one grouped narration of everyone at once. This graphic finish is what makes the use REAL;");
             sb.AppendLine("never fade past it, sum it up in a word, or let a man simply \"finish and step back\".");
-            sb.AppendLine("STAGGER THEM, DO NOT SYNCHRONISE: real men do not all take the prisoner in the same instant, nor all");
-            sb.AppendLine("spend together. Vary it beat to beat - one takes his turn while the others watch, wait, and goad, or");
-            sb.AppendLine("two use different holes at once - but their FINISHES land at DIFFERENT moments: one spends and pulls");
-            sb.AppendLine("back, another takes his place, a third is still working while the first is already done and jeering.");
-            sb.AppendLine("NEVER a tidy group climax where all erupt at once; that reads as staged, not real. Keep the timing");
-            sb.AppendLine("ragged - men trading places, some slower, some rougher, one waiting his turn and growing impatient.");
+            sb.AppendLine("STAGGER THEM ACROSS BEATS, DO NOT SYNCHRONISE: real men do not all spend together. Spread their");
+            sb.AppendLine("FINISHES across SEPARATE beats - ONE man reaches his climax THIS beat, depicted fully; a DIFFERENT");
+            sb.AppendLine("man reaches his in a LATER beat, and so on, so the peaks come ONE AT A TIME over the scene, never");
+            sb.AppendLine("compressed into a single moment. Within a beat one takes his turn while the others watch, wait, and");
+            sb.AppendLine("goad, or two use different holes at once - but NO MORE THAN ONE man FINISHES per beat, and never a");
+            sb.AppendLine("tidy group climax where all erupt at once (that reads as staged, not real). A man who has spent");
+            sb.AppendLine("pulls back, jeers, or watches; the next takes his place. Keep the timing ragged - some slower, some");
+            sb.AppendLine("rougher, one waiting his turn and growing impatient - and let the SEQUENCE of finishes carry the");
+            sb.AppendLine("scene FORWARD beat by beat; NEVER re-narrate a finish already shown, that is the looping that kills");
+            sb.AppendLine("the scene.");
             sb.AppendLine();
          }
          else if (!hasOthers)
