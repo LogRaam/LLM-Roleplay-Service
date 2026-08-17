@@ -48,6 +48,15 @@ namespace NpcMemoryService.Core.Prompts
          if (!string.IsNullOrWhiteSpace(playerSituation)) sb.AppendLine(playerSituation);
       }
 
+      // Player report: letters never named their sender, so the player could not tell who to answer (worse when
+      // the writer wears a helmet in their portrait, or is challenging them to a duel / naming a meeting place).
+      // The window heading shows "A LETTER FROM X", but the letter itself read anonymously; make the writer sign
+      // it, and introduce themselves plainly when they are barely known.
+      private static string SignOffLine(NpcProfile npc, string playerName)
+         => $"Sign the letter at the end with your own name, {npc.Name}, so {playerName} knows at a glance who "
+          + "wrote it and whom to answer. If the two of you are barely acquainted, also name yourself and your "
+          + "house plainly in the opening.";
+
       /// <summary>
       ///   Builds the trigger message for an NPC-initiated letter (no player reply).
       /// </summary>
@@ -67,6 +76,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Write the letter now, in your own voice. This is correspondence,");
          sb.AppendLine("not a face-to-face conversation. Keep it to 2-3 paragraphs.");
          sb.AppendLine($"Address {playerName} by name. Do not use modern expressions.");
+         sb.AppendLine(SignOffLine(npc, playerName));
          AppendPlace(sb, whereabouts, playerSituation);
          sb.AppendLine("Write ONLY the letter body in [DIALOGUE]. Do not emit [EVENT], [ACTION], [STANCE], or any");
          sb.AppendLine("section other than the letter text. No section headers, no meta-text.");
@@ -100,6 +110,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("where N is the days you would wait before sending (1=urgent, 2-3=normal, 4-7=considered).");
          sb.AppendLine("Leave one blank line, then write your reply letter in 2-3 paragraphs.");
          sb.AppendLine($"Address {playerName} by name. Period-appropriate language only.");
+         sb.AppendLine(SignOffLine(npc, playerName));
          // The weaker form of AppendNothingIsSettledByLetter: this path answers a letter the PLAYER chose to
          // write, so the host cannot know what is being answered and cannot name the debt. The invariant still
          // holds for every reason, and it is the only guard on this path.
@@ -156,6 +167,7 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.AppendLine("Write your reply letter in 2-3 paragraphs. Stay in character.");
          sb.AppendLine($"Address {playerName} by name. Do not use modern expressions.");
+         sb.AppendLine(SignOffLine(npc, playerName));
          AppendPlace(sb, whereabouts, playerSituation);
          sb.AppendLine($"Write the letter in the same language as the quoted letter from {playerName} above, not the");
          sb.AppendLine("language of this internal instruction.");
