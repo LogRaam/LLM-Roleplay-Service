@@ -278,6 +278,31 @@ namespace NpcMemoryServiceTests
          prefix.Should().Contain("only ever about a third party");
       }
 
+      // action_bench finding (2026-08-17, grok): specific catalog verbs kept losing to the two prominent core
+      // signals, sway_opinion/grant_stipend/make_amends read as change_relation, expel_from_clan/part_ways read as
+      // end_conversation. The prefix must carry a PRECEDENCE rule: a concrete deed is emitted as itself, with the
+      // generic signals only ever accompanying it, never replacing it.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_it_prefers_the_specific_action_over_the_generic_signals()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("PREFER THE SPECIFIC ACTION");
+         prefix.Should().Contain("must NEVER be recorded as ONLY a change_relation");
+      }
+
+      // action_bench finding (2026-08-17, grok): give_influence and lend_troops fired on prose that only WEIGHED or
+      // DEFERRED the deed ("when the moment is right", "not today", "I will think on it"). The prefix must state
+      // plainly that only a deed completed THIS turn counts, so a considered or future or conditional act is withheld.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_it_requires_a_completed_deed_not_a_promise_or_intention()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("ONLY A COMPLETED DEED COUNTS");
+         prefix.Should().Contain("has NOT");
+      }
+
       // The rich, hand-tuned wording for the five core reactive signals is the one thing this catalog wiring must
       // never weaken. If the catalog-rendered "OTHER ACTIONS" section were spliced in BEFORE them, or interleaved
       // with them, a provider's prompt cache would still work (the whole thing is still the stable prefix), but a

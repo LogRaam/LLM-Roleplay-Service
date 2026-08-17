@@ -375,12 +375,12 @@ namespace NpcMemoryService.Core.Actions
             Spec("recruit_notable",
                "A settlement notable (gang leader, headman, merchant, artisan, rural notable, or preacher) leaves their post and swears into the player's clan as a companion; their role passes to a successor in the same settlement, and a starting relation bonus is applied.",
                tells: new[] {
-                  "a settlement notable actually leaves their post and swears into the player's clan as a companion in this reply"
+                  "a settlement NOTABLE (a headman, gang leader, artisan, merchant, or the like, NOT a noble lord) actually leaves their post, with a successor taking it up, and swears into the player's clan as a companion in this reply"
                },
                antiPatterns: new[] {
                   "the notable merely being courted or considering the offer, without actually leaving their post",
                   "a captured hero PRISONER switching sides rather than a free settlement notable, which is recruit_prisoner",
-                  "a lord forsaking their own house to join the clan instead, which is the distinct verb join_clan"
+                  "a NOBLE LORD forsaking their own house to join the clan instead (no post, no successor), which is the distinct verb join_clan"
                }),
             Spec("grant_blessing",
                "The NPC, as head of their clan, consents to the player marrying the named kin of their house (or the NPC themselves).",
@@ -396,11 +396,11 @@ namespace NpcMemoryService.Core.Actions
             Spec("arrange_marriage",
                "The player weds one of their own unwed kin to one of the NPC's house, a match in which the player is neither spouse.",
                tells: new[] {
-                  "the player actually weds one of their own unwed kin to one of the NPC's house in this reply, the player themselves not a party to the union"
+                  "TWO OTHER PEOPLE wed in this reply, the player marrying off one of their OWN kin to the NPC's house, the player themselves NEITHER of the two spouses"
                },
                antiPatterns: new[] {
                   "the match merely being proposed or discussed, without the wedding actually taking place",
-                  "the player themselves being one of the two spouses instead, which is marry",
+                  "the PLAYER being one of the two spouses (the player weds the NPC), which is marry, never arrange_marriage",
                   "consent for the match being granted without the wedding itself occurring, which is grant_blessing"
                },
                new GameActionParam("player_kin", "the player's own unwed kin to be wed"),

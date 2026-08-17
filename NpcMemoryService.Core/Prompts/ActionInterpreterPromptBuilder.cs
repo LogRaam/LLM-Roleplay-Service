@@ -69,7 +69,17 @@ namespace NpcMemoryService.Core.Prompts
       {
          sb.AppendLine("OTHER ACTIONS YOU MAY EMIT: ONLY when the prose UNAMBIGUOUSLY shows this exact concrete deed");
          sb.AppendLine("happening in the reply. When in doubt, do not emit. Format each as an [ACTION] block with a");
-         sb.AppendLine("'type:' line and the listed parameters, exactly like the actions above:");
+         sb.AppendLine("'type:' line and the listed parameters, exactly like the actions above.");
+         sb.AppendLine();
+         sb.AppendLine("TWO RULES GOVERN THESE:");
+         sb.AppendLine("1. PREFER THE SPECIFIC ACTION. When a concrete deed below fits what happened, emit THAT action.");
+         sb.AppendLine("   change_relation and end_conversation are general fallbacks: a specific action MAY be accompanied");
+         sb.AppendLine("   by one, but a concrete deed must NEVER be recorded as ONLY a change_relation or an");
+         sb.AppendLine("   end_conversation. A regard shift toward a NAMED third party is sway_opinion, not change_relation;");
+         sb.AppendLine("   a companion leaving your service or party is its own verb, not merely end_conversation.");
+         sb.AppendLine("2. ONLY A COMPLETED DEED COUNTS. A deed merely offered, promised, weighed, made conditional, or put");
+         sb.AppendLine("   off ('not now', 'I will think on it', 'when the time is right', 'if you first...') has NOT");
+         sb.AppendLine("   happened this turn: emit nothing for it.");
          sb.AppendLine();
 
          // The signals already taught above by hand, with carefully-tuned wording that must never be diluted:
