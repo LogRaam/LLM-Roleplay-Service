@@ -53,6 +53,19 @@ namespace NpcMemoryServiceTests
          prefix.Should().Contain("end_conversation");
       }
 
+      // Player report (2026-08-16): the player WARNED an NPC of a Kuzait patrol about to attack her; she answered
+      // warily (a guarded warrior probing a stranger's motive) and the interpreter read that cold tone as a regard
+      // PENALTY (-2). A helpful act met with suspicion is still helpful. The prefix must teach that change_relation
+      // is judged by what the PLAYER earned, not the NPC's own guarded mood.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_it_does_not_penalise_the_npcs_own_mood()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("DO NOT PENALISE THE NPC'S OWN MOOD");
+         prefix.Should().Contain("met with suspicion is STILL helpful");
+      }
+
       // rp_bench scene 4 finding (2026-08-15): a captive scene closes with no spoken goodbye - the captor has the
       // prisoner hauled back to the cell / staked / left for the night - and the interpreter kept reading that as a
       // Confrontation and missing end_conversation, while the integrated model caught it as a Farewell + close. The
