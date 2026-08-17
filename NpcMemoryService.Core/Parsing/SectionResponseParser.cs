@@ -112,18 +112,19 @@ namespace NpcMemoryService.Core.Parsing
          IReadOnlyList<ResolutionProposal> resolutions = ParseResolutions(rawResponse);
          QuestProposal? questGiven = ParseQuestProposal(questSection);
 
+         // A model that answers with a function-CALL rather than our [ACTION] block leaves the raw JSON sitting in
+         // the spoken line, and the player watches the NPC recite our plumbing (Nexus, 2026-07-19). ParseActions
+         // recovers the call so the deed still happens; this takes it out of the character's mouth.
+         string dialogueClean = StripJsonActionEnvelopes(dialogue).Trim();
+         string narration = string.IsNullOrWhiteSpace(narrationSection) ? null : narrationSection!.Trim();
+         // A model sometimes writes a narration paragraph with the WRONG delimiters - "*NARRATION ...*" in asterisks
+         // instead of the taught [NARRATION]...[/NARRATION] block (mimo, 2026-08-16) - so the bracket parser above
+         // misses it and the literal label leaks into the spoken line. Lift that prose into the narration channel.
+         dialogueClean = RecoverStrayNarration(dialogueClean, ref narration);
+
          return new ParsedResponse {
-            // A model that answers with a function-CALL rather than our [ACTION] block leaves the raw JSON
-            // sitting in the spoken line, and the player watches the NPC recite our plumbing (reported on
-            // Nexus, 2026-07-19). ParseActions recovers the call so the deed still happens; this takes it
-            // out of the character's mouth. Both halves are needed: stripping alone would silence a regard
-            // change the NPC plainly meant, recovering alone would still show the JSON.
-            Dialogue = StripJsonActionEnvelopes(dialogue).Trim(),
-            // netstandard2.0 has no NotNullWhen annotation on IsNullOrWhiteSpace,
-            // so the compiler can't see the guard — hence the '!'.
-            Narration = string.IsNullOrWhiteSpace(narrationSection)
-               ? null
-               : narrationSection!.Trim(),
+            Dialogue = dialogueClean,
+            Narration = string.IsNullOrWhiteSpace(narration) ? null : narration,
             NarrationBeforeDialogue = IsNarrationBeforeDialogue(rawResponse),
             Memory = ParseMemory(memorySection),
             NewEventData = ParseEventData(eventSection),
@@ -419,6 +420,37 @@ namespace NpcMemoryService.Core.Parsing
          }
 
          return found;
+      }
+
+      // A leaked narration block: the all-caps label NARRATION wrapped in asterisks (the malformed form the bracket
+      // parser misses), capturing the prose between the label and the closing asterisk. CASE-SENSITIVE on the label
+      // so a lowercase "narration" mentioned in real dialogue is never touched.
+      private const string StrayNarrationPattern = @"\*+\s*NARRATION\b[:\-\s]*(.+?)\s*\*+";
+
+      /// <summary>
+      ///   Lifts a malformed "*NARRATION ...*" the bracket parser missed out of the spoken line and into the
+      ///   narration channel, so the label never reaches the player and the atmospheric prose still renders. Only
+      ///   the all-caps NARRATION label (in asterisks) is recovered; anything else is left untouched.
+      /// </summary>
+      private static string RecoverStrayNarration(string dialogue, ref string narration)
+      {
+         if (string.IsNullOrEmpty(dialogue) || dialogue.IndexOf("NARRATION", StringComparison.Ordinal) < 0)
+            return dialogue;
+
+         var lifted = "";
+         string cleaned = Regex.Replace(dialogue, StrayNarrationPattern, m =>
+         {
+            string prose = m.Groups[1].Value.Trim();
+            if (prose.Length > 0) lifted = lifted.Length == 0 ? prose : lifted + " " + prose;
+
+            return "";
+         }, RegexOptions.Singleline);
+
+         if (lifted.Length == 0) return dialogue;
+
+         narration = string.IsNullOrWhiteSpace(narration) ? lifted : narration + " " + lifted;
+
+         return cleaned.Trim();
       }
 
       /// <summary>Removes any recovered function-call JSON from a spoken line, so the NPC never recites it.</summary>

@@ -95,5 +95,33 @@ namespace NpcMemoryServiceTests
 
          _parser.Parse(raw).NarrationBeforeDialogue.Should().BeTrue();
       }
+
+      // Player report (mimo, 2026-08-16): a model wrote its scene prose as "*NARRATION ...*" in asterisks instead
+      // of the taught [NARRATION] block, so the bracket parser missed it and the literal label leaked into the
+      // spoken bubble. The stray label must be lifted into the narration channel and removed from the dialogue.
+      [Test]
+      public void GIVEN_a_stray_asterisk_narration_label_in_the_dialogue_WHEN_parsed_THEN_it_is_lifted_to_narration()
+      {
+         const string raw = "[DIALOGUE]\nUnderstood?\n*NARRATION The riders stir as she approaches, horses snorting in the cold.*\n[/DIALOGUE]";
+
+         ParsedResponse parsed = _parser.Parse(raw);
+
+         parsed.Dialogue.Should().Be("Understood?");
+         parsed.Dialogue.Should().NotContain("NARRATION");
+         parsed.Narration.Should().Contain("The riders stir as she approaches");
+      }
+
+      // The recovery keys on the ALL-CAPS label only: a lowercase "narration" mentioned inside a real line is
+      // ordinary dialogue and must be left exactly as written, never stripped or lifted.
+      [Test]
+      public void GIVEN_a_lowercase_narration_word_in_the_dialogue_WHEN_parsed_THEN_it_is_untouched()
+      {
+         const string raw = "[DIALOGUE]\nSpare me the narration and speak plainly.\n[/DIALOGUE]";
+
+         ParsedResponse parsed = _parser.Parse(raw);
+
+         parsed.Dialogue.Should().Be("Spare me the narration and speak plainly.");
+         parsed.Narration.Should().BeNull();
+      }
    }
 }
