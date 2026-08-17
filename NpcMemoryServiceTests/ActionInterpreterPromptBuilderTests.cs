@@ -253,6 +253,31 @@ namespace NpcMemoryServiceTests
          prefix.Should().Contain("dispatch_mission");
       }
 
+      // Centralisation step 2: the catalog now carries per-action Tells and AntiPatterns (authored once, in
+      // GameActionCatalog), and the interpreter must actually RENDER them, or the shared guidance sits unused and the
+      // interpreter reverts to guessing each verb from its bare one-line description. This pins that the catalog
+      // section emits the "emit when" / "not when" guidance labels at all.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_the_catalog_section_renders_per_action_emit_and_not_when_guidance()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("emit when:");
+         prefix.Should().Contain("not when:");
+      }
+
+      // The guidance is only worth rendering if it carries the disambiguation that keeps confusable verbs apart. The
+      // single hardest class of extraction error is emitting a neighbouring verb, so this pins that a representative
+      // anti-pattern actually reaches the prefix: sway_opinion (a third-party regard shift) must warn against
+      // change_relation (the player-regard shift), the exact pair a model conflates.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_the_rendered_guidance_disambiguates_a_neighbouring_verb()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("only ever about a third party");
+      }
+
       // The rich, hand-tuned wording for the five core reactive signals is the one thing this catalog wiring must
       // never weaken. If the catalog-rendered "OTHER ACTIONS" section were spliced in BEFORE them, or interleaved
       // with them, a provider's prompt cache would still work (the whole thing is still the stable prefix), but a

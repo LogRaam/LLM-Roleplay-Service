@@ -55,11 +55,15 @@ namespace NpcMemoryService.Core.Prompts
 
       /// <summary>
       ///   Renders every <see cref="GameActionCatalog" /> entry NOT already hand-taught above as a compact
-      ///   reference block: one line per action, its description, and its parameters. Built once from the static
-      ///   catalog (no per-turn data), so it stays part of the cacheable stable prefix. A LOCAL set, not a static
-      ///   field: this method runs from <see cref="_stablePrefix" />'s own field initializer, which runs before any
-      ///   static field declared later in the file would be assigned, so a static exclusion set here would still
-      ///   read null at that point.
+      ///   reference block: one line per action with its description and parameters, then its concept-level
+      ///   emission guidance from the catalog: an "emit when" line (the <see cref="GameActionSpec.Tells" />, how the
+      ///   deed reads as genuinely happening this turn) and a "not when" line (the
+      ///   <see cref="GameActionSpec.AntiPatterns" />, the look-alikes to withhold on). This is the same single
+      ///   source the 1:1 prose prompt draws from, so the two never drift. Built once from the static catalog (no
+      ///   per-turn data), so it all stays part of the cacheable stable prefix. A LOCAL set, not a static field:
+      ///   this method runs from <see cref="_stablePrefix" />'s own field initializer, which runs before any static
+      ///   field declared later in the file would be assigned, so a static exclusion set here would still read null
+      ///   at that point.
       /// </summary>
       private static void AppendOtherActions(StringBuilder sb)
       {
@@ -98,6 +102,12 @@ namespace NpcMemoryService.Core.Prompts
             }
 
             sb.AppendLine(line.ToString());
+
+            if (spec.Tells.Count > 0)
+               sb.Append("    emit when: ").AppendLine(string.Join("; ", spec.Tells));
+
+            if (spec.AntiPatterns.Count > 0)
+               sb.Append("    not when: ").AppendLine(string.Join("; ", spec.AntiPatterns));
          }
 
          sb.AppendLine();
