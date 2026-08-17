@@ -1,8 +1,8 @@
 // Code written by Gabriel Mailhot, 17/08/2026.
 // The bench report is what a run actually shows the developer, so its arithmetic and its scoreboard must be exact:
 // a wrong tally or a swallowed failure would send tuning at the wrong verb, or hide a broken run behind a clean
-// number. These pure tests feed synthetic results (no LLM) and pin the counts, the pass rule, and that the
-// scoreboard surfaces every non-passing case (including a call failure).
+// number. With more than one pass a case is judged by MAJORITY, so these pure tests (synthetic results, no LLM) pin
+// the run tallies, the pass rule, the majority rule, and that the scoreboard surfaces every non-passing case.
 
 #region
 
@@ -19,87 +19,119 @@ namespace NpcMemoryServiceTests
    [TestFixture]
    public class ActionBenchReportTests
    {
-      private static ActionBenchResult Positive(string verb, ActionBenchVerdict verdict)
-         => new ActionBenchResult(ActionBenchCase.Expect(verb, verb, "ctx", "prose", verb),
-            true, null, new List<GameAction>(), verdict);
+      private static ActionBenchResult Run(string id, string verb, ActionBenchVerdict verdict, bool callOk = true)
+      {
+         bool negative = verdict == ActionBenchVerdict.CorrectWithhold || verdict == ActionBenchVerdict.FalsePositive;
+         ActionBenchCase test = negative
+            ? ActionBenchCase.ExpectNone(id, verb, "ctx", "prose", verb)
+            : ActionBenchCase.Expect(id, verb, "ctx", "prose", verb);
 
-      private static ActionBenchResult Negative(string verb, ActionBenchVerdict verdict)
-         => new ActionBenchResult(ActionBenchCase.ExpectNone(verb + "_neg", verb, "ctx", "prose", verb),
-            true, null, new List<GameAction>(), verdict);
+         return new ActionBenchResult(test, callOk, callOk ? null : "timeout", new List<GameAction>(), verdict);
+      }
 
-      private static ActionBenchResult Failed(string verb)
-         => new ActionBenchResult(ActionBenchCase.Expect(verb, verb, "ctx", "prose", verb),
-            false, "timeout", null, ActionBenchVerdict.Miss);
-
-      // Each verdict must land in its own tally and nowhere else: a hit is not a withhold, a call failure is not a
-      // miss. Passed is exactly hits plus correct withholds, the two "the interpreter got it right" outcomes.
+      // Each verdict must land in its own tally and nowhere else: a hit is not a partial, a call failure is not a
+      // miss. CasesPassed counts distinct cases that passed, TotalCases counts distinct cases.
       [Test]
       public void GIVEN_a_mix_of_results_WHEN_aggregated_THEN_each_tally_is_exact()
       {
          var report = new ActionBenchReport(new[] {
-            Positive("give_gold", ActionBenchVerdict.Hit),
-            Positive("give_troops", ActionBenchVerdict.Miss),
-            Positive("grant_stipend", ActionBenchVerdict.ParamMismatch),
-            Negative("take_gold", ActionBenchVerdict.CorrectWithhold),
-            Negative("marry", ActionBenchVerdict.FalsePositive),
-            Failed("sway_opinion")
+            Run("give_gold", "give_gold", ActionBenchVerdict.Hit),
+            Run("marry", "marry", ActionBenchVerdict.PartialHit),
+            Run("give_troops", "give_troops", ActionBenchVerdict.Miss),
+            Run("grant_stipend", "grant_stipend", ActionBenchVerdict.ParamMismatch),
+            Run("take_gold", "take_gold", ActionBenchVerdict.CorrectWithhold),
+            Run("sell", "sell_prisoner", ActionBenchVerdict.FalsePositive),
+            Run("sway", "sway_opinion", ActionBenchVerdict.Hit, callOk: false)
          });
 
-         report.Total.Should().Be(6);
+         report.TotalRuns.Should().Be(7);
+         report.TotalCases.Should().Be(7);
          report.Hits.Should().Be(1);
+         report.PartialHits.Should().Be(1);
          report.Misses.Should().Be(1);
          report.ParamMismatches.Should().Be(1);
          report.CorrectWithholds.Should().Be(1);
          report.FalsePositives.Should().Be(1);
          report.CallFailures.Should().Be(1);
-         report.Passed.Should().Be(2); // the hit and the correct withhold
+         report.CasesPassed.Should().Be(2); // the hit and the correct withhold
       }
 
-      // A call failure is not a pass: it spent tokens and produced nothing, so it must count against the run and be
-      // visible, never quietly folded into "withheld" just because no forbidden action came back.
+      // A partial hit (the "1 of 2" extraction) is NOT a pass: only every expected action landing counts, or a
+      // dropped second deed would flatter the interpreter.
       [Test]
-      public void GIVEN_a_call_failure_WHEN_aggregated_THEN_it_is_not_counted_as_a_pass()
+      public void GIVEN_a_partial_hit_WHEN_aggregated_THEN_it_is_not_counted_as_a_pass()
       {
-         var report = new ActionBenchReport(new[] {Failed("give_gold")});
+         var report = new ActionBenchReport(new[] {Run("marry_and_warm", "marry", ActionBenchVerdict.PartialHit)});
 
-         report.Passed.Should().Be(0);
-         report.CallFailures.Should().Be(1);
+         report.CasesPassed.Should().Be(0);
+         report.PartialHits.Should().Be(1);
       }
 
-      // The scoreboard is the actionable output: it must name every failing case (so tuning knows where to look)
-      // and must NOT list a case that passed. The totals line reports the pass count.
+      // The majority rule: a case run several times passes if MOST of its runs pass, so one unlucky run of a
+      // nondeterministic model does not read as a stable failure.
+      [Test]
+      public void GIVEN_a_case_run_three_times_with_two_passes_WHEN_aggregated_THEN_the_case_passes_by_majority()
+      {
+         var report = new ActionBenchReport(new[] {
+            Run("give_influence", "give_influence", ActionBenchVerdict.Hit),
+            Run("give_influence", "give_influence", ActionBenchVerdict.Hit),
+            Run("give_influence", "give_influence", ActionBenchVerdict.Miss)
+         });
+
+         report.TotalRuns.Should().Be(3);
+         report.TotalCases.Should().Be(1);
+         report.CasesPassed.Should().Be(1); // 2 of 3 passed
+      }
+
+      // The other side of the majority rule: mostly-failing runs fail the case, and the scoreboard shows the rate.
+      [Test]
+      public void GIVEN_a_case_that_fails_most_of_its_runs_WHEN_formatted_THEN_it_is_listed_with_its_pass_rate()
+      {
+         var report = new ActionBenchReport(new[] {
+            Run("give_influence", "give_influence", ActionBenchVerdict.FalsePositive),
+            Run("give_influence", "give_influence", ActionBenchVerdict.FalsePositive),
+            Run("give_influence", "give_influence", ActionBenchVerdict.CorrectWithhold)
+         });
+
+         report.CasesPassed.Should().Be(0);
+
+         string board = report.Format();
+         board.Should().Contain("give_influence");
+         board.Should().Contain("1/3"); // one of three runs passed
+      }
+
+      // The scoreboard is the actionable output: it must name every failing case and not a passing one.
       [Test]
       public void GIVEN_a_report_WHEN_formatted_THEN_it_lists_the_failing_cases_and_not_the_passing_one()
       {
          var report = new ActionBenchReport(new[] {
-            Positive("give_gold", ActionBenchVerdict.Hit),
-            Positive("give_troops", ActionBenchVerdict.Miss),
-            Negative("take_gold", ActionBenchVerdict.FalsePositive)
+            Run("give_gold", "give_gold", ActionBenchVerdict.Hit),
+            Run("give_troops", "give_troops", ActionBenchVerdict.Miss),
+            Run("take_gold", "take_gold", ActionBenchVerdict.FalsePositive)
          });
 
          string board = report.Format();
 
-         board.Should().Contain("1/3 passed");
-         board.Should().Contain("give_troops");   // the miss is surfaced
-         board.Should().Contain("take_gold");     // the false positive is surfaced
-         board.Should().Contain("FAILURES:");
+         board.Should().Contain("1/3 cases passed");
+         board.Should().Contain("give_troops");
+         board.Should().Contain("take_gold");
+         board.Should().Contain("FAILURES");
       }
 
-      // The clean run: nothing failed, so the scoreboard says so plainly rather than printing an empty FAILURES
-      // list, which reads as a formatting bug.
+      // The clean run says so plainly rather than printing an empty FAILURES list, which reads as a formatting bug.
       [Test]
       public void GIVEN_an_all_pass_report_WHEN_formatted_THEN_it_says_all_cases_passed()
       {
          var report = new ActionBenchReport(new[] {
-            Positive("give_gold", ActionBenchVerdict.Hit),
-            Negative("take_gold", ActionBenchVerdict.CorrectWithhold)
+            Run("give_gold", "give_gold", ActionBenchVerdict.Hit),
+            Run("take_gold", "take_gold", ActionBenchVerdict.CorrectWithhold)
          });
 
          string board = report.Format();
 
-         board.Should().Contain("2/2 passed");
+         board.Should().Contain("2/2 cases passed");
          board.Should().Contain("All cases passed");
-         board.Should().NotContain("FAILURES:");
+         board.Should().NotContain("FAILURES");
       }
    }
 }

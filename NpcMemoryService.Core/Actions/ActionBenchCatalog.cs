@@ -367,6 +367,24 @@ namespace NpcMemoryService.Core.Actions
                prose: "*Reinhard's eyes glisten with something like relief.* Then it is settled, with your blessing I will hang up my sword at last and rest these old bones somewhere quiet.",
                expectedType: "retire"),
 
+            // ----- Multi-action cases (one reply, TWO concrete deeds: BOTH tags must fire) -----
+
+            // The interpreter must not stop at the first deed and drop the second. Here a lord both hands over coin
+            // AND swears a verifiable oath in the same breath.
+            ActionBenchCase.Expect("give_gold_and_swear_oath", "give_gold",
+                  contextFacts: "NPC: Lord Ansen of the Western Empire, a sworn ally. Regard toward player: +35.",
+                  prose: "*Ansen counts three hundred denars into your hand, then lays his palm flat on his sword.* Take this for the road. And you have my sworn word besides: I will keep the peace with the Aserai, whatever my temper.",
+                  expectedType: "give_gold", expectedParams: new Dictionary<string, string> {{"amount", "300"}})
+               .And("swear_oath", new Dictionary<string, string> {{"oath_kind", "keep_peace"}, {"target_faction", "Aserai"}}),
+
+            // Two governance deeds at once: the player names a companion governor AND sets their daily stipend in the
+            // same reply. A model that tags only the appointment loses the wage.
+            ActionBenchCase.Expect("appoint_governor_and_grant_stipend", "appoint_governor",
+                  contextFacts: "NPC: Sir Reinhard, a lord of the player's own clan. The town of Pravend has no governor. The player has just named him governor and set his pay.",
+                  prose: "*Reinhard takes up the town's seal and bows.* Governor of Pravend, and two hundred denars a day for the burden of it. Generous terms. I will not let the walls fall while I hold them.",
+                  expectedType: "appoint_governor", expectedParams: new Dictionary<string, string> {{"target_fief", "Pravend"}})
+               .And("grant_stipend", new Dictionary<string, string> {{"target_amount", "200"}}),
+
             // ----- Negative cases (a look-alike that must NOT emit) -----
 
             // Narrated-but-not-done: the NPC speaks OF coin without any of it changing hands. A model that emits

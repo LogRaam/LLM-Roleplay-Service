@@ -24,16 +24,21 @@ namespace NpcMemoryService.Core.Actions
    public static class ActionBenchRunner
    {
       /// <summary>
-      ///   Runs every case in <paramref name="cases" /> through <paramref name="interpreter" /> and scores it.
-      ///   Cases run sequentially so a caller can watch progress and a cancellation stops cleanly. A failed call
-      ///   is recorded as such (never silently scored), so token spend on a broken run is visible in the report.
+      ///   Runs every case in <paramref name="cases" /> through <paramref name="interpreter" /> and scores it,
+      ///   <paramref name="passes" /> times each (default 1), so a nondeterministic model's dice can be averaged
+      ///   out by the report's majority rule. Cases run sequentially so a caller can watch progress and a
+      ///   cancellation stops cleanly. A failed call is recorded as such (never silently scored), so token spend on
+      ///   a broken run is visible in the report.
       /// </summary>
       public static async Task<ActionBenchReport> RunAsync(ILlmClient interpreter,
-         IReadOnlyList<ActionBenchCase> cases, CancellationToken ct = default)
+         IReadOnlyList<ActionBenchCase> cases, int passes = 1, CancellationToken ct = default)
       {
+         if (passes < 1) passes = 1;
+
          var parser = new SectionResponseParser();
          var results = new List<ActionBenchResult>();
 
+         for (int pass = 0; pass < passes; pass++)
          foreach (ActionBenchCase test in cases)
          {
             ct.ThrowIfCancellationRequested();

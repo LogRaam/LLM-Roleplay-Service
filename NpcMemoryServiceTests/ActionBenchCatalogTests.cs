@@ -61,7 +61,7 @@ namespace NpcMemoryServiceTests
             if (c.IsNegative)
                c.ForbiddenType.Should().NotBeNullOrWhiteSpace($"negative case '{c.Id}' must name a forbidden type");
             else
-               c.ExpectedType.Should().NotBeNullOrWhiteSpace($"positive case '{c.Id}' must name an expected type");
+               c.Expected.Should().NotBeEmpty($"positive case '{c.Id}' must expect at least one action");
          }
       }
    }

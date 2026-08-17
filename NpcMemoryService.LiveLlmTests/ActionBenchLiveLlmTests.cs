@@ -39,7 +39,7 @@ namespace NpcMemoryService.LiveLlmTests
 
          TestContext.Out.WriteLine(report.Format());
 
-         report.Total.Should().Be(subset.Count);
+         report.TotalCases.Should().Be(subset.Count);
          report.CallFailures.Should().Be(0, "a live run past the firewall should reach the model for every case");
       }
    }

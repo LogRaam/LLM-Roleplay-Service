@@ -21,11 +21,12 @@ namespace NpcMemoryService.Core.Actions
       /// <summary>
       ///   Judges <paramref name="emitted" /> against <paramref name="test" />. A NEGATIVE case is a
       ///   <see cref="ActionBenchVerdict.FalsePositive" /> if the forbidden type appears at all, else a
-      ///   <see cref="ActionBenchVerdict.CorrectWithhold" />. A POSITIVE case is a
-      ///   <see cref="ActionBenchVerdict.Miss" /> if the expected type never appears, a
-      ///   <see cref="ActionBenchVerdict.Hit" /> if any emitted action of that type carries every required
-      ///   parameter, otherwise a <see cref="ActionBenchVerdict.ParamMismatch" /> (the deed was recognised but a
-      ///   value was wrong or missing, a softer failure than a plain miss and worth telling apart).
+      ///   <see cref="ActionBenchVerdict.CorrectWithhold" />. A POSITIVE case scores over ALL its expected actions:
+      ///   <see cref="ActionBenchVerdict.Hit" /> when every one is emitted with matching params;
+      ///   <see cref="ActionBenchVerdict.Miss" /> when none of the expected types appear at all;
+      ///   <see cref="ActionBenchVerdict.ParamMismatch" /> when every expected type appears but a value is wrong or
+      ///   missing; and <see cref="ActionBenchVerdict.PartialHit" /> when some expected actions landed and others
+      ///   were dropped (the "1 of 2" failure a multi-action case exists to catch).
       /// </summary>
       public static ActionBenchVerdict Score(IReadOnlyList<GameAction> emitted, ActionBenchCase test)
       {
@@ -37,13 +38,16 @@ namespace NpcMemoryService.Core.Actions
                ? ActionBenchVerdict.FalsePositive
                : ActionBenchVerdict.CorrectWithhold;
 
-         List<GameAction> ofExpectedType = emitted.Where(a => TypeEquals(a.Type, test.ExpectedType)).ToList();
+         int total = test.Expected.Count;
+         int typePresent = test.Expected.Count(e => emitted.Any(a => TypeEquals(a.Type, e.Type)));
+         int matched = test.Expected.Count(e =>
+            emitted.Any(a => TypeEquals(a.Type, e.Type) && AllParamsMatch(a, e.Params)));
 
-         if (ofExpectedType.Count == 0) return ActionBenchVerdict.Miss;
+         if (matched == total) return ActionBenchVerdict.Hit;
+         if (typePresent == 0) return ActionBenchVerdict.Miss;
+         if (typePresent == total) return ActionBenchVerdict.ParamMismatch;
 
-         return ofExpectedType.Any(a => AllParamsMatch(a, test.ExpectedParams))
-            ? ActionBenchVerdict.Hit
-            : ActionBenchVerdict.ParamMismatch;
+         return ActionBenchVerdict.PartialHit;
       }
 
       #region private

@@ -125,5 +125,44 @@ namespace NpcMemoryServiceTests
 
          ActionBenchScorer.Score(new[] {Act("Free_Prisoner")}, test).Should().Be(ActionBenchVerdict.Hit);
       }
+
+      // Multi-action, the whole point of Gabriel's concern: a reply that does TWO deeds must produce BOTH tags. When
+      // both are emitted with matching params, it hits.
+      [Test]
+      public void GIVEN_a_two_action_case_with_both_emitted_WHEN_scored_THEN_it_is_a_hit()
+      {
+         ActionBenchCase test = ActionBenchCase
+            .Expect("gold_and_oath", "give_gold", "ctx", "prose", "give_gold", new Dictionary<string, string> {{"amount", "300"}})
+            .And("swear_oath", new Dictionary<string, string> {{"oath_kind", "keep_peace"}});
+
+         ActionBenchScorer.Score(new[] {Act("give_gold", ("amount", "300")), Act("swear_oath", ("oath_kind", "keep_peace"))}, test)
+            .Should().Be(ActionBenchVerdict.Hit);
+      }
+
+      // The exact "1 of 2" failure the multi-action case exists to catch: one expected deed landed, the other was
+      // dropped. This must be a PartialHit, distinct from both a clean hit and a total miss.
+      [Test]
+      public void GIVEN_a_two_action_case_with_only_one_emitted_WHEN_scored_THEN_it_is_a_partial_hit()
+      {
+         ActionBenchCase test = ActionBenchCase
+            .Expect("gold_and_oath", "give_gold", "ctx", "prose", "give_gold", new Dictionary<string, string> {{"amount", "300"}})
+            .And("swear_oath", new Dictionary<string, string> {{"oath_kind", "keep_peace"}});
+
+         ActionBenchScorer.Score(new[] {Act("give_gold", ("amount", "300"))}, test)
+            .Should().Be(ActionBenchVerdict.PartialHit);
+      }
+
+      // Neither expected action emitted is a full miss, even in a multi-action case, so a partial is never confused
+      // with a total blank.
+      [Test]
+      public void GIVEN_a_two_action_case_with_neither_emitted_WHEN_scored_THEN_it_is_a_miss()
+      {
+         ActionBenchCase test = ActionBenchCase
+            .Expect("gold_and_oath", "give_gold", "ctx", "prose", "give_gold")
+            .And("swear_oath");
+
+         ActionBenchScorer.Score(new[] {Act("change_relation", ("delta", "2"))}, test)
+            .Should().Be(ActionBenchVerdict.Miss);
+      }
    }
 }
