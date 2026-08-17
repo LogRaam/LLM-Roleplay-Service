@@ -474,7 +474,7 @@ namespace NpcMemoryService.Core.Actions
             Spec("expel_from_clan",
                "The player casts the NPC, a companion of their own clan, out of it entirely; the NPC becomes a Fugitive.",
                tells: new[] {
-                  "the player actually casts the NPC companion out of their own clan in this reply, ending their membership"
+                  "the player actually casts the NPC companion out of their own clan in this reply, ending their membership; record it as expel_from_clan even as the NPC then departs and the exchange closes, the casting-out is the deed, not merely an end_conversation"
                },
                antiPatterns: new[] {
                   "the expulsion merely being threatened or discussed, without actually being carried out",
@@ -484,7 +484,7 @@ namespace NpcMemoryService.Core.Actions
             Spec("grant_stipend",
                "The player puts the NPC, a companion of their own clan, on a recurring daily wage, funded up front for a fixed tranche of days.",
                tells: new[] {
-                  "the player actually puts the NPC companion on a recurring daily wage in this reply, funded up front"
+                  "the player actually puts the NPC companion on a recurring daily wage in this reply, funded up front; record it as grant_stipend even though the NPC thanks the player for it, the wage set is the deed, not merely a change_relation"
                },
                antiPatterns: new[] {
                   "the stipend merely being discussed or requested, without actually being granted",
@@ -591,7 +591,7 @@ namespace NpcMemoryService.Core.Actions
             Spec("part_ways",
                "A retainer riding in the player's party via ride_with_me leaves and returns to their own clan and business.",
                tells: new[] {
-                  "a retainer riding along via ride_with_me actually leaves and returns to their own clan and business in this reply"
+                  "a retainer riding along via ride_with_me actually leaves the player's party and returns to their own clan in this reply; record it as part_ways even as the conversation then closes, the leaving is the deed, not merely an end_conversation"
                },
                antiPatterns: new[] {
                   "the retainer merely grumbling about wanting to leave, without actually departing",
@@ -604,7 +604,8 @@ namespace NpcMemoryService.Core.Actions
                   "a lord actually lends the player some of their own clan's political influence in this reply"
                },
                antiPatterns: new[] {
-                  "the lord merely discussing or promising influence, without actually lending it",
+                  "a future or conditional offer of influence ('perhaps', 'when the moment is right', 'not today', 'I will think on it') is NOT influence lent this turn",
+                  "the lord merely discussing or weighing lending influence, without any actually changing hands now",
                   "the NPC accepting influence the PLAYER spends on their behalf instead, which is the mirror verb spend_influence",
                   "soldiers or gold changing hands rather than political weight, which are lend_troops/give_troops or give_gold"
                }),

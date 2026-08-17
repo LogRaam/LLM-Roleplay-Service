@@ -188,10 +188,10 @@ namespace NpcMemoryService.Core.Actions
                expectedParams: new Dictionary<string, string> {{"hero", "Ymira"}}),
 
             ActionBenchCase.Expect("arrange_marriage", "arrange_marriage",
-               contextFacts: "NPC: Lord Caladog, an unwed lord of Clan Fen Company. The player has just wed their own sister Elara to him.",
-               prose: "*Caladog takes Elara's hand before the priest.* Your own sister, wed to me here and now, a match well arranged between our houses. I will honour this bond you have built.",
+               contextFacts: "NPC: Lord Ansen, head of Clan Ravenhurst. The player has just wed their own sister Elara to Ansen's brother Bataric (the player is not one of the spouses).",
+               prose: "*Ansen watches your sister Elara and my brother Bataric join hands before the priest.* Your own kin wed into my house, and neither you nor I standing at that altar. A shrewd match, well arranged between our two clans.",
                expectedType: "arrange_marriage",
-               expectedParams: new Dictionary<string, string> {{"player_kin", "Elara"}, {"target_kin", "Caladog"}}),
+               expectedParams: new Dictionary<string, string> {{"player_kin", "Elara"}, {"target_kin", "Bataric"}}),
 
             ActionBenchCase.Expect("appoint_governor", "appoint_governor",
                contextFacts: "NPC: Sir Reinhard, a lord of the player's own clan. The town of Pravend currently has no governor.",
