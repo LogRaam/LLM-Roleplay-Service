@@ -79,6 +79,7 @@ namespace NpcMemoryService.Core.Actions
 
          _byCase = Results.GroupBy(r => r.Case.Id).ToList();
          CasesPassed = _byCase.Count(PassesByMajority);
+         CasesSolid = _byCase.Count(AllPass);
       }
 
       /// <summary>Every case run's result, in the order they were run.</summary>
@@ -90,8 +91,14 @@ namespace NpcMemoryService.Core.Actions
       /// <summary>Distinct cases (a case run several times counts once).</summary>
       public int TotalCases => _byCase.Count;
 
-      /// <summary>Cases that passed by majority of their runs.</summary>
+      /// <summary>Cases that passed by majority of their runs (includes the flaky ones that did not pass every run).</summary>
       public int CasesPassed { get; }
+
+      /// <summary>Cases that passed EVERY run (100%). A passed-but-not-solid case is flaky and still worth refining.</summary>
+      public int CasesSolid { get; }
+
+      /// <summary>Cases that passed by majority but not unanimously: noise remains on them, so they can be refined further.</summary>
+      public int CasesFlaky => CasesPassed - CasesSolid;
 
       public int CallFailures { get; }
       public int Hits { get; }
@@ -113,36 +120,53 @@ namespace NpcMemoryService.Core.Actions
 
          int passesPer = TotalCases > 0 ? TotalRuns / TotalCases : 0;
 
-         sb.Append("ACTION BENCH: ").Append(CasesPassed).Append('/').Append(TotalCases)
-           .Append(" cases passed");
+         sb.Append("ACTION BENCH: ").Append(CasesPassed).Append('/').Append(TotalCases).Append(" cases passed");
          if (passesPer > 1) sb.Append(" (majority of ").Append(passesPer).Append(" passes each)");
          sb.AppendLine();
+         sb.Append("  ").Append(CasesSolid).Append(" solid (100%), ").Append(CasesFlaky)
+           .Append(" flaky (passed but noisy), ").Append(TotalCases - CasesPassed).Append(" failing").AppendLine();
          sb.Append("  runs: ").Append(Hits).Append(" hit, ").Append(PartialHits).Append(" partial, ")
            .Append(Misses).Append(" miss, ").Append(ParamMismatches).Append(" param-mismatch, ")
            .Append(CorrectWithholds).Append(" withheld, ").Append(FalsePositives).Append(" false-positive")
            .AppendLine();
          sb.Append("  call failures: ").Append(CallFailures).AppendLine();
 
+         List<IGrouping<string, ActionBenchResult>> flaky =
+            _byCase.Where(g => PassesByMajority(g) && !AllPass(g)).ToList();
          List<IGrouping<string, ActionBenchResult>> failing = _byCase.Where(g => !PassesByMajority(g)).ToList();
-         if (failing.Count == 0)
+
+         if (flaky.Count == 0 && failing.Count == 0)
          {
-            sb.AppendLine("All cases passed.");
+            sb.AppendLine("All cases passed cleanly.");
 
             return sb.ToString();
          }
 
-         sb.AppendLine("FAILURES (by case):");
-         foreach (IGrouping<string, ActionBenchResult> g in failing)
+         // Flaky first: these already pass, but the remaining noise on them is exactly what can still be refined
+         // (a tell or anti-pattern that only lands most of the time), so they are the next lever after the failures.
+         if (flaky.Count > 0)
          {
-            int passes = g.Count(r => r.IsPass);
-            int runs = g.Count();
-            ActionBenchResult sample = g.FirstOrDefault(r => !r.IsPass) ?? g.First();
+            sb.AppendLine("FLAKY (passed but not unanimous, still refineable):");
+            foreach (IGrouping<string, ActionBenchResult> g in flaky) AppendCaseLine(sb, g);
+         }
 
-            sb.Append("  ").Append(Label(sample).PadRight(16)).Append(sample.Case.Verb.PadRight(22))
-              .Append(passes).Append('/').Append(runs).Append("  ").AppendLine(Detail(sample));
+         if (failing.Count > 0)
+         {
+            sb.AppendLine("FAILURES (by case):");
+            foreach (IGrouping<string, ActionBenchResult> g in failing) AppendCaseLine(sb, g);
          }
 
          return sb.ToString();
+      }
+
+      private static void AppendCaseLine(StringBuilder sb, IGrouping<string, ActionBenchResult> caseRuns)
+      {
+         int passes = caseRuns.Count(r => r.IsPass);
+         int runs = caseRuns.Count();
+         ActionBenchResult sample = caseRuns.FirstOrDefault(r => !r.IsPass) ?? caseRuns.First();
+
+         sb.Append("  ").Append(Label(sample).PadRight(16)).Append(sample.Case.Verb.PadRight(22))
+           .Append(passes).Append('/').Append(runs).Append("  ").AppendLine(Detail(sample));
       }
 
       #region private
@@ -153,6 +177,8 @@ namespace NpcMemoryService.Core.Actions
 
          return passes * 2 > caseRuns.Count();
       }
+
+      private static bool AllPass(IGrouping<string, ActionBenchResult> caseRuns) => caseRuns.All(r => r.IsPass);
 
       private static string Label(ActionBenchResult r)
          => r.CallSucceeded ? r.Verdict.ToString() : "CALL_FAILED";

@@ -81,6 +81,32 @@ namespace NpcMemoryServiceTests
          report.TotalRuns.Should().Be(3);
          report.TotalCases.Should().Be(1);
          report.CasesPassed.Should().Be(1); // 2 of 3 passed
+         report.CasesSolid.Should().Be(0);  // but not unanimous, so not solid
+         report.CasesFlaky.Should().Be(1);  // it is flaky: still refineable
+      }
+
+      // Gabriel's point (2026-08-17): a case that passes 3/3 is SOLID; one that passes 2/3 still has noise on it and
+      // can be refined further. The report must tell the two apart, and surface the flaky (but passing) cases so
+      // they are not lost among the clean ones.
+      [Test]
+      public void GIVEN_a_solid_case_and_a_flaky_case_WHEN_formatted_THEN_only_the_flaky_one_is_flagged_refineable()
+      {
+         var report = new ActionBenchReport(new[] {
+            Run("give_gold", "give_gold", ActionBenchVerdict.Hit),          // solid: 2/2
+            Run("give_gold", "give_gold", ActionBenchVerdict.Hit),
+            Run("give_influence", "give_influence", ActionBenchVerdict.CorrectWithhold), // flaky: 2/3
+            Run("give_influence", "give_influence", ActionBenchVerdict.CorrectWithhold),
+            Run("give_influence", "give_influence", ActionBenchVerdict.FalsePositive)
+         });
+
+         report.CasesSolid.Should().Be(1);
+         report.CasesFlaky.Should().Be(1);
+         report.CasesPassed.Should().Be(2);
+
+         string board = report.Format();
+         board.Should().Contain("FLAKY");
+         board.Should().Contain("give_influence");
+         board.Should().NotContain("give_gold"); // the solid case is not flagged for refinement
       }
 
       // The other side of the majority rule: mostly-failing runs fail the case, and the scoreboard shows the rate.
