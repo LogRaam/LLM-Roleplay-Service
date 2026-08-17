@@ -6137,7 +6137,10 @@ namespace NpcMemoryService.Core.Prompts
          }
 
          sb.AppendLine("[DIALOGUE]");
-         sb.AppendLine("Your in-character response, with your own *gestures* woven through it.");
+         sb.AppendLine("Your in-character response, with your own *gestures* woven through it. Write your OWN gestures and");
+         sb.AppendLine("actions in the FIRST person - \"*I narrow my eyes*\", \"*my hand drifts to my hilt*\" - or by your own");
+         sb.AppendLine("name. \"you\" and \"your\" refer ONLY to the PLAYER, NEVER to yourself: do not write your own eyes,");
+         sb.AppendLine("voice, or movements as \"your eyes narrow\" or \"you step back\" (that reads as the PLAYER doing it).");
          sb.AppendLine("[/DIALOGUE]");
          sb.AppendLine();
          // OPTIONAL, and the emphasis matters: the model reaches for any block the contract lists, so a
