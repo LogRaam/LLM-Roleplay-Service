@@ -7,6 +7,7 @@
 
 #region
 
+using System.Linq;
 using FluentAssertions;
 using NpcMemoryService.Core.Actions;
 using NUnit.Framework;
@@ -62,6 +63,43 @@ namespace NpcMemoryServiceTests
          {
             param.Name.Should().NotBeNullOrWhiteSpace();
             param.Meaning.Should().NotBeNullOrWhiteSpace();
+         }
+      }
+
+      // The centralisation contract: the catalog is the SINGLE place the emission quality is authored, so both the
+      // interpreter and the 1:1 prose prompt can draw from it. That only holds if EVERY verb actually carries its
+      // guidance. A verb with no tell teaches the model nothing about how the deed reads, so it silently reverts to
+      // guessing from the bare description, the exact fragility we are removing. This test is also the forcing
+      // function of the migration: it stays red until every entry leaves the transitional (empty) Spec overload.
+      [Test]
+      public void GIVEN_the_catalog_WHEN_inspected_THEN_every_spec_has_at_least_one_tell()
+      {
+         foreach (GameActionSpec spec in GameActionCatalog.All)
+            spec.Tells.Should().NotBeEmpty($"'{spec.Type}' must teach how the deed reads in prose");
+      }
+
+      // Anti-patterns are where extraction actually fails: a deed merely narrated but not done, a future or
+      // conditional promise mistaken for a completed act, or a neighbouring verb confused for this one. Requiring at
+      // least one per verb forces that disambiguation to be authored deliberately rather than left to the model's
+      // guess, and is what a negative bench case will assert against.
+      [Test]
+      public void GIVEN_the_catalog_WHEN_inspected_THEN_every_spec_has_at_least_one_anti_pattern()
+      {
+         foreach (GameActionSpec spec in GameActionCatalog.All)
+            spec.AntiPatterns.Should().NotBeEmpty($"'{spec.Type}' must name at least one false positive to withhold on");
+      }
+
+      // A blank or throwaway entry would satisfy the "not empty" checks above while teaching nothing: an empty
+      // string, or a token too short to carry a concept, defeats the whole point. The 15-char floor is deliberately
+      // low, it only rules out a placeholder ("x", "n/a"), never a genuinely terse but real cue.
+      [Test]
+      public void GIVEN_the_catalog_WHEN_inspected_THEN_every_tell_and_anti_pattern_is_a_real_phrase()
+      {
+         foreach (GameActionSpec spec in GameActionCatalog.All)
+         foreach (string cue in spec.Tells.Concat(spec.AntiPatterns))
+         {
+            cue.Should().NotBeNullOrWhiteSpace();
+            (cue.Trim().Length >= 15).Should().BeTrue($"'{spec.Type}' has a placeholder cue: \"{cue}\"");
          }
       }
    }
