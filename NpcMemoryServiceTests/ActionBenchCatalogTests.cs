@@ -19,20 +19,23 @@ namespace NpcMemoryServiceTests
    [TestFixture]
    public class ActionBenchCatalogTests
    {
-      // The coverage contract: an extraction bench that skips a verb proves nothing about that verb. Every
-      // dispatchable action must have at least one POSITIVE case (a reply where it genuinely should fire), or a
-      // regression in how it is taught would sail through unmeasured. This is the migration's forcing function: it
-      // stays red until every verb has a case.
+      // The coverage contract: testing a verb on ONE phrasing proves only that grok handles that sentence, not the
+      // deed. The prose model writes the same deed many ways (blunt, flowery, oblique), so every verb needs at least
+      // THREE distinct positive phrasings; that is what tells a hard deed apart from a merely hard sentence. This is
+      // the forcing function of the multi-composition round: it stays red until every verb carries three variants.
       [Test]
-      public void GIVEN_the_bench_WHEN_inspected_THEN_every_catalog_verb_has_at_least_one_positive_case()
+      public void GIVEN_the_bench_WHEN_inspected_THEN_every_catalog_verb_has_at_least_three_positive_phrasings()
       {
-         HashSet<string> covered = ActionBenchCatalog.All
+         Dictionary<string, int> positivesByVerb = ActionBenchCatalog.All
             .Where(c => !c.IsNegative)
-            .Select(c => c.Verb)
-            .ToHashSet();
+            .GroupBy(c => c.Verb)
+            .ToDictionary(g => g.Key, g => g.Count());
 
          foreach (string verb in GameActionCatalog.Types)
-            covered.Should().Contain(verb, $"'{verb}' has no positive extraction case");
+         {
+            positivesByVerb.TryGetValue(verb, out int count);
+            (count >= 3).Should().BeTrue($"'{verb}' has {count} positive phrasing(s); it needs at least 3 to test wording robustness");
+         }
       }
 
       // Negatives are not an afterthought: the interpreter fails hardest by emitting a look-alike, so the bench must
