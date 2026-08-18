@@ -81,6 +81,11 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("   'I would give', 'I mean to', 'one day', 'when the time is right', 'not today', 'perhaps', 'if you");
          sb.AppendLine("   first...' all describe something that has NOT happened yet: emit nothing for it. Likewise a deed");
          sb.AppendLine("   merely offered, weighed, or wished for. Emit ONLY when the reply shows the act happening NOW.");
+         sb.AppendLine("3. A PLAYER'S DEED THE REPLY REACTS TO STILL COUNTS. If a CONVERSATION SO FAR (below) shows the PLAYER");
+         sb.AppendLine("   doing or declaring a deed, and this reply ACCEPTS it or carries it out, emit THAT deed, not merely");
+         sb.AppendLine("   change_relation or end_conversation. If the player casts the NPC out and the reply is 'then I am");
+         sb.AppendLine("   gone', that is expel_from_clan; if the player hands over a sword and the reply thanks them and takes");
+         sb.AppendLine("   it, that is give_item. But if the reply REFUSES or defers the player's deed, withhold (rule 2).");
          sb.AppendLine();
 
          // The signals already taught above by hand, with carefully-tuned wording that must never be diluted:

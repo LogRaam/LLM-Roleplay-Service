@@ -43,7 +43,8 @@ namespace NpcMemoryService.Core.Actions
          {
             ct.ThrowIfCancellationRequested();
 
-            string prompt = ActionInterpreterPromptBuilder.Build(test.Prose, test.ContextFacts);
+            string contextFacts = ActionInterpreterContextBuilder.AppendConversationSoFar(test.ContextFacts, test.ConversationSoFar);
+            string prompt = ActionInterpreterPromptBuilder.Build(test.Prose, contextFacts);
 
             var request = new LlmRequest {
                SystemPrompt = prompt,

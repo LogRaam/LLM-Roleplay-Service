@@ -95,6 +95,27 @@ namespace NpcMemoryService.Core.Prompts
          return sb.ToString();
       }
 
+      /// <summary>
+      ///   Appends the recent RAW conversation turns to a digest, as BACKGROUND for the interpreter to understand
+      ///   the reply it must analyze (the antecedent a PLAYER-DEED reply is reacting to lives here). Empty or blank
+      ///   <paramref name="conversationSoFar" /> returns the digest untouched, so a case or turn without it is
+      ///   byte-for-byte what it always was. The block header states the "context only, do not re-tag" rule the
+      ///   stable prefix also teaches, so the guard travels with the data.
+      /// </summary>
+      public static string AppendConversationSoFar(string? contextFacts, string? conversationSoFar)
+      {
+         if (string.IsNullOrWhiteSpace(conversationSoFar)) return contextFacts ?? string.Empty;
+
+         var sb = new StringBuilder();
+         if (!string.IsNullOrEmpty(contextFacts)) sb.AppendLine(contextFacts!.TrimEnd());
+         sb.AppendLine();
+         sb.AppendLine("CONVERSATION SO FAR (recent turns, BACKGROUND to understand the reply below; tag ONLY the "
+                     + "latest reply, never re-tag an earlier turn):");
+         sb.Append(conversationSoFar!.Trim());
+
+         return sb.ToString();
+      }
+
       #region private
 
       /// <summary>The place (or the ship at sea) plus who, if anyone, is within earshot. Always non-empty (defaults to "alone").</summary>

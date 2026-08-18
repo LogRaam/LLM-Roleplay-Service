@@ -303,6 +303,19 @@ namespace NpcMemoryServiceTests
          prefix.Should().Contain("has NOT");
       }
 
+      // action_bench finding (2026-08-18): the biggest residual bucket was PLAYER-DEED actions the interpreter reads
+      // through the NPC's reaction alone (the player casts them out, the reply is "then I am gone", read as
+      // end_conversation). Given the conversation antecedent, the interpreter must emit the player's deed when the
+      // reply accepts it, and still withhold when the reply refuses or defers.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_it_teaches_that_a_players_deed_the_reply_accepts_still_counts()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("A PLAYER'S DEED THE REPLY REACTS TO STILL COUNTS");
+         prefix.Should().Contain("if the reply REFUSES or defers");
+      }
+
       // The rich, hand-tuned wording for the five core reactive signals is the one thing this catalog wiring must
       // never weaken. If the catalog-rendered "OTHER ACTIONS" section were spliced in BEFORE them, or interleaved
       // with them, a provider's prompt cache would still work (the whole thing is still the stable prefix), but a

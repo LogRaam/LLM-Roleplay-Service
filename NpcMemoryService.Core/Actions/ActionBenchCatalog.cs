@@ -358,7 +358,8 @@ namespace NpcMemoryService.Core.Actions
                contextFacts: "The player's inventory holds a Vlandian Noble Sword.",
                prose: "*I take the blade you offer and turn it over in the torchlight.* A Vlandian Noble Sword, and a fine one. My thanks, I will wear it proudly on my hip from here on.",
                expectedType: "give_item",
-               expectedParams: new Dictionary<string, string> {{"item", "Vlandian Noble Sword"}}),
+               expectedParams: new Dictionary<string, string> {{"item", "Vlandian Noble Sword"}})
+               .WithConversation("Player: Here, take this Vlandian Noble Sword from my own inventory. You have earned a fine blade."),
 
             ActionBenchCase.Expect("give_item_v2", "give_item",
                contextFacts: "The player's inventory holds an Aserai War Bow.",
@@ -615,7 +616,8 @@ namespace NpcMemoryService.Core.Actions
             ActionBenchCase.Expect("expel_from_clan", "expel_from_clan",
                contextFacts: "NPC: Sir Reinhard, a companion of the player's own clan, whom the player has just cast out.",
                prose: "*Reinhard's face goes white, then hardens.* Cast out, just like that? Fine. I will gather what is mine and be gone from your lands by morning, clanless as you have made me.",
-               expectedType: "expel_from_clan"),
+               expectedType: "expel_from_clan")
+               .WithConversation("Player: I have had enough of your failures, Reinhard. You are cast out of my clan, effective now. Gather your things and go."),
 
             ActionBenchCase.Expect("expel_from_clan_v2", "expel_from_clan",
                contextFacts: "NPC: Doran, a companion of the player's own clan, whom the player has just cast out.",
@@ -1048,6 +1050,22 @@ namespace NpcMemoryService.Core.Actions
                .And("grant_stipend", new Dictionary<string, string> {{"target_amount", "200"}}),
 
             // ----- Negative cases (a look-alike that must NOT emit) -----
+
+            // Player-deed antecedent that the reply REFUSES: the player offered a gift, the NPC declines it, so no
+            // give_item despite the conversation showing the offer (rule 3's withhold half).
+            ActionBenchCase.ExpectNone("give_item_offered_but_refused", "give_item",
+                  contextFacts: "NPC: Lord Ansen, a proud Vlandian lord.",
+                  prose: "*Ansen raises a hand and shakes his head.* I cannot take such a blade from you, my friend. Keep it, a lord should not be beholden to another for his own sword.",
+                  forbiddenType: "give_item")
+               .WithConversation("Player: Take this fine sword as a gift, Ansen."),
+
+            // Player-deed antecedent that the reply DEFERS: the player asked for an oath, the NPC will only weigh it,
+            // swearing nothing now, so no swear_oath even though the conversation shows the ask.
+            ActionBenchCase.ExpectNone("swear_oath_asked_but_deferred", "swear_oath",
+                  contextFacts: "NPC: Lord Caladog, weighing an alliance with the player.",
+                  prose: "*Caladog strokes his chin.* You ask a great deal. I will weigh keeping the peace with the Vlandians, but I swear no oath today, not until I have thought long on it.",
+                  forbiddenType: "swear_oath")
+               .WithConversation("Player: Swear to me here and now that you will keep the peace with the Vlandians."),
 
             // Narrated-but-not-done: the NPC speaks OF coin without any of it changing hands. A model that emits
             // give_gold here invents a transfer the prose never made.

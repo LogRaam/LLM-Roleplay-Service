@@ -65,7 +65,7 @@ namespace NpcMemoryService.Core.Actions
       private static readonly IReadOnlyDictionary<string, string> NoParams = new Dictionary<string, string>();
 
       private ActionBenchCase(string id, string verb, string contextFacts, string prose,
-         IReadOnlyList<ExpectedAction> expected, string forbiddenType)
+         IReadOnlyList<ExpectedAction> expected, string forbiddenType, string conversationSoFar)
       {
          Id = id;
          Verb = verb;
@@ -73,6 +73,7 @@ namespace NpcMemoryService.Core.Actions
          Prose = prose;
          Expected = expected ?? new List<ExpectedAction>();
          ForbiddenType = forbiddenType;
+         ConversationSoFar = conversationSoFar;
       }
 
       /// <summary>A short, unique label for the case (usually the verb, or the verb plus a variant suffix).</summary>
@@ -93,6 +94,14 @@ namespace NpcMemoryService.Core.Actions
       /// <summary>The look-alike action the interpreter must NOT emit, or null on a positive case.</summary>
       public string ForbiddenType { get; }
 
+      /// <summary>
+      ///   The recent RAW turns of the current conversation (player and NPC lines), or null. Present on cases whose
+      ///   reply only makes sense with its antecedent, above all a PLAYER-DEED the NPC is merely reacting to (the
+      ///   player expelled them, so "I'll be gone" means expel_from_clan, not just end_conversation). BACKGROUND
+      ///   only: the interpreter still tags just the latest reply, never re-tags an earlier turn.
+      /// </summary>
+      public string ConversationSoFar { get; }
+
       /// <summary>True when this is a negative case (a withholding test), false when it expects an emission.</summary>
       public bool IsNegative => Expected.Count == 0;
 
@@ -100,16 +109,20 @@ namespace NpcMemoryService.Core.Actions
       public static ActionBenchCase Expect(string id, string verb, string contextFacts, string prose,
          string expectedType, IReadOnlyDictionary<string, string> expectedParams = null)
          => new ActionBenchCase(id, verb, contextFacts, prose,
-            new List<ExpectedAction> {new ExpectedAction(expectedType, expectedParams)}, null);
+            new List<ExpectedAction> {new ExpectedAction(expectedType, expectedParams)}, null, null);
 
       /// <summary>Adds another expected action to a positive case, so the reply must produce BOTH (a multi-action case).</summary>
       public ActionBenchCase And(string expectedType, IReadOnlyDictionary<string, string> expectedParams = null)
          => new ActionBenchCase(Id, Verb, ContextFacts, Prose,
-            Expected.Concat(new[] {new ExpectedAction(expectedType, expectedParams)}).ToList(), ForbiddenType);
+            Expected.Concat(new[] {new ExpectedAction(expectedType, expectedParams)}).ToList(), ForbiddenType, ConversationSoFar);
+
+      /// <summary>Attaches the recent raw conversation turns this reply is reacting to (see <see cref="ConversationSoFar" />).</summary>
+      public ActionBenchCase WithConversation(string conversationSoFar)
+         => new ActionBenchCase(Id, Verb, ContextFacts, Prose, Expected, ForbiddenType, conversationSoFar);
 
       /// <summary>A negative case: the interpreter must NOT emit <paramref name="forbiddenType" /> for this prose.</summary>
       public static ActionBenchCase ExpectNone(string id, string verb, string contextFacts, string prose,
          string forbiddenType)
-         => new ActionBenchCase(id, verb, contextFacts, prose, new List<ExpectedAction>(), forbiddenType);
+         => new ActionBenchCase(id, verb, contextFacts, prose, new List<ExpectedAction>(), forbiddenType, null);
    }
 }

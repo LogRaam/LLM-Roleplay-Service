@@ -271,6 +271,31 @@ namespace NpcMemoryServiceTests
             Personality = personality
          };
 
+      // The conversation-antecedent block: when recent turns are given, they are appended under a header that carries
+      // the "context only, do not re-tag" guard, so the interpreter has the player-deed antecedent a lone reply lacks.
+      [Test]
+      public void GIVEN_recent_turns_WHEN_appended_THEN_they_follow_the_digest_under_a_do_not_re_tag_header()
+      {
+         string result = ActionInterpreterContextBuilder.AppendConversationSoFar(
+            "SETTING: on the road.", "Player: You are cast out of my clan.");
+
+         result.Should().Contain("SETTING: on the road.");
+         result.Should().Contain("CONVERSATION SO FAR");
+         result.Should().Contain("never re-tag an earlier turn");
+         result.Should().Contain("Player: You are cast out of my clan.");
+      }
+
+      // The default that keeps every existing turn byte-for-byte the same: no conversation means the digest is
+      // returned untouched, never with an empty header dangling.
+      [Test]
+      public void GIVEN_no_recent_turns_WHEN_appended_THEN_the_digest_is_returned_untouched()
+      {
+         ActionInterpreterContextBuilder.AppendConversationSoFar("SETTING: on the road.", null)
+            .Should().Be("SETTING: on the road.");
+         ActionInterpreterContextBuilder.AppendConversationSoFar("SETTING: on the road.", "   ")
+            .Should().Be("SETTING: on the road.");
+      }
+
       #endregion
    }
 }
