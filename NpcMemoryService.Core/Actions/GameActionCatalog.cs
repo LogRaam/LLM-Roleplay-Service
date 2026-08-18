@@ -214,10 +214,11 @@ namespace NpcMemoryService.Core.Actions
             Spec("join_clan",
                "A lord (not a clan leader) forsakes their own house and swears into the player's clan.",
                tells: new[] {
-                  "a lord explicitly forsakes their own house and swears into the player's clan in this reply"
+                  "a NOBLE LORD (one with their own house or fief, not a settlement figure) explicitly forsakes that house and swears into the player's clan in this reply"
                },
                antiPatterns: new[] {
                   "the lord merely weighing or discussing the idea without actually swearing in",
+                  "a settlement NOTABLE (headman, gang leader, artisan) leaving their post to join, which is recruit_notable, never join_clan",
                   "a clan's own LEADER purporting to join (only a non-leader lord can), or a free wanderer merely joining as a hired companion, which is join_party",
                   "a future promise to join later rather than the oath being sworn now"
                }),

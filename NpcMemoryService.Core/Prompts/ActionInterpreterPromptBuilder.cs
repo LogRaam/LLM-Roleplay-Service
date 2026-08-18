@@ -77,9 +77,10 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("   by one, but a concrete deed must NEVER be recorded as ONLY a change_relation or an");
          sb.AppendLine("   end_conversation. A regard shift toward a NAMED third party is sway_opinion, not change_relation;");
          sb.AppendLine("   a companion leaving your service or party is its own verb, not merely end_conversation.");
-         sb.AppendLine("2. ONLY A COMPLETED DEED COUNTS. A deed merely offered, promised, weighed, made conditional, or put");
-         sb.AppendLine("   off ('not now', 'I will think on it', 'when the time is right', 'if you first...') has NOT");
-         sb.AppendLine("   happened this turn: emit nothing for it.");
+         sb.AppendLine("2. ONLY A COMPLETED DEED COUNTS, and a FUTURE-TENSE intention is NOT a completed deed. 'I will lend',");
+         sb.AppendLine("   'I would give', 'I mean to', 'one day', 'when the time is right', 'not today', 'perhaps', 'if you");
+         sb.AppendLine("   first...' all describe something that has NOT happened yet: emit nothing for it. Likewise a deed");
+         sb.AppendLine("   merely offered, weighed, or wished for. Emit ONLY when the reply shows the act happening NOW.");
          sb.AppendLine();
 
          // The signals already taught above by hand, with carefully-tuned wording that must never be diluted:
