@@ -124,6 +124,7 @@ namespace NpcMemoryService.Core.Actions
                antiPatterns: new[] {
                   "a specific, verifiable pledge (to pay, to keep peace, to fight alongside), which is swear_oath rather than a mere shift of feeling",
                   "the NPC's view of a NAMED THIRD PARTY moving, which is sway_opinion, not their own regard for the player",
+                  "a warm reaction to the player's sincere apology for a grievance the NPC KNOWINGLY held, which is make_amends (change_relation may accompany it, never replace it)",
                   "a shift merely narrated as having happened earlier, or that might happen later, rather than felt now in this reply"
                },
                new GameActionParam("delta", "signed integer, the proposed relation shift")),
@@ -167,7 +168,8 @@ namespace NpcMemoryService.Core.Actions
                antiPatterns: new[] {
                   "the wanderer merely considering, haggling over, or declining the offer, without actually agreeing to join",
                   "an NPC who already leads a party or holds a house agreeing to ride along instead, which is ride_with_me or follow_me",
-                  "swearing into the player's CLAN itself rather than merely joining their party as a hired companion, which is join_clan"
+                  "swearing into the player's CLAN itself rather than merely joining their party as a hired companion, which is join_clan",
+                  "a settlement NOTABLE leaving a POST (with a successor, no hiring price) to follow the player, which is recruit_notable, never join_party"
                },
                new GameActionParam("price", "the agreed denars (optional; defaults to the vanilla asking price, clamped to 75-125% of it)")),
             Spec("join_as_mercenary",
@@ -230,6 +232,7 @@ namespace NpcMemoryService.Core.Actions
                antiPatterns: new[] {
                   "the NPC merely describing or hinting at the scheme without the player actually throwing in",
                   "a vague future offer to help later rather than committing to it now",
+                  "the NPC (a lord) vowing to move against a rival of their OWN, which is pledge_against, not the player joining a scheme",
                   "the NPC heeding a WARNING of a plot against themselves instead, which is the mirror verb scheme_heed"
                }),
             Spec("scheme_heed",
@@ -381,7 +384,8 @@ namespace NpcMemoryService.Core.Actions
                antiPatterns: new[] {
                   "the notable merely being courted or considering the offer, without actually leaving their post",
                   "a captured hero PRISONER switching sides rather than a free settlement notable, which is recruit_prisoner",
-                  "a NOBLE LORD forsaking their own house to join the clan instead (no post, no successor), which is the distinct verb join_clan"
+                  "a NOBLE LORD forsaking their own house to join the clan instead (no post, no successor), which is the distinct verb join_clan",
+                  "a free wanderer with no post, hired into the party for a price, which is join_party, never recruit_notable"
                }),
             Spec("grant_blessing",
                "The NPC, as head of their clan, consents to the player marrying the named kin of their house (or the NPC themselves).",
@@ -420,7 +424,7 @@ namespace NpcMemoryService.Core.Actions
             Spec("assign_party_role",
                "The player sets the NPC, a companion riding in their own party, to a duty within it.",
                tells: new[] {
-                  "the player actually sets the NPC companion to a specific duty within their own party in this reply"
+                  "the player actually sets the NPC companion to a specific duty within their own party in this reply; record it even though the companion merely thanks the player or accepts, the duty set is the deed, not merely a change_relation"
                },
                antiPatterns: new[] {
                   "the assignment merely being discussed or suggested, without actually being made",
@@ -496,7 +500,7 @@ namespace NpcMemoryService.Core.Actions
             Spec("swear_oath",
                "The NPC swears a verifiable, tracked oath to the player: to pay a sum, to keep the peace with a named faction, or to fight at their side within a deadline.",
                tells: new[] {
-                  "the NPC binds themselves to the player with an explicit, verifiable pledge in this reply: to pay a set sum, to keep peace with a named house, or to fight at the player's side"
+                  "the NPC binds themselves to the player with a pledge that NAMES a sum, a faction, a side, or a term in this reply: to pay a set sum, to keep peace with a named house, or to fight at the player's side. The vow counts NOW even though what is sworn lies in the future (see the vow rule)"
                },
                antiPatterns: new[] {
                   "a vague reassurance, hope, or good intention with nothing concrete and verifiable actually pledged",
@@ -715,7 +719,8 @@ namespace NpcMemoryService.Core.Actions
                antiPatterns: new[] {
                   "the lord merely grumbling about the rival, without actually vowing a tracked scheme against them",
                   "a declaration of war, which the description explicitly excludes; this is a political scheme only",
-                  "the rival being the lord's own close kin, which the description rules out"
+                  "the rival being the lord's own close kin, which the description rules out",
+                  "the PLAYER joining the NPC's OWN existing scheme instead of the NPC vowing their own, which is scheme_assist"
                },
                new GameActionParam("target", "the rival's name, never the NPC's own close kin")),
             Spec("accept_divorce",
