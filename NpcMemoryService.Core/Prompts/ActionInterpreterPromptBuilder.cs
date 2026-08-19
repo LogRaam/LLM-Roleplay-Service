@@ -108,6 +108,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("   rewarded', 'perhaps one day' emit NOTHING. give_influence, give_troops, give_gold fire only on a");
          sb.AppendLine("   concrete, countable thing moving NOW: influence spent this hour, named soldiers changing ranks, coin");
          sb.AppendLine("   in a palm.");
+         sb.AppendLine("8. ONE REPLY CAN CARRY MORE THAN ONE DEED. Emit EVERY action the reply completes, not only the first:");
+         sb.AppendLine("   a lord who names a governor AND sets their wage is appoint_governor AND grant_stipend; scan the whole");
+         sb.AppendLine("   reply before you stop.");
          sb.AppendLine();
 
          // The signals already taught above by hand, with carefully-tuned wording that must never be diluted:
@@ -183,6 +186,14 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Facts: YOU: Lord Ansen, a lord with trust in the player.");
          sb.AppendLine("Reply: *Ansen considers.* Perhaps, when the moment is right, I will lend a portion of my house's weight to your cause. Not today, though.");
          sb.AppendLine("(no output: a future, conditional intention is not a completed deed)");
+         sb.AppendLine();
+         sb.AppendLine("Facts: The player's party holds no captive. YOU: Yerengul, whose clan holds the hero Vsevolod captive.");
+         sb.AppendLine("Reply: *Yerengul strokes his beard.* Three hundred denars for Vsevolod's chain, that is my price. Bring the coin and we will talk further, but he stays bound to my saddle for now.");
+         sb.AppendLine("(no output: a price haggled over is not a sale made, and the chain has not changed hands)");
+         sb.AppendLine();
+         sb.AppendLine("Facts: PLAYER: Rhobart, holding the nemesis Unqid captive. YOU: Unqid, a beaten nemesis.");
+         sb.AppendLine("Reply: *Unqid rubs his freed wrists, wary.* You would let me live? That is more mercy than I expected. Do not think it buys my sword, though; our quarrel is not so easily mended.");
+         sb.AppendLine("(no output: spared and freed is not turn_nemesis unless he actually swears into your clan, which he refuses)");
          sb.AppendLine();
       }
 

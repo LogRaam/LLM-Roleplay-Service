@@ -373,6 +373,25 @@ namespace NpcMemoryServiceTests
          prefix.Should().Contain("(no output: a future, conditional intention is not a completed deed)");
       }
 
+      // Run 2026-08-19: appoint_governor_and_grant_stipend was a PartialHit (governor emitted, stipend dropped),
+      // so the prefix must teach that one reply can carry more than one deed.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_it_teaches_that_one_reply_can_carry_more_than_one_deed()
+      {
+         ActionInterpreterPromptBuilder.StablePrefix.Should().Contain("ONE REPLY CAN CARRY MORE THAN ONE DEED");
+      }
+
+      // Same run: the dominant residual was over-emitting on non-consummated actions (haggled, spared-but-not-sworn).
+      // Two negative worked examples must be present, since examples beat rules for a model's withholds.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_it_carries_negative_examples_for_non_consummated_deeds()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("a price haggled over is not a sale made");
+         prefix.Should().Contain("spared and freed is not turn_nemesis");
+      }
+
       // The rich, hand-tuned wording for the five core reactive signals is the one thing this catalog wiring must
       // never weaken. If the catalog-rendered "OTHER ACTIONS" section were spliced in BEFORE them, or interleaved
       // with them, a provider's prompt cache would still work (the whole thing is still the stable prefix), but a
