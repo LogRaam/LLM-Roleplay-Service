@@ -20,13 +20,14 @@ namespace NpcMemoryService.Core.Actions
    public sealed class ActionBenchResult
    {
       public ActionBenchResult(ActionBenchCase test, bool callSucceeded, string error,
-         IReadOnlyList<GameAction> emitted, ActionBenchVerdict verdict)
+         IReadOnlyList<GameAction> emitted, ActionBenchVerdict verdict, string emittedEvent = null)
       {
          Case = test;
          CallSucceeded = callSucceeded;
          Error = error;
          Emitted = emitted ?? new List<GameAction>();
          Verdict = verdict;
+         EmittedEvent = emittedEvent;
       }
 
       /// <summary>The case that was run.</summary>
@@ -43,6 +44,13 @@ namespace NpcMemoryService.Core.Actions
 
       /// <summary>The scored verdict; only meaningful when <see cref="CallSucceeded" />.</summary>
       public ActionBenchVerdict Verdict { get; }
+
+      /// <summary>
+      ///   The [EVENT] the interpreter emitted, if any ("type: summary"), else null. Surfaced so a MISS can reveal
+      ///   the interpreter recorded an EVENT instead of the expected action (e.g. a romantic beat logged as an
+      ///   intimacy EVENT rather than take_as_secret_lover), which the action-only tally would otherwise hide.
+      /// </summary>
+      public string EmittedEvent { get; }
 
       /// <summary>A pass is a call that succeeded AND either hit every expected action or correctly withheld a forbidden one.</summary>
       public bool IsPass => CallSucceeded
@@ -165,7 +173,7 @@ namespace NpcMemoryService.Core.Actions
          int runs = caseRuns.Count();
          ActionBenchResult sample = caseRuns.FirstOrDefault(r => !r.IsPass) ?? caseRuns.First();
 
-         sb.Append("  ").Append(Label(sample).PadRight(16)).Append(sample.Case.Verb.PadRight(22))
+         sb.Append("  ").Append(Label(sample).PadRight(16)).Append(sample.Case.Id.PadRight(34))
            .Append(passes).Append('/').Append(runs).Append("  ").AppendLine(Detail(sample));
       }
 
@@ -187,17 +195,19 @@ namespace NpcMemoryService.Core.Actions
       {
          if (!r.CallSucceeded) return "(" + (r.Error ?? "no result") + ")";
 
+         string evt = string.IsNullOrEmpty(r.EmittedEvent) ? "" : " (+EVENT " + r.EmittedEvent + ")";
+
          switch (r.Verdict)
          {
             case ActionBenchVerdict.Miss:
             case ActionBenchVerdict.PartialHit:
-               return "expected [" + ExpectedTypes(r) + "], emitted [" + EmittedTypes(r) + "]";
+               return "expected [" + ExpectedTypes(r) + "], emitted [" + EmittedTypes(r) + "]" + evt;
             case ActionBenchVerdict.ParamMismatch:
-               return "expected " + ExpectedWithParams(r);
+               return "expected " + ExpectedWithParams(r) + evt;
             case ActionBenchVerdict.FalsePositive:
-               return "wrongly emitted " + r.Case.ForbiddenType;
+               return "wrongly emitted " + r.Case.ForbiddenType + evt;
             default:
-               return r.Case.Id;
+               return r.Case.Id + evt;
          }
       }
 

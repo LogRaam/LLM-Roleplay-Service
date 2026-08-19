@@ -62,13 +62,28 @@ namespace NpcMemoryService.Core.Actions
                continue;
             }
 
-            IReadOnlyList<GameAction> emitted = parser.Parse(response.Content).Actions;
+            ParsedResponse parsed = parser.Parse(response.Content);
+            IReadOnlyList<GameAction> emitted = parsed.Actions;
             ActionBenchVerdict verdict = ActionBenchScorer.Score(emitted, test);
 
-            results.Add(new ActionBenchResult(test, true, null, emitted, verdict));
+            string emittedEvent = parsed.NewEventData == null
+               ? null
+               : parsed.NewEventData.Type + Summarize(parsed.NewEventData.Summary);
+
+            results.Add(new ActionBenchResult(test, true, null, emitted, verdict, emittedEvent));
          }
 
          return new ActionBenchReport(results);
+      }
+
+      // A short, one-line tail for the logged EVENT summary so a report line stays readable.
+      private static string Summarize(string summary)
+      {
+         if (string.IsNullOrWhiteSpace(summary)) return string.Empty;
+
+         string s = summary.Trim().Replace('\n', ' ');
+
+         return ": " + (s.Length <= 60 ? s : s.Substring(0, 60) + "...");
       }
    }
 }

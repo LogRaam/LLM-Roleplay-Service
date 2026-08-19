@@ -144,6 +144,22 @@ namespace NpcMemoryServiceTests
          board.Should().Contain("FAILURES");
       }
 
+      // Diagnostic (audit 2026-08-19): a MISS must reveal when the interpreter emitted an [EVENT] instead of the
+      // expected action (e.g. a romantic beat logged as an intimacy EVENT rather than take_as_secret_lover), or the
+      // action-only tally hides why the case failed. The scoreboard surfaces the case Id and the emitted event.
+      [Test]
+      public void GIVEN_a_miss_that_emitted_an_event_WHEN_formatted_THEN_the_event_is_surfaced_with_the_case_id()
+      {
+         var result = new ActionBenchResult(
+            ActionBenchCase.Expect("take_as_secret_lover_v2", "take_as_secret_lover", "ctx", "prose", "take_as_secret_lover"),
+            true, null, new List<GameAction>(), ActionBenchVerdict.Miss, "Intimacy: a whispered arrangement between them");
+
+         string board = new ActionBenchReport(new[] {result}).Format();
+
+         board.Should().Contain("take_as_secret_lover_v2"); // the variant id, not just the verb
+         board.Should().Contain("+EVENT Intimacy");
+      }
+
       // The clean run says so plainly rather than printing an empty FAILURES list, which reads as a formatting bug.
       [Test]
       public void GIVEN_an_all_pass_report_WHEN_formatted_THEN_it_says_all_cases_passed()
