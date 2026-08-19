@@ -183,7 +183,7 @@ namespace NpcMemoryService.Core.Actions
 
             ActionBenchCase.Expect("end_mercenary_v3", "end_mercenary",
                contextFacts: "The player's clan currently serves the Khuzait Khaganate as mercenaries under Sechen.",
-               prose: "*Sechen waves a rider off toward your camp with a folded letter, and does not meet your eyes again.* He carries your final pay. There will be no more riders after him.",
+               prose: "*Sechen waves a rider off toward your camp with a folded letter, and does not meet your eyes again.* Your clan's mercenary contract with the Khaganate is dissolved as of today. He carries your final pay, and there will be no more riders after him.",
                expectedType: "end_mercenary"),
 
             ActionBenchCase.Expect("join_as_vassal", "join_as_vassal",
@@ -296,17 +296,17 @@ namespace NpcMemoryService.Core.Actions
 
             ActionBenchCase.Expect("take_as_secret_lover", "take_as_secret_lover",
                contextFacts: "NPC: Ymira, a faithful companion riding in the player's own party.",
-               prose: "*Ymira glances toward the closed tent flap, then lowers her voice to almost nothing.* No one need know of this but us. Come to me tonight, quietly, and let this stay between the two of us alone.",
+               prose: "*Ymira glances toward the closed tent flap, then lowers her voice to almost nothing.* Then it is ours, this secret, and no one else's. I am yours in the dark, whatever the light demands of us both.",
                expectedType: "take_as_secret_lover"),
 
             ActionBenchCase.Expect("take_as_secret_lover_v2", "take_as_secret_lover",
                contextFacts: "NPC: Doran, a faithful companion riding in the player's own party.",
-               prose: "*Doran's fingers brush yours beneath the table, hidden from every eye at the fire.* Let this be ours alone, unspoken beyond this tent. Come to me when the camp sleeps, and let no one else ever know.",
+               prose: "*Doran's fingers brush yours beneath the table, hidden from every eye at the fire.* Let this be ours alone, then, unspoken beyond this tent. I am bound to you now, quietly, and to no one's knowledge but our own.",
                expectedType: "take_as_secret_lover"),
 
             ActionBenchCase.Expect("take_as_secret_lover_v3", "take_as_secret_lover",
                contextFacts: "NPC: Halla, a faithful companion riding in the player's own party.",
-               prose: "*Halla says nothing aloud, only presses a folded note into your palm and slips away toward the treeline before anyone at the fire looks up.* Meet me there. Tell no one.",
+               prose: "*Halla says nothing aloud, only laces her fingers through yours beneath the table where no one at the fire can see, and holds on.* This, here, is enough. Ours, and hidden, and I want nothing more spoken of it.",
                expectedType: "take_as_secret_lover"),
 
             ActionBenchCase.Expect("open_relationship", "open_relationship",
@@ -405,17 +405,17 @@ namespace NpcMemoryService.Core.Actions
 
             ActionBenchCase.Expect("execute_prisoner", "execute_prisoner",
                contextFacts: "The player holds Lord Unqid captive.",
-               prose: "*I draw my blade without another word and drive it through Unqid's chest where he kneels.* It is done. His threats against my house die with him.",
+               prose: "*You draw your blade without another word and drive it through Unqid's chest where he kneels.* He slumps lifeless. His threats against your house die with him.",
                expectedType: "execute_prisoner"), // no target param: the bridge resolves which held prisoner is killed
 
             ActionBenchCase.Expect("execute_prisoner_v2", "execute_prisoner",
                contextFacts: "The player holds Lord Caladog captive.",
-               prose: "*I raise my blade high, and Caladog does not beg, only closes his eyes as the steel falls true.* It is finished. His schemes against my house end here, in blood, as they began.",
+               prose: "*You raise your own blade high, and Caladog does not beg, only closes his eyes as your steel falls true.* It is finished. His schemes end here, in blood, as they began.",
                expectedType: "execute_prisoner"), // no target param: the bridge resolves which held prisoner is killed
 
             ActionBenchCase.Expect("execute_prisoner_v3", "execute_prisoner",
                contextFacts: "The player holds Lord Ansen captive.",
-               prose: "*I nod once to the guard beside me, and the axe falls before Ansen can finish his final plea.* No more words needed. That debt is paid in full now.",
+               prose: "*You do not answer him. You only step close, draw steel with your own hand, and it is over before Ansen can finish his final plea.* No more words needed. That debt is paid in full now.",
                expectedType: "execute_prisoner"), // no target param: the bridge resolves which held prisoner is killed
 
             ActionBenchCase.Expect("execute_player", "execute_player",
@@ -475,7 +475,7 @@ namespace NpcMemoryService.Core.Actions
 
             ActionBenchCase.Expect("recruit_notable_v3", "recruit_notable",
                contextFacts: "NPC: Boris, gang leader of Marunath.",
-               prose: "*Boris simply nods to the man beside him, who steps forward to take his place among the rest without a word of ceremony, and slings his own pack over his shoulder to follow you.* Lead on, then.",
+               prose: "*Boris simply nods to the man beside him, who steps forward to take his place at the head of the gang without a word of ceremony.* The crew is his now, not mine anymore. I have led long enough here. See what use you have for me instead.",
                expectedType: "recruit_notable"),
 
             ActionBenchCase.Expect("grant_blessing", "grant_blessing",
@@ -540,7 +540,7 @@ namespace NpcMemoryService.Core.Actions
 
             ActionBenchCase.Expect("assign_party_role_v3", "assign_party_role",
                contextFacts: "NPC: Halla, a companion riding in the player's own party.",
-               prose: "*Halla says nothing, only swings up onto the lightest horse in camp and rides to the front of the column without being told twice.* I will keep our eyes open ahead from here on.",
+               prose: "*Halla says nothing, only swings up onto the lightest horse in camp and rides to the front of the column without being told twice.* Scout of this company, then. I will keep our eyes open ahead from here on.",
                expectedType: "assign_party_role",
                expectedParams: new Dictionary<string, string> {{"target_role", "scout"}}),
 
@@ -914,7 +914,7 @@ namespace NpcMemoryService.Core.Actions
 
             ActionBenchCase.Expect("make_amends_v3", "make_amends",
                contextFacts: "NPC: Boyar Vsevolod, who knowingly holds a grievance against the player over an insult at court.",
-               prose: "*Vsevolod's stiff posture eases as your apology finishes, and he extends his hand for the first time since the insult passed between you.* Words alone rarely settle such things. Yours, somehow, have.",
+               prose: "*Vsevolod's stiff posture eases as you speak, and he extends his hand for the first time since the insult passed between you.* You name the insult you dealt me at court plainly, without excuse or softening. Words alone rarely settle such things. Yours, somehow, have.",
                expectedType: "make_amends"),
 
             ActionBenchCase.Expect("pledge_against", "pledge_against",
@@ -1237,7 +1237,35 @@ namespace NpcMemoryService.Core.Actions
             ActionBenchCase.ExpectNone("give_troops_future_tense", "give_troops",
                contextFacts: "NPC: Lord Ansen, whose own party runs under-strength. The player has offered him soldiers.",
                prose: "*Ansen eyes the soldiers you gesture toward.* Perhaps, if my numbers thin further before the season's end, I will ask you for them properly. For now, my ranks hold well enough on their own.",
-               forbiddenType: "give_troops")
+               forbiddenType: "give_troops"),
+
+            // Narrated-but-not-done (take_as_secret_lover): a discreet flirt that names no bond at all, only a
+            // lingering look and a teasing line, nothing agreed between them.
+            ActionBenchCase.ExpectNone("take_as_secret_lover_flirting_no_bond", "take_as_secret_lover",
+               contextFacts: "NPC: Ymira, a companion riding in the player's own party, exchanging teasing words with the player.",
+               prose: "*Ymira's eyes linger on yours a moment too long across the fire, a small smile tugging at her mouth before she looks away.* Careful now, or you will have me thinking you mean something by all that looking.",
+               forbiddenType: "take_as_secret_lover"),
+
+            // Narrated-but-not-done (pledge_against): bitter grumbling about a rival, but the NPC vows nothing
+            // concrete, no oath of action taken against him.
+            ActionBenchCase.ExpectNone("pledge_against_grumbling_no_vow", "pledge_against",
+               contextFacts: "NPC: Lord Ansen, harbouring resentment toward Lord Caladog (not his own kin).",
+               prose: "*Ansen's jaw tightens at the mere mention of Caladog's name.* That man has wronged me more times than I care to count. One day, perhaps, he will answer for it. Today is not that day.",
+               forbiddenType: "pledge_against"),
+
+            // Narrated-but-not-done (execute_player): the captor threatens the player's life but pulls back,
+            // no blow actually struck.
+            ActionBenchCase.ExpectNone("execute_player_threatened_not_killed", "execute_player",
+               contextFacts: "Hardcore mode. The player is held captive by the raider chief Ganak, furious with them.",
+               prose: "*Ganak's blade hovers a hair's breadth from your throat, trembling with restrained fury, then he pulls it back and spits at your feet instead.* Next time, southerner, I will not stop my hand. Pray there is no next time.",
+               forbiddenType: "execute_player"),
+
+            // Narrated-but-not-done (expel_from_clan): a companion storms off in anger of their own accord, an
+            // ordinary parting rather than the player casting them out.
+            ActionBenchCase.ExpectNone("expel_from_clan_storms_off_own_accord", "expel_from_clan",
+               contextFacts: "NPC: Doran, a companion of the player's own clan, furious after a heated argument, not cast out by the player.",
+               prose: "*Doran slams his cup down and rises from the table without another word, storming out of the tent into the night.* I need air. Do not follow me.",
+               forbiddenType: "expel_from_clan")
          };
       }
 
