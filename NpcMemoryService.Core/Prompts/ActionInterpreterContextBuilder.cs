@@ -109,8 +109,9 @@ namespace NpcMemoryService.Core.Prompts
          var sb = new StringBuilder();
          if (!string.IsNullOrEmpty(contextFacts)) sb.AppendLine(contextFacts!.TrimEnd());
          sb.AppendLine();
-         sb.AppendLine("CONVERSATION SO FAR (recent turns, BACKGROUND to understand the reply below; tag ONLY the "
-                     + "latest reply, never re-tag an earlier turn):");
+         sb.AppendLine("CONVERSATION SO FAR (recent turns, BACKGROUND to understand the reply below. Do not re-emit an "
+                     + "action an EARLIER turn already carried out; but a PLAYER deed that the LATEST reply now accepts "
+                     + "or carries out DOES count, per the rules above):");
          sb.Append(conversationSoFar!.Trim());
 
          return sb.ToString();

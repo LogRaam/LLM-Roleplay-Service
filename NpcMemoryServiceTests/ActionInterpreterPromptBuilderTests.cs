@@ -316,6 +316,63 @@ namespace NpcMemoryServiceTests
          prefix.Should().Contain("if the reply REFUSES or defers");
       }
 
+      // Audit family A: the prefix never mapped the reply's pronouns, so grok inverted direction (execute_prisoner ->
+      // execute_player). The POV anchor must be present: I = the NPC, you = the player, and read the facts for who
+      // holds/pays whom.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_it_anchors_the_point_of_view_of_the_reply()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("THE VOICE OF THE REPLY");
+         prefix.Should().Contain("Never infer the direction from a bare noun");
+      }
+
+      // Audit family A: the mirror pairs (execute_prisoner/execute_player, buy/sell) must be spelled out by which way
+      // the gold and the chain move.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_it_spells_out_the_mirror_pairs_by_direction()
+      {
+         ActionInterpreterPromptBuilder.StablePrefix.Should().Contain("MIRROR PAIRS: FOLLOW THE GOLD AND THE CHAIN");
+      }
+
+      // Audit family D: a vow is a present act even though what it promises is future, so swear_oath / pledge_against /
+      // take_as_secret_lover are not withheld by the future-tense rule.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_it_carves_a_vow_out_of_the_future_tense_rule()
+      {
+         ActionInterpreterPromptBuilder.StablePrefix.Should().Contain("A VOW IS A PRESENT DEED");
+      }
+
+      // Audit family D: vague goodwill ("you will be rewarded") must emit nothing for the give_* family.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_it_rejects_vague_goodwill_as_a_transfer()
+      {
+         ActionInterpreterPromptBuilder.StablePrefix.Should().Contain("VAGUE GOODWILL IS NOT A TRANSFER");
+      }
+
+      // Audit family C: the romantic contradiction is lifted, naming/agreeing a bond IS an action, distinct from a
+      // flirt/intimacy moment.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_naming_a_romantic_bond_is_an_action_not_only_an_event()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("naming or AGREEING to a romantic");
+         prefix.Should().Contain("take_as_secret_lover");
+      }
+
+      // Audit 3.7: worked examples beat prose rules; the prefix must carry the few-shot block (a direction pair, a
+      // specific-over-generic case, and a verbatim-anti-pattern negative that emits nothing).
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_it_carries_worked_examples()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("EXAMPLES");
+         prefix.Should().Contain("(no output: a future, conditional intention is not a completed deed)");
+      }
+
       // The rich, hand-tuned wording for the five core reactive signals is the one thing this catalog wiring must
       // never weaken. If the catalog-rendered "OTHER ACTIONS" section were spliced in BEFORE them, or interleaved
       // with them, a provider's prompt cache would still work (the whole thing is still the stable prefix), but a

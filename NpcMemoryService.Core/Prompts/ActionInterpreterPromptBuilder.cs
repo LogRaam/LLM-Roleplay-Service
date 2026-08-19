@@ -71,7 +71,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("happening in the reply. When in doubt, do not emit. Format each as an [ACTION] block with a");
          sb.AppendLine("'type:' line and the listed parameters, exactly like the actions above.");
          sb.AppendLine();
-         sb.AppendLine("TWO RULES GOVERN THESE:");
+         sb.AppendLine("RULES THAT GOVERN THESE:");
          sb.AppendLine("1. PREFER THE SPECIFIC ACTION. When a concrete deed below fits what happened, emit THAT action.");
          sb.AppendLine("   change_relation and end_conversation are general fallbacks: a specific action MAY be accompanied");
          sb.AppendLine("   by one, but a concrete deed must NEVER be recorded as ONLY a change_relation or an");
@@ -86,6 +86,28 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("   change_relation or end_conversation. If the player casts the NPC out and the reply is 'then I am");
          sb.AppendLine("   gone', that is expel_from_clan; if the player hands over a sword and the reply thanks them and takes");
          sb.AppendLine("   it, that is give_item. But if the reply REFUSES or defers the player's deed, withhold (rule 2).");
+         sb.AppendLine("4. MIRROR PAIRS: FOLLOW THE GOLD AND THE CHAIN. execute_prisoner = the PLAYER kills a captive the");
+         sb.AppendLine("   PLAYER holds; execute_player = the NPC captor kills the PLAYER. buy_prisoner = the NPC's coin lands");
+         sb.AppendLine("   in the PLAYER's palm and the captive's chain passes to the NPC; sell_prisoner = the chain passes to");
+         sb.AppendLine("   the PLAYER and the player's coin to the NPC. Check which way EACH moved before choosing; if the");
+         sb.AppendLine("   reply shows only one leg of the transfer, emit nothing.");
+         sb.AppendLine("5. BEFORE emitting change_relation or end_conversation ALONE, scan once more for a concrete named deed:");
+         sb.AppendLine("   a warm reaction to the player's apology for a KNOWN grievance is make_amends (with change_relation,");
+         sb.AppendLine("   never it alone); a companion accepting a named duty (scout/engineer/quartermaster/surgeon) is");
+         sb.AppendLine("   assign_party_role; a settlement notable (headman, gang leader, merchant, artisan) leaving a post to");
+         sb.AppendLine("   follow the player is recruit_notable, join_party is ONLY a free wanderer with no post to leave; a");
+         sb.AppendLine("   lord vowing to move against a named rival himself is pledge_against, scheme_assist is ONLY the player");
+         sb.AppendLine("   joining the NPC's own scheme; a companion cast out is expel_from_clan FIRST, end_conversation may");
+         sb.AppendLine("   accompany it but never replace it.");
+         sb.AppendLine("6. A VOW IS A PRESENT DEED (exception to rule 2). Swearing, vowing, or naming a bond happens the moment");
+         sb.AppendLine("   the words are spoken, even though what is sworn lies in the future: 'I swear I will pay by winter' IS");
+         sb.AppendLine("   swear_oath now; 'I vow to see his name ruined' IS pledge_against now; 'let this stay between us' IS");
+         sb.AppendLine("   take_as_secret_lover now. Rule 2 still withholds a CONTEMPLATED or conditional vow ('I might swear',");
+         sb.AppendLine("   'if you prove yourself I will'), never the vow actually spoken this turn.");
+         sb.AppendLine("7. VAGUE GOODWILL IS NOT A TRANSFER. 'I will not forget this', 'my house owes you', 'you will be");
+         sb.AppendLine("   rewarded', 'perhaps one day' emit NOTHING. give_influence, give_troops, give_gold fire only on a");
+         sb.AppendLine("   concrete, countable thing moving NOW: influence spent this hour, named soldiers changing ranks, coin");
+         sb.AppendLine("   in a palm.");
          sb.AppendLine();
 
          // The signals already taught above by hand, with carefully-tuned wording that must never be diluted:
@@ -127,6 +149,41 @@ namespace NpcMemoryService.Core.Prompts
          }
 
          sb.AppendLine();
+         AppendExamples(sb);
+      }
+
+      /// <summary>
+      ///   A few worked examples (worked cases beat prose rules for a model): a direction pair, a specific-over-
+      ///   generic case, and a verbatim-anti-pattern negative that must emit nothing. Part of the cacheable prefix.
+      /// </summary>
+      private static void AppendExamples(StringBuilder sb)
+      {
+         sb.AppendLine("EXAMPLES (study the direction and the withholds):");
+         sb.AppendLine();
+         sb.AppendLine("Facts: PLAYER: Rhobart. The player's own party holds the hero captive Sanjar. YOU: Yerengul.");
+         sb.AppendLine("Reply: *I count four hundred denars into your palm and take Sanjar's chain in the other hand.* Four hundred, as agreed. He is mine to hold now.");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: buy_prisoner");
+         sb.AppendLine("target: Sanjar");
+         sb.AppendLine("price: 400");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine();
+         sb.AppendLine("Facts: PLAYER: Rhobart, your prisoner. YOU: Ganak, a raider chief. Hardcore.");
+         sb.AppendLine("Reply: *My dagger flashes once across your throat before you can speak another word.* No more talk. This is where your road ends.");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: execute_player");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine();
+         sb.AppendLine("Facts: YOU: Uldric, headman of the village of Marunath.");
+         sb.AppendLine("Reply: *I set down my hoe.* My cousin can take up the headman's mantle here. I will follow you instead.");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: recruit_notable");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine();
+         sb.AppendLine("Facts: YOU: Lord Ansen, a lord with trust in the player.");
+         sb.AppendLine("Reply: *Ansen considers.* Perhaps, when the moment is right, I will lend a portion of my house's weight to your cause. Not today, though.");
+         sb.AppendLine("(no output: a future, conditional intention is not a completed deed)");
+         sb.AppendLine();
       }
 
       private static string BuildStablePrefix()
@@ -136,6 +193,12 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("You are a structured-signal EXTRACTOR for a roleplay game. A first model has ALREADY written");
          sb.AppendLine("the NPC's reply. Your only job is to read that reply and emit the machine-readable tags it");
          sb.AppendLine("implies, so the game can record what happened. You never speak as the NPC.");
+         sb.AppendLine();
+         sb.AppendLine("THE VOICE OF THE REPLY: the reply is written in the NPC's own voice. 'I', 'me', 'my' are the NPC");
+         sb.AppendLine("named on the YOU line of the facts; 'you', 'your' are the PLAYER named on the PLAYER line. Before");
+         sb.AppendLine("emitting any action, settle WHO performs the deed: the NPC (I), the player (you), or a named third");
+         sb.AppendLine("party. Never infer the direction from a bare noun: a 'captive' may be held by either side and gold");
+         sb.AppendLine("may move either way, so read the facts' PLAYER/YOU lines to know who holds whom and who pays whom.");
          sb.AppendLine();
          sb.AppendLine("Emit ONLY the blocks below, each label on its own line, opened as [LABEL] and closed as [/LABEL]:");
          sb.AppendLine();
@@ -223,7 +286,11 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("intimacy, betrayal, confrontation, other) label the [EVENT] block ONLY. NEVER emit one as an");
          sb.AppendLine("[ACTION]: an [ACTION] type is ALWAYS one of the action verbs (change_relation, end_conversation,");
          sb.AppendLine("give_gold, take_gold, or one listed under OTHER ACTIONS below). A moment that is intimate or a");
-         sb.AppendLine("flirt is recorded as an [EVENT], never emitted as an action.");
+         sb.AppendLine("flirt is recorded as an [EVENT], never emitted as an action. BUT naming or AGREEING to a romantic");
+         sb.AppendLine("BOND is a status change, not merely a moment: the two of you agreeing to wed (marry), to a committed");
+         sb.AppendLine("bond (take_as_consort), or to a discreet hidden arrangement (take_as_secret_lover) IS one of those");
+         sb.AppendLine("ACTIONS, emitted as an [ACTION] and, if you like, an [EVENT] too. The 'never an action' rule covers a");
+         sb.AppendLine("flirt or intimacy MOMENT, not the pledging of a bond.");
          sb.AppendLine("first_meeting is ONLY for a genuine first-ever encounter: the two of you have never spoken");
          sb.AppendLine("before. If the facts below show any regard other than +0 toward the player, or name an");
          sb.AppendLine("existing bond (a spouse, consort, lover, or kin), you already know each other, so do NOT use");

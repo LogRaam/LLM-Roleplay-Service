@@ -281,7 +281,8 @@ namespace NpcMemoryServiceTests
 
          result.Should().Contain("SETTING: on the road.");
          result.Should().Contain("CONVERSATION SO FAR");
-         result.Should().Contain("never re-tag an earlier turn");
+         result.Should().Contain("Do not re-emit an action an EARLIER turn already carried out");
+         result.Should().Contain("a PLAYER deed that the LATEST reply now accepts");
          result.Should().Contain("Player: You are cast out of my clan.");
       }
 
