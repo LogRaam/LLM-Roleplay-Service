@@ -66,6 +66,15 @@ namespace NpcMemoryService.Core.Models
       ///   built. Purely warm: never a request, a bargain, or a demand of any kind (a future "ask for something"
       ///   reason is deliberately separate from this one).
       /// </summary>
-      Gratitude
+      Gratitude,
+
+      /// <summary>
+      ///   A loyal companion has come to WARN the player that someone is secretly plotting against them (the
+      ///   scheme against the player, SchemeStore's own ledger). Urgent and protective, born of loyalty: never a
+      ///   request, a bargain, or a demand, and the companion asks for nothing in return. Granting the audience
+      ///   HEEDS the warning (the scheme is exposed and its real consequences apply); refusing costs nothing and
+      ///   leaves the scheme live, exactly like every other found-topic.
+      /// </summary>
+      SchemeWarning
    }
 }

@@ -697,10 +697,14 @@ namespace NpcMemoryService.Core.Prompts
       ///   their war-weariness, and the outcome is the player's to decide in the talk: grant their leave (the
       ///   <c>retire</c> action makes it real) or persuade them to stay. This is where a war-weary veteran can be
       ///   talked into "one more campaign". <see cref="CompanionAudienceReason.Gratitude" /> gets its own bespoke,
-      ///   purely-warm framing (like SecretAffection): a thank-you, never a request or a bargain. Every OTHER
-      ///   found-topic reason (a mission report, a companion conflict, practical counsel, a callback, a rumour)
-      ///   gets a stay-on-topic guardrail instead: the specific matter is already in the opening cue, and the
-      ///   companion must never be taught they are resigning or war-weary just because a private word was asked for.
+      ///   purely-warm framing (like SecretAffection): a thank-you, never a request or a bargain.
+      ///   <see cref="CompanionAudienceReason.SchemeWarning" /> also gets its own bespoke framing: an urgent,
+      ///   protective WARNING born of loyalty, never a request or a bargain either, and the mechanical heed
+      ///   (exposing the scheme) is applied by the mod on grant, never emitted as an action by the LLM. Every
+      ///   OTHER found-topic reason (a mission report, a companion conflict, practical counsel, a callback, a
+      ///   rumour) gets a stay-on-topic guardrail instead: the specific matter is already in the opening cue, and
+      ///   the companion must never be taught they are resigning or war-weary just because a private word was
+      ///   asked for.
       /// </summary>
       private static void AppendCompanionAudience(StringBuilder sb, EncounterContext? context)
       {
@@ -739,6 +743,19 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("lead you to reaffirm the loyalty the shared service between you has built. This is PURELY a");
             sb.AppendLine("thank-you: NEVER a request, a bargain, or a demand of any kind. Ask for nothing and expect");
             sb.AppendLine("nothing in return.");
+            sb.AppendLine();
+
+            return;
+         }
+
+         if (reason == CompanionAudienceReason.SchemeWarning)
+         {
+            sb.AppendLine("You sought this private word out of loyalty and fear for them: you have learned that someone");
+            sb.AppendLine("named in your opening line above is moving secretly against the player. OPEN the conversation by");
+            sb.AppendLine("warning them yourself, urgently and protectively, in your own voice, and urge them to be");
+            sb.AppendLine("vigilant. This is a WARNING born of loyalty: NEVER a request, a bargain, or a demand of any");
+            sb.AppendLine("kind. Ask for nothing and expect nothing in return. Do not emit any action for this: the mod");
+            sb.AppendLine("itself handles what comes of the warning once the player has heard it.");
             sb.AppendLine();
 
             return;
