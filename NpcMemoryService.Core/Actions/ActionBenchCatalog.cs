@@ -21,7 +21,54 @@ namespace NpcMemoryService.Core.Actions
       /// <summary>Every bench case, positive and negative.</summary>
       public static IReadOnlyList<ActionBenchCase> All => _all;
 
+      /// <summary>
+      ///   A small, hand-curated slice of <see cref="All" /> for a CHEAP iteration run (cr.action_bench focus):
+      ///   the cases the last full run left failing or flaky, plus a few CANARIES that must stay green so a fix does
+      ///   not silently regress a passing case while we watch only the interesting ones. It exists to cut the token
+      ///   bill of a refinement loop by ~85%; a full <see cref="All" /> run still gates before release, since focus
+      ///   is deliberately blind to the ~185 cases it omits. Prune or repopulate the ids after each full run.
+      ///   Unknown ids are simply skipped (the filter is a set membership), so a stale id here never throws.
+      /// </summary>
+      public static IReadOnlyList<ActionBenchCase> Focus => FilterTo(_focusIds);
+
+      /// <summary>
+      ///   The ids the focus slice INTENDS to run, before filtering against <see cref="All" />. Exposed so a test
+      ///   can catch a stale id: since <see cref="Focus" /> silently drops any id that no longer resolves, comparing
+      ///   this count to the slice's count is the only way to notice the slice quietly shrank.
+      /// </summary>
+      public static IReadOnlyCollection<string> DeclaredFocusIds => _focusIds;
+
+      // The current focus slice. Grouped by intent so the next editor knows why each id is here.
+      private static readonly HashSet<string> _focusIds = new HashSet<string> {
+         // end_conversation-collapse family - the rule-9 fix target (terminal deeds that folded into a bare close).
+         "execute_prisoner", "execute_prisoner_v3", "execute_player_v2",
+         "expel_from_clan", "dismiss_escort", "dismiss_escort_v2",
+         "part_ways_v3", "accept_divorce", "end_own_marriage", "end_own_marriage_v3",
+         // Terminal-family CANARIES: base positives that must stay green, negatives that must stay withheld, so
+         // rule 9 is proven not to over-fire on a plain goodbye or a threatened-but-not-done deed.
+         "expel_from_clan_v2", "part_ways", "accept_divorce_v2", "end_own_marriage_v2", "execute_player",
+         "execute_player_threatened_not_killed", "expel_from_clan_storms_off_own_accord",
+         "end_own_marriage_unhappy_not_ended",
+         // Other open misses/flaky from the last full run (2026-08-19 16:06).
+         "grant_stipend_v2", "recall_companion", "open_relationship_v3",
+         "give_prisoner_v3", "sell_prisoner_v3", "buy_prisoner_v3", "take_gold_v2", "turn_nemesis_v2",
+         // FALSE-POSITIVE CANARIES: the CHECK step's hard-won withholds must survive the fix, not re-open.
+         "take_gold_conditional", "turn_nemesis_spared_not_recruited", "give_troops_future_tense",
+         "recruit_prisoner_persuaded_not_switched", "swear_oath_asked_but_deferred",
+         "give_item_offered_but_refused", "ride_with_me_declined", "sell_prisoner_negotiated_not_sold"
+      };
+
       #region private
+
+      private static IReadOnlyList<ActionBenchCase> FilterTo(HashSet<string> ids)
+      {
+         var slice = new List<ActionBenchCase>();
+         foreach (ActionBenchCase c in _all)
+            if (ids.Contains(c.Id))
+               slice.Add(c);
+
+         return slice;
+      }
 
       private static IReadOnlyList<ActionBenchCase> BuildAll()
       {

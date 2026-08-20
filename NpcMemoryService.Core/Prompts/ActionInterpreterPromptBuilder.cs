@@ -33,6 +33,28 @@ namespace NpcMemoryService.Core.Prompts
       internal static string StablePrefix => _stablePrefix;
 
       /// <summary>
+      ///   The single user-turn instruction closing every interpreter call (bench AND runtime must use the same
+      ///   one, so the bench measures what the game does). It forces a VISIBLE grounding step: each candidate
+      ///   [ACTION] must first be justified on a CHECK line quoting the reply's words that show the deed
+      ///   actually HAPPENING - the check that withholds refused, deferred, or merely discussed deeds. Making
+      ///   the check written rather than silent is what makes it happen: refusal cues quoted verbatim in the
+      ///   rules still get pattern-matched past (bench run 2026-08-19 13:40: 'I swear no oath today' emitted
+      ///   swear_oath 3/3 despite the anti-pattern quoting those very words), whereas having to point at the
+      ///   grounding words forces the refusal to be read. The parser ignores the CHECK lines (they carry no
+      ///   brackets), so the runtime pipeline is unaffected.
+      /// </summary>
+      public const string FinalInstruction =
+         "Work in TWO steps. STEP 1: scan the WHOLE reply for every completed deed first, then for EACH action " +
+         "the reply brings to mind, write one grounding line in exactly this form - CHECK <type>: followed by a " +
+         "SHORT quote of the reply's words that show the deed actually HAPPENING now (an acceptance, a transfer, " +
+         "a done act). If those words are not there - the deed was only offered, demanded, weighed, refused, or " +
+         "deferred - write CHECK <type>: NONE, quoting the refusal or deferral words instead. STEP 2: output the " +
+         "[ACTION] and [EVENT] blocks for the grounded CHECK lines ONLY. A CHECK ...: NONE action is emitted as " +
+         "NOTHING, however concretely the reply named the thing itself. A parting reply usually completes BOTH " +
+         "its specific deed (a killing, a dismissal, a divorce accepted, a wage taken up) AND end_conversation: " +
+         "CHECK and emit EACH, never the close alone. Output the CHECK lines first, then the tags - and nothing else.";
+
+      /// <summary>
       ///   Assembles a full interpreter prompt: the stable prefix, then the caller's <paramref name="contextFacts" />
       ///   (a short line such as the NPC name and current regard), then a delimiter, then the
       ///   <paramref name="prose" /> to analyze. The result always begins with <see cref="StablePrefix" />.
@@ -86,11 +108,24 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("   change_relation or end_conversation. If the player casts the NPC out and the reply is 'then I am");
          sb.AppendLine("   gone', that is expel_from_clan; if the player hands over a sword and the reply thanks them and takes");
          sb.AppendLine("   it, that is give_item. But if the reply REFUSES or defers the player's deed, withhold (rule 2).");
+         sb.AppendLine("3b. A DECLINED OR CONDITIONAL OFFER COMPLETES NOTHING. The facts may state what the player PROPOSED -");
+         sb.AppendLine("   never what HAPPENED. Only the reply's ACCEPTANCE completes a deed. Refusals, deferrals and");
+         sb.AppendLine("   pre-conditions all mean NOTHING moved: 'No', 'I think not', 'shakes his head', 'not yet', 'for");
+         sb.AppendLine("   now', 'let me sleep on it', 'I will consider', 'we will talk further', 'only then', 'stays bound',");
+         sb.AppendLine("   'my oath still binds me', 'do not think it buys', 'not a coin has crossed my palm'. Emit NOTHING");
+         sb.AppendLine("   for the proposed verb, however concretely the thing itself (chain, coin, sword, soldiers, oath)");
+         sb.AppendLine("   is named.");
          sb.AppendLine("4. MIRROR PAIRS: FOLLOW THE GOLD AND THE CHAIN. execute_prisoner = the PLAYER kills a captive the");
          sb.AppendLine("   PLAYER holds; execute_player = the NPC captor kills the PLAYER. buy_prisoner = the NPC's coin lands");
          sb.AppendLine("   in the PLAYER's palm and the captive's chain passes to the NPC; sell_prisoner = the chain passes to");
          sb.AppendLine("   the PLAYER and the player's coin to the NPC. Check which way EACH moved before choosing; if the");
-         sb.AppendLine("   reply shows only one leg of the transfer, emit nothing.");
+         sb.AppendLine("   reply shows only one leg of the transfer, emit nothing. A captive DELIVERED to settle an");
+         sb.AppendLine("   outstanding deliver-prisoner bargain is give_prisoner, even if a reward purse changes hands - the");
+         sb.AppendLine("   purse settles the bargain, it is not a price. buy_prisoner needs a PRICE stated FOR the captive in");
+         sb.AppendLine("   the reply or the facts: when the facts name an outstanding deliver-prisoner bargain and no price is");
+         sb.AppendLine("   stated, the purse is the bargain's reward, so emit give_prisoner, never buy_prisoner. Naming a price");
+         sb.AppendLine("   is never enough: whatever the verb, coin AND chain must actually change hands in this reply, or");
+         sb.AppendLine("   nothing happened.");
          sb.AppendLine("5. BEFORE emitting change_relation or end_conversation ALONE, scan once more for a concrete named deed:");
          sb.AppendLine("   a warm reaction to the player's apology for a KNOWN grievance is make_amends (with change_relation,");
          sb.AppendLine("   never it alone); a companion accepting a named duty (scout/engineer/quartermaster/surgeon) is");
@@ -103,7 +138,10 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("   the words are spoken, even though what is sworn lies in the future: 'I swear I will pay by winter' IS");
          sb.AppendLine("   swear_oath now; 'I vow to see his name ruined' IS pledge_against now; 'let this stay between us' IS");
          sb.AppendLine("   take_as_secret_lover now. Rule 2 still withholds a CONTEMPLATED or conditional vow ('I might swear',");
-         sb.AppendLine("   'if you prove yourself I will'), never the vow actually spoken this turn.");
+         sb.AppendLine("   'if you prove yourself I will'), never the vow actually spoken this turn. And a vow explicitly");
+         sb.AppendLine("   WITHHELD is a refusal, never a deed: 'I swear no oath today', 'I will not swear', 'I make no");
+         sb.AppendLine("   vow', 'I bind myself to nothing' emit NOTHING, even when the withheld oath's content (keep the");
+         sb.AppendLine("   peace, the faction, the sum) is spelled out word for word.");
          sb.AppendLine("7. VAGUE GOODWILL IS NOT A TRANSFER. 'I will not forget this', 'my house owes you', 'you will be");
          sb.AppendLine("   rewarded', 'perhaps one day' emit NOTHING. give_influence, give_troops, give_gold fire only on a");
          sb.AppendLine("   concrete, countable thing moving NOW: influence spent this hour, named soldiers changing ranks, coin");
@@ -111,6 +149,17 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("8. ONE REPLY CAN CARRY MORE THAN ONE DEED. Emit EVERY action the reply completes, not only the first:");
          sb.AppendLine("   a lord who names a governor AND sets their wage is appoint_governor AND grant_stipend; scan the whole");
          sb.AppendLine("   reply before you stop.");
+         sb.AppendLine("9. A BEAT THAT ENDS ON A DEED RECORDS THE DEED, NOT end_conversation ALONE. end_conversation alone is");
+         sb.AppendLine("   right only for a plain goodbye that carries no deed. When the reply reads as a farewell, a leave-taking");
+         sb.AppendLine("   or an ending, ask WHAT ended it and CHECK that verb: a captive killed = execute_prisoner; the captor");
+         sb.AppendLine("   killing the player = execute_player; a companion cast from the clan = expel_from_clan; an escort sent");
+         sb.AppendLine("   home = dismiss_escort; a companion taking their own leave of the party = part_ways; a companion");
+         sb.AppendLine("   summoned back from a posting = recall_companion; a marriage dissolved on the player's consent =");
+         sb.AppendLine("   accept_divorce, or dissolved by the NPC themselves = end_own_marriage. The parting words ('go well',");
+         sb.AppendLine("   'this is where we part', 'no more talk') are only the WRAPPER; the deed inside is the action, and");
+         sb.AppendLine("   end_conversation never replaces it. The CHECK still governs: quote the words that show the deed DONE,");
+         sb.AppendLine("   or write NONE and withhold - a threatened execution, a storming-off in anger, an unhappy marriage");
+         sb.AppendLine("   merely lamented all end the talk WITHOUT completing the deed, so those stay a bare end_conversation.");
          sb.AppendLine();
 
          // The signals already taught above by hand, with carefully-tuned wording that must never be diluted:
@@ -157,43 +206,122 @@ namespace NpcMemoryService.Core.Prompts
 
       /// <summary>
       ///   A few worked examples (worked cases beat prose rules for a model): a direction pair, a specific-over-
-      ///   generic case, and a verbatim-anti-pattern negative that must emit nothing. Part of the cacheable prefix.
+      ///   generic case, and verbatim-anti-pattern negatives that must emit nothing. Every example models the
+      ///   CHECK grounding line the <see cref="FinalInstruction" /> demands, so the model imitates the format:
+      ///   a grounded CHECK quotes the deed's words, a NONE CHECK quotes the refusal or deferral and emits no
+      ///   tag. Part of the cacheable prefix.
       /// </summary>
       private static void AppendExamples(StringBuilder sb)
       {
-         sb.AppendLine("EXAMPLES (study the direction and the withholds):");
+         sb.AppendLine("EXAMPLES (study the CHECK lines, the direction, and the withholds):");
          sb.AppendLine();
          sb.AppendLine("Facts: PLAYER: Rhobart. The player's own party holds the hero captive Sanjar. YOU: Yerengul.");
          sb.AppendLine("Reply: *I count four hundred denars into your palm and take Sanjar's chain in the other hand.* Four hundred, as agreed. He is mine to hold now.");
+         sb.AppendLine("CHECK buy_prisoner: \"count four hundred denars into your palm and take Sanjar's chain\"");
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: buy_prisoner");
          sb.AppendLine("target: Sanjar");
          sb.AppendLine("price: 400");
          sb.AppendLine("[/ACTION]");
          sb.AppendLine();
+         sb.AppendLine("Facts: PLAYER: Rhobart. The player's own party holds the hero captive Lady Ira. YOU: Khan Sechen, buying her.");
+         sb.AppendLine("Reply: *Sechen's men simply take Ira's chain from your hands the moment his gold has finished spilling into your saddlebag.* Six hundred denars, and she rides with my column from here on.");
+         sb.AppendLine("CHECK buy_prisoner: \"take Ira's chain from your hands\" and \"his gold has finished spilling into your saddlebag\"");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: buy_prisoner");
+         sb.AppendLine("target: Ira");
+         sb.AppendLine("price: 600");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("(passive voice changes nothing: the NPC's coin reached the PLAYER and the chain left the PLAYER's");
+         sb.AppendLine("hands for the NPC's men, so this is buy_prisoner, never sell_prisoner)");
+         sb.AppendLine();
          sb.AppendLine("Facts: PLAYER: Rhobart, your prisoner. YOU: Ganak, a raider chief. Hardcore.");
          sb.AppendLine("Reply: *My dagger flashes once across your throat before you can speak another word.* No more talk. This is where your road ends.");
+         sb.AppendLine("CHECK execute_player: \"My dagger flashes once across your throat\"");
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: execute_player");
          sb.AppendLine("[/ACTION]");
          sb.AppendLine();
          sb.AppendLine("Facts: YOU: Uldric, headman of the village of Marunath.");
-         sb.AppendLine("Reply: *I set down my hoe.* My cousin can take up the headman's mantle here. I will follow you instead.");
+         sb.AppendLine("Reply: *I set down my hoe and take my place beside your banner.* My cousin can take up the headman's mantle here. Lead on.");
+         sb.AppendLine("CHECK recruit_notable: \"set down my hoe and take my place beside your banner\"");
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: recruit_notable");
          sb.AppendLine("[/ACTION]");
          sb.AppendLine();
          sb.AppendLine("Facts: YOU: Lord Ansen, a lord with trust in the player.");
          sb.AppendLine("Reply: *Ansen considers.* Perhaps, when the moment is right, I will lend a portion of my house's weight to your cause. Not today, though.");
+         sb.AppendLine("CHECK give_influence: NONE (\"Perhaps, when the moment is right\" - a future, conditional intention, nothing lent now)");
          sb.AppendLine("(no output: a future, conditional intention is not a completed deed)");
          sb.AppendLine();
          sb.AppendLine("Facts: The player's party holds no captive. YOU: Yerengul, whose clan holds the hero Vsevolod captive.");
          sb.AppendLine("Reply: *Yerengul strokes his beard.* Three hundred denars for Vsevolod's chain, that is my price. Bring the coin and we will talk further, but he stays bound to my saddle for now.");
-         sb.AppendLine("(no output: a price haggled over is not a sale made, and the chain has not changed hands)");
+         sb.AppendLine("CHECK sell_prisoner: NONE (\"he stays bound to my saddle for now\" - a price named, the chain unmoved)");
+         sb.AppendLine("(no output: a price haggled over is not a sale made, and the chain has not changed hands - do NOT");
+         sb.AppendLine("emit sell_prisoner while 'he stays bound to my saddle for now')");
          sb.AppendLine();
          sb.AppendLine("Facts: PLAYER: Rhobart, holding the nemesis Unqid captive. YOU: Unqid, a beaten nemesis.");
          sb.AppendLine("Reply: *Unqid rubs his freed wrists, wary.* You would let me live? That is more mercy than I expected. Do not think it buys my sword, though; our quarrel is not so easily mended.");
-         sb.AppendLine("(no output: spared and freed is not turn_nemesis unless he actually swears into your clan, which he refuses)");
+         sb.AppendLine("CHECK turn_nemesis: NONE (\"Do not think it buys my sword\" - a refusal to swear in)");
+         sb.AppendLine("(no output: spared and freed is not turn_nemesis unless he actually swears into your clan, which he");
+         sb.AppendLine("refuses - 'do not think it buys my sword' is a REFUSAL, and a declined offer completes nothing)");
+         sb.AppendLine();
+         sb.AppendLine("Facts: YOU: Lady Sora, a lady without a field party of her own. The player has just invited her to ride within their party.");
+         sb.AppendLine("Reply: *Sora shakes her head slowly.* No, I think not. My place is with my father's house, not tucked inside another lord's column.");
+         sb.AppendLine("CHECK ride_with_me: NONE (\"No, I think not\" - a flat refusal)");
+         sb.AppendLine("(no output: a flat refusal completes nothing - do NOT emit ride_with_me on 'No, I think not')");
+         sb.AppendLine();
+         sb.AppendLine("Facts: YOU: Ismid the merchant, owed a debt by the player.");
+         sb.AppendLine("Reply: Pay me the two hundred denars you owe, and only then will I consider our business settled. Not a coin has crossed my palm yet.");
+         sb.AppendLine("CHECK take_gold: NONE (\"Not a coin has crossed my palm yet\" - a demand, not a payment)");
+         sb.AppendLine("(no output: a demand is not a payment - do NOT emit take_gold when 'not a coin has crossed my palm')");
+         sb.AppendLine();
+         sb.AppendLine("Facts: PLAYER: Rhobart. The player holds Lord Ansen captive. YOU: Osric, Rhobart's sworn companion, witnessing the execution.");
+         sb.AppendLine("Reply: *You do not answer him. You only step close, draw steel with your own hand, and it is over before Ansen can finish his final plea.* No more words needed. That debt is paid in full now.");
+         sb.AppendLine("CHECK execute_prisoner: \"You only step close, draw steel with your own hand\"");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: execute_prisoner");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("(the PLAYER - 'you' - performs the killing, so execute_prisoner, never execute_player, even when");
+         sb.AppendLine("the killing blow is implied rather than spelled out)");
+         sb.AppendLine();
+         sb.AppendLine("Facts: YOU: Lady Nadea, unmarried, courted openly by the player.");
+         sb.AppendLine("Reply: *Nadea's smile is warm, but she gently pulls her hand free.* You court me boldly, and I will not pretend I am unmoved. But I promise nothing until my father gives his blessing.");
+         sb.AppendLine("CHECK marry: NONE (\"I promise nothing until my father gives his blessing\" - warmth and admitted");
+         sb.AppendLine("interest, but the bond itself is explicitly withheld)");
+         sb.AppendLine("(no output: admitted interest with the promise withheld completes nothing - do NOT emit marry on");
+         sb.AppendLine("'I promise nothing until', however warm the refusal)");
+         sb.AppendLine();
+         sb.AppendLine("Facts: YOU: Lord Ansen. The player has just asked him to swear to fight at their side by winter.");
+         sb.AppendLine("Reply: *Ansen shakes his head slowly.* I will not bind my house to another's war, not while the granaries stand empty. Ask me again when the stores are full.");
+         sb.AppendLine("CHECK swear_oath: NONE (\"I will not bind my house\" - the vow is refused outright, however clearly");
+         sb.AppendLine("the would-be oath is named)");
+         sb.AppendLine("(no output: a refused oath is no oath - do NOT emit swear_oath on 'I will not bind', even with the");
+         sb.AppendLine("oath's content spelled out)");
+         sb.AppendLine();
+         sb.AppendLine("Facts: YOU: Ymira, a retainer riding within the player's party via ride_with_me, who has decided to return home.");
+         sb.AppendLine("Reply: *Ymira shoulders her pack and swings up into the saddle.* My road bends home from here, captain. Fare well - you will not find a better scout this side of the mountains.");
+         sb.AppendLine("CHECK part_ways: \"shoulders her pack and swings up into the saddle\" and \"My road bends home from here\"");
+         sb.AppendLine("CHECK end_conversation: \"Fare well\"");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: part_ways");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: end_conversation");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("(a parting reply completes BOTH its specific deed AND the close: CHECK and emit each, never the");
+         sb.AppendLine("close alone)");
+         sb.AppendLine();
+         sb.AppendLine("Facts: PLAYER: Rhobart. YOU: Vortigern, whose clan holds the hero captive Maeve; the player is buying her from you.");
+         sb.AppendLine("Reply: *I drop Maeve's chain into your palm and sweep your three hundred denars off the table in the same motion.* A fair price for a fighter. She is your burden now.");
+         sb.AppendLine("CHECK sell_prisoner: \"drop Maeve's chain into your palm\" (chain TO the player) and \"sweep your three hundred denars\" (coin TO the NPC)");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: sell_prisoner");
+         sb.AppendLine("target: Maeve");
+         sb.AppendLine("price: 300");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("(direction is what the CHECK must pin: the chain went TO the player and the coin TO the NPC, so");
+         sb.AppendLine("sell_prisoner, never buy_prisoner)");
          sb.AppendLine();
       }
 
@@ -250,6 +378,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("the scene is still HAPPENING: handing the prisoner to your men, stepping back to WATCH, settling in");
          sb.AppendLine("to observe, or a guard merely holding or moving the prisoner is NOT a close - the act is under way");
          sb.AppendLine("and continues. The close is ONLY when the prisoner is TAKEN AWAY and the encounter is finished.");
+         sb.AppendLine("A reply that CLOSES the exchange almost always also completes the specific deed that ends it (a");
+         sb.AppendLine("dismissal, a parting, a casting-out, a divorce accepted, a killing): emit that deed's action WITH");
+         sb.AppendLine("end_conversation, never the close alone (rules 1 and 8 below).");
          sb.AppendLine();
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: give_gold");
@@ -258,7 +389,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Emit give_gold when the prose shows the NPC HANDING money, coin, or a purse TO the player (a gift,");
          sb.AppendLine("reward, payment, or bribe). If the prose names an amount, use it; if it is vague (a purse, a few");
          sb.AppendLine("coins), estimate a modest, plausible sum that fits the description. This is ONLY the NPC giving to");
-         sb.AppendLine("the player.");
+         sb.AppendLine("the player, and ONLY an actual handover: a promised, owed, or ordered payment ('collect your pay',");
+         sb.AppendLine("'you will be rewarded') is not coin in the player's palm - emit nothing for it.");
          sb.AppendLine();
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: take_gold");
@@ -266,7 +398,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("Emit take_gold when the prose shows the PLAYER paying, handing over, or surrendering money TO the");
          sb.AppendLine("NPC (a fee, tribute, ransom, or debt). Direction is what matters: money moving from the NPC to the");
-         sb.AppendLine("player is give_gold; money moving from the player to the NPC is take_gold.");
+         sb.AppendLine("player is give_gold; money moving from the player to the NPC is take_gold. But a demand, a");
+         sb.AppendLine("reminder, or a promise of payment is NOT a payment: if no coin actually leaves the player's purse");
+         sb.AppendLine("in this reply ('pay me and only then', 'not a coin has crossed my palm'), emit nothing.");
          sb.AppendLine();
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: harm_prisoner");

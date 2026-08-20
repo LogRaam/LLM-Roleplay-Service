@@ -48,8 +48,11 @@ namespace NpcMemoryService.Core.Actions
 
             var request = new LlmRequest {
                SystemPrompt = prompt,
-               Messages = new[] {new LlmMessage(MessageRole.User, "Output the tags now.")},
-               Parameters = new LlmParameters {MaxTokens = 600, Creativity = 0.2f}
+               Messages = new[] {new LlmMessage(MessageRole.User, ActionInterpreterPromptBuilder.FinalInstruction)},
+               // 900, not 600: the two-step FinalInstruction makes the model write a CHECK grounding line per
+               // candidate action BEFORE the tag block, so a reply carrying several deeds can exhaust 600 on the
+               // CHECK preamble and truncate the tags (bench 2026-08-19 16:06: empty emits + a "no content" call).
+               Parameters = new LlmParameters {MaxTokens = 900, Creativity = 0.2f}
             };
 
             LlmResponse response = await interpreter.CompleteAsync(request, ct).ConfigureAwait(false);

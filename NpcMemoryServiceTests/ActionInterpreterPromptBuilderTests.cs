@@ -381,6 +381,24 @@ namespace NpcMemoryServiceTests
          ActionInterpreterPromptBuilder.StablePrefix.Should().Contain("ONE REPLY CAN CARRY MORE THAN ONE DEED");
       }
 
+      // Run 2026-08-19 16:06: the CHECK-grounding prompt crushed false positives but over-corrected, collapsing a
+      // whole family of terminal deeds (execute_prisoner, expel_from_clan, dismiss_escort, part_ways, accept_divorce,
+      // end_own_marriage) into a bare end_conversation - the interpreter treated the farewell as the deed. Rule 9
+      // names that family so the deed inside a parting is recorded, while still deferring to the CHECK so a
+      // threatened-but-not-done ending stays a bare close. Without it, a player who executes a prisoner or ends a
+      // marriage sees the deed silently dropped - the exact broken-promise class the action system exists to kill.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_a_beat_ending_on_a_deed_records_the_deed_not_only_the_close()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("A BEAT THAT ENDS ON A DEED RECORDS THE DEED, NOT end_conversation ALONE");
+         prefix.Should().Contain("expel_from_clan");
+         prefix.Should().Contain("end_own_marriage");
+         // The withhold guard: a threatened/lamented ending must NOT be promoted to the terminal deed.
+         prefix.Should().Contain("a threatened execution, a storming-off in anger, an unhappy marriage");
+      }
+
       // Same run: the dominant residual was over-emitting on non-consummated actions (haggled, spared-but-not-sworn).
       // Two negative worked examples must be present, since examples beat rules for a model's withholds.
       [Test]

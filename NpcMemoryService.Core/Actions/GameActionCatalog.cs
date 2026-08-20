@@ -158,7 +158,7 @@ namespace NpcMemoryService.Core.Actions
                antiPatterns: new[] {
                   "the demand merely being restated, threatened, or discussed, without the player actually paying it off",
                   "a promise to pay the demand eventually rather than the debt being settled now",
-                  "an ordinary payment to a different NPC or for a different purpose, which is give_gold rather than settling this specific silence demand"
+                  "an ordinary debt repaid to a merchant, lord, or any other NPC, or any payment not settling THIS bastard-mother's silence demand, which is take_gold, never pay_blackmail"
                }),
             Spec("join_party",
                "A free, recruitable wanderer agrees to take service as a companion in the player's own party for an agreed hiring price.",
@@ -312,6 +312,7 @@ namespace NpcMemoryService.Core.Actions
                },
                antiPatterns: new[] {
                   "the item merely being discussed, admired, or offered in words, without actually changing hands",
+                  "the NPC DECLINING the offered item ('I cannot take such a blade from you', 'keep it'), which completes no transfer",
                   "a future promise to give the item later rather than the handover happening now",
                   "gold or a prisoner changing hands instead of a physical item, which are give_gold or give_prisoner/sell_prisoner"
                },
@@ -359,20 +360,24 @@ namespace NpcMemoryService.Core.Actions
             Spec("turn_nemesis",
                "A tracked nemesis the player holds prisoner is spared, freed, sworn into the player's clan and party, and their vendetta closed for good.",
                tells: new[] {
-                  "the player's tracked nemesis is spared, freed, and actually sworn into the player's own clan and party in this reply, the vendetta closed"
+                  "the player's tracked nemesis is spared, freed, and actually sworn into the player's own clan and party in this reply, the vendetta closed",
+                  "the nemesis speaks or performs an OATH OF SERVICE in this reply ('my sword is yours', 'I will ride with you', kneeling in fealty): sparing or freeing him WITHOUT that oath is not a turn, however grateful he sounds"
                },
                antiPatterns: new[] {
                   "the nemesis merely being spared or spoken with, without the vendetta actually being closed and them being sworn in",
+                  "the nemesis accepting mercy but REFUSING service ('do not think it buys my sword', 'our quarrel is not mended'), which completes nothing",
                   "a hero prisoner who is NOT the player's tracked nemesis switching sides instead, which is recruit_prisoner",
                   "killing or releasing the nemesis without recruiting them, which are execute_prisoner or free_prisoner"
                }),
             Spec("recruit_prisoner",
                "A captured hero prisoner the player holds is persuaded to switch sides: freed from captivity and sworn straight into the player's clan and party.",
                tells: new[] {
-                  "a held hero prisoner is actually persuaded and sworn into the player's own clan and party in this reply"
+                  "a held hero prisoner is actually persuaded and sworn into the player's own clan and party in this reply",
+                  "the prisoner ACCEPTS the offer in this reply ('I will serve', 'my oath to you', 'I am yours'): interest, temptation, or being persuaded-at WITHOUT accepting completes nothing"
                },
                antiPatterns: new[] {
                   "the prisoner merely being persuaded-at (offered, argued with), without actually switching sides",
+                  "the prisoner DECLINING or being bound by a prior oath ('my oath to my own liege still binds me'), however tempting he finds the offer",
                   "the player's own tracked NEMESIS switching sides instead, which is the distinct verb turn_nemesis",
                   "a settlement NOTABLE joining the clan rather than a held hero prisoner, which is recruit_notable"
                }),
@@ -383,6 +388,7 @@ namespace NpcMemoryService.Core.Actions
                },
                antiPatterns: new[] {
                   "the notable merely being courted or considering the offer, without actually leaving their post",
+                  "the notable dangling a LATER departure ('perhaps when the harvest is in', 'not before then', 'one day I might'), still at their post today",
                   "a captured hero PRISONER switching sides rather than a free settlement notable, which is recruit_prisoner",
                   "a NOBLE LORD forsaking their own house to join the clan instead (no post, no successor), which is the distinct verb join_clan",
                   "a free wanderer with no post, hired into the party for a price, which is join_party, never recruit_notable"
@@ -468,7 +474,8 @@ namespace NpcMemoryService.Core.Actions
             Spec("revoke_fief",
                "The player, as sovereign, strips a fief back from the NPC's (separate) vassal house, returning it to the crown; plants a grave grudge.",
                tells: new[] {
-                  "the player, as sovereign, actually strips a fief back from the NPC's vassal house in this reply"
+                  "the player, as sovereign, actually strips a fief back from the NPC's vassal house in this reply",
+                  "the NPC acknowledging that the player-sovereign has JUST stripped their fief ('taken back to the crown', 'stripped from my house', their steward already escorted from the gates): the revocation is the PLAYER's deed and counts the moment the reply treats it as done"
                },
                antiPatterns: new[] {
                   "the revocation merely being threatened or discussed, without actually being carried out",
@@ -504,6 +511,7 @@ namespace NpcMemoryService.Core.Actions
                },
                antiPatterns: new[] {
                   "a vague reassurance, hope, or good intention with nothing concrete and verifiable actually pledged",
+                  "an oath explicitly DECLINED or deferred ('I swear no oath today', 'I will weigh it before any sword touches a shoulder'), however precisely the would-be oath is named",
                   "the NPC recalling a past oath, or someone else's oath, rather than swearing one now",
                   "a mere warming of feeling toward the player (that is change_relation), not a bound, trackable commitment"
                },
@@ -590,6 +598,7 @@ namespace NpcMemoryService.Core.Actions
                },
                antiPatterns: new[] {
                   "the NPC merely being asked or considering the offer, without actually agreeing",
+                  "the NPC DECLINING outright or putting the player off ('No, I think not', 'my place is elsewhere'), however warmly the invitation was made",
                   "a lord who leads their OWN field party escorting the player's instead, which is the distinct verb follow_me",
                   "swearing into the player's clan rather than merely riding along while keeping their own clan, which is join_clan"
                }),
@@ -627,10 +636,11 @@ namespace NpcMemoryService.Core.Actions
             Spec("give_troops",
                "The NPC, whose own party runs under-strength, accepts soldiers the player offers to reinforce their ranks.",
                tells: new[] {
-                  "the NPC, running under-strength, actually accepts soldiers the player offers in this reply"
+                  "the NPC, running under-strength, actually accepts soldiers the player offers in this reply, the soldiers changing ranks now"
                },
                antiPatterns: new[] {
                   "the offer merely being discussed, without the NPC actually accepting the soldiers",
+                  "a DEFERRED or conditional acceptance ('perhaps I will ask you for them later', 'for now my ranks hold', 'when my numbers thin'), which completes nothing this turn",
                   "the NPC GIVING soldiers to the player instead, which is the mirror verb lend_troops",
                   "an NPC whose party is not under-strength accepting reinforcement it does not need"
                }),
@@ -709,6 +719,7 @@ namespace NpcMemoryService.Core.Actions
                antiPatterns: new[] {
                   "a generic pleasantry or comfort that does not address a specific, knowingly-held grievance",
                   "a grudge that needs a gift or deed rather than words alone, per the description, so a mere apology should not resolve it",
+                  "a grievance settled by a PAYMENT or a deed rather than by the player's spoken apology or earnest words, which is take_gold (or no action at all), not make_amends",
                   "softening a companion's voiced unhappiness in general, which is the distinct verb reassure_companion"
                }),
             Spec("pledge_against",
@@ -718,6 +729,7 @@ namespace NpcMemoryService.Core.Actions
                },
                antiPatterns: new[] {
                   "the lord merely grumbling about the rival, without actually vowing a tracked scheme against them",
+                  "a vague someday-resentment with no vow of action ('one day, perhaps, he will answer for it', 'today is not that day'), which launches no scheme",
                   "a declaration of war, which the description explicitly excludes; this is a political scheme only",
                   "the rival being the lord's own close kin, which the description rules out",
                   "the PLAYER joining the NPC's OWN existing scheme instead of the NPC vowing their own, which is scheme_assist"

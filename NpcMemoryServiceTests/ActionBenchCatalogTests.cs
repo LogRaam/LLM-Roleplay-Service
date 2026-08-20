@@ -67,5 +67,25 @@ namespace NpcMemoryServiceTests
                c.Expected.Should().NotBeEmpty($"positive case '{c.Id}' must expect at least one action");
          }
       }
+
+      // The focus slice (cr.action_bench focus) exists to cut the token bill of a refinement loop. It is a real
+      // subset of the corpus, drawn by id: a typo'd or renamed id would be SILENTLY skipped, quietly shrinking the
+      // slice below what the editor believed they were watching. This pins that every focus id resolves to a real
+      // case, so a stale id is caught here instead of costing a blind, under-covered run in game.
+      [Test]
+      public void GIVEN_the_focus_slice_WHEN_inspected_THEN_it_is_a_non_empty_subset_whose_every_id_resolves()
+      {
+         HashSet<string> allIds = ActionBenchCatalog.All.Select(c => c.Id).ToHashSet();
+
+         ActionBenchCatalog.Focus.Should().NotBeEmpty("the focus slice must run something");
+         ActionBenchCatalog.Focus.Count.Should().BeLessThan(ActionBenchCatalog.All.Count, "focus is a cheap SUBSET, not the whole corpus");
+         ActionBenchCatalog.Focus.Select(c => c.Id).Should().OnlyHaveUniqueItems();
+
+         // The real guard: every DECLARED id must resolve. If one is stale, Focus (which silently drops it) is
+         // smaller than the declared set, and the slice quietly under-covers what the editor believed it watched.
+         List<string> stale = ActionBenchCatalog.DeclaredFocusIds.Where(id => !allIds.Contains(id)).ToList();
+         stale.Should().BeEmpty("these focus ids resolve to no case (renamed or typo'd): " + string.Join(", ", stale));
+         ActionBenchCatalog.Focus.Count.Should().Be(ActionBenchCatalog.DeclaredFocusIds.Count, "every declared focus id must resolve to exactly one case");
+      }
    }
 }
