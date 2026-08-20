@@ -58,6 +58,14 @@ namespace NpcMemoryService.Core.Models
       ///   The companion brings word of the world: a rumour they could plausibly have heard (the WorldEventStore's
       ///   own awareness rules), never one already reported to the player.
       /// </summary>
-      RumourReport
+      RumourReport,
+
+      /// <summary>
+      ///   A content companion has come, unbidden, to thank the player for a specific kindness (a gift, being
+      ///   ransomed or freed, troops or influence spent for them) and to reaffirm the loyalty that shared service
+      ///   built. Purely warm: never a request, a bargain, or a demand of any kind (a future "ask for something"
+      ///   reason is deliberately separate from this one).
+      /// </summary>
+      Gratitude
    }
 }

@@ -696,10 +696,11 @@ namespace NpcMemoryService.Core.Prompts
       ///   genuine <see cref="CompanionAudienceReason.Retirement" /> gets its own surface: the companion voices
       ///   their war-weariness, and the outcome is the player's to decide in the talk: grant their leave (the
       ///   <c>retire</c> action makes it real) or persuade them to stay. This is where a war-weary veteran can be
-      ///   talked into "one more campaign". Every OTHER found-topic reason (a mission report, a companion
-      ///   conflict, practical counsel, a callback, a rumour) gets a stay-on-topic guardrail instead: the specific
-      ///   matter is already in the opening cue, and the companion must never be taught they are resigning or
-      ///   war-weary just because a private word was asked for.
+      ///   talked into "one more campaign". <see cref="CompanionAudienceReason.Gratitude" /> gets its own bespoke,
+      ///   purely-warm framing (like SecretAffection): a thank-you, never a request or a bargain. Every OTHER
+      ///   found-topic reason (a mission report, a companion conflict, practical counsel, a callback, a rumour)
+      ///   gets a stay-on-topic guardrail instead: the specific matter is already in the opening cue, and the
+      ///   companion must never be taught they are resigning or war-weary just because a private word was asked for.
       /// </summary>
       private static void AppendCompanionAudience(StringBuilder sb, EncounterContext? context)
       {
@@ -725,6 +726,19 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("yourself, with the courage and vulnerability of a comrade, not a schemer, in your own voice.");
             sb.AppendLine("Let it be tender and honest, never a demand. See the secret-lover guidance below for how it");
             sb.AppendLine("may be named, and for the discretion you would keep.");
+            sb.AppendLine();
+
+            return;
+         }
+
+         if (reason == CompanionAudienceReason.Gratitude)
+         {
+            sb.AppendLine("You sought this private word for a reason of the heart: a specific kindness the player showed");
+            sb.AppendLine("you, already named in your opening line above, that you have carried with you since. OPEN the");
+            sb.AppendLine("conversation by thanking them for it yourself, plainly and warmly, in your own voice, and let it");
+            sb.AppendLine("lead you to reaffirm the loyalty the shared service between you has built. This is PURELY a");
+            sb.AppendLine("thank-you: NEVER a request, a bargain, or a demand of any kind. Ask for nothing and expect");
+            sb.AppendLine("nothing in return.");
             sb.AppendLine();
 
             return;
