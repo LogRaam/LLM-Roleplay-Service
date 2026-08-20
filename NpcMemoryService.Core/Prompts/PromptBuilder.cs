@@ -761,6 +761,21 @@ namespace NpcMemoryService.Core.Prompts
             return;
          }
 
+         if (reason == CompanionAudienceReason.Ambition)
+         {
+            sb.AppendLine("You sought this private word because you are content in their service, and it has stirred a");
+            sb.AppendLine("genuine ambition of your own, already named in your opening line above. OPEN the conversation by");
+            sb.AppendLine("voicing it yourself, respectfully and in your own voice, as one who has served and hopes to");
+            sb.AppendLine("rise. This is an EARNEST ASK the player is free to grant or refuse: NEVER a threat, an");
+            sb.AppendLine("ultimatum, or a grievance about your lot (that is a different matter entirely). Take a refusal");
+            sb.AppendLine("with grace, true to who you are. If the player GRANTS it plainly in this conversation, let the");
+            sb.AppendLine("fitting action for that deed follow exactly as it normally would once agreed; do not claim it");
+            sb.AppendLine("is already done before they have said so.");
+            sb.AppendLine();
+
+            return;
+         }
+
          // Found-topic audiences (mission report, a grudge against a comrade, practical counsel, an old
          // memory, a rumour): the SPECIFIC matter is already in the opening cue. Gated out BEFORE the
          // retirement block so a devoted, non-weary companion is never taught they are resigning.

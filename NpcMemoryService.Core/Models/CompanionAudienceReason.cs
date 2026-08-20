@@ -75,6 +75,15 @@ namespace NpcMemoryService.Core.Models
       ///   HEEDS the warning (the scheme is exposed and its real consequences apply); refusing costs nothing and
       ///   leaves the scheme live, exactly like every other found-topic.
       /// </summary>
-      SchemeWarning
+      SchemeWarning,
+
+      /// <summary>
+      ///   A content, ambitious companion has come to voice ONE concrete ambition of their own (a command to
+      ///   lead, a post in the party, a fief to hold, or the player's blessing to wed), bound to an ambition an
+      ///   existing action verb can already resolve, so a granted ambition fires the SAME action the player
+      ///   would otherwise emit for that deed. An earnest ask the player is free to grant or refuse: never a
+      ///   threat, an ultimatum, or a grievance about their lot (Grievance already covers that path).
+      /// </summary>
+      Ambition
    }
 }
