@@ -643,6 +643,20 @@ namespace NpcMemoryService.Core.Models
       public bool IsCaptorScene { get; init; }
 
       /// <summary>
+      ///   Bring-participants-to-a-captor-scene, increment 1 (2026-08-21): true when THIS turn's speaker is a
+      ///   brought companion (a witness, <see cref="WitnessEntry.IsPlayerCompanion" />) whom the player has just
+      ///   addressed or handed the prisoner to, inside an <see cref="IsCaptorScene" /> encounter. Set by the mod
+      ///   from the same sticky addressed-speaker routing that already decides WHOSE profile this turn's call
+      ///   uses (a companion holding the floor stays "acting" for as long as the player keeps speaking with
+      ///   them, not only on the exact turn they were first named), combined with the captor-scene fact. Only
+      ///   ever true alongside <see cref="IsCaptorScene" />; never set in an ordinary conversation. Drives the
+      ///   dedicated agency teaching in <c>AppendCompanionActingOnCaptive</c> (full prompt only, see
+      ///   <c>AppendWitnessTurnDirectives</c>) and suppresses <c>AppendPlayerCaptorSceneRules</c> for this turn
+      ///   (that section assumes the "npc" IS the bound captive, which a companion is not).
+      /// </summary>
+      public bool CompanionActingOnCaptive { get; init; }
+
+      /// <summary>
       ///   Stance mechanical behaviour-gating (increment 1, Fear): true when the held captive is frightened
       ///   enough of the player, per the consumer's coercion gate, that a freedom bargain should ask for
       ///   notably harsher terms than pride alone would allow. Only meaningful alongside

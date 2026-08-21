@@ -4283,9 +4283,15 @@ namespace NpcMemoryService.Core.Prompts
       ///   prefix; whether THIS turn is a witness-exchange beat, or the player just asked for privacy THIS
       ///   turn, changes every turn and belongs in the dynamic tail so it does not bust the prefix cache.
       /// </summary>
-      private static void AppendWitnessTurnDirectives(StringBuilder sb, EncounterContext? context)
+      private void AppendWitnessTurnDirectives(StringBuilder sb, EncounterContext? context)
       {
          if (context?.Witnesses == null || context.Witnesses.Count == 0) return;
+
+         // Bring-participants-to-a-captor-scene, increment 1: this turn's speaker is a companion the player
+         // has just handed the prisoner to (or directed to act) inside a captor scene. Checked ahead of the
+         // witness-exchange/privacy directives below since it governs a different kind of turn entirely (the
+         // companion's OWN agency, not a reaction to being spoken to or a private-audience decision).
+         AppendCompanionActingOnCaptive(sb, context);
 
          // Sprint 15C: when this turn is an automatic NPC→witness exchange, override the
          // general "player is speaking to you" framing so the NPC addresses the witness.
@@ -4320,6 +4326,56 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("THE PLAYER HAS JUST REQUESTED A PRIVATE AUDIENCE: decide and emit the action THIS TURN.");
             sb.AppendLine();
          }
+      }
+
+      /// <summary>
+      ///   Bring-participants-to-a-captor-scene, increment 1 (2026-08-21): when the player has just handed the
+      ///   prisoner to a brought companion, or bid them act (<see cref="EncounterContext.CompanionActingOnCaptive" />,
+      ///   set by the mod from the addressed-speaker routing plus the captor-scene fact), an ordinary witness's
+      ///   reaction teaching is not enough: today a witness only comments or reacts to what the player and the
+      ///   captive do. This turn the companion IS a captor too, and must hold real agency. Mirrors, rather than
+      ///   duplicates, the discipline <see cref="AppendPlayerCaptorSceneRules" /> already teaches the primary
+      ///   captor: physical acts on the prisoner belong in [NARRATION] (never in [DIALOGUE]), the prisoner's own
+      ///   pain and reaction stay the prisoner's to write, and explicit description only unlocks at Hardcore
+      ///   (the same <see cref="AppendCncFraming" /> paragraph the primary captor reads). Captor-scene-only and
+      ///   FULL-prompt only: a small local model's Lean fallback has no headroom for a scene it will rarely if
+      ///   ever open, and the LeanPromptPolicyTests char-budget guard protects exactly that fallback.
+      /// </summary>
+      private void AppendCompanionActingOnCaptive(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.CompanionActingOnCaptive != true) return;
+         // Belt and suspenders on the flag's own contract ("only ever true in a captor scene"): a mistaken or
+         // stale flag must never render this physical-act/[NARRATION] framing outside AppendPlayerCaptorSceneRules'
+         // own scene.
+         if (context.IsCaptorScene != true) return;
+         if (context.LeanLevel == LeanPromptLevel.Lean) return;
+         // Mirrors AppendIntimacyConsentRules's own top gate: every other captor-scene teaching (the primary
+         // captive's own framing included) is withheld at Off, so a companion's turn must not be the one place
+         // this scene's content still renders.
+         if (AdultLevel == AdultContentLevel.Off) return;
+
+         sb.AppendLine("THIS BEAT IS YOURS: THE PLAYER HAS GIVEN YOU THE PRISONER.");
+         sb.AppendLine("The player has just handed this captive to you, or bid you act on them. Act on the");
+         sb.AppendLine("prisoner and describe what you do to them, in your own voice, by your own will and your");
+         sb.AppendLine("own appetite. Do not merely comment on what the player is doing, praise them, or wait for");
+         sb.AppendLine("them to act first: you are not a bystander here, you are a captor too.");
+         sb.AppendLine("Speak in [DIALOGUE]; whatever you physically do to the prisoner belongs in [NARRATION],");
+         sb.AppendLine("exactly as it does for the player's own deeds. Write only YOUR OWN act: the prisoner's");
+         sb.AppendLine("pain, fear, or reaction is theirs to write, not yours.");
+
+         if (AdultLevel >= AdultContentLevel.Hardcore)
+         {
+            AppendCncFraming(sb, "the captive");
+            sb.AppendLine("Go as far as your own nature and appetite take you here, explicit acts included,");
+            sb.AppendLine("exactly as any other captor in this scene would.");
+         }
+         else
+         {
+            sb.AppendLine("Keep it non-explicit at this content level: menace, cruelty, and physical dominance");
+            sb.AppendLine("are fair game, but do not describe sexual acts explicitly.");
+         }
+
+         sb.AppendLine();
       }
 
       private static void AppendWorldState(StringBuilder sb, WorldState world)
@@ -6453,6 +6509,12 @@ namespace NpcMemoryService.Core.Prompts
       private void AppendIntimacyConsentRules(StringBuilder sb, NpcProfile npc, EncounterContext? context)
       {
          if (AdultLevel == AdultContentLevel.Off) return;
+
+         // Bring-participants-to-a-captor-scene, increment 1: this turn's "npc" is a companion ACTING ON the
+         // captive, not the captive themselves, so AppendPlayerCaptorSceneRules below (which assumes the "npc"
+         // IS the bound prisoner) would be flatly wrong here. The dedicated AppendCompanionActingOnCaptive
+         // teaching (dynamic tail, see AppendWitnessTurnDirectives) already carries this turn's framing.
+         if (context?.CompanionActingOnCaptive == true && context?.IsCaptorScene == true) return;
 
          // Player-as-captor scene: the NPC is the PLAYER'S prisoner and the player drives — replaces consent logic.
          if (context?.IsCaptorScene == true)
