@@ -657,6 +657,21 @@ namespace NpcMemoryService.Core.Models
       public bool CompanionActingOnCaptive { get; init; }
 
       /// <summary>
+      ///   Bring-participants-to-a-captor-scene, increment 2 (2026-08-21): true when THIS turn's speaker is a
+      ///   BROUGHT CAPTIVE (another of the player's own prisoners, <see cref="WitnessEntry.IsBroughtCaptive" />)
+      ///   whom the player has just addressed, inside an <see cref="IsCaptorScene" /> encounter. Set by the mod
+      ///   from the SAME sticky addressed-speaker routing increment 1 uses for <see cref="CompanionActingOnCaptive" />,
+      ///   but keyed on a brought captive instead of a companion; the two are mutually exclusive by construction
+      ///   (a witness is either a free companion or a brought captive, never both). Drives
+      ///   <c>AppendBroughtCaptiveTurn</c> (full prompt only): the brought captive answers as a COERCED CAPTIVE of
+      ///   their own nature, fear and subordination, mirroring the primary captive's own voice rules, never as an
+      ///   acting captor (<c>AppendCompanionActingOnCaptive</c> stays gated on companions only) and never as an
+      ///   ordinary free witness reacting on its own standing (<c>AppendWitnessTurnDirectives</c>'s witness-exchange
+      ///   framing). Only ever true alongside <see cref="IsCaptorScene" />; never set in an ordinary conversation.
+      /// </summary>
+      public bool IsBroughtCaptiveTurn { get; init; }
+
+      /// <summary>
       ///   Stance mechanical behaviour-gating (increment 1, Fear): true when the held captive is frightened
       ///   enough of the player, per the consumer's coercion gate, that a freedom bargain should ask for
       ///   notably harsher terms than pride alone would allow. Only meaningful alongside

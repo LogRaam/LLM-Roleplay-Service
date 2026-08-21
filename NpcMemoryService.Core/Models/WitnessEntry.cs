@@ -33,6 +33,20 @@ namespace NpcMemoryService.Core.Models
       public bool IsCaptiveVictim { get; init; }
 
       /// <summary>
+      ///   Bring-participants-to-a-captor-scene, increment 2 (2026-08-21): true when this "witness" is in fact
+      ///   ANOTHER of the player's own prisoners, brought into a player-as-captor scene so the player can use one
+      ///   against the other (pressure, blackmail). Distinct from <see cref="IsPlayerCompanion" /> (a free
+      ///   participant who chose to come and may act as a captor in their own right) and from
+      ///   <see cref="IsCaptiveVictim" /> (the scene's OWN bound victim held by a hostile captor): a brought
+      ///   captive is on the CAPTIVE side of a scene the PLAYER runs. They are coerced, present under duress, and
+      ///   cannot leave; the host excludes them from the "outnumbered by several captors" tally
+      ///   (<c>AppendPlayerCaptorSceneRules</c>) and from the acting-companion teaching
+      ///   (<c>AppendCompanionActingOnCaptive</c>), and the prompt frames them as a subordinate, frightened
+      ///   captive with no standing of their own, never a free witness and never a threat to the player.
+      /// </summary>
+      public bool IsBroughtCaptive { get; init; }
+
+      /// <summary>
       ///   Bannerlord <c>Hero.StringId</c> — used by the mod to resolve the witness's
       ///   portrait when displaying <c>[WITNESS_REACTION]</c> messages in the chat window.
       ///   Null for manually seeded console witnesses.

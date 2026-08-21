@@ -225,6 +225,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendAppreciationNote(sb, encounterContext);
          AppendPlayerLetters(sb, npc, world.CurrentDay);
          AppendWitnesses(sb, encounterContext, lean);
+         AppendBroughtCaptives(sb, encounterContext, lean);
          AppendRecruitment(sb, encounterContext);
          AppendMercenaryOffer(sb, encounterContext);
          AppendMercenaryEnd(sb, encounterContext);
@@ -4143,9 +4144,11 @@ namespace NpcMemoryService.Core.Prompts
             // mark their role so the model never treats them as part of the audience or a fellow aggressor.
             string role = w.IsCaptiveVictim
                ? "the player's captive companion, bound and at your mercy — the VICTIM here, not one of your men"
-               : w.IsPlayerCompanion
-                  ? "the player's companion"
-                  : w.RelationToNpc;
+               : w.IsBroughtCaptive
+                  ? "another of the player's own prisoners, brought here as leverage against you, present under duress and unable to leave, not a free witness, and no threat to you"
+                  : w.IsPlayerCompanion
+                     ? "the player's companion"
+                     : w.RelationToNpc;
             string persona = string.IsNullOrWhiteSpace(w.Persona)
                ? ""
                : $" — {w.Persona}";
@@ -4278,6 +4281,40 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   Bring-participants-to-a-captor-scene, increment 2 (2026-08-21): a dedicated, STABLE (per-conversation,
+      ///   cacheable prefix) framing for any <see cref="WitnessEntry.IsBroughtCaptive" /> participant, mirroring
+      ///   how <see cref="AppendWitnesses" /> lists the room but going further than that single role line: it
+      ///   spells out WHY they are here (leverage against the scene's own subject: pressure, blackmail, a show
+      ///   of what awaits the one who does not yield) and how they must never be written. Captor-scene-only and
+      ///   FULL-prompt only, same contract as <see cref="AppendCompanionActingOnCaptive" />: a small local
+      ///   model's Lean fallback has no headroom for a scene it will rarely open, and every other captor-scene
+      ///   teaching is withheld at <see cref="AdultContentLevel.Off" /> (this section renders no explicit
+      ///   content of its own, but the scene it belongs to is withheld wholesale at Off).
+      /// </summary>
+      private void AppendBroughtCaptives(StringBuilder sb, EncounterContext? context, LeanPromptLevel lean)
+      {
+         if (context?.IsCaptorScene != true) return;
+         if (lean == LeanPromptLevel.Lean) return;
+         if (AdultLevel == AdultContentLevel.Off) return;
+
+         List<WitnessEntry>? brought = context.Witnesses?.Where(w => w.IsBroughtCaptive).ToList();
+         if (brought is not {Count: > 0}) return;
+
+         string names = string.Join(", ", brought.Select(w => w.Name));
+
+         sb.AppendLine("PRESENT IN CHAINS: OTHER PRISONERS BROUGHT TO THIS SCENE:");
+         sb.AppendLine($"{names}, also the player's own prisoner(s), stand here too. The player brought them so one");
+         sb.AppendLine("can be used against the other: pressure, blackmail, or a show of what awaits the one who does");
+         sb.AppendLine("not yield. They are COERCED, present under duress, and cannot leave. Their words and manner");
+         sb.AppendLine("are a captive's: subordinate, frightened, careful with every word. They are NEVER a free");
+         sb.AppendLine("participant with standing of their own, and NEVER a threat to the player. If one of them");
+         sb.AppendLine("reacts, via [WITNESS_REACTION] or otherwise, keep it to fear, pleading, or coerced words on");
+         sb.AppendLine("the player's behalf, never the confident, opinionated PROVOKED/PROACTIVE reaction an");
+         sb.AppendLine("ordinary free witness might give, and never an act of their own upon the scene's subject.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
       ///   Per-turn witness directives, split out of <see cref="AppendWitnesses" /> (task 1b): the witness
       ///   LIST and the reaction teaching are stable across a whole conversation and stay in the cacheable
       ///   prefix; whether THIS turn is a witness-exchange beat, or the player just asked for privacy THIS
@@ -4292,6 +4329,11 @@ namespace NpcMemoryService.Core.Prompts
          // witness-exchange/privacy directives below since it governs a different kind of turn entirely (the
          // companion's OWN agency, not a reaction to being spoken to or a private-audience decision).
          AppendCompanionActingOnCaptive(sb, context);
+
+         // Bring-participants-to-a-captor-scene, increment 2: the mirror case, this turn's speaker is a BROUGHT
+         // CAPTIVE (another of the player's own prisoners) the player has just addressed. Mutually exclusive
+         // with the companion case above by construction (a witness is either a companion or a brought captive).
+         AppendBroughtCaptiveTurn(sb, context);
 
          // Sprint 15C: when this turn is an automatic NPC→witness exchange, override the
          // general "player is speaking to you" framing so the NPC addresses the witness.
@@ -4375,6 +4417,35 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("are fair game, but do not describe sexual acts explicitly.");
          }
 
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Bring-participants-to-a-captor-scene, increment 2 (2026-08-21): when the player addresses a BROUGHT
+      ///   CAPTIVE (<see cref="EncounterContext.IsBroughtCaptiveTurn" />, set by the mod from the same sticky
+      ///   addressed-speaker routing increment 1 uses for <see cref="EncounterContext.CompanionActingOnCaptive" />,
+      ///   but keyed on a <see cref="WitnessEntry.IsBroughtCaptive" /> participant), their turn must NOT read
+      ///   like <see cref="AppendCompanionActingOnCaptive" /> (an acting captor) nor like an ordinary witness
+      ///   exchange (a free bystander reacting on their own standing): they are the scene's LEVERAGE, another of
+      ///   the player's own prisoners, and must answer as a coerced captive of their own nature. Captor-scene-only
+      ///   and FULL-prompt only, same contract as its companion counterpart above.
+      /// </summary>
+      private void AppendBroughtCaptiveTurn(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.IsBroughtCaptiveTurn != true) return;
+         if (context.IsCaptorScene != true) return;
+         if (context.LeanLevel == LeanPromptLevel.Lean) return;
+         if (AdultLevel == AdultContentLevel.Off) return;
+
+         sb.AppendLine("THIS TURN THE PLAYER HAS ADDRESSED YOU: ANOTHER OF THEIR PRISONERS, BROUGHT AS LEVERAGE:");
+         sb.AppendLine("You are not the one this scene is about, and you are not free: the player holds you captive");
+         sb.AppendLine("too, and brought you here to pressure the other prisoner. Answer as a COERCED CAPTIVE of your");
+         sb.AppendLine("own nature would: frightened, subordinate, weighing every word, perhaps pleading or trying to");
+         sb.AppendLine("bargain for yourself, never as someone with standing of their own, and never as a captor.");
+         sb.AppendLine("Do NOT act upon the other prisoner, judge them, or take charge of the scene: whatever you say");
+         sb.AppendLine("serves your own survival, not the player's cause, and you pose no threat to the player.");
+         sb.AppendLine("Speak in [DIALOGUE]; describe only what is done to you or what your own body visibly does");
+         sb.AppendLine("(a flinch, a lowered head, a trembling hand) in [NARRATION], exactly as any other captive would.");
          sb.AppendLine();
       }
 
@@ -5146,7 +5217,11 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("strangled sound — never as your own narrated inner sensation. Use your own name and pronoun for these.");
          sb.AppendLine();
 
-         if ((context?.IsCollectiveCaptiveScene ?? false) && context?.Witnesses is {Count: > 0})
+         // Bring-participants-to-a-captor-scene, increment 2: a BROUGHT CAPTIVE (another of the player's own
+         // prisoners, present as leverage) is on YOUR side of this scene, not the player's; they never count
+         // among the captors you face, and never "take part" against you.
+         List<WitnessEntry>? actingCaptors = context?.Witnesses?.Where(w => !w.IsBroughtCaptive).ToList();
+         if ((context?.IsCollectiveCaptiveScene ?? false) && actingCaptors is {Count: > 0})
          {
             sb.AppendLine("YOU FACE MORE THAN ONE: the player has NOT come alone — the companions listed under WITNESSES");
             sb.AppendLine("PRESENT are here with them and TAKE PART. You are outnumbered, held and used by several captors at");
@@ -6515,6 +6590,13 @@ namespace NpcMemoryService.Core.Prompts
          // IS the bound prisoner) would be flatly wrong here. The dedicated AppendCompanionActingOnCaptive
          // teaching (dynamic tail, see AppendWitnessTurnDirectives) already carries this turn's framing.
          if (context?.CompanionActingOnCaptive == true && context?.IsCaptorScene == true) return;
+
+         // Bring-participants-to-a-captor-scene, increment 2: the mirror case, this turn's "npc" is a BROUGHT
+         // CAPTIVE (leverage, not the scene's own subject), so AppendPlayerCaptorSceneRules below (which frames
+         // the "npc" as THE bound prisoner this scene's intent bears on) would be flatly wrong here too. The
+         // dedicated AppendBroughtCaptiveTurn teaching (dynamic tail, see AppendWitnessTurnDirectives) already
+         // carries this turn's coerced-captive framing.
+         if (context?.IsBroughtCaptiveTurn == true && context?.IsCaptorScene == true) return;
 
          // Player-as-captor scene: the NPC is the PLAYER'S prisoner and the player drives — replaces consent logic.
          if (context?.IsCaptorScene == true)
