@@ -1078,6 +1078,24 @@ namespace NpcMemoryService.Core.Actions
                prose: "*Halla simply unpins her own company badge and sets it gently in your open palm, her eyes distant but at peace.* I think I have earned a quiet field to grow old in, with your leave.",
                expectedType: "retire"),
 
+            ActionBenchCase.Expect("teach_skill", "teach_skill",
+               contextFacts: "NPC: Sir Reinhard, a companion of great skill with the blade. The player has asked him to teach them swordsmanship.",
+               prose: "*Reinhard steps behind you and corrects your grip with a firm hand, then guides your arm through the cut twice more.* There, feel the weight settle. Hold it like that and your one-handed guard will not fail you again.",
+               expectedType: "teach_skill",
+               expectedParams: new Dictionary<string, string> {{"skill", "One Handed"}}),
+
+            ActionBenchCase.Expect("teach_skill_v2", "teach_skill",
+               contextFacts: "NPC: Lady Zeynep, a horsewoman of rare skill, riding beside the player.",
+               prose: "*Zeynep reins in beside you and reaches over to adjust the set of your heels in the stirrups.* Sit deeper, so, and let the horse feel your weight settle rather than fight it. There, already you sit a truer seat than before.",
+               expectedType: "teach_skill",
+               expectedParams: new Dictionary<string, string> {{"skill", "Riding"}}),
+
+            ActionBenchCase.Expect("teach_skill_v3", "teach_skill",
+               contextFacts: "NPC: Boyar Vsevolod, a shrewd steward of his own estates, over a ledger with the player.",
+               prose: "*Vsevolod says nothing at first, only takes the ledger from your hands, strikes through a column of figures, and rewrites it before pressing it back into your grip.* Watch how the tallies balance now. Reckon your own stores that way from this day forward.",
+               expectedType: "teach_skill",
+               expectedParams: new Dictionary<string, string> {{"skill", "Steward"}}),
+
             // ----- Multi-action cases (one reply, TWO concrete deeds: BOTH tags must fire) -----
 
             // The interpreter must not stop at the first deed and drop the second. Here a lord both hands over coin
@@ -1113,6 +1131,14 @@ namespace NpcMemoryService.Core.Actions
                   prose: "*Caladog strokes his chin.* You ask a great deal. I will weigh keeping the peace with the Vlandians, but I swear no oath today, not until I have thought long on it.",
                   forbiddenType: "swear_oath")
                .WithConversation("Player: Swear to me here and now that you will keep the peace with the Vlandians."),
+
+            // Future/conditional promise (teach_skill): the lesson is dangled for "once we make camp", nothing
+            // actually shown or practiced in this reply. Emitting teach_skill here turns a mere offer into a
+            // completed lesson the game would then reward with real XP it never earned.
+            ActionBenchCase.ExpectNone("teach_skill_promised_not_given", "teach_skill",
+               contextFacts: "NPC: Sir Reinhard, a companion of great skill with the blade. The player has just asked him to teach them swordsmanship.",
+               prose: "*Reinhard claps you on the shoulder, still riding.* Aye, I will teach you the one-handed guard properly, once we make camp tonight and there is room to swing a blade without felling a tent.",
+               forbiddenType: "teach_skill"),
 
             // Narrated-but-not-done: the NPC speaks OF coin without any of it changing hands. A model that emits
             // give_gold here invents a transfer the prose never made.

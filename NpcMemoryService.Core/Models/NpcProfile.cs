@@ -224,6 +224,15 @@ namespace NpcMemoryService.Core.Models
       public int? LastDuelDay { get; set; }
 
       /// <summary>
+      ///   teach_skill: campaign-time hour (<c>CampaignTime.Now.ToHours</c>) of the last skill lesson this NPC
+      ///   actually gave the player, mirroring <see cref="LastRelationGainHour" />'s cooldown-stamp shape so one
+      ///   NPC cannot be re-asked for a fresh lesson every turn. Null = never taught before, which is never on
+      ///   cooldown. Additive and save-safe: an older save loads this null. Game-agnostic: the SDK only stores
+      ///   it; the consumer (<c>CalradiaRemembers.Logic.TeachSkillPolicy</c>) defines the cooldown window.
+      /// </summary>
+      public double? LastTaughtHour { get; set; }
+
+      /// <summary>
       ///   Compact per-conversation summaries. Useful for diagnostics.
       ///   Not currently injected into the prompt — see <see cref="Events" />.
       ///   Null means the NPC has never met the player.

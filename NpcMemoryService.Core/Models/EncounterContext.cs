@@ -820,6 +820,16 @@ namespace NpcMemoryService.Core.Models
       public bool CanRecruitNotable { get; init; }
 
       /// <summary>
+      ///   teach_skill: the skills THIS NPC has genuine mastery in right now, one display name per teachable
+      ///   skill (e.g. "One Handed, Riding, Steward"), host-computed via
+      ///   <c>CalradiaRemembers.Logic.TeachSkillPolicy.CanTeach</c> against the NPC's own live skill values, so
+      ///   the model is only ever invited to give a lesson it can genuinely give. Null or empty means this NPC
+      ///   has nothing worth teaching right now (or is not a live hero the host tracks skills for), and the
+      ///   teaching section is skipped entirely.
+      /// </summary>
+      public IReadOnlyList<string>? TeachableSkills { get; init; }
+
+      /// <summary>
       ///   True when the family's formal blessing has already been granted for a marriage
       ///   between the player and this NPC (A.2 was completed). Used to inform the prompt
       ///   so the NPC can reference the blessing (or note its absence) in their dialogue.

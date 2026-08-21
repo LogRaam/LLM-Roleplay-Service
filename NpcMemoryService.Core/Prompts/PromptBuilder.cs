@@ -269,6 +269,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendPrisonerCannotDefect(sb, encounterContext);
          AppendRecruitNotable(sb, encounterContext);
          AppendPrisonerRescueBargain(sb, encounterContext);
+         AppendTeachSkill(sb, encounterContext);
          // gather_news was folded into dispatch_mission (2026-08-05): AppendDispatchMissionOffer above is now the
          // SOLE errand offer, so a companion in the party no longer sees two overlapping errand teachings.
          AppendCompanionRecallOffer(sb, encounterContext);
@@ -3512,6 +3513,45 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("The game then hands your role to a successor and moves you into the player's clan and party. If you");
          sb.AppendLine("are not yet ready, say so and emit nothing. Never claim you have joined them, or named a successor,");
          sb.AppendLine("unless you emit this action.");
+      }
+
+      /// <summary>
+      ///   teach_skill: taught only when the game confirms this NPC has genuine mastery in at least one skill
+      ///   right now (<see cref="EncounterContext.TeachableSkills" /> non-empty, computed via
+      ///   <c>CalradiaRemembers.Logic.TeachSkillPolicy.CanTeach</c> against the NPC's own live skill values), so
+      ///   the model is never invited to hand out a lesson a novice has no business giving. A mere PROMISE of a
+      ///   future lesson earns no XP; only a lesson genuinely GIVEN this reply does (see the verb's own
+      ///   AntiPatterns in <c>GameActionCatalog</c>), which is why this teaching is explicit about the
+      ///   distinction. Suppressed in a captor scene, on a captive player, and on council/round-table turns
+      ///   (those channels own their own resolutions), the same carve-out every sibling 1:1 offer applies. The
+      ///   bridge re-validates the named skill and the teacher's own mastery before granting any XP (the prompt
+      ///   is advice, the bridge is law), and re-applies its own cooldown so this NPC cannot be re-asked for a
+      ///   fresh lesson every turn.
+      /// </summary>
+      private static void AppendTeachSkill(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.TeachableSkills is not {Count: > 0} skills) return;
+         if (context.IsCaptorScene) return;
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+         if (context.IsRoundTableTurn || context.IsCouncilNarratorTurn) return;
+
+         sb.AppendLine();
+         sb.AppendLine("A LESSON YOU COULD GIVE (only as a topic THE PLAYER raises):");
+         sb.AppendLine($"You have real mastery in: {string.Join(", ", skills)}. Do not offer to teach on your own");
+         sb.AppendLine("initiative; this is the player's matter to raise. If they ask you to teach or show them");
+         sb.AppendLine("something of your craft, actually instruct them here and now, in character: correct their");
+         sb.AppendLine("grip, adjust their seat, walk them through the trick of it, something they are SHOWN and");
+         sb.AppendLine("PRACTICE in this very reply, not merely told about. A vague promise to teach them someday");
+         sb.AppendLine("earns them nothing; only a lesson genuinely given now does. When you actually teach them,");
+         sb.AppendLine("emit alongside your dialogue:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: teach_skill");
+         sb.AppendLine("skill: <the skill you taught, exactly as named above>");
+         sb.AppendLine("amount: <a modest number reflecting how much you showed them, your own judgment>");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The game weighs your own mastery and how recently you last taught this player, and decides");
+         sb.AppendLine("the real benefit from that, your figure is only a suggestion. Never claim to have taught");
+         sb.AppendLine("them anything, or that they grew more skilled, unless you emit this action.");
       }
 
       /// <summary>

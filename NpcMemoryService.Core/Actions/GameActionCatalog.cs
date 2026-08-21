@@ -796,7 +796,20 @@ namespace NpcMemoryService.Core.Actions
                   "this being emitted outside a dedicated companion retirement audience, which the description explicitly rules out",
                   "the companion having already agreed to stay on, after which this must never fire",
                   "the companion merely being expelled or dismissed rather than granted a blessed, voluntary leave, which is expel_from_clan"
-               })
+               }),
+            Spec("teach_skill",
+               "The NPC, genuinely skilled themselves, actually instructs the player in a skill this very reply (a stance corrected, a grip adjusted, a trick of the trade shown and practiced); the bridge re-validates the NPC's own mastery and grants a bounded amount of real skill XP.",
+               tells: new[] {
+                  "the NPC actively INSTRUCTS the player in a skill in this reply, a hands-on lesson or demonstration the player is shown and practices right now, not merely spoken advice"
+               },
+               antiPatterns: new[] {
+                  "a mere PROMISE of a future lesson ('I will teach you once we make camp', 'ask me again when there is time'), rather than a lesson genuinely given this turn",
+                  "the PLAYER teaching the NPC instead, the wrong direction for this verb",
+                  "a skill merely mentioned, admired, or discussed in passing, with no actual lesson or demonstration given",
+                  "praise or encouragement about the player's existing skill, which is change_relation, not an act of teaching"
+               },
+               new GameActionParam("skill", "the skill taught, e.g. One Handed, Riding, Trade, Medicine"),
+               new GameActionParam("amount", "advisory whole number of skill XP; the bridge decides the real amount from the teacher's own mastery"))
          };
       }
 
