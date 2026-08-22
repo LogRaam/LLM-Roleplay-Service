@@ -79,7 +79,7 @@ namespace NpcMemoryServiceTests
             new GameAction {Type = "change_relation"}
          };
 
-         IReadOnlyList<GameAction> kept = ActionTagSanitizer.StripEventTypeActions(actions);
+         IReadOnlyList<GameAction> kept = ActionTagSanitizer.StripEventTypeActions(actions)!;
 
          kept.Should().ContainSingle();
          kept[0].Type.Should().Be("change_relation");
@@ -97,7 +97,7 @@ namespace NpcMemoryServiceTests
             new GameAction {Type = "give_gold"}
          };
 
-         IReadOnlyList<GameAction> kept = ActionTagSanitizer.StripEventTypeActions(actions);
+         IReadOnlyList<GameAction> kept = ActionTagSanitizer.StripEventTypeActions(actions)!;
 
          kept.Should().HaveCount(2);
          kept[0].Type.Should().Be("change_relation");

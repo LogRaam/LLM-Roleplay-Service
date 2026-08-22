@@ -137,7 +137,7 @@ namespace NpcMemoryServiceTests
       private static string Build(
          int regard,
          RomanticStatus status = RomanticStatus.Curious,
-         string spouseName = null,
+         string spouseName = null!,
          bool npcSpouseIsPlayer = false,
          int relief = 0)
       {

@@ -42,7 +42,7 @@ namespace NpcMemoryService.Core.Actions
       public string ScenarioId { get; }
 
       /// <summary>The prose the single call authored (for the reader), or null on failure.</summary>
-      public string Prose { get; }
+      public string? Prose { get; }
 
       /// <summary>The action types the single call self-emitted.</summary>
       public IReadOnlyList<string> SelfTypes { get; }
@@ -51,10 +51,10 @@ namespace NpcMemoryService.Core.Actions
       public IReadOnlyList<string> InterpreterTypes { get; }
 
       /// <summary>The agreement verdict, or null if this run failed before it could be scored.</summary>
-      public SingleCallAgreementResult Agreement { get; }
+      public SingleCallAgreementResult? Agreement { get; }
 
       /// <summary>Non-null when this run failed (single-call error, empty prose, or interpreter error).</summary>
-      public string FailureNote { get; }
+      public string? FailureNote { get; }
 
       /// <summary>True when the run was scored (both calls succeeded and produced usable output).</summary>
       public bool Scored => FailureNote == null && Agreement != null;
@@ -109,7 +109,8 @@ namespace NpcMemoryService.Core.Actions
          List<SingleCallBenchResult> scored = g.Where(r => r.Scored).ToList();
          if (scored.Count == 0) return false;
 
-         int agree = scored.Count(r => r.Agreement.Verdict == SingleCallAgreementVerdict.Agree);
+         // r.Scored guarantees r.Agreement is non-null (see the Scored property); the ! reflects that invariant.
+         int agree = scored.Count(r => r.Agreement!.Verdict == SingleCallAgreementVerdict.Agree);
 
          return agree * 2 > scored.Count;
       }
@@ -119,12 +120,13 @@ namespace NpcMemoryService.Core.Actions
          var sb = new StringBuilder();
          List<SingleCallBenchResult> passes = g.ToList();
          int scored = passes.Count(r => r.Scored);
-         int agree = passes.Count(r => r.Scored && r.Agreement.Verdict == SingleCallAgreementVerdict.Agree);
+         // r.Scored guarantees r.Agreement is non-null (see the Scored property); the ! reflects that invariant.
+         int agree = passes.Count(r => r.Scored && r.Agreement!.Verdict == SingleCallAgreementVerdict.Agree);
 
          sb.AppendLine($"  {(agreeing ? "AGREE " : "DIVERGE")}  {g.Key}  ({agree}/{passes.Count} agreed)");
 
          // Show one representative pass: a diverging one when present (the informative case), else the first.
-         SingleCallBenchResult sample = passes.FirstOrDefault(r => r.Scored && r.Agreement.Verdict == SingleCallAgreementVerdict.Diverge)
+         SingleCallBenchResult sample = passes.FirstOrDefault(r => r.Scored && r.Agreement!.Verdict == SingleCallAgreementVerdict.Diverge)
                                        ?? passes.FirstOrDefault(r => r.Scored)
                                        ?? passes.First();
 
@@ -143,7 +145,8 @@ namespace NpcMemoryService.Core.Actions
          sb.AppendLine($"      self:        [{string.Join(", ", sample.SelfTypes)}]");
          sb.AppendLine($"      interpreter: [{string.Join(", ", sample.InterpreterTypes)}]");
 
-         if (sample.Agreement.OnlySelf.Count > 0)
+         // sample.Scored (checked above, which returns on !Scored) guarantees sample.Agreement is non-null here.
+         if (sample.Agreement!.OnlySelf.Count > 0)
             sb.AppendLine($"      only self (self-grounding drift?): [{string.Join(", ", sample.Agreement.OnlySelf)}]");
          if (sample.Agreement.OnlyInterpreter.Count > 0)
             sb.AppendLine($"      only interpreter (single call missed?): [{string.Join(", ", sample.Agreement.OnlyInterpreter)}]");
@@ -153,11 +156,12 @@ namespace NpcMemoryService.Core.Actions
 
       // A single-lined, bounded slice of the authored prose so a divergence line stays readable while still carrying
       // enough text to judge who was right.
-      private static string Snippet(string prose)
+      private static string Snippet(string? prose)
       {
          if (string.IsNullOrWhiteSpace(prose)) return "(none)";
 
-         string flat = string.Join(" ", prose.Split(new[] {'\r', '\n'}, System.StringSplitOptions.RemoveEmptyEntries)
+         // string.IsNullOrWhiteSpace returning false above guarantees prose is non-null here.
+         string flat = string.Join(" ", prose!.Split(new[] {'\r', '\n'}, System.StringSplitOptions.RemoveEmptyEntries)
                                              .Select(l => l.Trim()));
 
          return flat.Length <= 500 ? flat : flat.Substring(0, 500) + "...";

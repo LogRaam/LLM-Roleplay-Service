@@ -107,7 +107,7 @@ namespace NpcMemoryServiceTests
 
       private static string BuildProposal(bool reluctant)
       {
-         NpcProfile npc = Npc(spouseName: null, regard: reluctant ? 10 : 60);
+         NpcProfile npc = Npc(spouseName: null!, regard: reluctant ? 10 : 60);
 
          return new PromptBuilder {AdultLevel = AdultContentLevel.Mature}
             .BuildSystemPrompt(npc, new WorldState {CurrentDay = 10},

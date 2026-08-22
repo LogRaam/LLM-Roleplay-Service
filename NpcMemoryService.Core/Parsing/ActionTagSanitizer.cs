@@ -33,14 +33,14 @@ namespace NpcMemoryService.Core.Parsing
       ///   Returns <paramref name="actions" /> with every entry whose type is an [EVENT] type word removed.
       ///   Returns the input unchanged when there is nothing to strip (never allocates on the common path).
       /// </summary>
-      public static IReadOnlyList<GameAction> StripEventTypeActions(IReadOnlyList<GameAction> actions)
+      public static IReadOnlyList<GameAction>? StripEventTypeActions(IReadOnlyList<GameAction>? actions)
       {
          if (actions == null || actions.Count == 0) return actions;
 
-         List<GameAction> kept = null;
+         List<GameAction>? kept = null;
          for (var i = 0; i < actions.Count; i++)
          {
-            GameAction a = actions[i];
+            GameAction? a = actions[i];
             bool drop = a == null || _eventTypeKeys.Contains(Canonical(a.Type));
 
             if (drop && kept == null)
@@ -48,7 +48,7 @@ namespace NpcMemoryService.Core.Parsing
                kept = new List<GameAction>(actions.Count);
                for (var j = 0; j < i; j++) kept.Add(actions[j]);
             }
-            else if (!drop)
+            else if (!drop && a != null)
             {
                kept?.Add(a);
             }

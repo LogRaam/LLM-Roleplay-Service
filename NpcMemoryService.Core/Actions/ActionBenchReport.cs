@@ -19,8 +19,8 @@ namespace NpcMemoryService.Core.Actions
    /// <summary>One case RUN's outcome after the interpreter ran on it: the emitted actions and the scored verdict.</summary>
    public sealed class ActionBenchResult
    {
-      public ActionBenchResult(ActionBenchCase test, bool callSucceeded, string error,
-         IReadOnlyList<GameAction> emitted, ActionBenchVerdict verdict, string emittedEvent = null)
+      public ActionBenchResult(ActionBenchCase test, bool callSucceeded, string? error,
+         IReadOnlyList<GameAction>? emitted, ActionBenchVerdict verdict, string? emittedEvent = null)
       {
          Case = test;
          CallSucceeded = callSucceeded;
@@ -37,7 +37,7 @@ namespace NpcMemoryService.Core.Actions
       public bool CallSucceeded { get; }
 
       /// <summary>The call error, when <see cref="CallSucceeded" /> is false.</summary>
-      public string Error { get; }
+      public string? Error { get; }
 
       /// <summary>The actions the interpreter emitted (empty on a failed call).</summary>
       public IReadOnlyList<GameAction> Emitted { get; }
@@ -50,7 +50,7 @@ namespace NpcMemoryService.Core.Actions
       ///   the interpreter recorded an EVENT instead of the expected action (e.g. a romantic beat logged as an
       ///   intimacy EVENT rather than take_as_secret_lover), which the action-only tally would otherwise hide.
       /// </summary>
-      public string EmittedEvent { get; }
+      public string? EmittedEvent { get; }
 
       /// <summary>A pass is a call that succeeded AND either hit every expected action or correctly withheld a forbidden one.</summary>
       public bool IsPass => CallSucceeded

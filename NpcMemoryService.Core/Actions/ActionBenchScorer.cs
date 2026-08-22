@@ -52,7 +52,7 @@ namespace NpcMemoryService.Core.Actions
 
       #region private
 
-      private static bool TypeEquals(string a, string b)
+      private static bool TypeEquals(string? a, string? b)
          => string.Equals(a?.Trim(), b?.Trim(), StringComparison.OrdinalIgnoreCase);
 
       private static bool AllParamsMatch(GameAction action, IReadOnlyDictionary<string, string> expected)

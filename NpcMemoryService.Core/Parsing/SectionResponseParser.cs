@@ -107,7 +107,9 @@ namespace NpcMemoryService.Core.Parsing
          string? questSection = ExtractSectionTolerant(rawResponse, QuestTag);
          string? questCompleteSection = ExtractSectionTolerant(rawResponse, QuestCompleteTag);
          string? questAbandonSection = ExtractSectionTolerant(rawResponse, QuestAbandonTag);
-         IReadOnlyList<GameAction> actions = ActionTagSanitizer.StripEventTypeActions(ParseActions(rawResponse));
+         // ParseActions always returns a real (non-null) list, so StripEventTypeActions (nullable only to
+         // accommodate a null input) can never actually return null here.
+         IReadOnlyList<GameAction> actions = ActionTagSanitizer.StripEventTypeActions(ParseActions(rawResponse))!;
          IReadOnlyList<WitnessReaction> witnessReactions = ParseWitnessReactions(rawResponse);
          IReadOnlyList<ResolutionProposal> resolutions = ParseResolutions(rawResponse);
          QuestProposal? questGiven = ParseQuestProposal(questSection);
@@ -116,7 +118,7 @@ namespace NpcMemoryService.Core.Parsing
          // the spoken line, and the player watches the NPC recite our plumbing (Nexus, 2026-07-19). ParseActions
          // recovers the call so the deed still happens; this takes it out of the character's mouth.
          string dialogueClean = StripJsonActionEnvelopes(dialogue).Trim();
-         string narration = string.IsNullOrWhiteSpace(narrationSection) ? null : narrationSection!.Trim();
+         string? narration = string.IsNullOrWhiteSpace(narrationSection) ? null : narrationSection!.Trim();
          // A model sometimes writes a narration paragraph with the WRONG delimiters - "*NARRATION ...*" in asterisks
          // instead of the taught [NARRATION]...[/NARRATION] block (mimo, 2026-08-16) - so the bracket parser above
          // misses it and the literal label leaks into the spoken line. Lift that prose into the narration channel.
@@ -432,7 +434,7 @@ namespace NpcMemoryService.Core.Parsing
       ///   narration channel, so the label never reaches the player and the atmospheric prose still renders. Only
       ///   the all-caps NARRATION label (in asterisks) is recovered; anything else is left untouched.
       /// </summary>
-      private static string RecoverStrayNarration(string dialogue, ref string narration)
+      private static string RecoverStrayNarration(string dialogue, ref string? narration)
       {
          if (string.IsNullOrEmpty(dialogue) || dialogue.IndexOf("NARRATION", StringComparison.Ordinal) < 0)
             return dialogue;

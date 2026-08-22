@@ -69,7 +69,7 @@ namespace NpcMemoryService.Core.Actions
             IReadOnlyList<GameAction> emitted = parsed.Actions;
             ActionBenchVerdict verdict = ActionBenchScorer.Score(emitted, test);
 
-            string emittedEvent = parsed.NewEventData == null
+            string? emittedEvent = parsed.NewEventData == null
                ? null
                : parsed.NewEventData.Type + Summarize(parsed.NewEventData.Summary);
 

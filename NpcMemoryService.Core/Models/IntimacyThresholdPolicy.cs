@@ -97,7 +97,7 @@ namespace NpcMemoryService.Core.Models
         ///   (see <see cref="IntimacyConsentVerdict.Exempt" />), for whom the caller should not print a bar
         ///   at all; the value returned in that case is simply the ordinary one.
         /// </summary>
-        public static int Threshold(IntimacyConsentFacts f)
+        public static int Threshold(IntimacyConsentFacts? f)
         {
             if (f == null) return StandardThreshold;
 
@@ -117,7 +117,7 @@ namespace NpcMemoryService.Core.Models
         ///   and <see cref="IntimacyConsentVerdict.Below" /> are the SAME mechanical answer (no); they differ
         ///   only in how the refusal should be voiced.
         /// </summary>
-        public static IntimacyConsentVerdict Resolve(IntimacyConsentFacts f)
+        public static IntimacyConsentVerdict Resolve(IntimacyConsentFacts? f)
         {
             if (f == null) return IntimacyConsentVerdict.Below;
             if (f.NpcIsPlayerSpouse) return IntimacyConsentVerdict.Exempt;
@@ -133,7 +133,7 @@ namespace NpcMemoryService.Core.Models
         ///   Deliberately blind to shared history: a past affair explains a gentler refusal, it never buys a
         ///   mechanical exemption, or a single low-regard encounter would unlock the NPC for good.
         /// </summary>
-        public static bool PermitsIntimacy(IntimacyConsentFacts f)
+        public static bool PermitsIntimacy(IntimacyConsentFacts? f)
         {
             IntimacyConsentVerdict verdict = Resolve(f);
 

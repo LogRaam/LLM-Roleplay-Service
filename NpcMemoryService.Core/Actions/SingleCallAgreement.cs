@@ -63,7 +63,7 @@ namespace NpcMemoryService.Core.Actions
       ///   scored as "extracted nothing", never silently as agreement). The verdict is Agree only when the two
       ///   SUBSTANTIVE type sets are identical.
       /// </summary>
-      public static SingleCallAgreementResult Compare(IEnumerable<string> selfTypes, IEnumerable<string> interpreterTypes)
+      public static SingleCallAgreementResult Compare(IEnumerable<string>? selfTypes, IEnumerable<string>? interpreterTypes)
       {
          HashSet<string> self = Substantive(selfTypes);
          HashSet<string> interp = Substantive(interpreterTypes);
@@ -78,7 +78,7 @@ namespace NpcMemoryService.Core.Actions
          return new SingleCallAgreementResult(verdict, onlySelf, onlyInterp);
       }
 
-      private static HashSet<string> Substantive(IEnumerable<string> types)
+      private static HashSet<string> Substantive(IEnumerable<string>? types)
       {
          var set = new HashSet<string>();
          if (types == null) return set;

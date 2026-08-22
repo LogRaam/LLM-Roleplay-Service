@@ -40,7 +40,7 @@ namespace NpcMemoryServiceTests
       [Test]
       public void GIVEN_npc_has_no_kin_to_give_WHEN_built_THEN_arrange_marriage_is_not_taught()
       {
-         string prompt = Build(playerKin: "Elara (age 22)", npcKin: null);
+         string prompt = Build(playerKin: "Elara (age 22)", npcKin: null!);
 
          prompt.Should().NotContain("type: arrange_marriage");
       }
@@ -50,7 +50,7 @@ namespace NpcMemoryServiceTests
       [Test]
       public void GIVEN_player_has_no_kin_to_offer_WHEN_built_THEN_arrange_marriage_is_not_taught()
       {
-         string prompt = Build(playerKin: null, npcKin: "Baltoc (age 25)");
+         string prompt = Build(playerKin: null!, npcKin: "Baltoc (age 25)");
 
          prompt.Should().NotContain("type: arrange_marriage");
       }

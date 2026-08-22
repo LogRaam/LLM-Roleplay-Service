@@ -49,7 +49,7 @@ namespace NpcMemoryServiceTests
                              }
                              """;
 
-         NpcProfile profile = JsonSerializer.Deserialize<NpcProfile>(json);
+         NpcProfile profile = JsonSerializer.Deserialize<NpcProfile>(json)!;
 
          profile.Should().NotBeNull();
          profile!.ActiveQuests.Should().NotBeNull();
@@ -68,7 +68,7 @@ namespace NpcMemoryServiceTests
       public void GIVEN_a_save_written_before_troop_loans_existed_WHEN_loading_THEN_the_lord_has_none()
       {
          NpcProfile profile = JsonSerializer.Deserialize<NpcProfile>(
-            """{"Id":"lord_mina","Name":"Mina","Clan":"Thais","Faction":"Battania"}""");
+            """{"Id":"lord_mina","Name":"Mina","Clan":"Thais","Faction":"Battania"}""")!;
 
          profile!.TroopLoans.Should().NotBeNull().And.BeEmpty();
       }
@@ -79,7 +79,7 @@ namespace NpcMemoryServiceTests
       public void GIVEN_a_null_letter_list_in_the_save_WHEN_iterating_it_THEN_it_is_simply_empty()
       {
          NpcProfile profile = JsonSerializer.Deserialize<NpcProfile>(
-            """{"Id":"a","Name":"A","Clan":"C","Faction":"F","SentLetters":null,"ReceivedPlayerLetters":null}""");
+            """{"Id":"a","Name":"A","Clan":"C","Faction":"F","SentLetters":null,"ReceivedPlayerLetters":null}""")!;
 
          profile!.SentLetters.Should().BeEmpty();
          profile.ReceivedPlayerLetters.Should().BeEmpty();
@@ -99,7 +99,7 @@ namespace NpcMemoryServiceTests
             }
          };
 
-         NpcProfile loaded = JsonSerializer.Deserialize<NpcProfile>(JsonSerializer.Serialize(original));
+         NpcProfile loaded = JsonSerializer.Deserialize<NpcProfile>(JsonSerializer.Serialize(original))!;
 
          loaded!.Events.Should().HaveCount(1);
          loaded.Events[0].summary.Should().Be("Accepted the hideout task.");

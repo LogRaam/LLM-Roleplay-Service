@@ -27,7 +27,7 @@ namespace NpcMemoryServiceTests
    {
       private const string Conviction = "He is convinced he is secretly a necromancer, and hides it from every living soul.";
 
-      private static NpcProfile Npc(string conviction = null, string backstory = null) => new() {
+      private static NpcProfile Npc(string conviction = null!, string backstory = null!) => new() {
          Id = "test_hero",
          Name = "Derthert",
          Clan = "dey Meroc",
