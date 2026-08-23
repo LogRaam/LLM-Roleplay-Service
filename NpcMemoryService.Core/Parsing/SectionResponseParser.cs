@@ -293,7 +293,8 @@ namespace NpcMemoryService.Core.Parsing
             ? v
             : null;
 
-      private static string? NullIfBlank(string? value)
+      /// <summary>Internal (not private): shared verbatim by <see cref="CouncilResponseParser" /> so the council's own tolerant fields stay byte-for-byte the same rule as the 1:1/whole-table parser's.</summary>
+      internal static string? NullIfBlank(string? value)
          => string.IsNullOrWhiteSpace(value)
             ? null
             : value!.Trim();
@@ -547,8 +548,11 @@ namespace NpcMemoryService.Core.Parsing
       ///   Parses lines of the form "key: value" into a dictionary.
       ///   Tolerant: skips lines without ':', strips optional '#' value prefix,
       ///   trims whitespace, comparison is case-insensitive.
+      ///   Internal (not private): shared verbatim by <see cref="CouncilResponseParser" />, the council's own
+      ///   dedicated group-scene parser, so a model's stray bullet/backtick dressing around a field is tolerated
+      ///   identically in both places rather than by two copies that could silently drift apart.
       /// </summary>
-      private static Dictionary<string, string> ParseKeyValueLines(string section)
+      internal static Dictionary<string, string> ParseKeyValueLines(string section)
       {
          var dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -619,8 +623,10 @@ namespace NpcMemoryService.Core.Parsing
       ///   become one underscore, so "give gold" and "give-gold" both reach "give_gold". Deliberately NOT an
       ///   alias table: the bridge already lowercases, and synonyms like "pay" are ambiguous (player pays vs NPC
       ///   pays), so guessing one could fire the WRONG transfer. Only the unambiguous separator fold is applied.
+      ///   Internal (not private): shared verbatim by <see cref="CouncilResponseParser" /> so a council's
+      ///   "change_relation"/resolution "type" tokens fold identically to the 1:1/whole-table parser's own.
       /// </summary>
-      private static string NormalizeActionType(string raw)
+      internal static string NormalizeActionType(string raw)
          => Regex.Replace(raw.Trim(), @"[ \t\-]+", "_");
 
       private static ConversationMemory? ParseMemory(string? section)
@@ -914,8 +920,14 @@ namespace NpcMemoryService.Core.Parsing
          return resolutions;
       }
 
-      /// <summary>A [RESOLUTION] block missing "type" is not a decision at all: skipped, like a typeless [ACTION].</summary>
-      private static ResolutionProposal? BuildResolution(Dictionary<string, string> fields)
+      /// <summary>
+      ///   A [RESOLUTION] block missing "type" is not a decision at all: skipped, like a typeless [ACTION].
+      ///   Internal (not private): shared verbatim by <see cref="CouncilResponseParser" /> so a resolution the
+      ///   new one-call council group scene records maps onto the SAME catalogue of grounding fields the
+      ///   existing whole-table/narrator council already teaches and the mod's own CouncilLift already reads,
+      ///   rather than a second, divergent field-mapping.
+      /// </summary>
+      internal static ResolutionProposal? BuildResolution(Dictionary<string, string> fields)
       {
          if (!fields.TryGetValue(ActionTypeKey, out string? type) || string.IsNullOrWhiteSpace(type)) return null;
 
@@ -1003,7 +1015,8 @@ namespace NpcMemoryService.Core.Parsing
             : text;
       }
 
-      private static int? TryParseSignedInt(IReadOnlyDictionary<string, string> fields, string key)
+      /// <summary>Internal (not private): shared verbatim by <see cref="CouncilResponseParser" /> so a council's own numeric fields (e.g. change_relation's delta) tolerate the same dressed-up figures ("+2 relation") as everywhere else.</summary>
+      internal static int? TryParseSignedInt(IReadOnlyDictionary<string, string> fields, string key)
       {
          if (!fields.TryGetValue(key, out string? raw) || raw == null) return null;
 
