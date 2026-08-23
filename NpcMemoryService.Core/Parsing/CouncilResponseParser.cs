@@ -1,12 +1,17 @@
 // Code written by Gabriel Mailhot, 22/08/2026.
 // Parses the council's new ONE-CALL GROUP SCENE response (see CouncilPromptBuilder for the taught format):
-// an optional shared [SCENE], then one or more [SPEAKER: Name] blocks (every seated member, possibly more than
-// once for cross-talk), then zero or more [RESOLUTION] and actor-attributed [ACTION] type: change_relation
-// blocks. Mirrors SectionResponseParser's own conventions closely (truncation tolerance on every block family,
-// tolerant key/value parsing) and REUSES its [RESOLUTION] field-mapping and small tolerant helpers verbatim
-// (widened to internal there) rather than a second, divergent copy: a resolution recorded through either
-// council prompt path lands on the exact same NpcMemoryService.Core.Models.ResolutionProposal shape the mod's
-// CouncilLift already settles.
+// [SCENE] beats freely interleaved with [SPEAKER: Name] blocks (every seated member, possibly more than once
+// for cross-talk), then zero or more [RESOLUTION] and actor-attributed [ACTION] type: change_relation blocks.
+// Mirrors SectionResponseParser's own conventions closely (truncation tolerance on every block family, tolerant
+// key/value parsing) and REUSES its [RESOLUTION] field-mapping and small tolerant helpers verbatim (widened to
+// internal there) rather than a second, divergent copy: a resolution recorded through either council prompt
+// path lands on the exact same NpcMemoryService.Core.Models.ResolutionProposal shape the mod's CouncilLift
+// already settles.
+//
+// Refinement (22/08/2026, same day): the author wants brief narrator "camera" hand-offs interleaved BETWEEN
+// speakers, not just one leading beat. [SCENE] and [SPEAKER: Name] are now parsed in a SINGLE pass into one
+// ordered Contributions list (CouncilContribution.IsScene distinguishes the two), so the mod's renderer walks
+// one list, in true output order, instead of reassembling narration and speech from two separate results.
 
 #region
 
@@ -26,10 +31,11 @@ namespace NpcMemoryService.Core.Parsing
    public sealed class CouncilResponseParser
    {
       /// <summary>
-      ///   Matches the START of any recognised block boundary EXCEPT [SCENE]'s own close tag: the point where an
-      ///   open (unclosed) [SCENE]/[SPEAKER: Name]/[RESOLUTION]/[ACTION] block's body must stop. [SPEAKER: Name]
-      ///   is matched on its opening "[SPEAKER:" only (its name/close bracket varies); the other three are exact
-      ///   bracket tags in this format.
+      ///   Matches the START of any recognised block: the point where an open (unclosed) [SCENE]/[SPEAKER:
+      ///   Name]/[RESOLUTION]/[ACTION] block's body must stop, since none of the four has a close tag a model is
+      ///   taught to write. [SPEAKER: Name] is matched on its opening "[SPEAKER:" only (its name/close bracket
+      ///   varies); the other three are exact bracket tags in this format. Shared by <see cref="TrimAtFirstBoundary" />
+      ///   (RESOLUTION/ACTION truncation recovery) and <see cref="ContributionPattern" /> (the SCENE/SPEAKER scan).
       /// </summary>
       private const string BoundaryPattern = @"\[(?:SPEAKER\s*:|SCENE\]|RESOLUTION\]|ACTION\])";
 
@@ -43,10 +49,11 @@ namespace NpcMemoryService.Core.Parsing
          if (string.IsNullOrWhiteSpace(raw)) return new CouncilParsedResponse();
 
          IReadOnlyList<string> seats = seatedNames ?? new List<string>();
+         IReadOnlyList<CouncilContribution> contributions = ParseContributions(raw, seats);
 
          return new CouncilParsedResponse {
-            SceneNarration = ExtractScene(raw),
-            Contributions = ParseContributions(raw, seats),
+            SceneNarration = FirstSceneText(contributions),
+            Contributions = contributions,
             Resolutions = ParseResolutions(raw),
             RelationShifts = ParseRelationShifts(raw)
          };
@@ -63,47 +70,63 @@ namespace NpcMemoryService.Core.Parsing
       }
 
       /// <summary>
-      ///   The shared [SCENE] narration. A properly closed block is preferred; an OPEN block with no close (a
-      ///   max-tokens truncation, or simply the model omitting the close tag) is still recovered up to the next
-      ///   boundary, mirroring every other block family's own truncation tolerance. Null (never empty) when
-      ///   absent or blank, so the mod can treat "no shared narration" as a single clean case.
+      ///   Matches EITHER a [SCENE] beat or a [SPEAKER: Name] block, in one single pass, so a combined scan of
+      ///   the reply visits both kinds in TRUE output order (a second, separate scan for each kind would lose
+      ///   their relative interleaving). Either alternative's body runs up to the NEXT recognised boundary: there
+      ///   is no close tag for either in this format (a model may still write a stray "[/SCENE]"/"[/SPEAKER]",
+      ///   cleaned out of the captured body by <see cref="CleanBody" /> rather than left to leak into the text).
       /// </summary>
-      private static string? ExtractScene(string text)
+      private static readonly string ContributionPattern =
+         @"\[(?<scenetag>SCENE)\](?<scenebody>.*?)(?=" + BoundaryPattern + @"|\z)"
+         + @"|\[SPEAKER\s*:\s*(?<name>[^\]]+)\](?<speakerbody>.*?)(?=" + BoundaryPattern + @"|\z)";
+
+      /// <summary>The first [SCENE] beat's own text, for the back-compat <see cref="CouncilParsedResponse.SceneNarration" /> property. Null when there is none.</summary>
+      private static string? FirstSceneText(IReadOnlyList<CouncilContribution> contributions)
       {
-         Match closed = Regex.Match(text, @"\[SCENE\](.*?)\[/SCENE\]", RegexOptions.Singleline | RegexOptions.IgnoreCase);
-         if (closed.Success) return NullIfBlank(closed.Groups[1].Value);
+         foreach (CouncilContribution contribution in contributions)
+            if (contribution.IsScene) return contribution.Text;
 
-         Match open = Regex.Match(text, @"\[SCENE\]", RegexOptions.IgnoreCase);
-         if (!open.Success) return null;
-
-         return NullIfBlank(TrimAtFirstBoundary(text.Substring(open.Index + open.Length)));
+         return null;
       }
 
       /// <summary>
-      ///   Extracts every [SPEAKER: Name] block, in output order. A block's body runs up to the NEXT recognised
-      ///   boundary (there is no [/SPEAKER] close tag in this format), so a model that forgets one block never
-      ///   swallows the next: the following [SPEAKER:.../[SCENE]/[RESOLUTION]/[ACTION] tag ends it regardless.
-      ///   A block with a blank name or blank body (a stray "[SPEAKER: ]" the model typed and abandoned) is
-      ///   skipped rather than recorded as an empty contribution.
+      ///   Extracts every [SCENE] beat AND every [SPEAKER: Name] block, interleaved, in the single true output
+      ///   order the model wrote them. A blank name (for a speaker block) or a blank body (either kind, a stray
+      ///   tag the model typed and abandoned) is skipped rather than recorded as an empty entry.
       /// </summary>
       private static IReadOnlyList<CouncilContribution> ParseContributions(string text, IReadOnlyList<string> seatedNames)
       {
          var contributions = new List<CouncilContribution>();
-         const string pattern =
-            @"\[SPEAKER\s*:\s*(?<name>[^\]]+)\](?<body>.*?)(?=\[SPEAKER\s*:|\[SCENE\]|\[RESOLUTION\]|\[ACTION\]|\z)";
 
-         foreach (Match match in Regex.Matches(text, pattern, RegexOptions.Singleline | RegexOptions.IgnoreCase))
+         foreach (Match match in Regex.Matches(text, ContributionPattern, RegexOptions.Singleline | RegexOptions.IgnoreCase))
          {
+            if (match.Groups["scenetag"].Success)
+            {
+               string sceneBody = CleanBody(match.Groups["scenebody"].Value);
+               if (sceneBody.Length == 0) continue;
+
+               contributions.Add(new CouncilContribution {SpeakerName = string.Empty, Text = sceneBody, SpeakerMatched = false, IsScene = true});
+               continue;
+            }
+
             string rawName = match.Groups["name"].Value.Trim();
-            string body = match.Groups["body"].Value.Trim();
+            string body = CleanBody(match.Groups["speakerbody"].Value);
             if (rawName.Length == 0 || body.Length == 0) continue;
 
             (string resolvedName, bool matched) = ResolveSpeaker(rawName, seatedNames);
-            contributions.Add(new CouncilContribution {SpeakerName = resolvedName, Text = body, SpeakerMatched = matched});
+            contributions.Add(new CouncilContribution {SpeakerName = resolvedName, Text = body, SpeakerMatched = matched, IsScene = false});
          }
 
          return contributions;
       }
+
+      /// <summary>
+      ///   Trims a captured body and strips any stray close tag the model wrote for a format that has none
+      ///   ("[/SCENE]", "[/SPEAKER]") so it never leaks into the rendered text, mirroring
+      ///   <see cref="SectionResponseParser" />'s own "the player never reads our plumbing" discipline.
+      /// </summary>
+      private static string CleanBody(string raw)
+         => Regex.Replace(raw, @"\[/(?:SCENE|SPEAKER|ACTION|RESOLUTION)\]", "", RegexOptions.IgnoreCase).Trim();
 
       /// <summary>
       ///   Resolves a spoken [SPEAKER: Name] against the seated roster, tolerantly: (1) an exact, trimmed,
@@ -226,11 +249,6 @@ namespace NpcMemoryService.Core.Parsing
             Delta = SectionResponseParser.TryParseSignedInt(fields, "delta") ?? 0
          };
       }
-
-      private static string? NullIfBlank(string value)
-         => string.IsNullOrWhiteSpace(value)
-            ? null
-            : value.Trim();
 
       #endregion
    }

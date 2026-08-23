@@ -12,6 +12,12 @@
 // (type/actor/target_settlement/detail, plus every catalogue-specific grounding field) are BYTE-FOR-BYTE the
 // existing format, so the mod's existing FinalizeCouncilResolutions/SealCouncilEngagements/CouncilLift keep
 // parsing it unchanged regardless of which of the two council prompt paths produced it.
+//
+// Refinement (22/08/2026, same day): (1) a real player-reported bug, a male councillor voiced as a woman
+// because the roster never stated anyone's sex and the model guessed from the name; CouncilMemberInput.IsFemale
+// is now rendered explicitly and unmissably on every roster line. (2) the author wants brief narrator "camera"
+// hand-offs between speakers, not just a single leading beat; [SCENE] may now appear anywhere, interspersed
+// between [SPEAKER] blocks, optional and brief rather than mandatory or singular.
 
 #region
 
@@ -73,14 +79,20 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("never write another person's reply, only your own.");
          sb.AppendLine();
 
-         sb.AppendLine("OUTPUT FORMAT (produce ONLY these blocks, in this order, nothing else):");
-         sb.AppendLine("[SCENE] optional, at most once: a line or two of shared narration belonging to no single");
-         sb.AppendLine("speaker (the room, the mood, a shared glance). Omit it entirely on an ordinary turn.");
+         sb.AppendLine("OUTPUT FORMAT (produce ONLY these blocks, freely interleaved in this shape, nothing else):");
+         sb.AppendLine("[SCENE] a brief connective narrator beat, one or two lines, belonging to no single speaker: a");
+         sb.AppendLine("hand-off of the floor (\"Ajin turns to Hophtalamos, who takes up the thread\"), a reaction");
+         sb.AppendLine("(\"Sophia startles at his words\"), the room, the mood. [SCENE] beats are OPTIONAL and may");
+         sb.AppendLine("appear anywhere: before the first speaker, between any two [SPEAKER] blocks, or not at all.");
+         sb.AppendLine("Keep each one brief, and use one only where it genuinely helps the scene flow; do NOT insert");
+         sb.AppendLine("one between every pair of speakers, or the scene bloats.");
          sb.AppendLine("[SPEAKER: Name]");
-         sb.AppendLine("That member's full contribution, exactly as themselves.");
+         sb.AppendLine("That member's full contribution, exactly as themselves. A block may also open with the");
+         sb.AppendLine("member's own brief reaction before their words proper.");
          sb.AppendLine("[SPEAKER: Name]");
-         sb.AppendLine("A further block, from the same or a different member: cross-talk, a retort, an aside. Take as");
-         sb.AppendLine("many blocks as the scene genuinely calls for.");
+         sb.AppendLine("A further block, from the same or a different member: cross-talk, a retort, an aside,");
+         sb.AppendLine("optionally preceded by its own [SCENE] hand-off. Take as many [SPEAKER] blocks as the scene");
+         sb.AppendLine("genuinely calls for.");
          sb.AppendLine("Use the member's name EXACTLY as it is listed below in every [SPEAKER: Name] tag.");
          sb.AppendLine();
 
@@ -161,9 +173,15 @@ namespace NpcMemoryService.Core.Prompts
             if (!string.IsNullOrWhiteSpace(member.Culture)) clauses.Add(member.Culture!.Trim());
             clauses.Add("current regard toward the player: " + FormatRegard(member.RegardTowardPlayer));
 
-            sb.AppendLine("- " + member.Name.Trim() + ": " + string.Join("; ", clauses));
+            // Bug fix: with no sex stated the model guessed one from the name alone and got it wrong, voicing a
+            // male councillor as a woman. Stated right beside the name, before anything else, so it is the very
+            // first fact read about this seat and can never be missed or overridden by a later clause.
+            sb.AppendLine("- " + member.Name.Trim() + ", " + DescribeSex(member.IsFemale) + ": "
+                           + string.Join("; ", clauses));
          }
       }
+
+      private static string DescribeSex(bool isFemale) => isFemale ? "a woman" : "a man";
 
       private static string FormatRegard(int regard)
          => (regard >= 0 ? "+" : string.Empty) + regard.ToString(System.Globalization.CultureInfo.InvariantCulture);

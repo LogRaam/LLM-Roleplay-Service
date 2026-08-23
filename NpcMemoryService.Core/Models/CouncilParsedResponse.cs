@@ -15,15 +15,21 @@ namespace NpcMemoryService.Core.Models
    public sealed class CouncilParsedResponse
    {
       /// <summary>
-      ///   The optional shared <c>[SCENE]</c> narration (the room, the mood), belonging to no single speaker.
-      ///   Null when the model emitted none, which is the ordinary case for a mid-conversation turn.
+      ///   BACK-COMPAT ONLY: the FIRST shared <c>[SCENE]</c> beat's text (the room, the mood), belonging to no
+      ///   single speaker. Null when the model emitted none. Now that <c>[SCENE]</c> beats may be interleaved
+      ///   anywhere between speakers (not just a single leading one), this property can no longer represent the
+      ///   whole scene; <see cref="Contributions" /> (walking its <see cref="CouncilContribution.IsScene" />
+      ///   entries in order, alongside the spoken ones) is the AUTHORITATIVE render order.
       /// </summary>
       public string? SceneNarration { get; init; }
 
       /// <summary>
-      ///   Every <c>[SPEAKER: Name]</c> block, in the order the model wrote them. A member who spoke twice
-      ///   (cross-talk) appears twice; a member the model left silent this turn simply has no entry here at
-      ///   all, the parser does not invent one.
+      ///   Every element of the reply, in the order the model wrote it: both <c>[SPEAKER: Name]</c> blocks
+      ///   (<see cref="CouncilContribution.IsScene" /> false) and interleaved <c>[SCENE]</c> narrator beats
+      ///   (<see cref="CouncilContribution.IsScene" /> true), so the mod can walk ONE list to reconstruct the
+      ///   whole scene, hand-offs included, in true output order. A member who spoke twice (cross-talk) appears
+      ///   twice; a member the model left silent this turn simply has no entry here at all, the parser does not
+      ///   invent one.
       /// </summary>
       public IReadOnlyList<CouncilContribution> Contributions { get; init; } = new List<CouncilContribution>();
 

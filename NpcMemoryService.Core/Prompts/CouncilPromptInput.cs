@@ -24,6 +24,14 @@ namespace NpcMemoryService.Core.Prompts
       /// <summary>A short persona/role line ("a blunt old marshal, proud of his own troops"). Null renders no persona clause for this seat.</summary>
       public string? PersonaLine { get; init; }
 
+      /// <summary>
+      ///   True when the member is a woman, false (the default) for a man. A real bug this closes: with no sex
+      ///   stated the model guessed one from the name alone and got it wrong, voicing a male councillor as a
+      ///   woman. <see cref="CouncilPromptBuilder" /> renders this explicitly and unmissably on every roster
+      ///   line, right beside the name, so the model never has to guess.
+      /// </summary>
+      public bool IsFemale { get; init; }
+
       /// <summary>This member's current regard toward the player (the mod's own ledger, not vanilla relation), so their tone at the table is calibrated rather than generic.</summary>
       public int RegardTowardPlayer { get; init; }
 

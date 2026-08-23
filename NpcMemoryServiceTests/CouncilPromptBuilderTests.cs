@@ -53,6 +53,18 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("[SCENE]");
       }
 
+      // The author's own ask: brief narrator "camera" hand-offs interleaved BETWEEN speakers (a hand-off of the
+      // floor, a reaction), not just a single leading beat. Without this the model would still believe [SCENE]
+      // is a one-shot opener and never place a transition mid-scene.
+      [Test]
+      public void GIVEN_any_input_WHEN_building_the_prompt_THEN_interleaved_scene_transitions_between_speakers_are_taught()
+      {
+         string prompt = CouncilPromptBuilder.Build(MinimalInput("Ajin"));
+
+         prompt.Should().Contain("between any two [SPEAKER] blocks");
+         prompt.Should().NotContain("[SCENE] optional, at most once");
+      }
+
       // The whole point of the rebuild Gabriel asked for: one councillor must never again dominate a sitting
       // while the rest fade silently.
       [Test]
@@ -190,6 +202,25 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("a blunt old marshal, proud of his own troops");
          prompt.Should().Contain("Battanian");
          prompt.Should().Contain("+12");
+      }
+
+      // A real player-reported bug: with no sex stated the model guessed one from the name alone and voiced a
+      // male councillor as a woman. Each roster line must state the member's sex explicitly and unmissably,
+      // right beside the name, so the model never has to guess it.
+      [Test]
+      public void GIVEN_a_male_and_a_female_member_WHEN_building_the_prompt_THEN_each_roster_line_states_their_sex()
+      {
+         var input = new CouncilPromptInput {
+            Roster = new List<CouncilMemberInput> {
+               new() {Name = "Ajin the Hawk", IsFemale = false},
+               new() {Name = "Sophia", IsFemale = true}
+            }
+         };
+
+         string prompt = CouncilPromptBuilder.Build(input);
+
+         prompt.Should().Contain("Ajin the Hawk, a man");
+         prompt.Should().Contain("Sophia, a woman");
       }
 
       // Cache economics: the stable head (framing, output format, the RESOLUTION/change_relation channels) must

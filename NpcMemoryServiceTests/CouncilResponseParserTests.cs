@@ -64,10 +64,11 @@ namespace NpcMemoryServiceTests
          result.Contributions[2].Text.Should().Be("Hasty keeps our people alive.");
       }
 
-      // [SCENE] is shared narration belonging to no single speaker: it must be lifted out on its own, never
-      // folded into the first member's own spoken block.
+      // [SCENE] is shared narration belonging to no single speaker: it must be lifted out as its OWN ordered
+      // entry (IsScene true, no speaker), never folded into the first member's own spoken block, and the
+      // back-compat SceneNarration property must still surface its text.
       [Test]
-      public void GIVEN_a_closed_scene_block_WHEN_parsing_THEN_it_is_extracted_separately_from_the_speakers()
+      public void GIVEN_a_closed_scene_block_WHEN_parsing_THEN_it_is_its_own_ordered_entry_before_the_speaker()
       {
          var raw =
             "[SCENE]The fire crackles; every eye turns to the map.[/SCENE]\n" +
@@ -76,8 +77,13 @@ namespace NpcMemoryServiceTests
          var result = _parser.Parse(raw, Seats);
 
          result.SceneNarration.Should().Be("The fire crackles; every eye turns to the map.");
-         result.Contributions.Should().HaveCount(1);
-         result.Contributions[0].Text.Should().Be("Here is where they struck.");
+         result.Contributions.Should().HaveCount(2);
+         result.Contributions[0].IsScene.Should().BeTrue();
+         result.Contributions[0].Text.Should().Be("The fire crackles; every eye turns to the map.");
+         result.Contributions[0].SpeakerMatched.Should().BeFalse();
+         result.Contributions[1].IsScene.Should().BeFalse();
+         result.Contributions[1].SpeakerName.Should().Be("Ajin the Hawk");
+         result.Contributions[1].Text.Should().Be("Here is where they struck.");
       }
 
       // Truncation net, same discipline as SectionResponseParser's own NARRATION/QUEST tolerance: a reply cut
@@ -91,7 +97,65 @@ namespace NpcMemoryServiceTests
          var result = _parser.Parse(raw, Seats);
 
          result.SceneNarration.Should().Be("A tense hush falls over the hall.");
-         result.Contributions[0].Text.Should().Be("Let us begin.");
+         result.Contributions[0].IsScene.Should().BeTrue();
+         result.Contributions[0].Text.Should().Be("A tense hush falls over the hall.");
+         result.Contributions[1].Text.Should().Be("Let us begin.");
+      }
+
+      // The author's own ask: brief narrator "camera" hand-offs interleaved BETWEEN speakers, not just one
+      // leading beat. A [SPEAKER]/[SCENE] alternating reply must parse to ONE ordered sequence, scene beats and
+      // speaker blocks both, in true output order, with resolutions/relation shifts still extracted alongside.
+      [Test]
+      public void GIVEN_scene_beats_interleaved_between_speakers_WHEN_parsing_THEN_one_ordered_sequence_preserves_output_order()
+      {
+         var raw =
+            "[SPEAKER: Ajin the Hawk]\nWe should ride at once.\n" +
+            "[SCENE]Ajin turns to Hophtalamos, who takes up the thread.\n" +
+            "[SPEAKER: Hophtalamos the Shipwright]\nToo hasty, Ajin.\n" +
+            "[SCENE]Ajin bristles at the rebuke.\n" +
+            "[SPEAKER: Ajin the Hawk]\nHasty keeps our people alive.\n" +
+            "[RESOLUTION]\ntype: quest\nactor: Ajin the Hawk\ntarget_settlement: Pravend\ndetail: ride to Pravend\n[/RESOLUTION]\n" +
+            "[ACTION]\ntype: change_relation\nactor: Hophtalamos the Shipwright\ndelta: -1\n[/ACTION]";
+
+         var result = _parser.Parse(raw, Seats);
+
+         result.Contributions.Should().HaveCount(5);
+         result.Contributions[0].IsScene.Should().BeFalse();
+         result.Contributions[0].SpeakerName.Should().Be("Ajin the Hawk");
+         result.Contributions[0].Text.Should().Be("We should ride at once.");
+         result.Contributions[1].IsScene.Should().BeTrue();
+         result.Contributions[1].Text.Should().Be("Ajin turns to Hophtalamos, who takes up the thread.");
+         result.Contributions[2].IsScene.Should().BeFalse();
+         result.Contributions[2].SpeakerName.Should().Be("Hophtalamos the Shipwright");
+         result.Contributions[2].Text.Should().Be("Too hasty, Ajin.");
+         result.Contributions[3].IsScene.Should().BeTrue();
+         result.Contributions[3].Text.Should().Be("Ajin bristles at the rebuke.");
+         result.Contributions[4].IsScene.Should().BeFalse();
+         result.Contributions[4].SpeakerName.Should().Be("Ajin the Hawk");
+         result.Contributions[4].Text.Should().Be("Hasty keeps our people alive.");
+
+         result.Resolutions.Should().HaveCount(1);
+         result.Resolutions[0].TargetSettlement.Should().Be("Pravend");
+         result.RelationShifts.Should().HaveCount(1);
+         result.RelationShifts[0].Actor.Should().Be("Hophtalamos the Shipwright");
+         result.RelationShifts[0].Delta.Should().Be(-1);
+      }
+
+      // The back-compat guarantee: even with several interleaved beats, SceneNarration surfaces the FIRST one
+      // only (never the last, and never a concatenation), so an older caller reading just that property still
+      // gets a coherent opening beat rather than a jumble.
+      [Test]
+      public void GIVEN_several_scene_beats_WHEN_parsing_THEN_scene_narration_surfaces_only_the_first_one()
+      {
+         var raw =
+            "[SCENE]The fire crackles.\n" +
+            "[SPEAKER: Ajin the Hawk]\nWe should ride at once.\n" +
+            "[SCENE]A hush falls.\n" +
+            "[SPEAKER: Hophtalamos the Shipwright]\nAgreed.";
+
+         var result = _parser.Parse(raw, Seats);
+
+         result.SceneNarration.Should().Be("The fire crackles.");
       }
 
       // No [SCENE] at all is the ordinary case (most turns need none): must be null, never an empty string a
