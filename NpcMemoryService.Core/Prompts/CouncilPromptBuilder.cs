@@ -225,6 +225,15 @@ namespace NpcMemoryService.Core.Prompts
 
       private static void AppendPlayerLine(StringBuilder sb, CouncilPromptInput input)
       {
+         // Opening turn only: set the scene (who gathered, why, the mood) as a stage direction, never as a
+         // spoken player line. The table then opens on its own below (PlayerLine is empty this turn).
+         if (!string.IsNullOrWhiteSpace(input.OpeningCue))
+         {
+            sb.AppendLine();
+            sb.AppendLine("THE SITTING IS JUST OPENING. THE SITUATION:");
+            sb.AppendLine(input.OpeningCue.Trim());
+         }
+
          sb.AppendLine();
          sb.AppendLine(string.IsNullOrWhiteSpace(input.PlayerLine)
             ? "THE PLAYER HAS NOT YET SPOKEN THIS TURN: the table opens on its own."

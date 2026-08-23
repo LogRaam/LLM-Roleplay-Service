@@ -65,6 +65,27 @@ namespace NpcMemoryServiceTests
          prompt.Should().NotContain("[SCENE] optional, at most once");
       }
 
+      // The opening turn (2026-08-22, Council Increment 4): the council now OPENS through this same group-scene
+      // call, not the old chat narrator path, so the sitting's one-time scene-setting (a war council, a wary
+      // parley envoy) has to reach the model as a stage direction, never as words the player supposedly spoke.
+      // Without this an opener would either lose its scope flavour or be voiced back as if the player had said it.
+      [Test]
+      public void GIVEN_an_opening_cue_WHEN_building_the_prompt_THEN_it_is_set_as_a_situation_not_a_player_line()
+      {
+         var input = new CouncilPromptInput {
+            Roster = new List<CouncilMemberInput> {new() {Name = "Ajin", RegardTowardPlayer = 0}},
+            PlayerName = "Rhagaea",
+            OpeningCue = "The player has sought a PARLEY: the enemy's envoy sits across the table, wary."
+         };
+
+         string prompt = CouncilPromptBuilder.Build(input);
+
+         prompt.Should().Contain("THE SITTING IS JUST OPENING. THE SITUATION:");
+         prompt.Should().Contain("sought a PARLEY");
+         prompt.Should().Contain("the table opens on its own"); // no player line this turn
+         prompt.Should().NotContain("Rhagaea: The player has sought a PARLEY"); // never voiced as the player's own words
+      }
+
       // The whole point of the rebuild Gabriel asked for: one councillor must never again dominate a sitting
       // while the rest fade silently.
       [Test]

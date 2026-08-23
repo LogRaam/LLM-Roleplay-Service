@@ -55,6 +55,14 @@ namespace NpcMemoryService.Core.Prompts
       /// <summary>The player's own name/label, as used elsewhere in the prompt vocabulary. Null falls back to a neutral "the player".</summary>
       public string? PlayerName { get; init; }
 
+      /// <summary>
+      ///   A one-time scene-setting stage direction for the sitting's OPENING turn only: who has gathered and
+      ///   why, and the mood (e.g. a wary enemy envoy at a parley). Null on every later turn, where
+      ///   <see cref="PlayerLine" /> and <see cref="TranscriptSoFar" /> carry the scene instead. Rendered as a
+      ///   situation the table opens on, never as a spoken player line.
+      /// </summary>
+      public string? OpeningCue { get; init; }
+
       /// <summary>The current campaign day, when known. Null omits the day clause.</summary>
       public int? Day { get; init; }
 
