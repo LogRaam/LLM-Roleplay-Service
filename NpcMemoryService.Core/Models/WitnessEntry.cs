@@ -68,5 +68,14 @@ namespace NpcMemoryService.Core.Models
       ///   as though they were. Null for an ordinary (non-council) witness, where the concept does not apply.
       /// </summary>
       public string? PresenceStatus { get; init; }
+
+      /// <summary>
+      ///   This witness's OWN memory of the player, a short compressed recall (their salient history and any
+      ///   agreements), so the main speaker's single call can voice their reaction true to what THEY remember,
+      ///   not just their name and persona (player report 2026-08-23: a companion who had agreed to something in
+      ///   a prior one-on-one answered, in a group scene, as if she had never heard of it). The mod builds it
+      ///   from that witness's already-compressed profile events. Null when no profile is available.
+      /// </summary>
+      public string? Memory { get; init; }
    }
 }

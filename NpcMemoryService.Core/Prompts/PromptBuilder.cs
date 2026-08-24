@@ -211,8 +211,10 @@ namespace NpcMemoryService.Core.Prompts
          AppendHistory(sb, npc, world.CurrentDay, LeanPromptPolicy.MemoryEventLimit(lean));
          // A captor holding the player prisoner is not a quest-giver: listing the player's tasks
          // here let a bandit captor mistake a "clear the bandits" quest for one HE gave, and torture
-         // the prisoner for "failing" it. Quests have no place in a captive scene.
-         if (encounterContext?.PlayerStatus != PlayerStatusVsNpc.Captive)
+         // the prisoner for "failing" it. Quests have no place in a captive scene. SuppressQuests withholds
+         // them the same way for other turns where a quest does not belong (2026-08-23: NSFW mode, so an
+         // intimate scene never mints a quest from a vow).
+         if (encounterContext?.PlayerStatus != PlayerStatusVsNpc.Captive && encounterContext?.SuppressQuests != true)
          {
             AppendActiveQuests(sb, npc);
             AppendNativeQuestNote(sb, encounterContext);
@@ -4156,6 +4158,11 @@ namespace NpcMemoryService.Core.Prompts
                ? ""
                : $" [{w.PresenceStatus}]";
             sb.AppendLine($"- {w.Name} ({role}){persona}{presence}");
+
+            // The witness's OWN memory: voice their reaction true to what THEY recall (a prior agreement, a
+            // shared history), not as a stranger. Only shown in the full prompt, not the lean one.
+            if (lean == LeanPromptLevel.Full && !string.IsNullOrWhiteSpace(w.Memory))
+               sb.AppendLine($"    {w.Name} remembers: {w.Memory!.Trim()}");
          }
 
          // The candor rule is about being OVERHEARD, which is not what a council is: everyone here was
@@ -6310,8 +6317,9 @@ namespace NpcMemoryService.Core.Prompts
             // a small / short-context model gets only the minimal action contract above.
             // YOUR QUESTS (elsewhere in the Lean prompt) may ask you to acknowledge a done task with
             // [QUEST_COMPLETE], but the full quest teaching below is skipped in Lean, so show the bare
-            // syntax here or a small model has no example of the block to copy.
-            if (EnableQuests)
+            // syntax here or a small model has no example of the block to copy. Withheld when quests are
+            // suppressed this turn (captive or NSFW): there is nothing to complete.
+            if (EnableQuests && context?.SuppressQuests != true)
             {
                sb.AppendLine("[QUEST_COMPLETE]");
                sb.AppendLine("type: the completed task's type token");
@@ -6951,12 +6959,19 @@ namespace NpcMemoryService.Core.Prompts
       /// </summary>
       private void AppendQuestInstructions(StringBuilder sb, EncounterContext? context = null)
       {
-         if (!EnableQuests) return;
+         if (!EnableQuests || context?.SuppressQuests == true) return;
 
          sb.AppendLine("OFFERING TASKS (quests):");
          sb.AppendLine("When the conversation naturally calls for it and you have reason to trust or");
          sb.AppendLine("need this player, you may ask them to carry out a concrete deed. Nobles do not");
          sb.AppendLine("hand tasks to strangers — offer only when it fits who you are and where you stand.");
+         sb.AppendLine();
+         sb.AppendLine("A QUEST IS A CONCRETE, VERIFIABLE FIELD TASK, NEVER A VOW OR A FEELING: only the task types");
+         sb.AppendLine("listed below are quests. A promise of love, loyalty, protection, devotion, to stay together,");
+         sb.AppendLine("to marry one day, or any tender or intimate vow is NOT a task and NEVER takes a [QUEST] block:");
+         sb.AppendLine("those are words spoken in the moment, remembered on their own, not deeds the game tracks. If");
+         sb.AppendLine("what you would promise is not one of the concrete types below, say it in dialogue and emit no");
+         sb.AppendLine("[QUEST] at all.");
          sb.AppendLine();
 
          // The grounded menu: when the host has scanned the live world, teach ONLY the tasks it

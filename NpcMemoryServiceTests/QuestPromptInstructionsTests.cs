@@ -70,6 +70,31 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("north of Pravend");
       }
 
+      // Player report 2026-08-23: in an intimate (NSFW) scene the model turned a vow into a [QUEST]. The host
+      // suppresses quests for such a turn (EncounterContext.SuppressQuests), and then NO task-offering
+      // vocabulary may reach the model at all, or it would still mint one from a tender promise.
+      [Test]
+      public void GIVEN_quests_are_suppressed_WHEN_building_the_prompt_THEN_no_task_offering_is_taught()
+      {
+         var builder = new PromptBuilder {EnableQuests = true};
+
+         string prompt = builder.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10},
+            new EncounterContext {SuppressQuests = true});
+
+         prompt.Should().NotContain("OFFERING TASKS");
+      }
+
+      // The root of the same report: a vow ("I will always protect you") is not a task. Even where quests ARE
+      // taught (Enhanced / Roleplay), the teaching must forbid turning an emotional vow into a [QUEST], or an
+      // intimate promise becomes a journal quest that then fails and sours the relationship.
+      [Test]
+      public void GIVEN_quests_are_enabled_WHEN_teaching_task_issuance_THEN_it_forbids_making_a_quest_from_a_vow()
+      {
+         string prompt = BuildWithQuests(Npc());
+
+         prompt.Should().Contain("NEVER A VOW OR A FEELING");
+      }
+
       // ── The grounded viable-quest menu (the referential pre-validated against the world) ──
 
       private static string BuildWithMenu(string menu)

@@ -96,6 +96,14 @@ namespace NpcMemoryService.Core.Models
       public string? ViableQuestMenu { get; init; }
 
       /// <summary>
+      ///   When true, NO quest is taught or offered this turn: the "YOUR QUESTS" list, the native-quest note,
+      ///   and the [QUEST] offering vocabulary are all withheld, exactly as for a captive scene. The host sets it
+      ///   for turns where a quest has no place (2026-08-23: NSFW mode, so an intimate scene never mints a quest
+      ///   from a vow). Independent of <see cref="PlayerStatusVsNpc.Captive" />, which suppresses quests too.
+      /// </summary>
+      public bool SuppressQuests { get; init; }
+
+      /// <summary>
       ///   COUNCIL_ACTIONS.md Partie 5 (the "Caladog" case): true only when the host's own MCM opt-in
       ///   (mod: <c>ModSettings.AllowFiefAndMarriageQuestRewards</c>) is ON. Default FALSE preserves today's
       ///   behavior byte for byte: <c>PromptBuilder.AppendQuestInstructions</c> renders the existing
