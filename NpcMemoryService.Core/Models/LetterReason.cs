@@ -172,6 +172,15 @@ namespace NpcMemoryService.Core.Models
       ///   (a looming war, hard times fallen on a town, a rumour that reached them). They RELAY a real world
       ///   event they know of, in character, never inventing a fact. Added last to preserve old-save ordinals.
       /// </summary>
-      RealmTidings
+      RealmTidings,
+
+      // ── Intercepted correspondence (a leaked letter falls into the wrong hands) ────
+
+      /// <summary>
+      ///   An antagonist has come into possession of a private letter the player sent to someone else, intercepted
+      ///   on the road after its courier was waylaid by bandits, and writes to the player to exploit what they
+      ///   learned. Added last to preserve old-save ordinals.
+      /// </summary>
+      LeakedCorrespondence
    }
 }

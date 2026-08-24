@@ -85,6 +85,7 @@ namespace NpcMemoryService.Core.Models
             case LetterReason.SpouseDivorceEscalation: return "to announce the marriage was being ended";
             case LetterReason.InterceptionMissed: return "with intent I could not deliver in person";
             case LetterReason.RealmTidings: return "with news of the realm";
+            case LetterReason.LeakedCorrespondence: return "having come into possession of an intercepted letter";
             // A future LetterReason with no mapping yet still gets a plain, truthful fallback rather than
             // an exception thrown deep in a letter-delivery tick.
             default: return "in correspondence";
