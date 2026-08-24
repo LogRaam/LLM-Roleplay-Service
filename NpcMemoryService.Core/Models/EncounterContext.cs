@@ -867,6 +867,15 @@ namespace NpcMemoryService.Core.Models
       public IReadOnlyList<string>? TeachableSkills { get; init; }
 
       /// <summary>
+      ///   Council Tier 2: still-standing council-born accords between THIS NPC and the player (a tribute they owe,
+      ///   a stipend they receive, a non-aggression pact, a hostage), one pre-rendered first-person clause each
+      ///   (host-composed from the live accord behaviors via
+      ///   <c>CalradiaRemembers.Logic.Assemblies.CouncilAccordClause</c>). Null or empty means no accord stands
+      ///   right now, and the section is skipped entirely. Full prompt only, never in the Lean budget.
+      /// </summary>
+      public IReadOnlyList<string>? StandingAccords { get; init; }
+
+      /// <summary>
       ///   True when the family's formal blessing has already been granted for a marriage
       ///   between the player and this NPC (A.2 was completed). Used to inform the prompt
       ///   so the NPC can reference the blessing (or note its absence) in their dialogue.

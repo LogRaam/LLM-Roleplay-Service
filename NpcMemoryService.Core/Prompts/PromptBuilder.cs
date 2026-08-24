@@ -225,6 +225,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendStanceConsequence(sb, encounterContext);
          AppendGrudgeNote(sb, encounterContext);
          AppendAppreciationNote(sb, encounterContext);
+         AppendStandingAccords(sb, encounterContext, lean);
          AppendPlayerLetters(sb, npc, world.CurrentDay);
          AppendWitnesses(sb, encounterContext, lean);
          AppendBroughtCaptives(sb, encounterContext, lean);
@@ -4115,6 +4116,30 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("A KINDNESS YOU REMEMBER (separate from your overall regard above, this is a specific");
          sb.AppendLine("debt of warmth that colours you even if you otherwise think ill of the player):");
          sb.AppendLine(note);
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Council Tier 2 (2026-08-24): lists the still-standing council-born accords between this NPC and the
+      ///   player (from <see cref="EncounterContext.StandingAccords" />), so the character can reference them in
+      ///   ordinary conversation ("the tribute I owe you"). Full prompt only (the accords are descriptive standing
+      ///   state, not a must-emit action, so they stay out of the Lean budget), and skipped when there are none.
+      ///   Each clause is host-composed and injected verbatim; the model is told to reference them if fitting and
+      ///   NEVER to invent one the host did not list.
+      /// </summary>
+      private static void AppendStandingAccords(StringBuilder sb, EncounterContext? context, LeanPromptLevel lean)
+      {
+         if (lean == LeanPromptLevel.Lean) return;
+         if (context?.StandingAccords is not {Count: > 0} accords) return;
+
+         sb.AppendLine("STANDING ACCORDS WITH THE PLAYER:");
+         sb.AppendLine("These agreements between you and the player were struck at a council or parley and are STILL in force.");
+         sb.AppendLine("Speak of them as your own standing obligations when the moment fits; never invent an accord not listed here.");
+
+         foreach (string clause in accords)
+            if (!string.IsNullOrWhiteSpace(clause))
+               sb.AppendLine("- " + clause.Trim());
+
          sb.AppendLine();
       }
 
