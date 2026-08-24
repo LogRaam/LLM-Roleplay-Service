@@ -37,6 +37,13 @@ namespace NpcMemoryService.Core.Prompts
 
       /// <summary>The member's culture (e.g. "Battanian"), when known. Null omits the clause.</summary>
       public string? Culture { get; init; }
+
+      /// <summary>
+      ///   The member's age in years, when known. Stated so each seat speaks true to their life stage: a child
+      ///   as a child, not a small adult; a green youth as a youth; an elder with the weight of years. Null omits
+      ///   the clause.
+      /// </summary>
+      public int? Age { get; init; }
    }
 
    /// <summary>

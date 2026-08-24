@@ -86,6 +86,38 @@ namespace NpcMemoryServiceTests
          prompt.Should().NotContain("Rhagaea: The player has sought a PARLEY"); // never voiced as the player's own words
       }
 
+      // Player report 2026-08-23: the model wrote "he turns his gaze toward the player" instead of using the
+      // character's name. The stable head necessarily says "the player" as instruction vocabulary, so the prompt
+      // must both NAME the player and forbid that system label in the output, or the model echoes it.
+      [Test]
+      public void GIVEN_a_player_name_WHEN_building_the_prompt_THEN_the_model_is_told_to_name_the_player_not_say_the_player()
+      {
+         var input = new CouncilPromptInput {
+            Roster = new List<CouncilMemberInput> {new() {Name = "Ajin", RegardTowardPlayer = 0}},
+            PlayerName = "Arwa"
+         };
+
+         string prompt = CouncilPromptBuilder.Build(input);
+
+         prompt.Should().Contain("THE PLAYER AT THIS TABLE IS NAMED Arwa");
+         prompt.Should().Contain("NEVER write \"the player\" in your output");
+      }
+
+      // Player report 2026-08-23: family-council members should act their age (a child as a child). The seat's
+      // age must reach the model, and the rule that binds a member's voice to their life stage must be taught.
+      [Test]
+      public void GIVEN_a_member_with_an_age_WHEN_building_the_prompt_THEN_the_age_and_the_speak_true_to_age_rule_are_shown()
+      {
+         var input = new CouncilPromptInput {
+            Roster = new List<CouncilMemberInput> {new() {Name = "Alya", RegardTowardPlayer = 0, Age = 9}}
+         };
+
+         string prompt = CouncilPromptBuilder.Build(input);
+
+         prompt.Should().Contain("aged 9");
+         prompt.Should().Contain("true to their AGE");
+      }
+
       // The whole point of the rebuild Gabriel asked for: one councillor must never again dominate a sitting
       // while the rest fade silently.
       [Test]

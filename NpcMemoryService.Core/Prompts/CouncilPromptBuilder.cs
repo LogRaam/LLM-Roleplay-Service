@@ -56,6 +56,7 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.Append(_stableHead);
          AppendRoster(sb, input.Roster);
+         AppendPlayerIdentity(sb, input);
          AppendWorldState(sb, input);
          AppendTranscript(sb, input.TranscriptSoFar);
          AppendOfferedKinds(sb, input.OfferedResolutionKinds);
@@ -157,6 +158,9 @@ namespace NpcMemoryService.Core.Prompts
       {
          sb.AppendLine();
          sb.AppendLine("THE COUNCIL PRESENT (every one of these must speak this turn):");
+         sb.AppendLine("Voice EACH member true to their AGE and life stage: a child speaks and reasons as a child");
+         sb.AppendLine("(short attention, play, blunt or shy, not political counsel), a green youth as a youth, an");
+         sb.AppendLine("elder with the weight of years. Never write a young child as a small, articulate adult.");
 
          if (roster == null || roster.Count == 0)
          {
@@ -169,6 +173,7 @@ namespace NpcMemoryService.Core.Prompts
             if (member == null || string.IsNullOrWhiteSpace(member.Name)) continue;
 
             var clauses = new List<string>();
+            if (member.Age.HasValue) clauses.Add("aged " + member.Age.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
             if (!string.IsNullOrWhiteSpace(member.PersonaLine)) clauses.Add(member.PersonaLine!.Trim());
             if (!string.IsNullOrWhiteSpace(member.Culture)) clauses.Add(member.Culture!.Trim());
             clauses.Add("current regard toward the player: " + FormatRegard(member.RegardTowardPlayer));
@@ -179,6 +184,22 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("- " + member.Name.Trim() + ", " + DescribeSex(member.IsFemale) + ": "
                            + string.Join("; ", clauses));
          }
+      }
+
+      /// <summary>
+      ///   Names the player and forbids the "the player" system label in the output. The stable head necessarily
+      ///   uses "the player" as instruction vocabulary; without this the model echoed it into narration ("he turns
+      ///   his gaze toward the player") instead of using the character's name (player report 2026-08-23).
+      /// </summary>
+      private static void AppendPlayerIdentity(StringBuilder sb, CouncilPromptInput input)
+      {
+         string? name = string.IsNullOrWhiteSpace(input.PlayerName) ? null : input.PlayerName!.Trim();
+         if (name == null) return;
+
+         sb.AppendLine();
+         sb.AppendLine("THE PLAYER AT THIS TABLE IS NAMED " + name + ".");
+         sb.AppendLine("Call them " + name + " (or address them directly as \"you\") in every [SCENE] beat and every");
+         sb.AppendLine("[SPEAKER] line. NEVER write \"the player\" in your output: it is a system label, not a name.");
       }
 
       private static string DescribeSex(bool isFemale) => isFemale ? "a woman" : "a man";
@@ -231,7 +252,7 @@ namespace NpcMemoryService.Core.Prompts
          {
             sb.AppendLine();
             sb.AppendLine("THE SITTING IS JUST OPENING. THE SITUATION:");
-            sb.AppendLine(input.OpeningCue.Trim());
+            sb.AppendLine(input.OpeningCue!.Trim());
          }
 
          sb.AppendLine();
