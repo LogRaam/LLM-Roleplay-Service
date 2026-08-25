@@ -2594,11 +2594,16 @@ namespace NpcMemoryService.Core.Prompts
          switch (reason)
          {
             case MarriageBlockReason.RegardTooLow:
-               sb.AppendLine("WHAT STANDS IN THE WAY, and you may say so plainly in your own words: it is not law, nor your");
-               sb.AppendLine("family, nor any war. It is YOU. Whatever else has been arranged or blessed on your behalf,");
-               sb.AppendLine("you do not yet hold this person close enough to bind your life to theirs. Say what would have");
-               sb.AppendLine("to change: time, deeds, being truly known to you. Never treat their standing with your family");
-               sb.AppendLine("as though it settled your own heart.");
+               sb.AppendLine("WHAT STANDS IN THE WAY, and you may hint at it warmly in your own words: it is not law, nor");
+               sb.AppendLine("your family, nor any war. It is YOU: you do not yet hold this person close enough to bind your");
+               sb.AppendLine("life to theirs. Do NOT merely refuse and leave them guessing (that has frustrated suitors who");
+               sb.AppendLine("never learn what would move you). ENCOURAGE them toward a real path, naming ONE or two as fits");
+               sb.AppendLine("the moment rather than reciting a list: to win your regard by DEEDS and not words alone (gifts,");
+               sb.AppendLine("tasks done for you, standing at your side in battle, for talk by itself moves you only slowly);");
+               sb.AppendLine("or to WIN YOUR FAMILY'S BLESSING by going to the head of your house, which can open the match");
+               sb.AppendLine("even before your own heart is fully won; or to COURT you in earnest by having you ride at their");
+               sb.AppendLine("side through a season or two. Leave them knowing there IS a path and which door to push, hopeful");
+               sb.AppendLine("rather than merely turned away. Never treat their standing with your family as settling your own heart.");
 
                break;
 

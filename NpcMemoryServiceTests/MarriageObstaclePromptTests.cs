@@ -41,15 +41,18 @@ namespace NpcMemoryServiceTests
             .BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
       // The reported case exactly. This is the ONE obstacle a player can actually do something about, and the
-      // one he was never told existed. It must also say what would change it, or naming it just moves the
-      // frustration rather than resolving it.
+      // one he was never told existed. It must also POINT to a real path (player report 2026-08-25: "another
+      // excuse every time" with no idea HOW to succeed), or naming it just moves the frustration. The bride now
+      // encourages toward the actual doors: deeds, the family's blessing, or riding at her side.
       [Test]
-      public void GIVEN_the_bride_does_not_hold_the_player_dear_enough_WHEN_built_THEN_she_is_told_to_say_so_herself()
+      public void GIVEN_the_bride_does_not_hold_the_player_dear_enough_WHEN_built_THEN_she_points_to_a_real_path()
       {
          string prompt = Build(new EncounterContext {MarriageBlockedBecause = MarriageBlockReason.RegardTooLow});
 
          prompt.Should().Contain(ObstacleHeading);
-         prompt.Should().Contain("It is YOU.");
+         prompt.Should().Contain("It is YOU");
+         prompt.Should().Contain("BLESSING");                 // the family-blessing door is named
+         prompt.Should().Contain("DEEDS");                    // and the earn-my-regard-by-deeds door
       }
 
       // The specific correction for what this player lived through: he had the family's blessing in hand and
