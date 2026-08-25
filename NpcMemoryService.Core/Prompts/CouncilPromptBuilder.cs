@@ -80,6 +80,13 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("never write another person's reply, only your own.");
          sb.AppendLine();
 
+         sb.AppendLine("KEEP EACH VOICE TRUE: every member speaks here in the SAME manner they would in a private word.");
+         sb.AppendLine("A courteous, composed soul stays courteous at the table; a blunt one stays blunt. Being among");
+         sb.AppendLine("others, or the weight of the matter, does not coarsen a well-mannered person's speech nor soften a");
+         sb.AppendLine("gruff one's. Let each seat's OWN nature and courtesy, not merely the custom of their people, set");
+         sb.AppendLine("their tone and their level of politeness.");
+         sb.AppendLine();
+
          sb.AppendLine("OUTPUT FORMAT (produce ONLY these blocks, freely interleaved in this shape, nothing else):");
          sb.AppendLine("[SCENE] a brief connective narrator beat, one or two lines, belonging to no single speaker: a");
          sb.AppendLine("hand-off of the floor (\"Ajin turns to Hophtalamos, who takes up the thread\"), a reaction");

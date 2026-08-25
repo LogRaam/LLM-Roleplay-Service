@@ -118,6 +118,21 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("true to their AGE");
       }
 
+      // Player report (Japanese register, where keigo vs casual is very salient): a courteous, knight-like
+      // character turned blunt/warrior once seated at a council, because the per-seat persona had lost the
+      // individual archetype and the raw martial-culture default then set the tone. The stable head now anchors
+      // register consistency, so a well-mannered voice stays well-mannered at the table and culture does not
+      // silently override an individual's courtesy. Without this, one character's register flips between the 1:1
+      // chat and the council for no in-fiction reason.
+      [Test]
+      public void GIVEN_any_input_WHEN_building_the_prompt_THEN_each_voice_keeps_its_private_register()
+      {
+         string prompt = CouncilPromptBuilder.Build(MinimalInput("Ajin"));
+
+         prompt.Should().Contain("KEEP EACH VOICE TRUE");
+         prompt.Should().Contain("not merely the custom of their people");
+      }
+
       // The whole point of the rebuild Gabriel asked for: one councillor must never again dominate a sitting
       // while the rest fade silently.
       [Test]
