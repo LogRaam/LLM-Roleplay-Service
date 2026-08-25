@@ -181,6 +181,23 @@ namespace NpcMemoryService.Core.Models
       ///   on the road after its courier was waylaid by bandits, and writes to the player to exploit what they
       ///   learned. Added last to preserve old-save ordinals.
       /// </summary>
-      LeakedCorrespondence
+      LeakedCorrespondence,
+
+      // ── Lord offers (a proposition the player can accept or decline) ──────────────
+
+      /// <summary>
+      ///   A lord who is NOT the player's own liege writes to poach them: leave your lord and enter my service,
+      ///   and I will make it worth your while. The letter names a concrete enticement (a purse of gold, a castle
+      ///   of their own, a company of soldiers). A light offer: accepting warms the bond and opens the door, it
+      ///   does not itself change the player's allegiance. Added last to preserve old-save ordinals.
+      /// </summary>
+      ServiceOffer,
+
+      /// <summary>
+      ///   A lord writes offering to buy or ransom a specific prisoner the PLAYER currently holds (their own kin,
+      ///   a clansman, an ally, or an enemy they want in hand), naming their price. Accepting settles the trade:
+      ///   the prisoner passes to the lord and the player is paid. Added last to preserve old-save ordinals.
+      /// </summary>
+      PrisonerOffer
    }
 }

@@ -84,5 +84,19 @@ namespace NpcMemoryService.Core.Models
       ///   session-reload orphan cleanup).
       /// </summary>
       public bool FollowUpSent { get; set; }
+
+      /// <summary>
+      ///   Offer letters only (<see cref="LetterReason.PrisonerOffer"/>): the Hero StringId the offer concerns,
+      ///   i.e. the prisoner the sender proposes to buy. Lets the read window's Accept action settle the exact
+      ///   trade the letter named, and lets it validate the prisoner is still held before offering the button.
+      ///   Null / empty on every non-offer letter and on old saves (additive, save-safe).
+      /// </summary>
+      public string? OfferTargetId { get; set; }
+
+      /// <summary>
+      ///   Offer letters only: the gold the offer is worth (the ransom a <see cref="LetterReason.PrisonerOffer"/>
+      ///   pays the player on Accept). Zero on every non-offer letter and on old saves (additive, save-safe).
+      /// </summary>
+      public int OfferAmount { get; set; }
    }
 }
