@@ -61,7 +61,12 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public string? BackgroundContext { get; set; }
 
-      public required string Clan { get; init; }
+      /// <summary>
+      ///   The hero's clan (house) name. Settable, not init-only, so it can be refreshed to live game state each
+      ///   conversation: a hero can change house or realm at runtime (e.g. a civil-war split from another mod), and
+      ///   the identity line must not keep introducing them by their old allegiance.
+      /// </summary>
+      public required string Clan { get; set; }
 
       /// <summary>
       ///   The clan's collective standing with the player, mirrored from the host
@@ -114,7 +119,12 @@ namespace NpcMemoryService.Core.Models
          init => _events = value ?? new List<NotableEvent>();
       }
 
-      public required string Faction { get; init; }
+      /// <summary>
+      ///   The hero's current top-level faction (kingdom) name. Settable, not init-only, so it can be refreshed to
+      ///   live game state each conversation: a hero who defects into a kingdom created at runtime (e.g. a
+      ///   civil-war split spawned by another mod) is then introduced by their real, current realm.
+      /// </summary>
+      public required string Faction { get; set; }
 
       /// <summary>
       ///   Companion HAPPINESS — their satisfaction IN the player's service (0..100), distinct from the
