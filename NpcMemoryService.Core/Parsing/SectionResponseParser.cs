@@ -727,8 +727,11 @@ namespace NpcMemoryService.Core.Parsing
       /// <summary>
       ///   Maps the LLM's quest-type token (snake_case or the enum name) to a
       ///   <see cref="QuestType" />. Returns null for unrecognized tokens.
+      ///   Public so the mod's council pipeline (CalradiaRemembers.Logic.Assemblies.CouncilQuestTypePolicy)
+      ///   reuses this ONE vocabulary for a [RESOLUTION] quest's quest_type field, synonyms included, rather
+      ///   than growing a second, divergent token table.
       /// </summary>
-      private static QuestType? ParseQuestType(string raw)
+      public static QuestType? ParseQuestType(string raw)
       {
          string v = raw.TrimStart(trimChars: '#').Trim().ToLowerInvariant();
 
@@ -939,6 +942,10 @@ namespace NpcMemoryService.Core.Parsing
             Actor = NullIfBlank(actor),
             Detail = NullIfBlank(detail),
             TargetSettlement = NullIfBlank(GetField(fields, "target_settlement")),
+            // "quest"'s own deed field (2026-08-26): WHICH verifiable task is pledged (siege, scout_army,
+            // raid_village, bandit_hideout, bandit_clear), read back by the mod's CouncilQuestTypePolicy and
+            // composed with target_settlement into the ledger entry's one grounding slot (QuestGroundingCodec).
+            QuestType = NullIfBlank(GetField(fields, "quest_type")),
             TargetRole = NullIfBlank(GetField(fields, "target_role")),
             TargetMission = NullIfBlank(GetField(fields, "target_mission")),
             // Tolerant, like every other numeric field this parser reads (TryParseSignedInt): a model that wraps

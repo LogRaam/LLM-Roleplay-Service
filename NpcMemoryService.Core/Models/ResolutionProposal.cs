@@ -29,6 +29,18 @@ namespace NpcMemoryService.Core.Models
         /// <summary>For a "quest" kind: a named settlement the task is bound to, when the pledge needs one (e.g. "clear the bandits near X"). Null when the pledge names no place.</summary>
         public string? TargetSettlement { get; init; }
 
+        /// <summary>
+        ///   For a "quest" kind (player report 2026-08-25: every council pledge grounded as a bandit-clear, so a
+        ///   single bandit fight near the target completed the WHOLE table's pledges at once): WHICH verifiable
+        ///   deed the pledge asks, in the model's own words (the [QUEST] block's own vocabulary: "siege",
+        ///   "scout_army", "raid_village", "bandit_hideout", "bandit_clear"). The consumer maps it through its own
+        ///   whitelist (CalradiaRemembers.Logic.Assemblies.CouncilQuestTypePolicy) and composes it alongside
+        ///   <see cref="TargetSettlement" /> into the ledger entry's one grounding slot (QuestGroundingCodec), so
+        ///   each pledged task lives and completes independently. Null when the model named none: the consumer
+        ///   then keeps the legacy bandit-clear grounding, exactly as before this field existed.
+        /// </summary>
+        public string? QuestType { get; init; }
+
         /// <summary>For an "assign_party_role" kind: the party role named (Scout, Engineer, Quartermaster, or Surgeon), in the model's own words. Null for any other kind, or when none was named.</summary>
         public string? TargetRole { get; init; }
 

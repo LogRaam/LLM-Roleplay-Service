@@ -100,6 +100,51 @@ namespace NpcMemoryServiceTests
          result.Resolutions[0].Actor.Should().Be("Sley");
       }
 
+      // quest_type (2026-08-26, player report: every council quest grounded as a bandit-clear, so one bandit
+      // fight completed the whole table's pledges at once): the deed token must survive parsing verbatim so the
+      // mod's CouncilQuestTypePolicy can ground each pledge as its own independently-verifiable task.
+      [Test]
+      public void A_quest_resolution_with_a_quest_type_is_parsed()
+      {
+         var raw =
+            "[DIALOGUE]So it is sworn.[/DIALOGUE]\n" +
+            "[RESOLUTION]\n" +
+            "type: quest\n" +
+            "actor: Sley\n" +
+            "quest_type: siege\n" +
+            "target_settlement: Pravend\n" +
+            "detail: Sley will join the storming of Pravend\n" +
+            "[/RESOLUTION]";
+
+         var result = _parser.Parse(raw);
+
+         result.Resolutions.Should().HaveCount(1);
+         result.Resolutions[0].Type.Should().Be("quest");
+         result.Resolutions[0].QuestType.Should().Be("siege");
+         result.Resolutions[0].TargetSettlement.Should().Be("Pravend");
+      }
+
+      // The legacy shape (no quest_type line) must keep parsing with a null QuestType: the mod's fallback then
+      // grounds it exactly as every council quest behaved before the field existed.
+      [Test]
+      public void A_quest_resolution_without_a_quest_type_keeps_a_null_quest_type()
+      {
+         var raw =
+            "[DIALOGUE]Very well.[/DIALOGUE]\n" +
+            "[RESOLUTION]\n" +
+            "type: quest\n" +
+            "actor: Sley\n" +
+            "target_settlement: Varcheg\n" +
+            "detail: ride to Varcheg and clear the bandits\n" +
+            "[/RESOLUTION]";
+
+         var result = _parser.Parse(raw);
+
+         result.Resolutions.Should().HaveCount(1);
+         result.Resolutions[0].QuestType.Should().BeNull();
+         result.Resolutions[0].TargetSettlement.Should().Be("Varcheg");
+      }
+
       // Truncation net, same discipline as [ACTION] and the QUEST family: a reply cut off by the token limit
       // opens [RESOLUTION] and never reaches [/RESOLUTION]. Losing it silently would mean a pledge the player
       // watched the NPC speak never got recorded, and the council window's own report at the lift would then

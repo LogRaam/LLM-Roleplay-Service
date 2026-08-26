@@ -1285,9 +1285,16 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("[RESOLUTION]");
             sb.AppendLine("type: quest");
             sb.AppendLine("actor: <the member's name exactly as listed above>");
+            sb.AppendLine("quest_type: <one of: siege, scout_army, raid_village, bandit_hideout, bandit_clear>");
             sb.AppendLine("target_settlement: <the town or village the deed concerns, spelled exactly as a real place>");
             sb.AppendLine("detail: <what they pledge, in plain words>");
             sb.AppendLine("[/RESOLUTION]");
+            sb.AppendLine("quest_type names the DEED itself, so each pledge is its own task the game can verify on its");
+            sb.AppendLine("own: siege to take part in capturing a town or castle, scout_army to locate and observe an");
+            sb.AppendLine("enemy host and report its strength, raid_village to plunder a village, bandit_hideout to");
+            sb.AppendLine("storm the bandits' lair near a place, bandit_clear to defeat the bandits infesting a place's");
+            sb.AppendLine("roads and fields. Pick the one that matches what is pledged; when the deed matches none of");
+            sb.AppendLine("these, leave quest_type out entirely rather than forcing one.");
             // Council audit C2: target_settlement is REQUIRED to ground the only executable kind (the lift binds
             // the quest to this settlement), was parsed, yet was never taught here, so the most natural council
             // pledge ("ride to X and clear the bandits") failed structurally at the lift. Named explicitly with
@@ -1298,6 +1305,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("[RESOLUTION]");
             sb.AppendLine("type: quest");
             sb.AppendLine("actor: Ira");
+            sb.AppendLine("quest_type: bandit_clear");
             sb.AppendLine("target_settlement: Pravend");
             sb.AppendLine("detail: Ira will ride to Pravend and clear the bandits raiding its roads.");
             sb.AppendLine("[/RESOLUTION]");
