@@ -92,6 +92,22 @@ namespace NpcMemoryServiceTests
          prefix.Should().Contain("is NOT a close");
       }
 
+      // Player report (2026-08-26, persisting past the v2.2.0 tweak): NPCs ended the conversation on a mere
+      // closing-flavoured pleasantry ("this seems like a fine way to end the evening"), cutting the player off
+      // mid-thought. The prefix must teach that a close needs the NPC to actually GO (or the player to leave),
+      // never a reflective remark that still invites a reply, or the interpreter keeps reading good closing prose
+      // as a hard end. The removed over-eager wording must stay gone.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_a_mere_pleasantry_is_not_a_close()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("ONLY when the reply UNMISTAKABLY ends the meeting");
+         prefix.Should().Contain("physically leaves");
+         prefix.Should().Contain("leaves the player room to answer");
+         prefix.Should().NotContain("whenever the prose brings THIS exchange to a close");
+      }
+
       // Gabriel's design call (2026-08-16): a player who is a CNC victim must FEEL the gravity - a forced sexual
       // assault is a violent bodily violation, not a mere "sexual act" to be waved past. The interpreter used to
       // EXCLUDE sexual acts from harm_prisoner; it must now treat a rape/forced penetration as real harm (HP loss),
