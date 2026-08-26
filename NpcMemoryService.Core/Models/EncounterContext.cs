@@ -1313,6 +1313,16 @@ namespace NpcMemoryService.Core.Models
       public string? SpouseEstrangementNote { get; init; }
 
       /// <summary>
+      ///   Stolen Love pillar (Increment 2): set when THIS NPC is married to a third party and their marriage is
+      ///   fraying because of an ongoing affair with the player (host-composed by the mod from
+      ///   NpcMarriageEstrangementBehavior, the same additive-field pattern as the notes above). It voices the
+      ///   growing rift, the NPC torn between the spouse they have and the player they now want, WITHOUT promising
+      ///   a divorce (that outcome and its verb are a later increment). Rendered verbatim, skipped in
+      ///   <see cref="LeanPromptLevel.Lean" />. Null when no such estrangement is fraying for this NPC.
+      /// </summary>
+      public string? NpcMarriageFrayingNote { get; init; }
+
+      /// <summary>
       ///   A full replacement for the BEHAVIOR GUIDELINES section, matched to the NPC's social station
       ///   (gang leader, town notable, wanderer...). Host-composed from the station guideline files; when
       ///   null or blank the builder falls back to the global guidelines override, then to the built-in

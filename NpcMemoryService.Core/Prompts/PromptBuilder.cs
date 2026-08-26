@@ -4911,6 +4911,21 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   Renders <see cref="EncounterContext.NpcMarriageFrayingNote" /> verbatim (Stolen Love pillar): a
+      ///   third-party-married NPC whose marriage is coming apart because of an affair with the player. The host
+      ///   composes the full directive; this only places it. No-op when blank.
+      /// </summary>
+      private static void AppendNpcMarriageFrayingNote(StringBuilder sb, EncounterContext? context)
+      {
+         string? note = context?.NpcMarriageFrayingNote;
+
+         if (string.IsNullOrWhiteSpace(note)) return;
+
+         sb.AppendLine(note!.TrimEnd());
+         sb.AppendLine();
+      }
+
+      /// <summary>
       ///   Surfaces the tasks this NPC has given the player, split by state:
       ///   outstanding (not yet done — the NPC may ask after it but has no proof),
       ///   done-and-ready (the host verified the deed; the NPC may acknowledge it and
@@ -6495,6 +6510,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendSpouseDivorceDemandNote(sb, context);
          AppendPlayerEndOwnMarriageNote(sb, context);
          AppendSpouseEstrangementNote(sb, context);
+         AppendNpcMarriageFrayingNote(sb, context);
          AppendDiscoveryInstructions(sb);
          // Don't teach quest-issuance to a captor either — a torture scene is not the place to hand
          // out errands, and the vocabulary itself fed the captor's confusion about quests.
