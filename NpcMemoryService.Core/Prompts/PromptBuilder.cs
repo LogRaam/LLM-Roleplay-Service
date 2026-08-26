@@ -208,7 +208,8 @@ namespace NpcMemoryService.Core.Prompts
          AppendDiscoveredTraits(sb, npc);
          AppendInheritedNote(sb, npc);
          if (LeanPromptPolicy.Include(PromptSection.CulturalBackground, lean)) AppendBackgroundContext(sb, npc);
-         AppendHistory(sb, npc, world.CurrentDay, LeanPromptPolicy.MemoryEventLimit(lean));
+         AppendHistory(sb, npc, world.CurrentDay, LeanPromptPolicy.MemoryEventLimit(lean),
+            encounterContext?.NpcSpouseIsPlayer == true, encounterContext?.NpcIsPlayerHousehold == true);
          // A captor holding the player prisoner is not a quest-giver: listing the player's tasks
          // here let a bandit captor mistake a "clear the bandits" quest for one HE gave, and torture
          // the prisoner for "failing" it. Quests have no place in a captive scene. SuppressQuests withholds
@@ -2257,12 +2258,29 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
-      private static void AppendHistory(StringBuilder sb, NpcProfile npc, int currentDay, int maxEvents = int.MaxValue)
+      private static void AppendHistory(
+         StringBuilder sb, NpcProfile npc, int currentDay, int maxEvents = int.MaxValue,
+         bool spouseIsPlayer = false, bool household = false)
       {
          sb.AppendLine("YOUR HISTORY WITH THIS PLAYER:");
          if (npc.Events.Count == 0)
          {
-            sb.AppendLine("You have never met this player before. This is your first encounter.");
+            // No shared moments are recorded yet. Normally that means a genuine first meeting, but when the mod
+            // was added to a campaign already under way, an established spouse or close relative would also start
+            // here with an empty ledger. Telling THEM "you have never met this player" contradicts the marital /
+            // kin framing elsewhere in the prompt and makes them open as strangers, so name the standing bond
+            // instead of a first encounter (player report, in-progress-save spouse, 2026-08-25).
+            if (spouseIsPlayer)
+               sb.AppendLine("No particular moments are recorded here yet, but this player is your own spouse: you "
+                           + "are already married and share a life. Speak as the husband or wife you are, never as "
+                           + "someone meeting them for the first time.");
+            else if (household)
+               sb.AppendLine("No particular moments are recorded here yet, but this player is close kin of yours: "
+                           + "you already know each other well. Speak as the family you are, never as someone "
+                           + "meeting them for the first time.");
+            else
+               sb.AppendLine("You have never met this player before. This is your first encounter.");
+
             sb.AppendLine();
 
             return;

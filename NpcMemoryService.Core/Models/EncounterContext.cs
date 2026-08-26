@@ -911,6 +911,14 @@ namespace NpcMemoryService.Core.Models
       public bool NpcSpouseIsPlayer { get; init; }
 
       /// <summary>
+      ///   True when this NPC belongs to the player's own house: their spouse, a committed consort, or close kin
+      ///   (a parent, child, or sibling). Used so a first conversation on a campaign CR only just joined does not
+      ///   greet an established spouse or close relative as a stranger: when there are no recorded shared events
+      ///   yet, the history block still frames the bond as already established rather than a first encounter.
+      /// </summary>
+      public bool NpcIsPlayerHousehold { get; init; }
+
+      /// <summary>
       ///   Ready-to-inject block describing a marriage the player could seek from THIS NPC's
       ///   house: the unmarried, suitable kin of the NPC's clan (and the NPC themselves when
       ///   eligible), built game-side so the NPC names only real, marriageable people. Null
