@@ -10,6 +10,22 @@ using NpcMemoryService.Core.Prompts;
 namespace NpcMemoryService.Core.Models
 {
    /// <summary>
+   ///   Stolen Love pillar: how a THIRD-PARTY-married NPC stands toward the player's advances. The default keeps
+   ///   the ordinary infidelity rule so nothing changes unless the host opts the pillar in.
+   /// </summary>
+   public enum MarriedSeductionStance
+   {
+      /// <summary>Pillar off, or not a third-party marriage: the ordinary "infidelity at deep trust" rule applies unchanged.</summary>
+      NotApplicable,
+
+      /// <summary>The player has genuinely won them past their marriage and nature: the affair may open as infidelity.</summary>
+      Seducible,
+
+      /// <summary>Their honour or a happy marriage refuses: they hold firm to their vows however high the player's standing.</summary>
+      Resistant
+   }
+
+   /// <summary>
    ///   Captures the volatile, per-encounter state that the LLM needs to react
    ///   appropriately: where the conversation takes place, the diplomatic
    ///   situation, the player's standing with respect to the NPC, and how much
@@ -917,6 +933,16 @@ namespace NpcMemoryService.Core.Models
       ///   yet, the history block still frames the bond as already established rather than a first encounter.
       /// </summary>
       public bool NpcIsPlayerHousehold { get; init; }
+
+      /// <summary>
+      ///   Stolen Love pillar gate for an NPC married to a THIRD PARTY: whether the player has genuinely won them
+      ///   past their marriage and their own nature. <see cref="MarriedSeductionStance.NotApplicable" /> (the
+      ///   default) leaves the ordinary infidelity rule untouched (the pillar is off, or this is not a third-party
+      ///   marriage), so shipped behavior is unchanged unless the host opts in. <see cref="MarriedSeductionStance.Seducible" />
+      ///   opens the affair as before; <see cref="MarriedSeductionStance.Resistant" /> makes the NPC hold firm to
+      ///   their vows no matter how high the player's standing, because their honour or a happy marriage refuses.
+      /// </summary>
+      public MarriedSeductionStance MarriedSeductionStance { get; init; }
 
       /// <summary>
       ///   Ready-to-inject block describing a marriage the player could seek from THIS NPC's

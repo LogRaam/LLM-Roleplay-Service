@@ -6754,7 +6754,17 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("Below that threshold you resist all advances — warmly or firmly as your character");
             sb.AppendLine("dictates, but you do not yield. Attraction alone is not consent.");
 
-            if (rep >= 30)
+            if (context?.MarriedSeductionStance == MarriedSeductionStance.Resistant)
+            {
+               // Stolen Love pillar: this NPC's honour, or a marriage they would not trade, refuses no matter the
+               // regard. This overrides the deep-trust opening below, so a happy, honourable spouse cannot be
+               // bought into an affair by standing alone (the seducibility gate lives in SeductionEligibilityPolicy).
+               sb.AppendLine("Even so, you will NOT betray this marriage, whatever the player's standing with you:");
+               sb.AppendLine("your honour, or a bond with your spouse you would not trade, holds firm. Turn every");
+               sb.AppendLine("advance aside, warmly or with steel as your nature dictates, and never yield: even");
+               sb.AppendLine("deep trust is not consent to stray.");
+            }
+            else if (rep >= 30)
             {
                sb.AppendLine("Your trust in this player has now reached that depth. Should intimacy occur,");
                sb.AppendLine($"you remain fully aware it is an act of infidelity against {npc.SpouseName}.");
