@@ -118,6 +118,19 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
         public string? ResolveReasoning() => ReasoningProvider?.Invoke();
 
         /// <summary>
+        ///   Live resolver deciding HOW the reasoning keyword is serialized on the wire, invoked on every
+        ///   request. True: the top-level OpenAI-style string field <c>reasoning_effort</c> (what a local
+        ///   OpenAI-compatible server such as Ollama honors; it ignores the object form). False/null:
+        ///   OpenRouter's <c>reasoning</c> object (<c>{ enabled = false }</c> / <c>{ effort = ... }</c>).
+        ///   The keyword itself comes from <see cref="ReasoningProvider" /> either way; only the field shape
+        ///   differs, so a host points this at the active endpoint's kind.
+        /// </summary>
+        public Func<bool>? ReasoningAsEffortStringProvider { get; init; }
+
+        /// <summary>Whether to serialize reasoning as the top-level <c>reasoning_effort</c> string. Defaults to false (the OpenRouter object form).</summary>
+        public bool ResolveReasoningAsEffortString() => ReasoningAsEffortStringProvider?.Invoke() ?? false;
+
+        /// <summary>
         ///   Live resolver for OpenRouter's PROVIDER ROUTING: a comma-separated list of provider slugs the
         ///   request may be served by, read on every request. Null/empty leaves OpenRouter's own routing alone
         ///   (the historical behaviour), so the pin is strictly opt-in and no other OpenAI-compatible endpoint

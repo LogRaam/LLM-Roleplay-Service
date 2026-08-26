@@ -145,6 +145,33 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          }
       }
 
+      /// <summary>
+      ///   Maps the same reasoning keyword to the TOP-LEVEL OpenAI-style <c>reasoning_effort</c> STRING (what a
+      ///   local OpenAI-compatible server such as Ollama honors; it ignores OpenRouter's <c>reasoning</c> object,
+      ///   which let a reasoning model like Qwen3.5 Heretic burn the whole reply budget thinking). <c>off/none/
+      ///   disabled/false</c> → <c>"none"</c>; <c>minimal/low/medium/high</c> → that word; anything else (incl.
+      ///   <c>default</c>) → null to omit the field entirely, so an untouched setup sends nothing.
+      /// </summary>
+      internal static string? BuildReasoningEffort(string? setting)
+      {
+         if (string.IsNullOrWhiteSpace(setting)) return null;
+         switch (setting!.Trim().ToLowerInvariant())
+         {
+            case "off":
+            case "none":
+            case "disabled":
+            case "false":
+               return "none";
+            case "minimal":
+            case "low":
+            case "medium":
+            case "high":
+               return setting!.Trim().ToLowerInvariant();
+            default:
+               return null;
+         }
+      }
+
       private static LlmResponse Failure(string message) => new() {Content = string.Empty, IsSuccess = false, ErrorMessage = message};
 
       private static bool IsLengthTruncated(string? finishReason)
@@ -389,10 +416,22 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          if (options.IncludeTemperature && request.Parameters.PresencePenalty > 0f)
             payload["presence_penalty"] = (double) request.Parameters.PresencePenalty;
 
-         // OpenRouter reasoning control: lowering or disabling reasoning cuts moralizing
-         // refusals on consensual adult fiction (see OpenRouterConfig.ReasoningProvider).
-         object? reasoning = BuildReasoning(_config.ResolveReasoning());
-         if (reasoning != null) payload["reasoning"] = reasoning;
+         // Reasoning control: lowering or disabling reasoning cuts moralizing refusals on consensual adult
+         // fiction, and stops a local reasoning model from spending the whole reply budget thinking. The keyword
+         // is the same; only the WIRE SHAPE differs by endpoint. OpenRouter reads its own "reasoning" object; a
+         // local OpenAI-compatible server (Ollama) reads the top-level "reasoning_effort" string and ignores the
+         // object. Emit exactly ONE of the two so neither backend receives a field it silently drops.
+         string? reasoningKeyword = _config.ResolveReasoning();
+         if (_config.ResolveReasoningAsEffortString())
+         {
+            string? effort = BuildReasoningEffort(reasoningKeyword);
+            if (effort != null) payload["reasoning_effort"] = effort;
+         }
+         else
+         {
+            object? reasoning = BuildReasoning(reasoningKeyword);
+            if (reasoning != null) payload["reasoning"] = reasoning;
+         }
 
          // OpenRouter provider routing: pin the request to specific providers, in the player's chosen order.
          // Several providers moderate their own OUTPUT and cut generation the moment profanity appears, which
