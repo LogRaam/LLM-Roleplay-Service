@@ -4309,6 +4309,15 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("sentences. You remain the scene's anchor: a witness interjects and then yields the");
             sb.AppendLine("floor back; they never take over the conversation.");
             sb.AppendLine();
+            sb.AppendLine("WHEN A WITNESS IS SPOKEN TO, THEY ANSWER IN WORDS. If you (the main speaker) or the");
+            sb.AppendLine("player address a witness by name, ask them something, or challenge them directly, that");
+            sb.AppendLine("witness MUST reply this turn with a SPOKEN line in quotes, in their own voice, not a");
+            sb.AppendLine("bare gesture. A silent gesture or a wordless look in answer to a direct address reads");
+            sb.AppendLine("as a snub or the cold shoulder and derails the scene: never answer someone who spoke");
+            sb.AppendLine("TO a witness with gesture alone. A gesture may accompany the words, never replace them.");
+            sb.AppendLine("A reaction that is ONLY a gesture is for a fleeting background beat a witness is not part");
+            sb.AppendLine("of; the moment a witness actually engages with what was said, give them WORDS.");
+            sb.AppendLine();
             sb.AppendLine("A witness may react in two ways:");
             sb.AppendLine("PROVOKED — something provocative, personally relevant, or insulting reaches them.");
             sb.AppendLine("PROACTIVE — they have a strong opinion on the topic being discussed; they know");
