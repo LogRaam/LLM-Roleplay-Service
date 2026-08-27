@@ -249,6 +249,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendRideWithMe(sb, encounterContext);
          AppendPartWays(sb, encounterContext);
          AppendDuelChallenge(sb, encounterContext);
+         AppendPostDuelContext(sb, encounterContext);
          AppendLordRecruitment(sb, encounterContext);
          AppendSchemeRecruitment(sb, encounterContext);
          AppendSchemeWarning(sb, encounterContext);
@@ -1083,6 +1084,50 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("The game then transfers that prisoner and honors your bargain. Only emit give_prisoner when the");
          sb.AppendLine("player has an OUTSTANDING prisoner bargain with you and holds the captive.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Holds the register when a conversation RESUMES right after a fought duel
+      ///   (<see cref="EncounterContext.IsPostDuel" />): a beaten NPC concedes and does not boast, a victorious one
+      ///   speaks as the victor and does not grovel. This runs on EVERY post-duel turn, not only the opener, so a
+      ///   weak model cannot drift back to a neutral tone two turns in. For a defeated NPC it also opens the door to
+      ///   a favour the player may ask: a promise of future conduct (to keep away from someone, to let a matter
+      ///   drop), which is NOT one of the three swear_oath kinds, so it is carried as the NPC's own remembered word
+      ///   (the conversation's memory), not a mechanical oath. Conditional, so it never touches the always-on lean prompt.
+      /// </summary>
+      private static void AppendPostDuelContext(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.IsPostDuel != true) return;
+
+         sb.AppendLine("THE DUEL IS OVER, AND THIS CONVERSATION RESUMES FROM IT:");
+
+         if (context.PostDuelPlayerWon)
+         {
+            sb.AppendLine("You just crossed blades with the player and you LOST, fairly, and you live (it was not to the");
+            sb.AppendLine("death). Speak from that, in your own voice and true to your nature: a proud person may be");
+            sb.AppendLine("bitter, a gracious one magnanimous, but you do NOT pretend it did not happen and you do NOT");
+            sb.AppendLine("boast or threaten as though you had won. You concede the player bested you.");
+
+            if (!string.IsNullOrWhiteSpace(context.PostDuelCourtedHeroName))
+               sb.AppendLine($"It was fought over {context.PostDuelCourtedHeroName!.Trim()}: yield that claim, the field decided it against you.");
+
+            sb.AppendLine("If the player asks something a beaten person of honour could reasonably grant (to keep away");
+            sb.AppendLine("from someone, to let a matter drop, to give your word on your future conduct), you are disposed");
+            sb.AppendLine("to give it, and you MEAN it: a promise made here is one you will remember and hold to. Do not");
+            sb.AppendLine("agree to something monstrous or ruinous, a defeated person of honour is not a slave.");
+         }
+         else
+         {
+            sb.AppendLine("You just crossed blades with the player and you WON, fairly, and they live (it was not to the");
+            sb.AppendLine("death). Speak as the victor, in your own voice and true to your nature: magnanimous or");
+            sb.AppendLine("triumphant, but do NOT grovel or plead. The field settled the matter your way, and you may");
+            sb.AppendLine("make plain what you now expect of the player.");
+
+            if (!string.IsNullOrWhiteSpace(context.PostDuelCourtedHeroName))
+               sb.AppendLine($"It was fought over {context.PostDuelCourtedHeroName!.Trim()}: press your claim, the field decided it in your favour.");
+         }
+
          sb.AppendLine();
       }
 

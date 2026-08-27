@@ -607,6 +607,27 @@ namespace NpcMemoryService.Core.Models
       public string? DuelVenueLabel { get; init; }
 
       /// <summary>
+      ///   True when this conversation RESUMES right after a fought duel: the NPC just crossed blades with the
+      ///   player and speaks from that, coloured by <see cref="PostDuelPlayerWon" />. Drives
+      ///   <c>AppendPostDuelContext</c>, which holds the victor/loser register on every turn (a beaten NPC does
+      ///   not fanfare, a victor does not grovel), not only the opener.
+      /// </summary>
+      public bool IsPostDuel { get; init; }
+
+      /// <summary>
+      ///   Read only when <see cref="IsPostDuel" />: true when the PLAYER won the duel (this NPC lost, and is
+      ///   disposed to concede and grant a beaten person's favour), false when this NPC won (they prevailed and
+      ///   make plain what the field settled).
+      /// </summary>
+      public bool PostDuelPlayerWon { get; init; }
+
+      /// <summary>
+      ///   Read only when <see cref="IsPostDuel" />: the contested hero's name when the duel was fought over a
+      ///   courtship rivalry, so the NPC yields or presses a claim to a NAMED person; null for a duel of honour.
+      /// </summary>
+      public string? PostDuelCourtedHeroName { get; init; }
+
+      /// <summary>
       ///   Negotiation Phase 3 (adult-gated): true when this NPC is the exploiter archetype who may offer
       ///   the female player a favour in exchange for intimacy (a man of low scruple, unrelated). Off by
       ///   default; the prompt section double-checks the adult tier.
