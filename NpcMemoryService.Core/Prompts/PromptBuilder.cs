@@ -2966,9 +2966,10 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("type: appoint_governor");
          sb.AppendLine("target_fief: <the town or castle you will govern>");
          sb.AppendLine("[/ACTION]");
-         sb.AppendLine("The game seats you as its governor at once. Never claim to govern a fief, or to have been");
-         sb.AppendLine("named to one, unless you emit this action: if your standing with the player is too low they");
-         sb.AppendLine("may still decline, so do not narrate the post as taken until it is done.");
+         sb.AppendLine("The game seats you as its governor at once. This is an HONOUR, a promotion within your own");
+         sb.AppendLine("clan, not a favour you do the player, so you take it readily rather than weighing whether you");
+         sb.AppendLine("trust them enough (only a character who truly resents the player would refuse such a post).");
+         sb.AppendLine("Still, never claim to govern a fief, or to have been named to one, until you emit this action.");
          sb.AppendLine();
       }
 
