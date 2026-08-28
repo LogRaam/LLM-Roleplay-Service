@@ -39,5 +39,17 @@ namespace NpcMemoryService.Core.Models
         ///   rather than two slow calls back to back.
         /// </summary>
         public bool AllowTruncationRetry { get; init; } = true;
+
+        /// <summary>
+        ///   Per-request override of the reasoning keyword. Null (default) defers to the global config
+        ///   reasoning dial exactly as today, so an ordinary call (Integrated chat, the action interpreter)
+        ///   is unaffected. A non-blank keyword (e.g. "off") overrides the global dial for THIS request
+        ///   only: a mechanical housekeeping call (memory compression, the summarizers) can force reasoning
+        ///   off even when the player has set the global Mod Options dial to Medium/High, because a
+        ///   reasoning model asked to do a purely mechanical extraction can loop on internal reasoning
+        ///   ("Wait, let me re-read [7]...") and burn its entire reply budget without producing any text
+        ///   (player report).
+        /// </summary>
+        public string? ReasoningOverride { get; init; }
     }
 }

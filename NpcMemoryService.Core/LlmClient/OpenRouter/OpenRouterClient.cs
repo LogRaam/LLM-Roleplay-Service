@@ -421,7 +421,13 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          // is the same; only the WIRE SHAPE differs by endpoint. OpenRouter reads its own "reasoning" object; a
          // local OpenAI-compatible server (Ollama) reads the top-level "reasoning_effort" string and ignores the
          // object. Emit exactly ONE of the two so neither backend receives a field it silently drops.
-         string? reasoningKeyword = _config.ResolveReasoning();
+         // A per-request override (LlmParameters.ReasoningOverride) wins over the global dial: a housekeeping
+         // call (memory compression, the summarizers) forces reasoning off this way so it never burns its whole
+         // reply budget on internal reasoning, regardless of what the player set globally. Only the KEYWORD is
+         // overridden here; the wire shape stays whatever the endpoint resolves (that is not a per-request choice).
+         string? reasoningKeyword = !string.IsNullOrWhiteSpace(request.Parameters?.ReasoningOverride)
+            ? request.Parameters!.ReasoningOverride
+            : _config.ResolveReasoning();
          if (_config.ResolveReasoningAsEffortString())
          {
             string? effort = BuildReasoningEffort(reasoningKeyword);

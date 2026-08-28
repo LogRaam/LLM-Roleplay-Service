@@ -33,7 +33,8 @@ namespace NpcMemoryService.Core.Compression
       /// </summary>
       public LlmParameters Parameters { get; init; } = new() {
          MaxTokens = 700,
-         Creativity = 0.3f
+         Creativity = 0.3f,
+         ReasoningOverride = "off" // mechanical fold, never benefits from reasoning
       };
 
       /// <summary>

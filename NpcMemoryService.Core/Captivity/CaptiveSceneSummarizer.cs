@@ -31,7 +31,8 @@ namespace NpcMemoryService.Core.Captivity
 
       public LlmParameters Parameters { get; init; } = new() {
          MaxTokens = 160,
-         Creativity = 0.4f
+         Creativity = 0.4f,
+         ReasoningOverride = "off" // mechanical summary, never benefits from reasoning
       };
 
       /// <summary>

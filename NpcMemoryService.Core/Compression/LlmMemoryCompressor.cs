@@ -41,7 +41,11 @@ namespace NpcMemoryService.Core.Compression
       // after the reasoning; the client still doubles it once on a retry if even this is eaten.
       public LlmParameters Parameters { get; init; } = new() {
          MaxTokens = 2000,
-         Creativity = 0.2f // deterministic; we want consistent decisions
+         Creativity = 0.2f, // deterministic; we want consistent decisions
+         // Reasoning off regardless of the global dial: this is a mechanical keep/drop decision, and a
+         // reasoning model asked to make it can loop on internal thinking and burn the whole budget with no
+         // text produced (player report, Medium/High reasoning dial).
+         ReasoningOverride = "off"
       };
 
       /// <summary>How many of the most recent events are always preserved.</summary>

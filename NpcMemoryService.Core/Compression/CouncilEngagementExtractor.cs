@@ -31,7 +31,8 @@ namespace NpcMemoryService.Core.Compression
       /// </summary>
       public LlmParameters Parameters { get; init; } = new() {
          MaxTokens = 600,
-         Creativity = 0.2f
+         Creativity = 0.2f,
+         ReasoningOverride = "off" // structured extraction, never benefits from reasoning
       };
 
       /// <summary>

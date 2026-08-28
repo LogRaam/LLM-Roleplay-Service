@@ -40,6 +40,18 @@ namespace NpcMemoryServiceTests
       private static Dictionary<string, object> Body(string? keyword, bool asEffortString)
          => (Dictionary<string, object>) BuildClient(keyword, asEffortString).ToWireFormat(Request());
 
+      private static LlmRequest RequestWithOverride(string? reasoningOverride)
+         => new() {
+            SystemPrompt = "system",
+            Messages = new[] {new LlmMessage(MessageRole.User, "hello")},
+            Parameters = new LlmParameters {ReasoningOverride = reasoningOverride}
+         };
+
+      private static Dictionary<string, object> BodyWithOverride(
+         string? globalKeyword, bool asEffortString, string? reasoningOverride)
+         => (Dictionary<string, object>) BuildClient(globalKeyword, asEffortString)
+            .ToWireFormat(RequestWithOverride(reasoningOverride));
+
       // THE FIX: a local/OpenAI-compatible endpoint reads the top-level reasoning_effort string. Off must map to
       // "none" (the spelling Ollama honours) so a reasoning model stops eating its whole reply budget. The object
       // form must be absent, or the same request would carry two contradictory reasoning signals.
@@ -106,6 +118,60 @@ namespace NpcMemoryServiceTests
          OpenRouterClient.BuildReasoningEffort("default").Should().BeNull();
          OpenRouterClient.BuildReasoningEffort("").Should().BeNull();
          OpenRouterClient.BuildReasoningEffort(null).Should().BeNull();
+      }
+
+      // STAKE: without this, memory compression on a Medium/High reasoning model loops and fails with an empty
+      // reply (the exact player report this fixes), because the housekeeping call would inherit the player's
+      // global dial instead of forcing reasoning off for itself. Covers the OpenAI-compatible wire shape.
+      [Test]
+      public void GIVEN_a_per_request_override_of_off_WHEN_the_global_dial_is_high_THEN_the_effort_string_wire_carries_off_not_high()
+      {
+         Dictionary<string, object> body = BodyWithOverride("high", asEffortString: true, reasoningOverride: "off");
+
+         body.Should().ContainKey("reasoning_effort");
+         body["reasoning_effort"].Should().Be("none");
+         body.Should().NotContainKey("reasoning");
+      }
+
+      // STAKE: without this, a housekeeping call routed to OpenRouter (rather than a local endpoint) would still
+      // inherit the player's global reasoning dial via the "reasoning" object, and a compression call on a
+      // reasoning model would burn its whole budget thinking instead of emitting the [KEEP] list.
+      [Test]
+      public void GIVEN_a_per_request_override_of_off_WHEN_the_global_dial_is_high_THEN_the_reasoning_object_wire_carries_off_not_high()
+      {
+         Dictionary<string, object> body = BodyWithOverride("high", asEffortString: false, reasoningOverride: "off");
+
+         body.Should().ContainKey("reasoning");
+         body.Should().NotContainKey("reasoning_effort");
+      }
+
+      // STAKE: without this pin, a future edit could make the override always win, silently overriding the
+      // player's own explicit "Default" (no reasoning field) choice on every ordinary chat call and sending a
+      // reasoning field nobody asked for.
+      [Test]
+      public void GIVEN_a_null_override_WHEN_the_global_dial_is_default_THEN_no_reasoning_field_is_sent()
+      {
+         BodyWithOverride("Default", asEffortString: true, reasoningOverride: null).Should().NotContainKey("reasoning_effort");
+         BodyWithOverride("Default", asEffortString: false, reasoningOverride: null).Should().NotContainKey("reasoning");
+      }
+
+      // STAKE: pins that a null/blank per-request override is a true no-op, not an accidental "off": the ordinary
+      // chat, action-interpreter, and any other non-housekeeping call must keep sending the player's own high
+      // dial exactly as before this change, or every in-game conversation would silently lose reasoning too.
+      [Test]
+      public void GIVEN_a_null_override_WHEN_the_global_dial_is_high_THEN_the_wire_still_carries_high()
+      {
+         BodyWithOverride("high", asEffortString: true, reasoningOverride: null)["reasoning_effort"].Should().Be("high");
+         BodyWithOverride("high", asEffortString: false, reasoningOverride: null).Should().ContainKey("reasoning");
+      }
+
+      // STAKE: pins that a blank (whitespace-only) override behaves the same as null, so a caller that
+      // constructs LlmParameters with an empty string by mistake does not accidentally force reasoning off on a
+      // call that was meant to defer to the global dial.
+      [Test]
+      public void GIVEN_a_blank_override_WHEN_the_global_dial_is_high_THEN_the_wire_still_carries_high()
+      {
+         BodyWithOverride("high", asEffortString: true, reasoningOverride: "   ")["reasoning_effort"].Should().Be("high");
       }
    }
 }
