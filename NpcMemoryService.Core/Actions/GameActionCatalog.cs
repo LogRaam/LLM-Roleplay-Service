@@ -104,14 +104,89 @@ namespace NpcMemoryService.Core.Actions
    {
       private static readonly IReadOnlyList<GameActionSpec> _all = BuildAll();
       private static readonly IReadOnlyCollection<string> _types = BuildTypes();
+      private static readonly List<GameActionSpec> _registered = new List<GameActionSpec>();
+      private static readonly object _sync = new object();
+      private static IReadOnlyList<GameActionSpec> _combinedAll = _all;
+      private static IReadOnlyCollection<string> _combinedTypes = _types;
 
-      /// <summary>Every action spec, in a stable order mirroring the bridge switch, then the two chat-flow controls.</summary>
-      public static IReadOnlyList<GameActionSpec> All => _all;
+      /// <summary>
+      ///   Every action spec the interpreter is taught, built-ins first (in their existing bridge-mirroring order),
+      ///   then every externally <see cref="Register" />-ed spec, in registration order. A stable, cached snapshot:
+      ///   rebuilt only when something registers, never mutated in place.
+      /// </summary>
+      public static IReadOnlyList<GameActionSpec> All => _combinedAll;
 
-      /// <summary>Every action's <see cref="GameActionSpec.Type" />, for parity checks against the bridge's own authoritative set.</summary>
-      public static IReadOnlyCollection<string> Types => _types;
+      /// <summary>
+      ///   Every action's <see cref="GameActionSpec.Type" />, built-ins then registered externals, for parity checks
+      ///   against the bridge's own authoritative set.
+      /// </summary>
+      public static IReadOnlyCollection<string> Types => _combinedTypes;
+
+      /// <summary>The built-in specs only, exactly as authored in this file, excluding anything externally registered.</summary>
+      public static IReadOnlyList<GameActionSpec> BuiltIn => _all;
+
+      /// <summary>The built-in <see cref="GameActionSpec.Type" /> keys only, excluding anything externally registered.</summary>
+      public static IReadOnlyCollection<string> BuiltInTypes => _types;
+
+      /// <summary>
+      ///   Registers one externally-defined action so it is appended to <see cref="All" />/<see cref="Types" /> and
+      ///   taught to the interpreter alongside the built-ins, without a third-party mod needing to reach into this
+      ///   catalog's internals by reflection. Returns false, as a no-op, when <paramref name="spec" /> is null, its
+      ///   <see cref="GameActionSpec.Type" /> is null or empty, or that Type already exists among the built-ins or an
+      ///   already-registered external (an exact, case-sensitive match, the same way the bridge switch matches a
+      ///   type). Dedup matters: a duplicate Type would teach the LLM the same action twice under one name, and a
+      ///   Type colliding with a built-in could silently shadow it with a third-party definition the bridge does not
+      ///   actually dispatch that way.
+      /// </summary>
+      public static bool Register(GameActionSpec spec)
+      {
+         if (spec == null || string.IsNullOrEmpty(spec.Type))
+            return false;
+
+         lock (_sync)
+         {
+            foreach (GameActionSpec existing in _all)
+               if (string.Equals(existing.Type, spec.Type, System.StringComparison.Ordinal))
+                  return false;
+
+            foreach (GameActionSpec existing in _registered)
+               if (string.Equals(existing.Type, spec.Type, System.StringComparison.Ordinal))
+                  return false;
+
+            _registered.Add(spec);
+            RebuildCombined();
+            return true;
+         }
+      }
+
+      /// <summary>
+      ///   Test-isolation reset: empties every externally-registered action and restores <see cref="All" />/
+      ///   <see cref="Types" /> to the built-in set alone. Never touches the built-ins themselves. Exists so
+      ///   registration state (a static, process-wide list) does not leak between test runs or across a full reload.
+      /// </summary>
+      internal static void ClearRegistered()
+      {
+         lock (_sync)
+         {
+            _registered.Clear();
+            RebuildCombined();
+         }
+      }
 
       #region private
+
+      private static void RebuildCombined()
+      {
+         var combinedAll = new List<GameActionSpec>(_all.Count + _registered.Count);
+         combinedAll.AddRange(_all);
+         combinedAll.AddRange(_registered);
+         _combinedAll = combinedAll;
+
+         var combinedTypes = new List<string>(combinedAll.Count);
+         foreach (GameActionSpec spec in combinedAll)
+            combinedTypes.Add(spec.Type);
+         _combinedTypes = combinedTypes;
+      }
 
       private static IReadOnlyList<GameActionSpec> BuildAll()
       {
