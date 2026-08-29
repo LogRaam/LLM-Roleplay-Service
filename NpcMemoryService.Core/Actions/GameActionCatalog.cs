@@ -160,6 +160,32 @@ namespace NpcMemoryService.Core.Actions
       }
 
       /// <summary>
+      ///   Unregisters one externally-registered action by its <see cref="GameActionSpec.Type" /> (an exact,
+      ///   case-sensitive match, the same way <see cref="Register" /> and the bridge switch match a type), so a
+      ///   registration can be cleanly undone (API hygiene, and an in-game self-test that must clean up after
+      ///   itself). Only ever removes from the externally-registered set: a built-in Type is never affected, even
+      ///   when passed here, and always yields false. Returns false, as a no-op, when <paramref name="type" /> is
+      ///   null or empty, or when no registered external matches it. When, somehow, more than one registered entry
+      ///   shares the Type (which <see cref="Register" /> itself prevents), every matching entry is removed.
+      /// </summary>
+      public static bool Unregister(string type)
+      {
+         if (string.IsNullOrEmpty(type))
+            return false;
+
+         lock (_sync)
+         {
+            int removed = _registered.RemoveAll(existing => string.Equals(existing.Type, type, System.StringComparison.Ordinal));
+
+            if (removed == 0)
+               return false;
+
+            RebuildCombined();
+            return true;
+         }
+      }
+
+      /// <summary>
       ///   Test-isolation reset: empties every externally-registered action and restores <see cref="All" />/
       ///   <see cref="Types" /> to the built-in set alone. Never touches the built-ins themselves. Exists so
       ///   registration state (a static, process-wide list) does not leak between test runs or across a full reload.

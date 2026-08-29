@@ -116,5 +116,51 @@ namespace NpcMemoryServiceTests
          GameActionCatalog.Types.Should().HaveCount(builtInCount);
          GameActionCatalog.All.Should().BeEquivalentTo(GameActionCatalog.BuiltIn);
       }
+
+      // STAKE: the coming public "register an external action" API needs a clean way to undo one registration
+      // (API hygiene, and an in-game self-test that must clean up after itself without wiping every other
+      // registered action via ClearRegistered).
+      [Test]
+      public void GIVEN_a_registered_external_WHEN_Unregister_is_called_with_its_type_THEN_it_is_removed_from_All_and_Types()
+      {
+         int builtInCount = GameActionCatalog.BuiltIn.Count;
+         GameActionCatalog.Register(new GameActionSpec("bc_bridge_summon_caravan", "Desc.", null, null, null));
+
+         bool result = GameActionCatalog.Unregister("bc_bridge_summon_caravan");
+
+         result.Should().BeTrue();
+         GameActionCatalog.All.Should().HaveCount(builtInCount);
+         GameActionCatalog.Types.Should().HaveCount(builtInCount);
+         GameActionCatalog.Types.Should().NotContain("bc_bridge_summon_caravan");
+      }
+
+      // STAKE: an unknown type, or a null/empty one, must be a safe no-op, never a crash that could take down a
+      // mod's own teardown path.
+      [Test]
+      public void GIVEN_an_unknown_or_blank_type_WHEN_Unregister_is_called_THEN_it_returns_false_without_throwing()
+      {
+         int builtInCount = GameActionCatalog.BuiltIn.Count;
+         GameActionCatalog.Register(new GameActionSpec("bc_bridge_summon_caravan", "Desc.", null, null, null));
+
+         GameActionCatalog.Unregister("no_such_type").Should().BeFalse();
+         GameActionCatalog.Unregister(null).Should().BeFalse();
+         GameActionCatalog.Unregister("").Should().BeFalse();
+         GameActionCatalog.All.Should().HaveCount(builtInCount + 1);
+      }
+
+      // STAKE: Unregister must never be a back door to strip a built-in action out of the catalog the bridge still
+      // dispatches; only the externally-registered set is ever mutable.
+      [Test]
+      public void GIVEN_a_built_in_type_WHEN_Unregister_is_called_with_it_THEN_it_returns_false_and_the_built_in_survives()
+      {
+         string builtInType = "give_gold";
+         GameActionCatalog.BuiltInTypes.Should().Contain(builtInType);
+
+         bool result = GameActionCatalog.Unregister(builtInType);
+
+         result.Should().BeFalse();
+         GameActionCatalog.BuiltInTypes.Should().Contain(builtInType);
+         GameActionCatalog.Types.Should().Contain(builtInType);
+      }
    }
 }
