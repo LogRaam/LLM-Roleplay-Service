@@ -1372,6 +1372,18 @@ namespace NpcMemoryService.Core.Models
       public string? WorldRumorsBlock { get; init; }
 
       /// <summary>
+      ///   Pre-formatted "what you know that touches on this" block: known facts (already cleared by the
+      ///   same awareness gate as <see cref="WorldRumorsBlock" />) that bear specifically on the player's
+      ///   CURRENT message, deterministic (no extra LLM call). Distinct from <see cref="WorldRumorsBlock" />,
+      ///   which is picked by ambient awareness alone and never consults what the player just said, so a
+      ///   fact that IS known but ranks low on that ambient top-N was previously invisible to a pointed
+      ///   question and the model would hallucinate an answer instead. One line each, prefixed "- ". Null
+      ///   when nothing relevant surfaces (the common case), in which case the block renders nothing and the
+      ///   prompt is byte-identical to before this field existed.
+      /// </summary>
+      public string? QueryRelevantFactsBlock { get; init; }
+
+      /// <summary>
       ///   Produces a natural-language description of this encounter, suitable
       ///   for injection into the LLM system prompt. Returns an empty string
       ///   when all fields are Unknown.

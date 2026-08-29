@@ -651,8 +651,10 @@ namespace NpcMemoryService.Core.Prompts
          if (string.IsNullOrWhiteSpace(knowledge?.RumorsBlock)) return;
          sb.AppendLine("WHAT PEOPLE ARE TALKING ABOUT:");
          sb.AppendLine("You have heard these things recently. Mention them naturally only if they fit");
-         sb.AppendLine("the conversation — do not recite them like a list. Use phrases like 'I heard',");
-         sb.AppendLine("'they say', 'word came that'. Do not claim to have witnessed anything firsthand.");
+         sb.AppendLine("the conversation, never recite them like a list. Use phrases like 'I heard',");
+         sb.AppendLine("'they say', 'word came that'. This is what you know, not a line to read aloud:");
+         sb.AppendLine("put it in your own words and never repeat it word for word. Do not claim to have");
+         sb.AppendLine("witnessed anything firsthand.");
          sb.AppendLine(knowledge!.RumorsBlock);
          sb.AppendLine();
       }
@@ -1240,13 +1242,27 @@ namespace NpcMemoryService.Core.Prompts
          if (!string.IsNullOrWhiteSpace(context.WorldRumorsBlock))
          {
             sb.AppendLine("WHAT YOU'VE HEARD (news that has reached you):");
-            sb.AppendLine("These are things word has brought to you — battles, sieges, marriages, deaths,");
+            sb.AppendLine("These are things word has brought to you: battles, sieges, marriages, deaths,");
             sb.AppendLine("wars. Mention them only if they naturally fit the conversation, as hearsay ('I");
-            sb.AppendLine("heard', 'word came that'), never as a list. Do not claim to have witnessed any of");
-            sb.AppendLine("them firsthand unless your own memories say you were there. An item marked '(heard");
+            sb.AppendLine("heard', 'word came that'), never as a list. This is what you KNOW, not a line to");
+            sb.AppendLine("read aloud: put it in your own words, as you would telling it to a neighbour, and");
+            sb.AppendLine("NEVER repeat its wording word for word. Do not claim to have witnessed any of them");
+            sb.AppendLine("firsthand unless your own memories say you were there. An item marked '(heard");
             sb.AppendLine("secondhand)' you hold loosely; one marked '(a distant, unverified rumour)' you");
-            sb.AppendLine("repeat with real doubt — you may have the details wrong, and you say so.");
+            sb.AppendLine("repeat with real doubt, you may have the details wrong, and you say so.");
             sb.AppendLine(context.WorldRumorsBlock);
+            sb.AppendLine();
+         }
+
+         if (!string.IsNullOrWhiteSpace(context.QueryRelevantFactsBlock))
+         {
+            sb.AppendLine("WHAT YOU KNOW THAT TOUCHES ON THIS (things word has brought you that bear on what they just said):");
+            sb.AppendLine("These are things you already know that speak to what the player just asked or said. Answer");
+            sb.AppendLine("from them rather than guessing or inventing details, but voice them the same way as above:");
+            sb.AppendLine("as hearsay, in your own words, never read aloud and never repeated word for word, and never");
+            sb.AppendLine("as a list. The same hedging applies: '(heard secondhand)' you hold loosely, '(a distant,");
+            sb.AppendLine("unverified rumour)' you repeat with real doubt.");
+            sb.AppendLine(context.QueryRelevantFactsBlock);
             sb.AppendLine();
          }
 
