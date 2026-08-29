@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NpcMemoryService.Core.Extension;
 using NpcMemoryService.Core.Models;
 
 #endregion
@@ -353,6 +354,17 @@ namespace NpcMemoryService.Core.Prompts
             vars["char"] = profile.Name;
             vars["char_gender"] = profile.IsFemale ? "woman" : "man";
          }
+
+         // Merge in any third-party live variables (Extension Surface, Prompt Variables volet). Built-ins
+         // ALWAYS win a name collision: a third-party provider must never be able to shadow a core token
+         // like {{user}} or {{char}}, so a registered name already present above is skipped, not overwritten.
+         var facts = new PromptVarFacts {
+            NpcId = profile?.Id ?? "",
+            RelationToPlayer = profile?.ReputationWithPlayer ?? 0
+         };
+         foreach (KeyValuePair<string, string> kv in PromptVariableRegistry.Compose(facts))
+            if (!vars.ContainsKey(kv.Key))
+               vars[kv.Key] = kv.Value ?? "";
 
          return vars;
       }
