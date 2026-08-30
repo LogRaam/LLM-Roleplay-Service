@@ -77,5 +77,13 @@ namespace NpcMemoryService.Core.Models
       ///   from that witness's already-compressed profile events. Null when no profile is available.
       /// </summary>
       public string? Memory { get; init; }
+
+      /// <summary>
+      ///   Equipment-awareness pillar (2026-08-29): this witness's notable equipped gear, one short Subject-voice
+      ///   clause ("He bears a masterwork sword."), composed by the host via the pure EquipmentNotabilityPolicy
+      ///   (CalradiaRemembers.Logic). Kept compact by design: a natural spot on the existing witness line rather
+      ///   than a new per-person block. Null when nothing about this witness's gear stands out.
+      /// </summary>
+      public string? Gear { get; init; }
    }
 }

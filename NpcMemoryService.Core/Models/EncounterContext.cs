@@ -85,6 +85,22 @@ namespace NpcMemoryService.Core.Models
       public string? NpcSelfAppearance { get; init; }
 
       /// <summary>
+      ///   Equipment-awareness pillar (2026-08-29): the PLAYER's notable equipped gear in the THIRD person
+      ///   (Subject voice), composed by the host from live equipped items via the pure EquipmentNotabilityPolicy
+      ///   (CalradiaRemembers.Logic). A modder reported that CR feeds NO equipment to the prompt at all, so an
+      ///   NPC's reaction to fine or shabby attire was pure guesswork. Rendered right after PlayerAppearance.
+      ///   Null/empty when nothing stands out (an ordinary loadout is deliberately left unvoiced).
+      /// </summary>
+      public string? PlayerGear { get; init; }
+
+      /// <summary>
+      ///   The SPEAKING NPC's OWN notable equipped gear in the SECOND person (Self voice), so a gift they now
+      ///   wield (a companion's mastercraft blade, a gifted legendary sword) is something they can actually
+      ///   reference. Rendered right after NpcSelfAppearance. Null/empty when nothing stands out.
+      /// </summary>
+      public string? NpcSelfGear { get; init; }
+
+      /// <summary>
       ///   A ready-to-inject second-person line telling a pregnant female NPC that she is aware of her own
       ///   pregnancy and must never deny being with child (fixes a player report: a pregnant NPC denied it
       ///   when asked, since her state was never injected into the prompt before this field existed). Built

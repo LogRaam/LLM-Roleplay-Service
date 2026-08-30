@@ -4293,6 +4293,12 @@ namespace NpcMemoryService.Core.Prompts
             // shared history), not as a stranger. Only shown in the full prompt, not the lean one.
             if (lean == LeanPromptLevel.Full && !string.IsNullOrWhiteSpace(w.Memory))
                sb.AppendLine($"    {w.Name} remembers: {w.Memory!.Trim()}");
+
+            // Equipment-awareness pillar: a companion's or bystander's own notable gear (a mastercraft blade,
+            // shabby rags), kept compact on this witness's own line rather than a new per-person block. Only
+            // shown in the full prompt, the same lean gate as the memory line just above.
+            if (lean == LeanPromptLevel.Full && !string.IsNullOrWhiteSpace(w.Gear))
+               sb.AppendLine($"    {w.Name}'s gear stands out: {w.Gear!.Trim()}");
          }
 
          // The candor rule is about being OVERHEARD, which is not what a council is: everyone here was
@@ -5127,6 +5133,8 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine($"You know this prisoner's name: {PlayerName} ({(PlayerIsFemale ? "a woman" : "a man")}). " + "They gave it up to you, so use it as you please; you did not have it from any register, you have it " + "because they told you. Your history and what you can see of them still colour everything you say.");
             if (!string.IsNullOrWhiteSpace(context.PlayerAppearance))
                sb.AppendLine($"What you can SEE of them (do not invent past this): {context.PlayerAppearance}");
+            if (!string.IsNullOrWhiteSpace(context.PlayerGear))
+               sb.AppendLine($"Their notable gear: {context.PlayerGear}");
             sb.AppendLine();
 
             return;
@@ -5148,6 +5156,8 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("know. Your history with them colours everything you say.");
             if (!string.IsNullOrWhiteSpace(context.PlayerAppearance))
                sb.AppendLine($"What you can SEE of them (do not invent past this): {context.PlayerAppearance}");
+            if (!string.IsNullOrWhiteSpace(context.PlayerGear))
+               sb.AppendLine($"Their notable gear: {context.PlayerGear}");
             sb.AppendLine();
 
             return;
@@ -5163,6 +5173,8 @@ namespace NpcMemoryService.Core.Prompts
 
          if (!string.IsNullOrWhiteSpace(context.PlayerAppearance))
             sb.AppendLine($"What you can SEE of them (do not invent past this): {context.PlayerAppearance}");
+         if (!string.IsNullOrWhiteSpace(context.PlayerGear))
+            sb.AppendLine($"Their notable gear: {context.PlayerGear}");
 
          if (context.PlayerLooksImportant)
             sb.AppendLine("Yet something about them gives you pause: their bearing, their gear, perhaps a scrap " + "of talk among your men — you SUSPECT this is no common traveler but someone of real " + "consequence, the kind a faction or a rich clan would ransom back at a steep price. " + "You don't know their name, but you can smell coin and leverage on them.");
@@ -5195,6 +5207,8 @@ namespace NpcMemoryService.Core.Prompts
                           + "You had their name before this, or they have given it to you, so use it and their house as you please.");
             if (!string.IsNullOrWhiteSpace(context.PlayerAppearance))
                sb.AppendLine($"What you can SEE of them (do not invent past this): {context.PlayerAppearance}");
+            if (!string.IsNullOrWhiteSpace(context.PlayerGear))
+               sb.AppendLine($"Their notable gear: {context.PlayerGear}");
             sb.AppendLine();
 
             return;
@@ -5207,6 +5221,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("have \"heard the name\" or that \"word travels\".");
          if (!string.IsNullOrWhiteSpace(context.PlayerAppearance))
             sb.AppendLine($"What you can SEE of them (do not invent past this): {context.PlayerAppearance}");
+         if (!string.IsNullOrWhiteSpace(context.PlayerGear))
+            sb.AppendLine($"Their notable gear: {context.PlayerGear}");
          sb.AppendLine();
       }
 
@@ -7035,10 +7051,15 @@ namespace NpcMemoryService.Core.Prompts
       /// </summary>
       private void AppendNpcSelfAppearance(StringBuilder sb, EncounterContext? context)
       {
-         if (string.IsNullOrWhiteSpace(context?.NpcSelfAppearance)) return;
+         bool hasAppearance = !string.IsNullOrWhiteSpace(context?.NpcSelfAppearance);
+         bool hasGear = !string.IsNullOrWhiteSpace(context?.NpcSelfGear);
+         if (!hasAppearance && !hasGear) return;
 
          sb.AppendLine("YOUR OWN APPEARANCE (how you carry yourself, stay true to it):");
-         sb.AppendLine(context!.NpcSelfAppearance);
+         if (hasAppearance) sb.AppendLine(context!.NpcSelfAppearance);
+         // Equipment-awareness pillar: a gift now worn (a companion's mastercraft blade, a legendary sword the
+         // player gave) rendered right after the body facts, so the character can reference it in its own words.
+         if (hasGear) sb.AppendLine(context!.NpcSelfGear);
          sb.AppendLine();
       }
 
@@ -7070,8 +7091,9 @@ namespace NpcMemoryService.Core.Prompts
          bool hasClan = !string.IsNullOrWhiteSpace(PlayerClanName);
          bool hasCustom = !string.IsNullOrWhiteSpace(PlayerDescription);
          bool hasAppearance = !string.IsNullOrWhiteSpace(context?.PlayerAppearance);
+         bool hasGear = !string.IsNullOrWhiteSpace(context?.PlayerGear);
 
-         if (!hasName && !hasClan && !hasCustom && !hasAppearance) return;
+         if (!hasName && !hasClan && !hasCustom && !hasAppearance && !hasGear) return;
 
          sb.AppendLine("THE PLAYER:");
          if (hasName)
@@ -7084,6 +7106,11 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
             sb.AppendLine("Appearance (what you see of them, do not contradict or invent past this):");
             sb.AppendLine(context!.PlayerAppearance);
+         }
+         if (hasGear)
+         {
+            if (!hasAppearance) sb.AppendLine();
+            sb.AppendLine(context!.PlayerGear);
          }
          if (hasCustom)
          {
