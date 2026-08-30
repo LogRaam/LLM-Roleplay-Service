@@ -33,5 +33,14 @@ namespace NpcMemoryService.Core.Extension
 
       /// <summary>Executes the verb; the external mod does its own engine work here, keyed off the ids in the request's facts. Null when the verb has no side effect.</summary>
       public Func<ActionRequest, ActionResult>? Execute { get; set; }
+
+      /// <summary>
+      ///   Optional. Runs EVERY turn, regardless of <see cref="IsEligible" />: lets the verb tell the LLM,
+      ///   PRE-response, whether this deed should be accepted or declined right now, positive or negative
+      ///   guidance either way. Answers the case IsEligible/TeachingText alone cannot: an ineligible action
+      ///   the NPC would otherwise roleplay agreeing to, only for it to fail at execution. Null when the verb
+      ///   offers no guidance.
+      /// </summary>
+      public Func<ActionGuidanceContext, string>? Guidance { get; set; }
    }
 }
