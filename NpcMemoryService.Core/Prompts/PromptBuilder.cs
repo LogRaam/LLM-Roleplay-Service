@@ -4287,7 +4287,16 @@ namespace NpcMemoryService.Core.Prompts
             string presence = string.IsNullOrWhiteSpace(w.PresenceStatus)
                ? ""
                : $" [{w.PresenceStatus}]";
-            sb.AppendLine($"- {w.Name} ({role}){persona}{presence}");
+            // Bug fix (player report 2026-08-31): with no sex stated the model guessed each witness's gender
+            // from their NAME and got it wrong (a female companion voiced as "he"). Stated right beside the
+            // name, before the role, like CouncilPromptBuilder already does for a seat. Synthetic flavour
+            // witnesses carry no sex (IsFemale null) and keep the old, genderless rendering.
+            string sex = w.IsFemale == true
+               ? ", a woman"
+               : w.IsFemale == false
+                  ? ", a man"
+                  : "";
+            sb.AppendLine($"- {w.Name}{sex} ({role}){persona}{presence}");
 
             // The witness's OWN memory: voice their reaction true to what THEY recall (a prior agreement, a
             // shared history), not as a stranger. Only shown in the full prompt, not the lean one.
@@ -4300,6 +4309,12 @@ namespace NpcMemoryService.Core.Prompts
             if (lean == LeanPromptLevel.Full && !string.IsNullOrWhiteSpace(w.Gear))
                sb.AppendLine($"    {w.Name}'s gear stands out: {w.Gear!.Trim()}");
          }
+
+         // Same bug fix as the per-name clause above: a stated sex is a known fact, never something to infer
+         // from a name (the "ContextualNameResolver" guard's spirit). Only emitted when at least one witness
+         // actually carries a sex — an all-synthetic room keeps the old prompt byte-for-byte.
+         if (context.Witnesses.Any(w => w.IsFemale.HasValue))
+            sb.AppendLine("The gender stated beside each name above is a fact you know. Do not infer anyone's gender from their name.");
 
          // The candor rule is about being OVERHEARD, which is not what a council is: everyone here was
          // invited, and telling a participant to guard their tongue is the opposite of opening the floor.

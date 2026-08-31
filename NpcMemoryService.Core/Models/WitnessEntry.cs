@@ -25,6 +25,15 @@ namespace NpcMemoryService.Core.Models
       public bool IsPlayerCompanion { get; init; }
 
       /// <summary>
+      ///   The witness's sex, when known (player report 2026-08-31: in a multi-person scene the model guessed
+      ///   each witness's sex from their NAME alone and got it wrong, voicing a female companion as "he").
+      ///   Nullable because the synthetic flavour witnesses (a soldier, an apprentice, a notable's customer)
+      ///   have no <c>Hero</c> to read it from; null = not stated, and the prompt then carries no gender clause
+      ///   for that witness at all.
+      /// </summary>
+      public bool? IsFemale { get; init; }
+
+      /// <summary>
       ///   True when this "witness" is in fact the captive-scene VICTIM — a companion held alongside the player
       ///   whom the captor torments. They are present and voiced (portrait + <c>[WITNESS_REACTION]</c>), but they
       ///   are not one of the captor's men: the host excludes them from the aggressor / audience tallies, and the
