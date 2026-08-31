@@ -1,5 +1,5 @@
 // Code written by Gabriel Mailhot, 31/08/2026.
-// Player report: a lord asked how many men rode under his command could not answer — only the
+// Player report: a lord asked how many men rode under his command could not answer, only the
 // PLAYER's troop count ever reached the prompt (PlayerPartyTroopCount), never the NPC's own. The
 // NPC's count now flows as NpcPartyTroopCount and renders as a coarse qualitative band in the NPC's
 // own voice (never the exact metagame figure), so a lord can speak of his own strength. These tests
@@ -53,7 +53,7 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain(band);
       }
 
-      // 0 = not provided (the NPC is a captive, or leads no field party — a governor keeping to his
+      // 0 = not provided (the NPC is a captive, or leads no field party, a governor keeping to his
       // settlement): the section must stay silent rather than claim a strength that is not there.
       [Test]
       public void GIVEN_no_npc_troop_count_WHEN_the_prompt_is_built_THEN_the_command_section_is_absent()
@@ -64,7 +64,7 @@ namespace NpcMemoryServiceTests
          prompt.Should().NotContain("You command");
       }
 
-      // The solo case: the roster counts the NPC themselves, so 1 means riding ALONE — saying "a
+      // The solo case: the roster counts the NPC themselves, so 1 means riding ALONE, saying "a
       // handful of men" would invent an escort that is not there (the same class of lie the player
       // force fix shipped with, see PlayerForcePromptTests).
       [Test]

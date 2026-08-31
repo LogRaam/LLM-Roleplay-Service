@@ -1289,7 +1289,7 @@ namespace NpcMemoryService.Core.Prompts
          }
 
          // Player report: a lord asked how many men rode under his command could not answer. The NPC's
-         // own strength is a fact they know intimately — rendered as a coarse band (never the exact
+         // own strength is a fact they know intimately, rendered as a coarse band (never the exact
          // figure), and valid indoors too: it describes their command, not a physical presence.
          if (context.NpcPartyTroopCount > 0)
          {
@@ -4324,7 +4324,7 @@ namespace NpcMemoryService.Core.Prompts
 
          // Same bug fix as the per-name clause above: a stated sex is a known fact, never something to infer
          // from a name (the "ContextualNameResolver" guard's spirit). Only emitted when at least one witness
-         // actually carries a sex — an all-synthetic room keeps the old prompt byte-for-byte.
+         // actually carries a sex, an all-synthetic room keeps the old prompt byte-for-byte.
          if (context.Witnesses.Any(w => w.IsFemale.HasValue))
             sb.AppendLine("The gender stated beside each name above is a fact you know. Do not infer anyone's gender from their name.");
 
