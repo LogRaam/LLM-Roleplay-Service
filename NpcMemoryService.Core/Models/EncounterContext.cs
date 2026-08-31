@@ -1124,6 +1124,17 @@ namespace NpcMemoryService.Core.Models
       public int PlayerPartyTroopCount { get; init; } = 0;
 
       /// <summary>
+      ///   The total troop count of the NPC's OWN party right now — or of the whole army when they
+      ///   lead one (the rank-and-file roster). 0 = not provided (the NPC is a captive, or leads no
+      ///   field party — a governor keeping to their settlement). A lord's own strength is a fact
+      ///   they know intimately, so no hiding rule applies; the prompt renders it as a coarse
+      ///   qualitative band (see PromptBuilder), never the exact figure, so no metagame number
+      ///   leaks. Player report: a lord asked about his command could not say how many men rode
+      ///   with him.
+      /// </summary>
+      public int NpcPartyTroopCount { get; init; } = 0;
+
+      /// <summary>
       ///   Pre-formatted "what is said of you" block — deeds of the PLAYER's that word has carried to
       ///   this NPC, attributed to the very person they are speaking with, each tagged with how it lands
       ///   on them ("(this cut against you or your own)" / "(this served your side)"). Null when none

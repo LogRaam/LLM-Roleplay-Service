@@ -1288,6 +1288,18 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         // Player report: a lord asked how many men rode under his command could not answer. The NPC's
+         // own strength is a fact they know intimately — rendered as a coarse band (never the exact
+         // figure), and valid indoors too: it describes their command, not a physical presence.
+         if (context.NpcPartyTroopCount > 0)
+         {
+            sb.AppendLine("YOUR OWN COMMAND:");
+            sb.AppendLine(context.NpcPartyTroopCount == 1
+               ? "You travel with no soldiers of your own. Do not invent a retinue or an escort at your back."
+               : $"You command {DescribeForceCommanded(context.NpcPartyTroopCount)}. These are your own men: you know your strength and can speak of it plainly.");
+            sb.AppendLine();
+         }
+
          if (!string.IsNullOrWhiteSpace(context.CurrentLocationNote))
          {
             sb.AppendLine("WHERE YOU ARE:");
