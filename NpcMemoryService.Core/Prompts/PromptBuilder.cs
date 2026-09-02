@@ -187,10 +187,16 @@ namespace NpcMemoryService.Core.Prompts
          AppendDialogueStyle(sb, encounterContext);
          if (LeanPromptPolicy.Include(PromptSection.ProseCraftBlocklist, lean)) AppendProseCraft(sb);
          else AppendLeanProseCraft(sb);
-         if (LeanPromptPolicy.UseFullBehaviorGuidelines(lean)) AppendBehaviorGuidelines(sb, encounterContext);
-         else AppendLeanBehaviorGuidelines(sb, encounterContext);
          if (LeanPromptPolicy.Include(PromptSection.WorldNarrative, lean)) AppendWorldDescription(sb, vars);
          AppendPlayerDescription(sb, encounterContext, vars);
+         // Behavior guidelines are station-matched (lord, notable, wanderer, gang leader), so this is the
+         // FIRST block that differs between two NPCs of the same session. It sits AFTER the world and player
+         // blocks, which are identical for every NPC, so the cross-NPC shared prefix runs as long as possible
+         // before it splits: a modder with a large custom world.txt (TOR, reported 2026-09-01) saw the stranded
+         // world block cost prefix-cache reuse when switching characters. Still inside the cacheable prefix
+         // (above the CURRENT ENCOUNTER marker) and above the per-NPC identity that follows.
+         if (LeanPromptPolicy.UseFullBehaviorGuidelines(lean)) AppendBehaviorGuidelines(sb, encounterContext);
+         else AppendLeanBehaviorGuidelines(sb, encounterContext);
          // ── Per-NPC identity ─────────────────────────────────────────────────
          AppendIdentity(sb, npc, encounterContext);
          AppendNpcSelfAppearance(sb, encounterContext);

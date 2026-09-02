@@ -113,6 +113,33 @@ namespace NpcMemoryServiceTests
          privacyIndex.Should().BeGreaterThan(markerIndex);
       }
 
+      // Cross-NPC prefix reuse: the BEHAVIOR GUIDELINES block is station-matched (a lord, a notable, a
+      // wanderer and a gang leader each get a different register), so it is the first thing that DIFFERS
+      // between two NPCs of one session. The world description and the player block are identical for every
+      // NPC, so they must sit BEFORE the station block, or a large custom world.txt is stranded past the
+      // divergence point and cannot be shared across characters' caches (the TOR modder's report). All three
+      // stay in the cacheable prefix, before the marker.
+      [Test]
+      public void GIVEN_a_prompt_with_a_world_WHEN_built_THEN_the_static_world_and_player_precede_the_station_guidelines()
+      {
+         var builder = new PromptBuilder {WorldDescription = "This is the world of Calradia, torn by endless war."};
+         var context = new EncounterContext {Scene = SceneType.Settlement};
+
+         string prompt = builder.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         int markerIndex = prompt.IndexOf(PromptBuilder.EncounterSectionHeading, System.StringComparison.Ordinal);
+         int worldIndex = prompt.IndexOf("WORLD:", System.StringComparison.Ordinal);
+         int playerIndex = prompt.IndexOf("THE PLAYER:", System.StringComparison.Ordinal);
+         int guidelinesIndex = prompt.IndexOf("BEHAVIOR GUIDELINES", System.StringComparison.Ordinal);
+
+         worldIndex.Should().BeGreaterThan(0);
+         guidelinesIndex.Should().BeGreaterThan(0);
+         worldIndex.Should().BeLessThan(guidelinesIndex);
+         playerIndex.Should().BeLessThan(guidelinesIndex);
+         // The station block is per-NPC, but still stable for the whole conversation, so it stays cacheable.
+         guidelinesIndex.Should().BeLessThan(markerIndex);
+      }
+
       // CurrentDay (and the rest of world state) moves as the campaign advances, so it can never be part of
       // the cacheable prefix without going stale across turns or busting the cache when it changes.
       [Test]
