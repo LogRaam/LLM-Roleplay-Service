@@ -7144,6 +7144,13 @@ namespace NpcMemoryService.Core.Prompts
          {
             if (!hasAppearance) sb.AppendLine();
             sb.AppendLine(context!.PlayerGear);
+            // War-vs-civil pillar (player report): the gear above is what they OWN and might be carrying, not a
+            // fixed fact of THIS scene. A player who narrates being out of armour, in plain clothes, or unarmed
+            // for the moment is settling their own body, so follow their words and never contradict them with this
+            // list (do not, for instance, put them back in plate because the list names a fine breastplate).
+            sb.AppendLine("This is what they own and might be carrying, not a certainty of this scene: if the player's");
+            sb.AppendLine("own words describe different dress, or being unarmed or out of armour here, follow that and do");
+            sb.AppendLine("not contradict it with the gear above.");
          }
          if (hasCustom)
          {
