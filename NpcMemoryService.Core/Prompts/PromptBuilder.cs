@@ -325,7 +325,7 @@ namespace NpcMemoryService.Core.Prompts
          // because the full format teaching sits ~10k tokens up in the cached prefix: a weaker model that follows
          // instructions loosely (dialogue only, no [ACTION]/[EVENT]) is far more likely to emit the blocks when
          // the rule is the last thing it reads before generating.
-         AppendFormatReminder(sb, lean);
+         AppendFormatReminder(sb, lean, styleActive: !string.IsNullOrWhiteSpace(encounterContext?.NarrativeStyle));
          // Last of all (highest recency) — the modder's own post-history instructions, if any.
          AppendPostHistoryInstructions(sb, vars);
 
@@ -3858,9 +3858,10 @@ namespace NpcMemoryService.Core.Prompts
       /// <summary>
       ///   Renders the player's chosen NARRATIVE STYLE (<see cref="EncounterContext.NarrativeStyle" />): the
       ///   house voice, loaded by the host from an editable style file and rendered verbatim so a player or
-      ///   modder can rewrite it without touching code. Deliberately about the PROSE only: it is complementary
-      ///   to the behaviour guidelines (who the character is) and to the scene's own consent/stage rules (what
-      ///   may happen), and it must never override either. Coexists with
+      ///   modder can rewrite it without touching code. The closing bridge draws the explicit split: the style
+      ///   OVERRIDES the general prose teachings (length, rhythm, imagery, the character's own interior asides)
+      ///   but never the machine-read structure (block labels, whose words go in whose block) nor the facts and
+      ///   scene rules. Coexists with
       ///   <see cref="AppendSceneStyleDirective" />: this is the standing voice, that one is the per-scene lens
       ///   which varies within it (the lens exists to break cross-scene repetition, so a chosen style does not
       ///   replace it). Sits at the end of the cacheable prefix, being stable for the whole conversation.
@@ -3892,8 +3893,21 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.AppendLine("NARRATIVE STYLE (how this is WRITTEN, not who you are):");
          sb.AppendLine(body);
-         sb.AppendLine("Hold to that voice. It governs the prose only: your character, what you know, what you would");
-         sb.AppendLine("do, and the scene's own rules are all decided above and are never overridden by a style.");
+         // Player report (2026-09-03): the old blanket subordination ("never overridden by a style") let the
+         // imperative tail smother the voice whole — a style clause that touched length or interiority read as
+         // a rule-conflict and was dropped, so switching styles changed almost nothing. The split below is
+         // explicit instead: the style WINS on prose shape (length, rhythm, imagery, the character's own
+         // interior asides), and only the machine-read structure stays absolute (block labels, whose words go
+         // in whose block, the facts of the world).
+         sb.AppendLine("Hold to that voice — it is the difference the reader came for. Wherever it touches prose");
+         sb.AppendLine("shape, it OVERRIDES the general guidance above: if the style runs speeches long, the");
+         sb.AppendLine("\"3-7 sentences\" norm yields; if it gives the character's own private thoughts or dry");
+         sb.AppendLine("asides, those belong in the narration even where show-don't-tell was taught; rhythm,");
+         sb.AppendLine("imagery, and sentence music are the style's to command.");
+         sb.AppendLine("What a style may NEVER touch: the block structure itself (speech stays quoted inside");
+         sb.AppendLine("[DIALOGUE], the labels stay as taught), who speaks (your blocks carry YOUR character's");
+         sb.AppendLine("words only — anyone else present speaks through their own attributed block), the facts");
+         sb.AppendLine("of the world, and what your character knows or would do.");
          sb.AppendLine();
       }
 
@@ -7598,8 +7612,12 @@ namespace NpcMemoryService.Core.Prompts
       ///   follows structure loosely (prose only, no [ACTION]/[EVENT]) is much likelier to emit the blocks when
       ///   the rule is the last thing it reads. Kept generic ("the block taught above for it") so it holds in
       ///   every mode (Lean, Full, captive scene) without re-teaching block bodies or naming gated sections.
+      ///   <paramref name="styleActive" /> adds a one-line echo of the chosen NARRATIVE STYLE into this recency
+      ///   window (Full prompt only — the Lean budget is pinned): the style block itself must stay in the
+      ///   cacheable prefix, but the player report of 2026-09-03 (style switching changed almost nothing) showed
+      ///   the voice was drowned by the imperative tail; a pointer here is the cheap way to re-anchor it.
       /// </summary>
-      private static void AppendFormatReminder(StringBuilder sb, LeanPromptLevel lean)
+      private static void AppendFormatReminder(StringBuilder sb, LeanPromptLevel lean, bool styleActive)
       {
          sb.AppendLine();
          if (lean == LeanPromptLevel.Lean)
@@ -7624,6 +7642,15 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Never think out loud: no analysis of the situation, no weighing of options, no mention of");
          sb.AppendLine("the player as 'the player' — only the character's words and the taught blocks.");
          sb.AppendLine("e.g.  [DIALOGUE]your spoken words[/DIALOGUE]   then, only on a real change:   [ACTION] type: change_relation  delta: 1 [/ACTION]");
+         if (styleActive)
+         {
+            // One-line echo of the chosen voice into the highest-recency window (the style block itself stays
+            // in the cacheable prefix; see the method summary). The blocks keep their taught shape — only the
+            // prose is the style's.
+            sb.AppendLine();
+            sb.AppendLine("Write every word of this reply in the NARRATIVE STYLE taught above: that voice shapes the");
+            sb.AppendLine("prose of the whole conversation. The blocks stay as taught; the sentences are the style's.");
+         }
          // Cause 1 of the DeepSeek player report (2026-08-05): good prose, but the structured blocks were
          // dropped, change_relation not once across a whole playthrough. This is the LAST thing the model
          // reads before it generates, so a tight checklist here is the highest-leverage restatement of the
