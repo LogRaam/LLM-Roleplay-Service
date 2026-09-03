@@ -267,7 +267,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendSecretLoverProposal(sb, encounterContext);
          AppendOpenRelationshipProposal(sb, encounterContext);
          AppendPartnerLoverKnown(sb, encounterContext);
-         AppendGiveItem(sb, encounterContext);
+         AppendGiveItem(sb, encounterContext, lean);
          // Dropped entirely in Lean (a small local model has no headroom for a favor it is unlikely to use), and
          // gated on WarStatus being resolved (task 6d): a live faction lord has a diplomatic WarStatus computed by
          // the host, while a companion, bandit, or commoner leaves it at the Unknown default — the closest existing
@@ -2335,7 +2335,7 @@ namespace NpcMemoryService.Core.Prompts
       ///   in-chat item picker to pre-fill the offer text; the LLM then decides to
       ///   accept or decline in character.
       /// </summary>
-      private static void AppendGiveItem(StringBuilder sb, EncounterContext? context)
+      private static void AppendGiveItem(StringBuilder sb, EncounterContext? context, LeanPromptLevel lean = LeanPromptLevel.Full)
       {
          // Captives have no access to their inventory — skip.
          if (context?.PlayerStatus == PlayerStatusVsNpc.Captive) return;
@@ -2351,6 +2351,15 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("The game removes the item from the player's inventory and gives it to you. Only emit");
          sb.AppendLine("this action if the player has explicitly offered a specific item this turn, and never for");
          sb.AppendLine("items you demanded: only for items the player proactively chose to offer you.");
+         // Full only (this refinement is dropped from the tight Lean budget): a completed handover lands in ONE
+         // turn instead of two (player report: a gift cost two NPC reactions, one to the offer and one to receipt).
+         if (lean != LeanPromptLevel.Lean)
+         {
+            sb.AppendLine("When the player HANDS it over as a done act this turn (a stage direction like *I hand you the");
+            sb.AppendLine("sword*, or plainly giving it), treat it as RECEIVED: react to holding it now and emit the block");
+            sb.AppendLine("in THIS reply, never stalling the gift into a second turn. You may still refuse in character, but");
+            sb.AppendLine("then omit the action.");
+         }
          sb.AppendLine();
       }
 
