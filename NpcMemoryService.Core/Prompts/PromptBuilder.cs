@@ -188,7 +188,7 @@ namespace NpcMemoryService.Core.Prompts
          if (LeanPromptPolicy.Include(PromptSection.ProseCraftBlocklist, lean)) AppendProseCraft(sb);
          else AppendLeanProseCraft(sb);
          if (LeanPromptPolicy.Include(PromptSection.WorldNarrative, lean)) AppendWorldDescription(sb, vars);
-         AppendPlayerDescription(sb, encounterContext, vars);
+         AppendPlayerDescription(sb, encounterContext, vars, lean);
          // Behavior guidelines are station-matched (lord, notable, wanderer, gang leader), so this is the
          // FIRST block that differs between two NPCs of the same session. It sits AFTER the world and player
          // blocks, which are identical for every NPC, so the cross-NPC shared prefix runs as long as possible
@@ -5181,7 +5181,7 @@ namespace NpcMemoryService.Core.Prompts
             if (!string.IsNullOrWhiteSpace(context.PlayerAppearance))
                sb.AppendLine($"What you can SEE of them (do not invent past this): {context.PlayerAppearance}");
             if (!string.IsNullOrWhiteSpace(context.PlayerGear))
-               sb.AppendLine($"Their notable gear: {context.PlayerGear}");
+               sb.AppendLine(context.PlayerGear);
             sb.AppendLine();
 
             return;
@@ -5204,7 +5204,7 @@ namespace NpcMemoryService.Core.Prompts
             if (!string.IsNullOrWhiteSpace(context.PlayerAppearance))
                sb.AppendLine($"What you can SEE of them (do not invent past this): {context.PlayerAppearance}");
             if (!string.IsNullOrWhiteSpace(context.PlayerGear))
-               sb.AppendLine($"Their notable gear: {context.PlayerGear}");
+               sb.AppendLine(context.PlayerGear);
             sb.AppendLine();
 
             return;
@@ -5255,7 +5255,7 @@ namespace NpcMemoryService.Core.Prompts
             if (!string.IsNullOrWhiteSpace(context.PlayerAppearance))
                sb.AppendLine($"What you can SEE of them (do not invent past this): {context.PlayerAppearance}");
             if (!string.IsNullOrWhiteSpace(context.PlayerGear))
-               sb.AppendLine($"Their notable gear: {context.PlayerGear}");
+               sb.AppendLine(context.PlayerGear);
             sb.AppendLine();
 
             return;
@@ -7110,7 +7110,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
-      private void AppendPlayerDescription(StringBuilder sb, EncounterContext? context, IReadOnlyDictionary<string, string> vars)
+      private void AppendPlayerDescription(StringBuilder sb, EncounterContext? context, IReadOnlyDictionary<string, string> vars, LeanPromptLevel lean = LeanPromptLevel.Full)
       {
          // A bandit/pirate captor lives outside the world of nobles: they do not know the
          // player's name, clan, or station. Suppress the identity block entirely and give
@@ -7158,13 +7158,17 @@ namespace NpcMemoryService.Core.Prompts
          {
             if (!hasAppearance) sb.AppendLine();
             sb.AppendLine(context!.PlayerGear);
-            // War-vs-civil pillar (player report): the gear above is what they OWN and might be carrying, not a
-            // fixed fact of THIS scene. A player who narrates being out of armour, in plain clothes, or unarmed
-            // for the moment is settling their own body, so follow their words and never contradict them with this
-            // list (do not, for instance, put them back in plate because the list names a fine breastplate).
-            sb.AppendLine("This is what they own and might be carrying, not a certainty of this scene: if the player's");
-            sb.AppendLine("own words describe different dress, or being unarmed or out of armour here, follow that and do");
-            sb.AppendLine("not contradict it with the gear above.");
+            // War-vs-civil pillar (player report): the gear above is their scene-appropriate loadout, but a player
+            // who narrates being out of armour, in plain clothes, or unarmed for the moment is settling their own
+            // body, so follow their words and never contradict them with this list (do not, for instance, put them
+            // back in plate because the list names a breastplate). Full only: the fact stays in Lean, this override
+            // nuance is dropped to protect the tight Lean budget (the gear line is now almost always present).
+            if (lean != LeanPromptLevel.Lean)
+            {
+               sb.AppendLine("This is what they are wearing and carrying now; if the player's own words describe different");
+               sb.AppendLine("dress, or being unarmed or out of armour for this scene, follow their words and do not");
+               sb.AppendLine("contradict them with the gear above.");
+            }
          }
          if (hasCustom)
          {
