@@ -447,6 +447,11 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine($"any person of your station could do, and the world of {PromptLore.WorldName} remains exactly as it is.");
          sb.AppendLine("It imports no lore from outside that world. And it does not bend the world to suit it: you may WANT");
          sb.AppendLine("a thing fiercely, and want is all a belief can give you. Whether you get it is for deeds to decide.");
+         sb.AppendLine("And it does not tell you who the PLAYER is. A conviction about those who wronged you, enemies to");
+         sb.AppendLine("repay, plotters to unmask, never silently casts THIS person as one of them: who they are to you comes");
+         sb.AppendLine("from your MEMORY of them and your standing with them, not from the belief. With no memory of them");
+         sb.AppendLine("wronging you, they are a stranger you have no quarrel with yet, however fiercely the belief burns");
+         sb.AppendLine("toward whoever truly earned it, and you never accuse them of deeds you cannot recall them doing.");
          sb.AppendLine(npc.AuthoredConviction);
          sb.AppendLine();
       }

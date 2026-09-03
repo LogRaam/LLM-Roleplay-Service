@@ -120,6 +120,21 @@ namespace NpcMemoryServiceTests
          }
       }
 
+      // GUARDRAIL 4 (player report, tashmetu 2026-09-02): a "he memorised every face that turned on him, each a
+      // debt to collect" conviction made an NPC accuse the player of plots on the FIRST meeting. A conviction about
+      // enemies or betrayers must not silently enrol the PLAYER among them: who they are comes from memory and
+      // standing, so a stranger with no such memory starts with no quarrel, however fiercely the belief burns.
+      [Test]
+      public void GIVEN_a_conviction_about_enemies_WHEN_building_the_prompt_THEN_it_does_not_cast_the_player_as_one_of_them()
+      {
+         string prompt = Build(Npc("He memorised every face that turned on him; each is a debt he means to collect."));
+
+         prompt.Should().Contain("does not tell you who the PLAYER is");
+         prompt.Should().Contain("from your MEMORY of them");
+         prompt.Should().Contain("stranger you have no quarrel with yet");
+         prompt.Should().Contain("never accuse them of deeds you cannot recall");
+      }
+
       // The two fields are independent: a player may author a voice with no belief, a belief with no voice, or
       // both. Neither may drag the other into the prompt.
       [Test]
