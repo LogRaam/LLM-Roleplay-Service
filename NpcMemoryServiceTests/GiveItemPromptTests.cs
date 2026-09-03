@@ -51,6 +51,17 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("never stalling the gift into a second turn");
       }
 
+      // Player report (fkasad/TOR): "I give you 10 ingots" moved a single one. The model must be taught to carry
+      // the stated count for a stackable good, so the bridge's count-aware transfer actually receives a number.
+      [Test]
+      public void GIVEN_an_ordinary_conversation_WHEN_building_the_prompt_THEN_a_stackable_count_is_taught()
+      {
+         string prompt = Build(new EncounterContext());
+
+         prompt.Should().Contain("count: <whole number>");
+         prompt.Should().Contain("stackable good");
+      }
+
       // A prisoner cannot reach their inventory, so the whole gift teaching (guard included) must be absent for a
       // captive player, or a captor would be taught to accept gifts the prisoner cannot actually hand over.
       [Test]

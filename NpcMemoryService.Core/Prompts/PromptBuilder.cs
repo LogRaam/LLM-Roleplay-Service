@@ -2359,6 +2359,9 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("sword*, or plainly giving it), treat it as RECEIVED: react to holding it now and emit the block");
             sb.AppendLine("in THIS reply, never stalling the gift into a second turn. You may still refuse in character, but");
             sb.AppendLine("then omit the action.");
+            sb.AppendLine("For a stackable good the player gives several of (ingots, trade goods, arrows), add a count line");
+            sb.AppendLine("to the block, 'count: <whole number>'; a single item needs none (one is assumed), and the game");
+            sb.AppendLine("never gives more than the player holds.");
          }
          sb.AppendLine();
       }
