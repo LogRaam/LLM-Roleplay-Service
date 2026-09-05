@@ -225,6 +225,30 @@ namespace NpcMemoryService.Core.Models
       public double? LastIntimacyGainHour { get; set; }
 
       /// <summary>
+      ///   Progressive-regard model: how many routine warm moments this NPC now demands for the NEXT +1 of personal
+      ///   regard, minus one (tier 0 = 1 moment, tier 1 = 2 moments, tier 2 = 3, ...). Rises by one each time a +1
+      ///   is granted (deep bonds get harder to deepen) and decays back down over time (see
+      ///   <see cref="RegardResistanceStampHour" />), so trust cannot be farmed by leaving and returning. Additive;
+      ///   absent on old saves (reads as 0 = warmth starts easy). Game-agnostic: the SDK only stores it; the
+      ///   consumer (<c>CalradiaRemembers.Logic.RelationGate</c>) defines the curve and the decay period.
+      /// </summary>
+      public int RegardResistanceTier { get; set; }
+
+      /// <summary>
+      ///   Progressive-regard model: warm moments accrued so far toward the NEXT +1 of personal regard. Reaches
+      ///   <see cref="RegardResistanceTier" /> + 1 to grant a +1 (then resets and the tier rises). Reset to 0 when a
+      ///   tier decays, so partial progress does not persist across a long absence. Additive; 0 on old saves.
+      /// </summary>
+      public int RegardWarmthAccrued { get; set; }
+
+      /// <summary>
+      ///   Progressive-regard model: the in-game hour (<c>CampaignTime.Now.ToHours</c>) the resistance tier was last
+      ///   raised or last decayed, the anchor the consumer measures decay from (one tier down per configured decay
+      ///   period). Null = no resistance has ever built up. Additive; null on old saves.
+      /// </summary>
+      public double? RegardResistanceStampHour { get; set; }
+
+      /// <summary>
       ///   Duels: the game day on which the player and this NPC last crossed blades. The consumer's cooldown
       ///   policy reads it to refuse a fresh challenge too soon after the last one, so a duel stays a grave
       ///   matter instead of a daily treadmill. Null = these two have never dueled, which is never on cooldown.
