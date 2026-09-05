@@ -27,5 +27,15 @@ namespace NpcMemoryService.Core.Extension
 
       /// <summary>True when the outcome is favorable to the player (drives the chat line color on the host side).</summary>
       public bool Success { get; set; }
+
+      /// <summary>
+      ///   Optional plain-fact recap of what the deed actually resolved to (e.g. "the claim to Ostican was denied:
+      ///   too weak"). When set AND the conversation is still open, the host makes the NPC VOICE this outcome in
+      ///   its own words, in the same beat, WITHOUT a new player message: the NPC's spoken reply was written
+      ///   before Execute ran, so it could not yet know the ruling. Leave null/empty for no follow-up (the default,
+      ///   unchanged behaviour). Give the raw fact, not a scripted line; the host frames it as "voice this now".
+      ///   The follow-up is one extra LLM turn, so use it only when the outcome genuinely warrants the NPC reacting.
+      /// </summary>
+      public string? Recap { get; set; }
    }
 }
