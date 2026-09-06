@@ -376,6 +376,16 @@ namespace NpcMemoryService.Core.Actions
                   "mere flirting or attraction, without the two of them actually welcoming the secret bond",
                   "an NPC who is not a faithful companion of the player's own party"
                }),
+            Spec("admit_secret_lover",
+               "The player CONFESSES to this NPC, in words this turn, that the player is the hidden lover behind a secret whispers already circulate about; the NPC now privately knows the identity (a fact none can otherwise deduce, and that this NPC may later spread or use).",
+               tells: new[] {
+                  "the player tells this NPC outright, in this reply, that the player is the secret lover others whisper about (or names whose secret lover the player is), and the NPC takes it as a genuine confession"
+               },
+               antiPatterns: new[] {
+                  "the NPC merely SUSPECTING or guessing the player's involvement, without the player having actually admitted it in words: the identity is never deduced, only confessed",
+                  "the player deflecting, joking, denying, or staying coy about the whispered affair rather than owning it plainly",
+                  "the player and this NPC beginning their OWN discreet bond, which is take_as_secret_lover, not a confession about an existing one"
+               }),
             Spec("open_relationship",
                "The player's committed partner (spouse, or a consort/committed bond) agrees to reciprocal open terms, each free to love another.",
                tells: new[] {

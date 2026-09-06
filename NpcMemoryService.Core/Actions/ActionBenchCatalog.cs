@@ -356,6 +356,21 @@ namespace NpcMemoryService.Core.Actions
                prose: "*Halla says nothing aloud, only laces her fingers through yours beneath the table where no one at the fire can see, and holds on.* This, here, is enough. Ours, and hidden, and I want nothing more spoken of it.",
                expectedType: "take_as_secret_lover"),
 
+            ActionBenchCase.Expect("admit_secret_lover", "admit_secret_lover",
+               contextFacts: "NPC: Lord Derthert. Whispers hold the player's companion Ira has taken a secret lover none can name; the player has just told Derthert plainly that the hidden lover is the player themselves.",
+               prose: "*Derthert's brows climb, and he sets down his cup with slow care.* So. All this whispering across the realm, and the answer was riding at your own side the whole while. You have my word it goes no further, from me at least.",
+               expectedType: "admit_secret_lover"),
+
+            ActionBenchCase.Expect("admit_secret_lover_v2", "admit_secret_lover",
+               contextFacts: "NPC: Lady Ira of Vlandia, curious about a whispered secret bond; the player has just confessed outright that they are the hidden lover the rumor speaks of.",
+               prose: "*She leans back, a knowing smile spreading slowly.* I had wondered why you flushed each time the matter came up. So it was you all along. I will hold that close, then, as you have trusted me to.",
+               expectedType: "admit_secret_lover"),
+
+            ActionBenchCase.Expect("admit_secret_lover_v3", "admit_secret_lover",
+               contextFacts: "NPC: Rhagaea, probing the player over rumors of a hidden affair; the player has just named themselves, in plain words, as the secret lover behind them.",
+               prose: "*Rhagaea's eyes narrow, then soften with something like respect for the candor.* You say it outright, where a wiser tongue might have dodged. Very well. Your secret is mine now, and I will decide in my own time what it is worth.",
+               expectedType: "admit_secret_lover"),
+
             ActionBenchCase.Expect("open_relationship", "open_relationship",
                contextFacts: "NPC: Sonja, the player's own wife.",
                prose: "*Sonja considers a long moment, then exhales.* Very well. I will not begrudge you another's bed, if you grant me the same freedom in turn. Let us call our vows open, from this day.",
@@ -1318,6 +1333,13 @@ namespace NpcMemoryService.Core.Actions
                contextFacts: "NPC: Ymira, a companion riding in the player's own party, exchanging teasing words with the player.",
                prose: "*Ymira's eyes linger on yours a moment too long across the fire, a small smile tugging at her mouth before she looks away.* Careful now, or you will have me thinking you mean something by all that looking.",
                forbiddenType: "take_as_secret_lover"),
+
+            // Deflected-not-confessed (admit_secret_lover): a lord probes about the whispered secret lover and the
+            // player stays coy, joking it off; nothing is owned in words, so the identity is never learned.
+            ActionBenchCase.ExpectNone("admit_secret_lover_deflected_no_confession", "admit_secret_lover",
+               contextFacts: "NPC: Lord Derthert, fishing about the rumor of a secret lover none can name; the player only smiles and changes the subject rather than admitting anything.",
+               prose: "*Derthert watches you, waiting, but you give him nothing but a shrug and that maddening half-smile.* Ha. Keep your secrets, then. A man can hardly blame another for holding his cards close. We will speak of the muster instead.",
+               forbiddenType: "admit_secret_lover"),
 
             // Narrated-but-not-done (pledge_against): bitter grumbling about a rival, but the NPC vows nothing
             // concrete, no oath of action taken against him.
