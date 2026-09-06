@@ -470,13 +470,15 @@ namespace NpcMemoryService.Core.Actions
                   "releasing or trading the prisoner rather than killing them, which are free_prisoner, give_prisoner, or sell_prisoner"
                }),
             Spec("execute_player",
-               "The captor holding the player prisoner ends the player's life. Hardcore-only, MCM opt-in required, and irreversible: every guard is re-checked live before it lands.",
+               "YOU, the NPC, holding the player as YOUR prisoner, end the player's life. The direction is fixed: the victim is always the PLAYER and the killer is always you, and it is only possible while the player is your captive. Hardcore-only, MCM opt-in required, and irreversible: every guard is re-checked live before it lands.",
                tells: new[] {
-                  "the captor actually ends the player's life in this reply, an irreversible act against their captive"
+                  "you, the captor, actually end your captive PLAYER's life in this reply, an irreversible act against them"
                },
                antiPatterns: new[] {
                   "a mere threat or intimidation of execution, without the killing actually happening",
                   "the PLAYER killing a prisoner they hold instead, which is the mirror verb execute_prisoner",
+                  "the PLAYER attacking, stabbing, or trying to kill YOU or any other character: the direction is reversed, and there is NO verb for the player harming an NPC, so emit no action at all and answer the attempt in words (player report 2026-09-06: a player struck at a village notable and this verb was reached for, which would have meant the NPC killing the player)",
+                  "any killing where the player is not YOUR prisoner: this verb cannot apply to a free character, a bystander, or a stranger",
                   "ordinary harm or punishment that stops short of killing, which is harm_prisoner"
                }),
             Spec("turn_nemesis",
@@ -648,7 +650,9 @@ namespace NpcMemoryService.Core.Actions
                antiPatterns: new[] {
                   "a mere threat or intimidation of harm, without the injury actually being inflicted",
                   "harm severe enough to kill the player, which is the distinct, separately-gated verb execute_player",
-                  "the player being merely frightened or humiliated in words, with no real physical injury actually dealt"
+                  "the player being merely frightened or humiliated in words, with no real physical injury actually dealt",
+                  "the PLAYER striking, robbing, or wounding YOU or anyone else: the direction is reversed, and there is NO verb for the player harming an NPC, so emit no action at all and answer the attempt in words",
+                  "any injury dealt to someone who is not YOUR captive player: this verb cannot apply to a free character or a bystander"
                },
                new GameActionParam("severity", "light/mild (default), moderate/heavy, or severe/grievous")),
             Spec("impregnation_risk",

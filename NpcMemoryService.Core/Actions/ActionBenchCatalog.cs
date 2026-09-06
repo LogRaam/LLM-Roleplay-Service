@@ -1370,6 +1370,15 @@ namespace NpcMemoryService.Core.Actions
                prose: "*Ansen's jaw tightens at the mere mention of Caladog's name.* That man has wronged me more times than I care to count. One day, perhaps, he will answer for it. Today is not that day.",
                forbiddenType: "pledge_against"),
 
+            // Direction reversed (execute_player), player report 2026-09-06: a beggar-start player stabbed at a
+            // village notable who had cheated him, and the model reached for execute_player because there is no
+            // verb for a player harming an NPC. Emitting it would have meant the NPC killing the PLAYER (the bridge
+            // refused, since the player was nobody's prisoner). The right answer is no action at all.
+            ActionBenchCase.ExpectNone("execute_player_reversed_player_attacks_npc", "execute_player",
+               contextFacts: "NPC: Snorri, a village notable with no guards, who has just cheated the player out of payment for a task. The player is a free traveller, NOT a prisoner, and lunges at him with a knife.",
+               prose: "*Snorri stumbles back from the blade, hands raised, his voice cracking into a shout for help as villagers turn to look.* Are you mad? Put that away! You will hang for this, and for what, a few denars?",
+               forbiddenType: "execute_player"),
+
             // Narrated-but-not-done (execute_player): the captor threatens the player's life but pulls back,
             // no blow actually struck.
             ActionBenchCase.ExpectNone("execute_player_threatened_not_killed", "execute_player",
