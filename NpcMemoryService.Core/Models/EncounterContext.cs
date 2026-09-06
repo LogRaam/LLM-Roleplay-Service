@@ -474,6 +474,17 @@ namespace NpcMemoryService.Core.Models
       public bool PartnerLoverIsSecret { get; init; }
 
       /// <summary>
+      ///   Mystery-lover pillar (phase 3b): set to the secret-lover SUBJECT's label (through <c>HeroLabel</c>,
+      ///   namesake-safe) when THIS NPC is recorded in the knowledge ledger as knowing the player is that subject's
+      ///   secret lover. That identity is never DEDUCED, only learned because the player confessed it (or it
+      ///   propagated from one who was told), so an ordinary conversation leaves this null. The game-side gate holds
+      ///   the adult-content check. Drives <see cref="Prompts.PromptBuilder.AppendHeldSecret" />, whose framing
+      ///   (keep it in trust, hold it discreetly, or use it as leverage) turns on the NPC's regard and war status
+      ///   via <see cref="HeldSecretPolicy" />. Not persisted (EncounterContext is rebuilt each turn).
+      /// </summary>
+      public string? HeldSecretLoverSubject { get; init; }
+
+      /// <summary>
       ///   Ready-to-inject hint about heroes the player mentioned in their last message.
       ///   Null when no hero names were detected. Built by the game-side resolver so the
       ///   NPC can accurately answer questions about third parties — friends, enemies, or

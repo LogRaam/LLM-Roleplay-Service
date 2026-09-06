@@ -267,6 +267,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendSecretLoverProposal(sb, encounterContext);
          AppendOpenRelationshipProposal(sb, encounterContext);
          AppendPartnerLoverKnown(sb, encounterContext);
+         AppendHeldSecret(sb, npc, encounterContext);
          AppendGiveItem(sb, encounterContext, lean);
          // Dropped entirely in Lean (a small local model has no headroom for a favor it is unlikely to use), and
          // gated on WarStatus being resolved (task 6d): a live faction lord has a diplomatic WarStatus computed by
@@ -1050,6 +1051,55 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("type: close_relationship");
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("Emit either only when it truly happens in the exchange, never to narrate a wish.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Mystery-lover pillar (phase 3b): the payoff of a lord LEARNING the player's secret-lover identity
+      ///   (never deduced, only confessed or propagated). Rendered only when this NPC holds it
+      ///   (<see cref="EncounterContext.HeldSecretLoverSubject" />, set game-side behind the adult gate). How the
+      ///   NPC carries it is decided by <see cref="HeldSecretPolicy" /> from their personal regard and war status:
+      ///   a friend keeps it in trust, a foe is tempted to leverage it, a stranger holds it discreetly. The prompt
+      ///   is advice: the NPC chooses within its disposition, and any mechanical use lives game-side.
+      /// </summary>
+      private static void AppendHeldSecret(StringBuilder sb, NpcProfile npc, EncounterContext? context)
+      {
+         if (context == null || string.IsNullOrWhiteSpace(context.HeldSecretLoverSubject)) return;
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+
+         string subject = context.HeldSecretLoverSubject!;
+         bool hostile = context.WarStatus == DiplomaticStatus.AtWar;
+         HeldSecretDisposition disposition = HeldSecretPolicy.Decide(npc?.ReputationWithPlayer ?? 0, hostile);
+
+         sb.AppendLine("A SECRET YOU HOLD ABOUT THE PLAYER:");
+         sb.AppendLine($"You know something almost no one else does: that the player is the secret lover of {subject}.");
+         sb.AppendLine("No one pieced this together; it reached you and you are certain of it. It is a real lever, and");
+         sb.AppendLine("how you carry it is yours to choose, shaped by what you make of this player.");
+         sb.AppendLine();
+
+         switch (disposition)
+         {
+            case HeldSecretDisposition.Confidant:
+               sb.AppendLine("You count this player a friend, and you keep their secret gladly. You need not raise it at");
+               sb.AppendLine("all; but should the moment invite it, you may let them know, warmly, that it is safe with you,");
+               sb.AppendLine("or tease them gently as only a trusted friend could. Never a threat, never a price.");
+               break;
+            case HeldSecretDisposition.Leverage:
+               sb.AppendLine("You owe this player no loyalty, and a secret like this is worth something. You may let them");
+               sb.AppendLine("feel that you KNOW, hint at what it would cost them were it spoken aloud, and see what they will");
+               sb.AppendLine("offer for your silence. Menace it or trade on it as your nature dictates, in character, never");
+               sb.AppendLine("blurting it away for nothing.");
+               break;
+            default:
+               sb.AppendLine("You are neither their friend nor their foe. You hold the knowledge discreetly: you do not");
+               sb.AppendLine("gossip it idly, nor press it as a weapon, though it quietly colors how you weigh them. Should");
+               sb.AppendLine("they raise it, be honest that you know, and let the exchange decide what becomes of it.");
+               break;
+         }
+
+         sb.AppendLine();
+         sb.AppendLine("You know only the FACT itself: never invent who told you, nor details of the affair beyond this,");
+         sb.AppendLine("and never announce it aloud to a crowd or to third parties present in this exchange.");
          sb.AppendLine();
       }
 
