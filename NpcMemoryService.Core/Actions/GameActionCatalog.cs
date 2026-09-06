@@ -386,6 +386,17 @@ namespace NpcMemoryService.Core.Actions
                   "the player deflecting, joking, denying, or staying coy about the whispered affair rather than owning it plainly",
                   "the player and this NPC beginning their OWN discreet bond, which is take_as_secret_lover, not a confession about an existing one"
                }),
+            Spec("pay_for_silence",
+               "The player pays a lord who holds their secret-lover identity a sum of gold to buy his silence; the coin actually changes hands this turn.",
+               tells: new[] {
+                  "the player agrees to pay this lord for his silence about their secret, and the hush payment is actually settled between them in this reply"
+               },
+               antiPatterns: new[] {
+                  "the lord merely THREATENING exposure or naming a price, without the player having agreed and the gold actually changing hands",
+                  "the player refusing, defying, or stalling the blackmail rather than paying it",
+                  "an ordinary gift, ransom, bribe, or debt paid to the lord for any other reason, which is give_gold, not hush money for THIS secret"
+               },
+               new GameActionParam("price", "the agreed denars for the lord's silence")),
             Spec("open_relationship",
                "The player's committed partner (spouse, or a consort/committed bond) agrees to reciprocal open terms, each free to love another.",
                tells: new[] {

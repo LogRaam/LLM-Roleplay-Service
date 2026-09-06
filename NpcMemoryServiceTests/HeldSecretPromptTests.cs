@@ -113,6 +113,40 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain(DiscreetTell);
       }
 
+      // The mechanical lever (phase 3b-3): a leverage-disposed lord is taught the pay_for_silence action so an
+      // agreed hush payment actually moves gold, not just roleplay pressure.
+      [Test]
+      public void GIVEN_an_enemy_holds_it_and_no_payment_yet_WHEN_built_THEN_the_hush_action_is_taught()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            HeldSecretLoverSubject = "Ira",
+            WarStatus = DiplomaticStatus.AtWar
+         };
+
+         string prompt = Build(context, regard: 0);
+
+         prompt.Should().Contain("type: pay_for_silence");
+      }
+
+      // Once paid recently, the shakedown eases: the lord is told to honor the bargain and NOT to press for a new
+      // payment, so a paid-off player is not extorted again the same visit.
+      [Test]
+      public void GIVEN_the_hush_was_recently_paid_WHEN_built_THEN_no_new_payment_is_pressed()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            HeldSecretLoverSubject = "Ira",
+            WarStatus = DiplomaticStatus.AtWar,
+            HeldSecretHushRecentlyPaid = true
+         };
+
+         string prompt = Build(context, regard: 0);
+
+         prompt.Should().Contain("ALREADY paid");
+         prompt.Should().NotContain("type: pay_for_silence");
+      }
+
       // The player in chains cannot be leveraged in words: a captor scene suppresses the section entirely, mirroring
       // the other romantic sections' captive guard.
       [Test]

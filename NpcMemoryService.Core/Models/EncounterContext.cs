@@ -485,6 +485,14 @@ namespace NpcMemoryService.Core.Models
       public string? HeldSecretLoverSubject { get; init; }
 
       /// <summary>
+      ///   Mystery-lover pillar (phase 3b-3): true when the player has paid THIS NPC to hush the held secret recently
+      ///   enough that the leverage framing should ease off (no fresh shakedown this visit). Only meaningful with
+      ///   <see cref="HeldSecretLoverSubject" /> set and a leverage-disposed NPC. Set game-side from the hush-payment
+      ///   ledger via <c>HushMoneyPolicy.IsRecentlyPaid</c>. Default false.
+      /// </summary>
+      public bool HeldSecretHushRecentlyPaid { get; init; }
+
+      /// <summary>
       ///   Ready-to-inject hint about heroes the player mentioned in their last message.
       ///   Null when no hero names were detected. Built by the game-side resolver so the
       ///   NPC can accurately answer questions about third parties — friends, enemies, or

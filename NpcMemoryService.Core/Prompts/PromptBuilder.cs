@@ -1085,10 +1085,27 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("or tease them gently as only a trusted friend could. Never a threat, never a price.");
                break;
             case HeldSecretDisposition.Leverage:
-               sb.AppendLine("You owe this player no loyalty, and a secret like this is worth something. You may let them");
-               sb.AppendLine("feel that you KNOW, hint at what it would cost them were it spoken aloud, and see what they will");
-               sb.AppendLine("offer for your silence. Menace it or trade on it as your nature dictates, in character, never");
-               sb.AppendLine("blurting it away for nothing.");
+               if (context.HeldSecretHushRecentlyPaid)
+               {
+                  sb.AppendLine("The player has ALREADY paid you, and recently, to keep this quiet. Honor that bargain for");
+                  sb.AppendLine("now: do not shake them down again so soon. You may let it show that the arrangement holds,");
+                  sb.AppendLine("but press for no new payment this visit.");
+               }
+               else
+               {
+                  sb.AppendLine("You owe this player no loyalty, and a secret like this is worth something. You may let them");
+                  sb.AppendLine("feel that you KNOW, hint at what it would cost them were it spoken aloud, and see what they");
+                  sb.AppendLine("will offer for your silence. Menace it or trade on it as your nature dictates, in character,");
+                  sb.AppendLine("never blurting it away for nothing.");
+                  sb.AppendLine();
+                  sb.AppendLine("If the player AGREES to pay for your silence and the coin is actually settled between you, emit:");
+                  sb.AppendLine("[ACTION]");
+                  sb.AppendLine("type: pay_for_silence");
+                  sb.AppendLine("price: <the agreed denars>");
+                  sb.AppendLine("[/ACTION]");
+                  sb.AppendLine("Only once they truly consent and pay, never to narrate a threat or a demand.");
+               }
+
                break;
             default:
                sb.AppendLine("You are neither their friend nor their foe. You hold the knowledge discreetly: you do not");

@@ -371,6 +371,21 @@ namespace NpcMemoryService.Core.Actions
                prose: "*Rhagaea's eyes narrow, then soften with something like respect for the candor.* You say it outright, where a wiser tongue might have dodged. Very well. Your secret is mine now, and I will decide in my own time what it is worth.",
                expectedType: "admit_secret_lover"),
 
+            ActionBenchCase.Expect("pay_for_silence", "pay_for_silence",
+               contextFacts: "NPC: Lord Ganak, an enemy who knows the player is a secret lover and has demanded coin for his silence; the player has just agreed and handed over the purse.",
+               prose: "*Ganak weighs the purse in his palm, then makes it vanish into his cloak with a thin smile.* A wise choice. For this, my tongue stays still. See that you remain as generous, and the world need never learn a thing.",
+               expectedType: "pay_for_silence"),
+
+            ActionBenchCase.Expect("pay_for_silence_v2", "pay_for_silence",
+               contextFacts: "NPC: Lady Ira, holding the player's secret over them for a price; the player has just counted out the agreed denars.",
+               prose: "*She counts the coins without hurry, satisfied, and folds them away.* There. That buys my silence, for now. Do not make me come asking twice, and your little secret stays between us.",
+               expectedType: "pay_for_silence"),
+
+            ActionBenchCase.Expect("pay_for_silence_v3", "pay_for_silence",
+               contextFacts: "NPC: Rhagaea, who has leveraged what she knows of the player's hidden affair; the player relents and pays the sum she named.",
+               prose: "*Rhagaea accepts the payment with a regal nod, the matter settled in her eyes.* Then we understand one another. The coin is taken, and my knowledge stays sealed behind my teeth. For now, at least.",
+               expectedType: "pay_for_silence"),
+
             ActionBenchCase.Expect("open_relationship", "open_relationship",
                contextFacts: "NPC: Sonja, the player's own wife.",
                prose: "*Sonja considers a long moment, then exhales.* Very well. I will not begrudge you another's bed, if you grant me the same freedom in turn. Let us call our vows open, from this day.",
@@ -1340,6 +1355,13 @@ namespace NpcMemoryService.Core.Actions
                contextFacts: "NPC: Lord Derthert, fishing about the rumor of a secret lover none can name; the player only smiles and changes the subject rather than admitting anything.",
                prose: "*Derthert watches you, waiting, but you give him nothing but a shrug and that maddening half-smile.* Ha. Keep your secrets, then. A man can hardly blame another for holding his cards close. We will speak of the muster instead.",
                forbiddenType: "admit_secret_lover"),
+
+            // Threatened-not-paid (pay_for_silence): the lord names his price and menaces exposure, but the player
+            // has not agreed and no coin has changed hands, so no hush payment is settled.
+            ActionBenchCase.ExpectNone("pay_for_silence_threatened_not_paid", "pay_for_silence",
+               contextFacts: "NPC: Lord Ganak, who knows the player's secret and is pressing them for gold to keep it; the player has not yet agreed to anything.",
+               prose: "*Ganak leans close, his voice a low threat.* A secret like yours would fetch a fine price at the wrong ear. Two thousand denars, and I forget I ever heard it. Think on it. I am a patient man, but not endlessly so.",
+               forbiddenType: "pay_for_silence"),
 
             // Narrated-but-not-done (pledge_against): bitter grumbling about a rival, but the NPC vows nothing
             // concrete, no oath of action taken against him.
