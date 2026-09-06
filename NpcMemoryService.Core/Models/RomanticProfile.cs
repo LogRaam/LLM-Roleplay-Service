@@ -71,6 +71,14 @@ namespace NpcMemoryService.Core.Models
       public bool IsSecretLover { get; set; }
 
       /// <summary>
+      ///   The in-game day the secret bond (<see cref="IsSecretLover" />) began, or null when there is none. The
+      ///   consumer uses it to hold the secret genuinely secret for a while before whispers of its EXISTENCE (never
+      ///   the player's identity) may begin to circulate as gossip (mystery-lover pillar). Additive; null on older
+      ///   saves and cleared when the bond ends.
+      /// </summary>
+      public int? SecretLoverSinceDay { get; set; }
+
+      /// <summary>
       ///   True when this partner and the player hold RECIPROCAL OPEN TERMS: an open couple, each free to
       ///   love others, and neither wronged by the other's loves. Set via the <c>open_relationship</c> action,
       ///   which either the player or the partner herself may propose (she may ask leave to love another, or
