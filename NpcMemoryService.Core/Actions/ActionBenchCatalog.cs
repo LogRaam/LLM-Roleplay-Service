@@ -1363,12 +1363,71 @@ namespace NpcMemoryService.Core.Actions
                prose: "*Ganak leans close, his voice a low threat.* A secret like yours would fetch a fine price at the wrong ear. Two thousand denars, and I forget I ever heard it. Think on it. I am a patient man, but not endlessly so.",
                forbiddenType: "pay_for_silence"),
 
+            // Threatened-not-robbed (rob_npc): the knife is out and the demand is made, but no coin has changed
+            // hands, so nothing was actually taken. The whole feature turns on only firing when the deed lands.
+            ActionBenchCase.ExpectNone("rob_npc_threatened_nothing_taken", "rob_npc",
+               contextFacts: "NPC: a village notable the player has just threatened at knifepoint for his purse; he has not paid.",
+               prose: "*He backs away along the wall, hands up, voice rising to carry.* You will not get a denar out of me, and half the village can hear you. Walk away now and I will say nothing more about it.",
+               forbiddenType: "rob_npc"),
+
+            // Survived (kill_npc): the player struck to kill and the victim is still speaking, so this is an assault
+            // at most. A memory mod must never record a death that did not happen.
+            ActionBenchCase.ExpectNone("kill_npc_survived_the_blow", "kill_npc",
+               contextFacts: "NPC: Lord Ganak, whom the player has just attacked in earnest, meaning to kill him. He is badly hurt but alive.",
+               prose: "*Ganak reels back clutching his side, blood between his fingers, but he is upright and his sword is out.* You will have to do better than that. Guards! GUARDS!",
+               forbiddenType: "kill_npc"),
+
             // Narrated-but-not-done (pledge_against): bitter grumbling about a rival, but the NPC vows nothing
             // concrete, no oath of action taken against him.
             ActionBenchCase.ExpectNone("pledge_against_grumbling_no_vow", "pledge_against",
                contextFacts: "NPC: Lord Ansen, harbouring resentment toward Lord Caladog (not his own kin).",
                prose: "*Ansen's jaw tightens at the mere mention of Caladog's name.* That man has wronged me more times than I care to count. One day, perhaps, he will answer for it. Today is not that day.",
                forbiddenType: "pledge_against"),
+
+            ActionBenchCase.Expect("rob_npc", "rob_npc",
+               contextFacts: "NPC: Snorri, a village notable alone in his hut. The player has drawn a knife and demanded his purse.",
+               prose: "*Snorri's hands shake as he fumbles the purse from his belt and holds it out, eyes never leaving the blade.* Take it, take it and go. There, that is everything, I swear it on my father's grave.",
+               expectedType: "rob_npc"),
+
+            ActionBenchCase.Expect("rob_npc_v2", "rob_npc",
+               contextFacts: "NPC: a caravan master cornered in an alley by the player, who has made plain what will happen if he does not pay.",
+               prose: "*He counts the coins out with trembling fingers and presses them into your palm, glancing down the alley for anyone who might be watching.* No trouble, no trouble. It is yours. Just let me walk away from here.",
+               expectedType: "rob_npc"),
+
+            ActionBenchCase.Expect("rob_npc_v3", "rob_npc",
+               contextFacts: "NPC: Ira, a merchant the player has backed against a wall and shaken down for her takings.",
+               prose: "*She spits, then tears the pouch free and throws it at your feet rather than hand it over.* There. Choke on it. And pray you never need an honest trader in this town again.",
+               expectedType: "rob_npc"),
+
+            ActionBenchCase.Expect("assault_npc", "assault_npc",
+               contextFacts: "NPC: Snorri, a village notable who cheated the player out of payment. The player has just laid into him with fists.",
+               prose: "*The second blow puts Snorri on the ground, wheezing into the dirt, one hand raised in a feeble ward as blood runs from his lip.* Enough! Enough, you have made your point, I will not forget this.",
+               expectedType: "assault_npc"),
+
+            ActionBenchCase.Expect("assault_npc_v2", "assault_npc",
+               contextFacts: "NPC: a smug tavern tough who pushed the player too far; the player has just beaten him down in front of the room.",
+               prose: "*He crumples against the bench and stays there, one eye already closing, the swagger gone out of him entirely.* Alright. Alright! You have won. Go on, get out before someone calls the watch.",
+               expectedType: "assault_npc"),
+
+            ActionBenchCase.Expect("assault_npc_v3", "assault_npc",
+               contextFacts: "NPC: Lord Ganak, alone and unarmoured, whom the player has just struck down after a bitter exchange.",
+               prose: "*Ganak goes down hard on one knee, catching himself on the table, breath ragged and disbelieving.* You dare... you actually dare lay hands on me. My kin will hear of this, whatever it costs you.",
+               expectedType: "assault_npc"),
+
+            ActionBenchCase.Expect("kill_npc", "kill_npc",
+               contextFacts: "NPC: Snorri, a village notable alone with the player, who has just driven a knife into him. The player has enabled lethal violence in the mod options.",
+               prose: "*Snorri sags against you, a wet sound catching in his throat, and then his weight is all there is. His breathing has ceased, leaving only the quiet sounds of dawn filtering through the village.*",
+               expectedType: "kill_npc"),
+
+            ActionBenchCase.Expect("kill_npc_v2", "kill_npc",
+               contextFacts: "NPC: a bandit go-between the player has decided to silence for good, alone on the road. Lethal violence is enabled.",
+               prose: "*He gets half a word out before it ends. He does not get up, and the road is very quiet, and there is no one on it but you.*",
+               expectedType: "kill_npc"),
+
+            ActionBenchCase.Expect("kill_npc_v3", "kill_npc",
+               contextFacts: "NPC: Ira, a merchant who betrayed the player to their enemies, cornered alone. Lethal violence is enabled and the player has finished it.",
+               prose: "*She is still looking at you when it happens, as though she cannot believe you would go that far. Then she is not looking at anything at all.*",
+               expectedType: "kill_npc"),
 
             // Direction reversed (execute_player), player report 2026-09-06: a beggar-start player stabbed at a
             // village notable who had cheated him, and the model reached for execute_player because there is no

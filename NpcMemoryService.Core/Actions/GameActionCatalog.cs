@@ -481,6 +481,39 @@ namespace NpcMemoryService.Core.Actions
                   "any killing where the player is not YOUR prisoner: this verb cannot apply to a free character, a bystander, or a stranger",
                   "ordinary harm or punishment that stops short of killing, which is harm_prisoner"
                }),
+            Spec("rob_npc",
+               "The PLAYER takes this NPC's coin from them by force or open threat, here and now. The direction is the reverse of every other harm verb: the player is the aggressor and this NPC is the victim.",
+               tells: new[] {
+                  "the player actually strong-arms or threatens this NPC out of their purse in this reply, and the coin changes hands now"
+               },
+               antiPatterns: new[] {
+                  "the player merely threatening, demanding, or brandishing a weapon without the money actually being handed over",
+                  "the NPC giving the player money willingly, as a gift, a payment, or a bribe, which is give_gold",
+                  "the player paying to silence someone instead, which is pay_for_silence or pay_blackmail",
+                  "the player striking them rather than robbing them, which is assault_npc"
+               }),
+            Spec("assault_npc",
+               "The PLAYER beats this NPC down, here and now. They are hurt and out of the fight, never dead. The player is the aggressor and this NPC is the victim.",
+               tells: new[] {
+                  "the player actually strikes this NPC down in this reply, leaving them hurt and beaten"
+               },
+               antiPatterns: new[] {
+                  "a threat, a shove, or a raised fist that stops short of actually beating them",
+                  "the player killing them outright, which is the separately-gated kill_npc",
+                  "the player taking their coin by force instead, which is rob_npc",
+                  "an NPC harming the PLAYER, which is the reverse direction and is harm_prisoner (and only ever against a captive player)"
+               }),
+            Spec("kill_npc",
+               "The PLAYER takes this NPC's life, here and now. Only ever possible when the player has opted in through the mod options; the game re-checks that and every other guard before it lands, and the attempt may simply fail.",
+               tells: new[] {
+                  "the player actually kills this NPC in this reply, an irreversible act against them"
+               },
+               antiPatterns: new[] {
+                  "a threat to kill, or an attack the NPC survives, which is assault_npc",
+                  "the NPC killing the PLAYER, which is the reverse direction and is execute_player (and only ever against their own captive)",
+                  "the player executing a prisoner they already hold, which is execute_prisoner",
+                  "the player merely wishing, boasting, or promising to kill them one day"
+               }),
             Spec("turn_nemesis",
                "A tracked nemesis the player holds prisoner is spared, freed, sworn into the player's clan and party, and their vendetta closed for good.",
                tells: new[] {
