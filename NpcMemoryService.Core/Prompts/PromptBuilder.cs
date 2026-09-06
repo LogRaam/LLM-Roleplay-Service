@@ -326,7 +326,8 @@ namespace NpcMemoryService.Core.Prompts
          // because the full format teaching sits ~10k tokens up in the cached prefix: a weaker model that follows
          // instructions loosely (dialogue only, no [ACTION]/[EVENT]) is far more likely to emit the blocks when
          // the rule is the last thing it reads before generating.
-         AppendFormatReminder(sb, lean, styleActive: !string.IsNullOrWhiteSpace(encounterContext?.NarrativeStyle));
+         AppendFormatReminder(sb, lean, styleActive: !string.IsNullOrWhiteSpace(encounterContext?.NarrativeStyle),
+            authoredVoiceActive: !string.IsNullOrWhiteSpace(npc?.AuthoredBackstory));
          // Last of all (highest recency) — the modder's own post-history instructions, if any.
          AppendPostHistoryInstructions(sb, vars);
 
@@ -7680,11 +7681,11 @@ namespace NpcMemoryService.Core.Prompts
       ///   the rule is the last thing it reads. Kept generic ("the block taught above for it") so it holds in
       ///   every mode (Lean, Full, captive scene) without re-teaching block bodies or naming gated sections.
       ///   <paramref name="styleActive" /> adds a one-line echo of the chosen NARRATIVE STYLE into this recency
-      ///   window (Full prompt only — the Lean budget is pinned): the style block itself must stay in the
+      ///   window (Full prompt only, the Lean budget is pinned): the style block itself must stay in the
       ///   cacheable prefix, but the player report of 2026-09-03 (style switching changed almost nothing) showed
       ///   the voice was drowned by the imperative tail; a pointer here is the cheap way to re-anchor it.
       /// </summary>
-      private static void AppendFormatReminder(StringBuilder sb, LeanPromptLevel lean, bool styleActive)
+      private static void AppendFormatReminder(StringBuilder sb, LeanPromptLevel lean, bool styleActive, bool authoredVoiceActive)
       {
          sb.AppendLine();
          if (lean == LeanPromptLevel.Lean)
@@ -7717,6 +7718,20 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
             sb.AppendLine("Write every word of this reply in the NARRATIVE STYLE taught above: that voice shapes the");
             sb.AppendLine("prose of the whole conversation. The blocks stay as taught; the sentences are the style's.");
+         }
+
+         if (authoredVoiceActive)
+         {
+            // Player report 2026-09-06: an author put a per-character voice in the backstory ("speaks in the voice
+            // of Homer", "in verse in the voice of Baudelaire") and saw it work for an exchange or two, then fade.
+            // He diagnosed it exactly right: BACKSTORY AND VOICE sits far up in the cacheable prefix and is drowned
+            // by the imperative tail, the SAME failure the narrative-style echo above was added to fix. So the
+            // authored voice gets the same recency anchor, and is tied to the PRESENT rather than left reading as
+            // biography: how this character sounds is not a fact about their past, it is how they are talking now.
+            sb.AppendLine();
+            sb.AppendLine("This character's own BACKSTORY AND VOICE, taught above, is not background: it is how they");
+            sb.AppendLine("sound RIGHT NOW, in this very reply and in every one after it. Keep the manner of speech it");
+            sb.AppendLine("describes as strong in your last line as in your first; it must never fade as the talk goes on.");
          }
          // Cause 1 of the DeepSeek player report (2026-08-05): good prose, but the structured blocks were
          // dropped, change_relation not once across a whole playthrough. This is the LAST thing the model
