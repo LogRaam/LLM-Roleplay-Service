@@ -198,6 +198,15 @@ namespace NpcMemoryService.Core.Models
       ///   a clansman, an ally, or an enemy they want in hand), naming their price. Accepting settles the trade:
       ///   the prisoner passes to the lord and the player is paid. Added last to preserve old-save ordinals.
       /// </summary>
-      PrisonerOffer
+      PrisonerOffer,
+
+      /// <summary>
+      ///   A tournament has just concluded in which both this lord and the player competed, and the lord writes
+      ///   about how it went BETWEEN them rather than a generic acclaim: to crow over having bested the player, to
+      ///   congratulate them graciously, or to acknowledge a hard-fought bout. The Context carries the exact bracket
+      ///   fact (who bested whom, in which round) and the spirit to write in. Distinct from <see cref="TournamentVictory" />
+      ///   (bystanders acclaiming a player who WON). Added last to preserve old-save ordinals.
+      /// </summary>
+      TournamentResult
    }
 }
