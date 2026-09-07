@@ -477,7 +477,7 @@ namespace NpcMemoryService.Core.Actions
                antiPatterns: new[] {
                   "a mere threat or intimidation of execution, without the killing actually happening",
                   "the PLAYER killing a prisoner they hold instead, which is the mirror verb execute_prisoner",
-                  "the PLAYER attacking, stabbing, or trying to kill YOU or any other character: the direction is reversed, and there is NO verb for the player harming an NPC, so emit no action at all and answer the attempt in words (player report 2026-09-06: a player struck at a village notable and this verb was reached for, which would have meant the NPC killing the player)",
+                  "the PLAYER killing YOU or any other character: the direction is reversed, and that is kill_npc, never this verb (player report 2026-09-06: a player struck at a village notable and this verb was reached for, which would have meant the NPC killing the PLAYER)",
                   "any killing where the player is not YOUR prisoner: this verb cannot apply to a free character, a bystander, or a stranger",
                   "ordinary harm or punishment that stops short of killing, which is harm_prisoner"
                }),
@@ -488,7 +488,7 @@ namespace NpcMemoryService.Core.Actions
                },
                antiPatterns: new[] {
                   "the player merely threatening, demanding, or brandishing a weapon without the money actually being handed over",
-                  "the NPC giving the player money willingly, as a gift, a payment, or a bribe, which is give_gold",
+                  "the NPC giving the player money willingly, as a gift, a payment, or a bribe, which is give_gold or take_gold; coin handed over UNDER THREAT is this verb, not a plain transfer (the bench caught take_gold being reached for on a knifepoint shakedown)",
                   "the player paying to silence someone instead, which is pay_for_silence or pay_blackmail",
                   "the player striking them rather than robbing them, which is assault_npc"
                }),
@@ -684,7 +684,7 @@ namespace NpcMemoryService.Core.Actions
                   "a mere threat or intimidation of harm, without the injury actually being inflicted",
                   "harm severe enough to kill the player, which is the distinct, separately-gated verb execute_player",
                   "the player being merely frightened or humiliated in words, with no real physical injury actually dealt",
-                  "the PLAYER striking, robbing, or wounding YOU or anyone else: the direction is reversed, and there is NO verb for the player harming an NPC, so emit no action at all and answer the attempt in words",
+                  "the PLAYER striking, robbing, or wounding YOU or anyone else: the direction is reversed, and those are assault_npc and rob_npc, never this verb",
                   "any injury dealt to someone who is not YOUR captive player: this verb cannot apply to a free character or a bystander"
                },
                new GameActionParam("severity", "light/mild (default), moderate/heavy, or severe/grievous")),
