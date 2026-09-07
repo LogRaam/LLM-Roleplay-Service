@@ -4387,6 +4387,14 @@ namespace NpcMemoryService.Core.Prompts
                ? "AT THIS TABLE WITH YOU (each speaks in turn, you among them):"
                : "WITNESSES PRESENT (they can hear this conversation):");
 
+         // Lean gets a BOUNDED recall allowance rather than none: companions first, since a companion is who
+         // holds an agreement struck one-on-one, which is the case both player reports were about.
+         var leanRecallLeft = LeanPromptPolicy.LeanWitnessMemoryCount;
+         IEnumerable<WitnessEntry> leanRecallOrder = context.Witnesses
+            .Where(w => !string.IsNullOrWhiteSpace(w.Memory))
+            .OrderByDescending(w => w.IsPlayerCompanion);
+         var leanRecallChosen = new HashSet<WitnessEntry>(leanRecallOrder.Take(leanRecallLeft));
+
          foreach (WitnessEntry w in context.Witnesses)
          {
             // The captive-scene VICTIM is present and voiced, but they are NOT one of the captor's men —
@@ -4416,9 +4424,16 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine($"- {w.Name}{sex} ({role}){persona}{presence}");
 
             // The witness's OWN memory: voice their reaction true to what THEY recall (a prior agreement, a
-            // shared history), not as a stranger. Only shown in the full prompt, not the lean one.
+            // shared history), not as a stranger. Lean used to drop this outright, which quietly undid the
+            // 2026-08-23 fix for every small-model player; it now gets a bounded, truncated allowance instead
+            // (LeanPromptPolicy.LeanWitnessMemory), so the cost cannot grow with the size of the room.
             if (lean == LeanPromptLevel.Full && !string.IsNullOrWhiteSpace(w.Memory))
                sb.AppendLine($"    {w.Name} remembers: {w.Memory!.Trim()}");
+            else if (lean != LeanPromptLevel.Full && leanRecallChosen.Contains(w))
+            {
+               string recall = LeanPromptPolicy.LeanWitnessMemory(w.Memory);
+               if (!string.IsNullOrWhiteSpace(recall)) sb.AppendLine($"    {w.Name} remembers: {recall}");
+            }
 
             // Equipment-awareness pillar: a companion's or bystander's own notable gear (a mastercraft blade,
             // shabby rags), kept compact on this witness's own line rather than a new per-person block. Only

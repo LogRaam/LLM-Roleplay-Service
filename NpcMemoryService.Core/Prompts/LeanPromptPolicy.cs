@@ -60,6 +60,36 @@ namespace NpcMemoryService.Core.Prompts
       public const int LeanMemoryEventLimit = 6;
 
       /// <summary>
+      ///   How many people in a crowded room may carry a recall line in the LEAN prompt. Two, deliberately: the
+      ///   cost must not grow with the size of the party, or an eight-companion room would blow a small model's
+      ///   context on its own.
+      /// </summary>
+      public const int LeanWitnessMemoryCount = 2;
+
+      /// <summary>Characters of recall each of those two gets in Lean. Enough for one concrete fact, not a history.</summary>
+      public const int LeanWitnessMemoryChars = 90;
+
+      /// <summary>
+      ///   The recall line a witness gets in the LEAN prompt: trimmed to <see cref="LeanWitnessMemoryChars" /> on a
+      ///   word boundary, or null when there is nothing to say. Lean used to drop witness memory ENTIRELY, which
+      ///   silently undid the 2026-08-23 fix (a companion forgetting an agreement struck one-on-one) for every
+      ///   player on a small local model, the very players the mod's own setting tells to enable Lean. Dropping a
+      ///   name, a persona and a gear line would have cost the room less than dropping what people REMEMBER: in a
+      ///   group scene the memory is the load-bearing fact and the rest is decoration.
+      /// </summary>
+      public static string LeanWitnessMemory(string memory)
+      {
+         if (string.IsNullOrWhiteSpace(memory)) return null;
+
+         string trimmed = memory.Trim();
+         if (trimmed.Length <= LeanWitnessMemoryChars) return trimmed;
+
+         int cut = trimmed.LastIndexOf(' ', LeanWitnessMemoryChars);
+
+         return (cut > 0 ? trimmed.Substring(0, cut) : trimmed.Substring(0, LeanWitnessMemoryChars)).TrimEnd(',', '.', ';') + "...";
+      }
+
+      /// <summary>
       ///   True when a heavy section is included at the given level. Full keeps every section; Lean drops
       ///   each one explicitly, by name, so a new <see cref="PromptSection" /> member cannot silently ride
       ///   along as "included" without a deliberate decision here.
