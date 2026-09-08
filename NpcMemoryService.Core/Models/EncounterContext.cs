@@ -419,6 +419,26 @@ namespace NpcMemoryService.Core.Models
       public string? CompanionBrief { get; init; }
 
       /// <summary>
+      ///   Companion-briefing pillar, revised per Gabriel's ruling (2026-09-07): the briefing chat must be a
+      ///   REAL conversation, not a scripted acknowledgment, so a companion answering here needs to know WHAT
+      ///   this scene is or they will answer as though <see cref="CompanionBriefingTargetName" /> were standing
+      ///   right there. True only for a turn inside the private briefing chat ITSELF (the player drawing this
+      ///   companion aside, out of the target's hearing, before going in to speak with them); false for every
+      ///   other conversation, including the later one the resulting <see cref="CompanionBrief" /> rides into.
+      ///   Drives a bespoke framing section telling the model this is not that meeting, and that it must answer
+      ///   honestly (agree, question the plan, or plead unsuited), never reduced to a bare acknowledgment.
+      ///   Default false.
+      /// </summary>
+      public bool IsCompanionBriefingScene { get; init; }
+
+      /// <summary>
+      ///   Only meaningful with <see cref="IsCompanionBriefingScene" />: the name of the person the player is
+      ///   about to go speak with, so the companion reacts to WHO this concerns rather than an abstract
+      ///   "a meeting". Null/empty falls back to a generic "someone" in the rendered section.
+      /// </summary>
+      public string? CompanionBriefingTargetName { get; init; }
+
+      /// <summary>
       ///   True when THIS NPC is one of the player's own companions currently AWAY on an errand (the player has
       ///   ridden out and met them on the road / in a town). It lets the LLM accept an order to abandon the
       ///   errand and come home — emitting the recall_companion action. The game bridge then actually brings

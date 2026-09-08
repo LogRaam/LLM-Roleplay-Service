@@ -292,6 +292,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendCompanionAudience(sb, encounterContext);
          AppendCompanionCampNote(sb, encounterContext);
          AppendCompanionBrief(sb, encounterContext);
+         AppendCompanionBriefingScene(sb, encounterContext);
          AppendIntimacyBargain(sb, encounterContext);
          AppendBastardMother(sb, encounterContext);
          AppendMarriage(sb, encounterContext);
@@ -719,6 +720,32 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Hold to this as your own private understanding with the player throughout this");
          sb.AppendLine("conversation, in your own voice and manner. Never announce that you were briefed");
          sb.AppendLine("beforehand, and never invent more than what is given here.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Companion-briefing pillar, revised per Gabriel's ruling: the briefing chat must be a REAL
+      ///   conversation, so the model needs to know WHAT this scene is or it will answer as though
+      ///   <see cref="EncounterContext.CompanionBriefingTargetName" /> were standing right there listening.
+      ///   States plainly that the target is absent and cannot hear this, that the player is about to tell the
+      ///   companion what they want for the meeting to come, and that the companion must answer as themself,
+      ///   including pushing back or pleading unsuited, never a bare acknowledgment of an order.
+      /// </summary>
+      private static void AppendCompanionBriefingScene(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.IsCompanionBriefingScene != true) return;
+
+         string targetName = string.IsNullOrWhiteSpace(context.CompanionBriefingTargetName)
+            ? "someone"
+            : context.CompanionBriefingTargetName!;
+
+         sb.AppendLine("WHAT THIS CONVERSATION IS:");
+         sb.AppendLine($"The player has drawn you aside for a PRIVATE word, out of {targetName}'s hearing, before going");
+         sb.AppendLine($"in to speak with {targetName} themself. This is NOT that meeting: {targetName} is not present and");
+         sb.AppendLine("cannot hear anything said here. The player is telling you what they want of you for that meeting.");
+         sb.AppendLine("Answer as yourself, honestly: agree, ask a clarifying question, push back on the plan, or say");
+         sb.AppendLine("plainly that you are unsuited to what is being asked, whatever is true to who you are. This is a");
+         sb.AppendLine("real exchange with the player, never a mere acknowledgment of an order.");
          sb.AppendLine();
       }
 
