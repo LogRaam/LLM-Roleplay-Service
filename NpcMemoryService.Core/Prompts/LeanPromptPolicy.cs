@@ -77,11 +77,11 @@ namespace NpcMemoryService.Core.Prompts
       ///   name, a persona and a gear line would have cost the room less than dropping what people REMEMBER: in a
       ///   group scene the memory is the load-bearing fact and the rest is decoration.
       /// </summary>
-      public static string LeanWitnessMemory(string memory)
+      public static string? LeanWitnessMemory(string? memory)
       {
          if (string.IsNullOrWhiteSpace(memory)) return null;
 
-         string trimmed = memory.Trim();
+         string trimmed = memory!.Trim();
          if (trimmed.Length <= LeanWitnessMemoryChars) return trimmed;
 
          int cut = trimmed.LastIndexOf(' ', LeanWitnessMemoryChars);

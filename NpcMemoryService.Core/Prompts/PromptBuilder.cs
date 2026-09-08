@@ -4431,7 +4431,7 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine($"    {w.Name} remembers: {w.Memory!.Trim()}");
             else if (lean != LeanPromptLevel.Full && leanRecallChosen.Contains(w))
             {
-               string recall = LeanPromptPolicy.LeanWitnessMemory(w.Memory);
+               string? recall = LeanPromptPolicy.LeanWitnessMemory(w.Memory);
                if (!string.IsNullOrWhiteSpace(recall)) sb.AppendLine($"    {w.Name} remembers: {recall}");
             }
 
