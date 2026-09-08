@@ -291,6 +291,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendCompanionMoodNote(sb, encounterContext);
          AppendCompanionAudience(sb, encounterContext);
          AppendCompanionCampNote(sb, encounterContext);
+         AppendCompanionBrief(sb, encounterContext);
          AppendIntimacyBargain(sb, encounterContext);
          AppendBastardMother(sb, encounterContext);
          AppendMarriage(sb, encounterContext);
@@ -696,6 +697,28 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine(note);
          sb.AppendLine("You MAY bring this up with the player if the moment fits — a word of praise or a");
          sb.AppendLine("complaint about riding together — in your own voice. Never invent more than this.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Companion-briefing pillar: <see cref="EncounterContext.CompanionBrief" /> is a standing instruction
+      ///   the player gave THIS companion in a separate, PRIVATE conversation before this one, resolved by the
+      ///   host from a store keyed on the speaking hero's own id, so it renders here ONLY on that companion's
+      ///   own turn and is simply absent for anyone else's, including the person this conversation is with.
+      ///   Framed as a private understanding rather than a script: the companion still speaks in their own
+      ///   voice and nature, and must never announce that a prior briefing happened.
+      /// </summary>
+      private static void AppendCompanionBrief(StringBuilder sb, EncounterContext? context)
+      {
+         string? brief = context?.CompanionBrief;
+
+         if (string.IsNullOrWhiteSpace(brief)) return;
+
+         sb.AppendLine("THE PLAYER'S PRIVATE WORD TO YOU, BEFORE THIS MEETING:");
+         sb.AppendLine(brief);
+         sb.AppendLine("Hold to this as your own private understanding with the player throughout this");
+         sb.AppendLine("conversation, in your own voice and manner. Never announce that you were briefed");
+         sb.AppendLine("beforehand, and never invent more than what is given here.");
          sb.AppendLine();
       }
 

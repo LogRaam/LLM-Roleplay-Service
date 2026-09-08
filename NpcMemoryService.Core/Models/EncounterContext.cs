@@ -406,6 +406,19 @@ namespace NpcMemoryService.Core.Models
       public string? CompanionNewsReport { get; init; }
 
       /// <summary>
+      ///   Companion-briefing pillar (2026-09-07): a standing instruction the PLAYER gave THIS companion in a
+      ///   SEPARATE, private conversation ("a word with my own people") held before this one, captured verbatim
+      ///   (never an LLM summary, see <c>CalradiaRemembers.Logic.CompanionBriefPolicy</c>) and resolved by the
+      ///   host keyed on the SPEAKING hero's own id, so it is present ONLY when building this exact companion's
+      ///   own turn, and simply ABSENT (null) when building anyone else's, including the conversation's target,
+      ///   who was never present for the briefing and must never be handed it, not even with an instruction to
+      ///   keep it secret. Several briefings STACK, bounded, and it expires once the conversation it was
+      ///   actually carried into closes. Never gated by <see cref="LeanPromptPolicy.Include" />: the player's
+      ///   own explicit instruction survives Lean, unlike the flavour sections Lean drops.
+      /// </summary>
+      public string? CompanionBrief { get; init; }
+
+      /// <summary>
       ///   True when THIS NPC is one of the player's own companions currently AWAY on an errand (the player has
       ///   ridden out and met them on the road / in a town). It lets the LLM accept an order to abandon the
       ///   errand and come home — emitting the recall_companion action. The game bridge then actually brings
