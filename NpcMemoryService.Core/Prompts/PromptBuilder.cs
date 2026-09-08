@@ -2531,6 +2531,28 @@ namespace NpcMemoryService.Core.Prompts
 
       // ── Identity (Sprint 8.1: includes Trait) ────────────────────────────
 
+      /// <summary>
+      ///   Tells an NPC what they ARE in the realm: the crown they wear, or failing that the house they head.
+      ///   A ruler is not also told they head the ruling clan, which is true but says nothing next to a crown.
+      /// </summary>
+      private static void AppendStation(StringBuilder sb, NpcProfile npc, EncounterContext? context)
+      {
+         if (context == null) return;
+
+         if (!string.IsNullOrWhiteSpace(context.RuledRealmName))
+         {
+            string title = string.IsNullOrWhiteSpace(context.RuledRealmRulerTitle) ? "ruler" : context.RuledRealmRulerTitle!.Trim();
+            sb.AppendLine($"YOU RULE {context.RuledRealmName!.Trim().ToUpperInvariant()}. You are its {title}, its sovereign, and you hold that "
+                          + "throne now. Never deny it, and never call yourself merely a lord in its service: whoever addresses you as "
+                          + $"{title} is simply correct.");
+
+            return;
+         }
+
+         if (context.LeadsOwnClan && !string.IsNullOrWhiteSpace(npc.Clan))
+            sb.AppendLine($"You HEAD the {npc.Clan.Trim()} clan. Its people, its holdings and its word are yours to answer for.");
+      }
+
       private static void AppendIdentity(StringBuilder sb, NpcProfile npc, EncounterContext? encounterContext)
       {
          // A clanless NPC (a hunted notable, a landless wanderer) has no house to name. Older data stored the
@@ -2551,6 +2573,12 @@ namespace NpcMemoryService.Core.Prompts
             string lifeStage = LifeStageDescriber.Describe(npc.Age);
             sb.AppendLine($"You are {npc.Age} years old, {lifeStage}. Speak as someone of your years: do not look back on a long life, old age, or decades of deeds you are too young to have lived, nor affect a youth you have outgrown. Your age colours what you have seen and done.");
          }
+         // Station. A ruler who is never told he rules will deny it, courteously and in character, which is
+         // exactly what a player reported of Derthert and Garios. Stated HERE, as part of who they are, rather
+         // than inside the vassal-offer section where the only rulership fact used to live, gated behind an
+         // offer being available at all.
+         AppendStation(sb, npc, encounterContext);
+
          // Pregnancy awareness (fixes a player report: a pregnant NPC denied being with child because her
          // state was never injected here before). Rendered right after the age/life-stage line, in the
          // NPC's own second-person identity, never the player's.

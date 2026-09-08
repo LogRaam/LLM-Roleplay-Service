@@ -1090,6 +1090,33 @@ namespace NpcMemoryService.Core.Models
       public string? VassalOfferKingdom { get; init; }
 
       /// <summary>
+      ///   The realm this NPC actually RULES (host fact: <c>Kingdom.Leader == npcHero</c>), or null when they rule
+      ///   nothing. Unlike <see cref="VassalOfferKingdom" /> this carries NO further condition: it says who the
+      ///   person IS, not what may be offered them.
+      ///   <para>
+      ///     Player report 2026-09-08: "Kings and Emperors sometimes do not know they are king. I addressed
+      ///     Derthert and Garios as kings and they denied it, claiming to be just a lord serving the throne."
+      ///     They were not being modest, they were never told. The only rulership fact in the prompt was the
+      ///     vassal offer, which is doubly gated, so a ruler learned his own rank ONLY in the one conversation
+      ///     where fealty could be sworn. That gate is exactly the reporter's "sometimes".
+      ///   </para>
+      /// </summary>
+      public string? RuledRealmName { get; init; }
+
+      /// <summary>
+      ///   That realm's own word for its ruler, from the game's <c>Kingdom.EncyclopediaRulerTitle</c>: King,
+      ///   Emperor, Khan, Sultan, and so on. Taken from the engine rather than assumed, because the reporter
+      ///   wrote "Kings AND Emperors" and flattening every crown into "king" would answer only half of it.
+      /// </summary>
+      public string? RuledRealmRulerTitle { get; init; }
+
+      /// <summary>
+      ///   True when this NPC heads their own clan (host fact: <c>Clan.Leader == npcHero</c>). The same blind
+      ///   spot one rung down: the identity line already names the house, and never said whether they lead it.
+      /// </summary>
+      public bool LeadsOwnClan { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map
       ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
       ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).
