@@ -1170,6 +1170,18 @@ namespace NpcMemoryService.Core.Actions
                prose: "*Reinhard claps you on the shoulder, still riding.* Aye, I will teach you the one-handed guard properly, once we make camp tonight and there is room to swing a blade without felling a tent.",
                forbiddenType: "teach_skill"),
 
+            // The one that actually bit, in play, on 2026-09-08: a lesson granted for a PROMISE REAFFIRMED. Harder
+            // than the case above on purpose, because the case above is easy: "once we make camp" is an explicit
+            // deferral any reader catches. Here there is no deferral at all, only a man restating a standing
+            // promise inside a long reply about wages and bedrolls, thick with the surface words of teaching
+            // ("teacher", "learn to hold a blade"). The interpreter read the vocabulary and awarded real XP for a
+            // lesson that never happened. If this case ever passes for the wrong reason, check that the prose
+            // still contains no instruction: not a grip corrected, not a cut guided, nothing shown or practiced.
+            ActionBenchCase.ExpectNone("teach_skill_promise_restated", "teach_skill",
+               contextFacts: "NPC: Vangvayag the Fatherless, a sellsword of great skill with the blade, in a tavern. He agreed earlier to teach the player, and the player is now bargaining over wages and a place at his side.",
+               prose: "*I meet your eyes, steady.* I'll teach you. I said I would, and I meant it. And if you want me at your side, we can talk wages in honest coin. But the nights warming each other, that is not a coin to be paid or a prize to be earned in a bargain. *A small, crooked smile.* Besides. If I am to be your teacher, I would rather you learn to hold a blade before you learn to share a bedroll with me.",
+               forbiddenType: "teach_skill"),
+
             // Narrated-but-not-done: the NPC speaks OF coin without any of it changing hands. A model that emits
             // give_gold here invents a transfer the prose never made.
             ActionBenchCase.ExpectNone("give_gold_narrated_only", "give_gold",

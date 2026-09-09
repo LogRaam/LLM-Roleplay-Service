@@ -963,6 +963,7 @@ namespace NpcMemoryService.Core.Actions
                },
                antiPatterns: new[] {
                   "a mere PROMISE of a future lesson ('I will teach you once we make camp', 'ask me again when there is time'), rather than a lesson genuinely given this turn",
+                  "a promise RESTATED or agreed to, with no deferral named and no lesson given either ('I will teach you, I said I would and I meant it', 'if I am to be your teacher...'): affirming the intent is not instruction, however often the words teacher, learn or blade appear in the reply (this one cost a player real skill XP for a lesson that never happened, 2026-09-08)",
                   "the PLAYER teaching the NPC instead, the wrong direction for this verb",
                   "a skill merely mentioned, admired, or discussed in passing, with no actual lesson or demonstration given",
                   "praise or encouragement about the player's existing skill, which is change_relation, not an act of teaching"
