@@ -2,6 +2,7 @@
 
 #region
 
+using System;
 using System.Collections.Generic;
 
 #endregion
@@ -41,6 +42,41 @@ namespace NpcMemoryService.Core.Models
             ? ""
             : $"[{speakerName}]: ";
          _messages.Add(new LlmMessage(MessageRole.User, prefix + content));
+      }
+
+      /// <summary>Cap on the prior-exchange block. Its job is to bridge, not to replay a monologue.</summary>
+      public const int PriorExchangeMaxChars = 1200;
+
+      /// <summary>
+      ///   Records the vanilla exchange that happened immediately BEFORE this chat opened, as a single
+      ///   labelled block of history rather than as turns.
+      ///   <para>
+      ///     Player report 2026-09-08: a wanderer restarted the conversation at every reply, greeting the player
+      ///     by name and introducing himself over and over, once even under the wrong name. The cause was that
+      ///     the nine lines of his vanilla backstory ritual had been seeded as alternating TURNS, and that
+      ///     sequence opens with the player saying "My name is Arwa, sir. Tell me about yourself". So the
+      ///     conversation the model saw began with an introduction, and it kept answering it. The history was
+      ///     never lost (the prompt grew every turn); it was framed as something awaiting a reply.
+      ///   </para>
+      ///   <para>
+      ///     Gabriel's ruling: the vanilla conversation is HISTORY, and its only value is to bridge the vanilla
+      ///     exchange into the chat. So it arrives as one message that says so, in the same spirit as
+      ///     <see cref="AddWitnessStatement" />, where a prefix is what tells the model whose words these are.
+      ///     Trimmed from the FRONT when long, because a bridge needs the most recent ground, not the oldest.
+      ///   </para>
+      /// </summary>
+      public void AddPriorExchange(string exchange)
+      {
+         if (string.IsNullOrWhiteSpace(exchange)) return;
+
+         string body = exchange.Trim();
+         if (body.Length > PriorExchangeMaxChars)
+            body = "..." + body.Substring(body.Length - PriorExchangeMaxChars);
+
+         _messages.Add(new LlmMessage(MessageRole.User,
+            "[What was already said, just before this conversation. This is the ground you are both standing on, "
+            + "not a question waiting on you. Do not greet again, do not introduce yourself again, and do not "
+            + "answer any of it afresh: carry on from here.]" + Environment.NewLine + body));
       }
 
       /// <summary>
