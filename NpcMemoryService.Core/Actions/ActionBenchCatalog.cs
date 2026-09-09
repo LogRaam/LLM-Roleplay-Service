@@ -1182,6 +1182,16 @@ namespace NpcMemoryService.Core.Actions
                prose: "*I meet your eyes, steady.* I'll teach you. I said I would, and I meant it. And if you want me at your side, we can talk wages in honest coin. But the nights warming each other, that is not a coin to be paid or a prize to be earned in a bargain. *A small, crooked smile.* Besides. If I am to be your teacher, I would rather you learn to hold a blade before you learn to share a bedroll with me.",
                forbiddenType: "teach_skill"),
 
+            // The split numeral that cost real coin (2026-09-08). The sum is named in full first, then counted
+            // aloud with a dramatic pause, and the fragment after the pause is what reached the action: 95 rather
+            // than 595. Now that the agreed price is charged exactly, a misread number IS the player's money, so
+            // this case guards the arithmetic of the deal, not merely its wording.
+            ActionBenchCase.Expect("join_party_price_spoken_in_two_parts", "join_party",
+               contextFacts: "NPC: Vangvayag the Fatherless, a free sellsword in a tavern. His asking price is 595 denars. The player has just agreed to pay it.",
+               prose: "*I hold your gaze.* Five hundred and ninety-five denars, paid upfront. Not promises, not 'later when the spoils come.' Hard silver now. *You count it out and I sweep it into my pouch.* \"Five... ninety-five.\" *I tuck the pouch beneath my belt.* Done.",
+               expectedType: "join_party",
+               expectedParams: new Dictionary<string, string> {{"price", "595"}}),
+
             // Narrated-but-not-done: the NPC speaks OF coin without any of it changing hands. A model that emits
             // give_gold here invents a transfer the prose never made.
             ActionBenchCase.ExpectNone("give_gold_narrated_only", "give_gold",

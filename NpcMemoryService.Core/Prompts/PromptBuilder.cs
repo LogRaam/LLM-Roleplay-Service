@@ -3919,6 +3919,13 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("type: join_party");
          sb.AppendLine("price: <the settled number of denars>");
          sb.AppendLine("[/ACTION]");
+         // The price is now charged EXACTLY as emitted (Gabriel's ruling 2026-09-08: the deal is what was said,
+         // never renegotiated afterwards), so a mistyped figure is money. A wanderer who had said "Five hundred
+         // and ninety-five denars" counted it aloud as "Five... ninety-five", and 95 reached the action.
+         sb.AppendLine("The price you write here is charged EXACTLY, so it must be the very sum you named aloud,");
+         sb.AppendLine("in plain digits and whole: write 595, never 95 because you paused mid-count, and never a");
+         sb.AppendLine("round-off or a second thought. If your words and this number disagree, your words are what");
+         sb.AppendLine("the player heard and this number is what they pay.");
          sb.AppendLine("The game then moves you into the player's party and transfers the payment. WITHOUT this");
          sb.AppendLine("action you have NOT joined, whatever your words say — so emit it the moment you agree.");
          sb.AppendLine("NEVER also emit take_gold for the hire payment: even if the player mimes handing the coin");
