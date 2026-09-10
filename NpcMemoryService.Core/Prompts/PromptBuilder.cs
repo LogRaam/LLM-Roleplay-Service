@@ -5147,7 +5147,11 @@ namespace NpcMemoryService.Core.Prompts
             string parameterList = def.Parameters.Count == 0
                ? string.Empty
                : $" (parameters: {string.Join(", ", def.Parameters)})";
-            sb.AppendLine($"- {def.Type}: {def.Description}{parameterList}");
+            // Lean carries all 69 actions but not all 11,565 characters of prose about them: a budget test that
+            // never set a vocabulary had been measuring a prompt with no GAME ACTIONS section at all, so nothing
+            // ever trimmed this and Compact mode was never compact (DuskSymphony, 2026-09-10, 9496 tokens into
+            // an 8192 context on a fresh install). Every verb stays emittable; only the prose is cut.
+            sb.AppendLine($"- {def.Type}: {ActionVocabularyPolicy.Describe(def.Description, lean)}{parameterList}");
          }
 
          sb.AppendLine();
