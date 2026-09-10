@@ -5188,6 +5188,23 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   Renders <see cref="EncounterContext.UnavailableDeeds" /> verbatim, immediately after the extended verb
+      ///   teachings, so a deed that is shut is read in the same breath as the deeds that are open. This is the
+      ///   half that was missing while a verb had only two states, taught or ABSENT: absence does not read to a
+      ///   language model as "forbidden", it reads as "not mentioned", and the model supplies the permission
+      ///   itself. The host composed the block (DeedUnavailabilityPolicy) and owns its voice and its budget; this
+      ///   only places it. No-op when blank, which is most turns.
+      /// </summary>
+      private static void AppendUnavailableDeeds(StringBuilder sb, EncounterContext? context)
+      {
+         string? deeds = context?.UnavailableDeeds;
+         if (string.IsNullOrWhiteSpace(deeds)) return;
+
+         sb.AppendLine(deeds!.TrimEnd());
+         sb.AppendLine();
+      }
+
+      /// <summary>
       ///   Renders <see cref="EncounterContext.SpouseDivorceDemandNote" /> verbatim, right after
       ///   <see cref="AppendExtraActionTeachings" />, when the host supplied one for this NPC this
       ///   conversation (Divorce, Phase 2b: the player's own spouse pressing a divorce demand). The host
@@ -6848,6 +6865,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendFormatExample(sb);
          AppendActionInstructions(sb, lean);
          AppendExtraActionTeachings(sb, context);
+         AppendUnavailableDeeds(sb, context);
          AppendSpouseDivorceDemandNote(sb, context);
          AppendPlayerEndOwnMarriageNote(sb, context);
          AppendSpouseEstrangementNote(sb, context);

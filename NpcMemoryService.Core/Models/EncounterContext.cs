@@ -61,6 +61,18 @@ namespace NpcMemoryService.Core.Models
       public string? ExtraActionTeachings { get; init; }
 
       /// <summary>
+      ///   The deeds that CANNOT be done in this conversation, host-composed and prompt-ready, so the model
+      ///   knows the gating BEFORE it declares anything instead of being refuted after (Gabriel's ruling,
+      ///   09/09/2026: "il faudrait que le LLM declare en connaissant deja le gating"). The twin of
+      ///   <see cref="ExtraActionTeachings" /> and rendered immediately after it, deliberately as its OWN field
+      ///   rather than appended to that string: the host reads that string's emptiness to mirror which verbs were
+      ///   taught this turn, so folding refusals into it would report the extended verb set as TAUGHT on exactly
+      ///   the turns it was refused. Null/empty means nothing worth naming is shut, which is the ordinary case.
+      ///   SKIPPED in <see cref="LeanPromptLevel.Lean" />, like the teachings it mirrors.
+      /// </summary>
+      public string? UnavailableDeeds { get; init; }
+
+      /// <summary>
       ///   The player-chosen NARRATIVE STYLE: a prompt-ready block of rules describing HOW the prose is written
       ///   (the voice, the rhythm, how much is shown), loaded by the host from an editable style file and
       ///   rendered verbatim. Complementary to the behaviour guidelines, which say WHO the character is: a style
