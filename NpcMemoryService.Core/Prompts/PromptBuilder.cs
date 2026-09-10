@@ -38,6 +38,17 @@ namespace NpcMemoryService.Core.Prompts
       public int IntimacyThresholdRelief { get; init; }
 
       /// <summary>
+      ///   The regard at which this campaign lets an NPC DECLARE feelings, supplied by the host because it is
+      ///   the very number the host's own confession roll measures from and it follows a mod-side pacing dial
+      ///   the SDK cannot see. The resolved bar is passed rather than a relief, deliberately: the SDK can then
+      ///   hold no second opinion about it, which is the lesson of the 2026-09-08 regression where one bar lived
+      ///   as a literal 50 in three places and moving one opened a window in which a companion declared their
+      ///   feelings and the game refused the bond. Defaults to the shipped Grounded bar, so an older host that
+      ///   sets nothing behaves exactly as it always did. See <see cref="RomanticRegisterPolicy" />.
+      /// </summary>
+      public int DeclaredAffectionBar { get; init; } = RomanticRegisterPolicy.DefaultDeclaredAffectionBar;
+
+      /// <summary>
       ///   The literal heading that opens the per-turn CURRENT ENCOUNTER section. Single source of truth
       ///   for both where this class emits it (<see cref="AppendEncounterContext" />) and where
       ///   <c>NpcChatService</c> splits the stable, cacheable prefix from the dynamic per-turn tail, so the
@@ -209,7 +220,7 @@ namespace NpcMemoryService.Core.Prompts
             AppendAuthoredConviction(sb, npc);
          }
          if (LeanPromptPolicy.Include(PromptSection.Relationships, lean)) AppendRelationships(sb, npc);
-         AppendRomanticContext(sb, npc);
+         AppendRomanticContext(sb, npc, encounterContext);
          AppendIntimacyConsentRules(sb, npc, encounterContext);
          AppendSocialAttractionInstructions(sb, npc, encounterContext);
          AppendDiscoveredTraits(sb, npc);
@@ -7659,7 +7670,7 @@ namespace NpcMemoryService.Core.Prompts
 
       // ── Sprint 8.2: romantic context ─────────────────────────────────────
 
-      private void AppendRomanticContext(StringBuilder sb, NpcProfile npc)
+      private void AppendRomanticContext(StringBuilder sb, NpcProfile npc, EncounterContext? context)
       {
          if (AdultLevel == AdultContentLevel.Off) return;
          if (npc.Romantic == null) return;
@@ -7713,7 +7724,78 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine($"Attraction toward the player: {DescribeAttraction(npc.Romantic.AttractionToPlayer)}");
          }
 
+         AppendRomanticRegisterVerdict(sb, npc, context);
          sb.AppendLine();
+      }
+
+      /// <summary>The facts the register rests on, read off this NPC and the host-supplied declaration bar.</summary>
+      private RomanticRegisterFacts RomanticRegisterFactsFor(NpcProfile npc, EncounterContext? context)
+         => new() {
+            AdultContentEnabled = AdultLevel != AdultContentLevel.Off,
+            PlayerIsCompatible = npc?.Romantic != null && IsPlayerCompatible(npc.Romantic),
+            RegardWithPlayer = npc?.ReputationWithPlayer ?? 0,
+            AttractionToPlayer = npc?.Romantic?.AttractionToPlayer ?? 0,
+            Status = npc?.Romantic?.Status ?? RomanticStatus.None,
+            NpcIsPlayerSpouse = context?.NpcSpouseIsPlayer == true,
+            DeclaredAffectionBar = DeclaredAffectionBar
+         };
+
+      /// <summary>
+      ///   States how far this NPC may go in what they SAY about feeling, and states it as a boundary rather
+      ///   than as a colour. Until today the only thing the prompt offered on this axis was a regard printed
+      ///   thousands of tokens earlier under CURRENT STANCE and the instruction to "let your personal regard
+      ///   color your warmth and candor", which tells a model what to lean toward and never what it must not
+      ///   claim.
+      ///   <para>
+      ///     yozakura12 (Nexus, 09/09/2026) described the result precisely: an NPC saying "we have been
+      ///     travelling together for a year, so I have come to see you as someone special" at a regard of about
+      ///     ten, and the game then answering that affinity was insufficient. The fix taken here is the one they
+      ///     asked for: "Could they be programmed to avoid intimate-sounding words or actions when the affection
+      ///     level is low?"
+      ///   </para>
+      ///   <para>
+      ///     Deliberately shaped like <see cref="AppendIntimacyConsentVerdict" />, which ended the same failure
+      ///     on the physical axis in July: state the CONCLUSION, never the arithmetic, at the point of decision.
+      ///     Nothing is printed for a Bound NPC, exactly as nothing is printed for a spouse there, since naming
+      ///     a bar to somebody who has already crossed it only invites the model to invent one.
+      ///   </para>
+      /// </summary>
+      private void AppendRomanticRegisterVerdict(StringBuilder sb, NpcProfile npc, EncounterContext? context)
+      {
+         if (npc?.Romantic == null) return;
+
+         RomanticRegister register = RomanticRegisterPolicy.Resolve(RomanticRegisterFactsFor(npc, context));
+         if (register == RomanticRegister.Bound) return;
+
+         sb.AppendLine();
+
+         switch (register)
+         {
+            case RomanticRegister.Attachment:
+               sb.AppendLine("HOW FAR YOU MAY GO IN WHAT YOU SAY: the bond between you has grown deep enough to be");
+               sb.AppendLine("named. You may say what they have come to mean to you, you may speak of wanting more,");
+               sb.AppendLine("and you may say it first. Let it cost you something to say; it is not a small thing.");
+
+               break;
+            case RomanticRegister.Interest:
+               sb.AppendLine("HOW FAR YOU MAY GO IN WHAT YOU SAY: you have noticed them, and you may let that show.");
+               sb.AppendLine("Warmth, teasing, a flirtation, a frank answer to an advance: all of that is yours.");
+               sb.AppendLine("But you are NOT in love with them, and you do not say that you are. Do not speak of");
+               sb.AppendLine("loving them, of belonging to them, of a life or a future together, and do not call");
+               sb.AppendLine("what is between you a bond. Not out of coyness, but because it is not true yet, and");
+               sb.AppendLine("this character does not say things that are not true. If they press for more than you");
+               sb.AppendLine("feel, answer honestly and in your own voice: interest is not devotion, and saying so");
+               sb.AppendLine("plainly becomes you more than pretending otherwise.");
+
+               break;
+            default:
+               sb.AppendLine("HOW FAR YOU MAY GO IN WHAT YOU SAY: there is nothing romantic between you. Be as warm,");
+               sb.AppendLine("as loyal, or as close a friend as your history deserves, but do not flirt, do not");
+               sb.AppendLine("suggest attraction, and never speak of love, longing, or a future together. If they");
+               sb.AppendLine("make an advance, answer it as your character would, and do not lead them on.");
+
+               break;
+         }
       }
 
       /// <summary>
@@ -7738,6 +7820,16 @@ namespace NpcMemoryService.Core.Prompts
          bool hasTournamentFame = context.PlayerArenaRank is > 0 and <= 10;
 
          if (!hasClanPrestige && !hasTournamentFame) return;
+
+         // The gate that was missing, and the likeliest single cause of yozakura12's report (Nexus, 09/09/2026):
+         // this block told an NPC "You may raise the subject of a deeper bond, courtship, a potential match...
+         // do not wait for them to bring it up either" on clan standing or arena fame ALONE, with no condition
+         // of any kind on how they actually felt about the player. A player with a tier-3 clan was instructing
+         // every compatible NPC in Calradia to open the subject at a regard of nothing at all, and the game then
+         // refused what those NPCs had proposed. Standing makes the player a credible PROSPECT; it was never
+         // meant to manufacture the feeling. The bar follows the host's pacing dial, so a player who asked for a
+         // warmer campaign still reaches these scenes, sooner.
+         if (!RomanticRegisterPolicy.MayInitiateCourtship(RomanticRegisterFactsFor(npc, context))) return;
 
          sb.AppendLine("SOCIAL STANDING & ATTRACTION:");
 
