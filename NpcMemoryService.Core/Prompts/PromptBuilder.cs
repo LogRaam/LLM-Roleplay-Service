@@ -3507,6 +3507,17 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: follow_me");
          sb.AppendLine("[/ACTION]");
+         // Gabriel's condition on letting a lord of a warring realm ride at all (2026-09-10): the muster may
+         // reach him, and when it does he leaves. Said in advance that is a lord being honest; said only
+         // afterwards it is another promise the player watched evaporate.
+         if (context?.NpcMayBeCalledToMuster == true)
+         {
+            sb.AppendLine("Your own realm is at war. Say so plainly as you agree: your liege may call the muster at any");
+            sb.AppendLine("time, and when that call comes you will have to break off and ride for it. Promise the escort,");
+            sb.AppendLine("but do not promise it will run its full course.");
+            sb.AppendLine();
+         }
+
          sb.AppendLine("The game then has your party travel alongside the player's for a while, after which you");
          sb.AppendLine("resume your own business. Never claim to be riding with the player unless you emit this");
          sb.AppendLine("action, and never claim it lasts forever: the arrangement is only for a time.");

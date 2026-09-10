@@ -1139,6 +1139,15 @@ namespace NpcMemoryService.Core.Models
       public bool NpcCanEscortPlayer { get; init; }
 
       /// <summary>
+      ///   Set when this lord CAN escort but his own realm is at war with somebody, so the muster may call him
+      ///   away mid-escort. He is told to say so as he agrees, rather than leaving the player to discover it when
+      ///   he rides off (Gabriel's condition, 2026-09-10, on relaxing the gate that used to refuse such a lord
+      ///   outright and thereby made the whole feature nearly unreachable). Meaningless when
+      ///   <see cref="NpcCanEscortPlayer" /> is false.
+      /// </summary>
+      public bool NpcMayBeCalledToMuster { get; init; }
+
+      /// <summary>
       ///   True while THIS NPC's own party is CURRENTLY escorting the player (an active <c>follow_me</c> in
       ///   force), the mirror of <see cref="NpcCanEscortPlayer" />. Drives the <c>dismiss_escort</c> action,
       ///   which ends the escort early, before its bounded term runs out.
