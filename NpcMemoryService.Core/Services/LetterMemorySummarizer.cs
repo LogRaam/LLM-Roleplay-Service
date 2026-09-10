@@ -89,9 +89,10 @@ namespace NpcMemoryService.Core.Services
          sb.AppendLine($"reported, or threatened. Name {who} by name. NEVER invent any fact beyond what the");
          sb.AppendLine("letter below actually says. No preamble, no quotation marks, no section tags, just the");
          sb.AppendLine("memory line itself. This is your own recollection, not a report to anyone else.");
-         sb.AppendLine(string.IsNullOrWhiteSpace(replyLanguage)
-            ? "Write it in the same language as the letter below."
-            : $"Write it in {replyLanguage!.Trim()}, regardless of the language of the letter below.");
+         // ONE shared rule (MemoryLanguagePolicy), because these three summarizers each carried their own
+         // sentence and all three had drifted from the chat prompt's, which is why fkasad's letters stayed in
+         // English while their memories came back in German.
+         sb.AppendLine(MemoryLanguagePolicy.Directive(replyLanguage, "letter"));
 
          return sb.ToString();
       }

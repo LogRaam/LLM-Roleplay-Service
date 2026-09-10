@@ -11,6 +11,8 @@ using NpcMemoryService.Core.Parsing;
 
 #endregion
 
+using NpcMemoryService.Core.Services;
+
 namespace NpcMemoryService.Core.Captivity
 {
    /// <summary>
@@ -91,9 +93,9 @@ namespace NpcMemoryService.Core.Captivity
          // and acts, not the prose: no vivid sensory quotes, no borrowed turns of phrase.
          sb.AppendLine("Record the FACTS and acts plainly, not the prose: do not carry over vivid sensory");
          sb.AppendLine("phrasings or striking turns of phrase from the scene, only what happened and where it left you.");
-         sb.AppendLine(string.IsNullOrWhiteSpace(replyLanguage)
-            ? "Write it in the same language as the transcript below."
-            : $"Write it in {replyLanguage!.Trim()}, regardless of the language of the transcript below.");
+         // ONE shared rule (MemoryLanguagePolicy): see that file for fkasad's report and why "the same
+         // language as the transcript" let proper nouns decide the language of a memory.
+         sb.AppendLine(MemoryLanguagePolicy.Directive(replyLanguage, "transcript"));
 
          return sb.ToString();
       }

@@ -15,15 +15,23 @@ using NpcMemoryService.Core.Models;
 
 #endregion
 
+using NpcMemoryService.Core.Services;
+
 namespace NpcMemoryService.Core.Compression
 {
    /// <summary>Folds newly finished lines of a conversation into a compact running recap via the LLM.</summary>
    public sealed class ConversationHistoryCompressor
    {
       private readonly ILlmClient _llmClient;
+      private readonly string? _replyLanguage;
 
-      public ConversationHistoryCompressor(ILlmClient llmClient)
+      /// <summary>
+      ///   <paramref name="replyLanguage" /> is the player's own Reply Language setting, or null/blank to take
+      ///   the language from the lines themselves (see MemoryLanguagePolicy, and fkasad's 2026-09-09 report).
+      /// </summary>
+      public ConversationHistoryCompressor(ILlmClient llmClient, string? replyLanguage = null)
       {
+         _replyLanguage = replyLanguage;
          _llmClient = llmClient;
       }
 
@@ -61,14 +69,17 @@ namespace NpcMemoryService.Core.Compression
 
       #region private
 
-      private static string BuildSystemPrompt()
+      private string BuildSystemPrompt()
       {
+         // The recap is read back into the LIVE conversation, so this is the shortest path there is from a
+         // language slip to the player seeing one (fkasad, 2026-09-09). It said nothing about language before.
          return "You keep a running recap of an in-character conversation so that everyone present can stay "
               + "consistent with what has already been said. Rewrite the recap so it also covers the new lines. "
               + "Keep it a compact third-person summary: WHO said, asked, agreed to, or refused WHAT, and any "
               + "promise, grievance, or decision, naming each speaker so no one is confused with another. Keep "
               + "concrete commitments and turning points; drop small talk and repetition. Do not invent anything "
-              + "not in the lines. Reply with the updated recap ONLY, no preamble, no commentary.";
+              + "not in the lines. Reply with the updated recap ONLY, no preamble, no commentary.\n"
+              + MemoryLanguagePolicy.Directive(_replyLanguage, "lines");
       }
 
       private static string BuildUserPrompt(string existingRecap, string newLines)

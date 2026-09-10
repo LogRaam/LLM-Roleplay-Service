@@ -15,6 +15,8 @@ using NpcMemoryService.Core.Models;
 
 #endregion
 
+using NpcMemoryService.Core.Services;
+
 namespace NpcMemoryService.Core.Compression
 {
    /// <summary>
@@ -26,9 +28,17 @@ namespace NpcMemoryService.Core.Compression
    public sealed class LlmMemoryCompressor : IMemoryCompressor
    {
       private readonly ILlmClient _llmClient;
+      private readonly string? _replyLanguage;
 
-      public LlmMemoryCompressor(ILlmClient llmClient)
+      /// <summary>
+      ///   <paramref name="replyLanguage" /> is the player's own Reply Language setting, or null/blank to take
+      ///   the language from the events themselves. It is a CONSTRUCTOR argument rather than stored state
+      ///   because the host builds a compressor per run, so a setting changed mid-campaign can never go stale
+      ///   here (fkasad, 2026-09-09: see MemoryLanguagePolicy for what this fixes).
+      /// </summary>
+      public LlmMemoryCompressor(ILlmClient llmClient, string? replyLanguage = null)
       {
+         _replyLanguage = replyLanguage;
          _llmClient = llmClient;
       }
 
@@ -173,6 +183,11 @@ namespace NpcMemoryService.Core.Compression
          sb.AppendLine("One short paragraph (≤3 sentences) capturing what the dropped events collectively");
          sb.AppendLine("represent, written so a future you can reference it as background context.");
          sb.AppendLine("[/DROP_SUMMARY]");
+         sb.AppendLine();
+         // This paragraph becomes the NPC's BackgroundContext, which is injected into every later prompt, so a
+         // language slip here does not stay in the memory: it reaches the dialogue. fkasad (2026-09-09) foresaw
+         // exactly that, and until today this prompt said nothing about language at all.
+         sb.AppendLine(MemoryLanguagePolicy.Directive(_replyLanguage, "events"));
 
          return sb.ToString();
       }

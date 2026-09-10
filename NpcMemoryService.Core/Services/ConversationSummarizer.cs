@@ -88,9 +88,9 @@ namespace NpcMemoryService.Core.Services
          sb.AppendLine("including what was agreed should happen next (word to gather, a meeting, a favor owed).");
          sb.AppendLine("If the visitor left abruptly mid-conversation, remember that too. No preamble, no");
          sb.AppendLine("quotation marks, no section tags — just the memory line itself.");
-         sb.AppendLine(string.IsNullOrWhiteSpace(replyLanguage)
-            ? "Write it in the same language as the transcript below."
-            : $"Write it in {replyLanguage!.Trim()}, regardless of the language of the transcript below.");
+         // ONE shared rule (MemoryLanguagePolicy): see that file for fkasad's report and why "the same
+         // language as the transcript" let proper nouns decide the language of a memory.
+         sb.AppendLine(MemoryLanguagePolicy.Directive(replyLanguage, "transcript"));
 
          return sb.ToString();
       }
