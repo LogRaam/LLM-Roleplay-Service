@@ -96,7 +96,11 @@ namespace NpcMemoryServiceTests
       ///   to the first person (player report: stored memories alternated between first and third person because
       ///   the summary line carried no voice rule), adding ~51 chars and landing at ~6.9k. 6950 leaves a little
       ///   headroom for incidental drift without being so loose it stops catching a regression that re-bloats
-      ///   Lean mode.
+      ///   Lean mode. 2026-09-10 the knowledge boundary was added (KnowledgeBoundaryPolicy, two player reports:
+      ///   characters inventing a battle's numbers and where goods were bought, and agreeing to "send troops to X
+      ///   location", which is a deed this mod has no verb for at all). It costs ~270 chars in Lean, its SHORT
+      ///   form, and it is deliberately not the thing cut for budget: a weaker model is the likeliest to invent,
+      ///   so dropping the guard would remove it exactly where it does the most work. 7250.
       /// </summary>
       [Test]
       public void GIVEN_a_lean_prompt_for_a_minimal_profile_WHEN_built_THEN_it_stays_under_the_token_budget()
@@ -106,7 +110,7 @@ namespace NpcMemoryServiceTests
 
          string prompt = builder.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
-         prompt.Length.Should().BeLessThan(6950);
+         prompt.Length.Should().BeLessThan(7250);
       }
    }
 }

@@ -133,6 +133,8 @@ namespace NpcMemoryServiceTests
       // The ceiling nobody was guarding. LeanPromptPolicyTests pins the always-on contract for a MINIMAL profile
       // with no room at all, so a crowded Lean prompt was bounded by nothing. This states what a full room actually
       // costs, so the next person to add a per-witness line finds out here rather than from a silent model.
+      // 2026-09-10: +~270 for the knowledge boundary, which every prompt now carries in one form or the other
+      // (see LeanPromptPolicyTests for why Lean is not the place to economise on it). 8500 -> 8800.
       [Test]
       public void GIVEN_a_full_room_WHEN_built_lean_THEN_the_whole_prompt_still_fits_a_small_context()
       {
@@ -140,7 +142,7 @@ namespace NpcMemoryServiceTests
             .Select(i => Witness($"Bystander{i}", $"a long standing arrangement number {i} that matters a great deal to them"))
             .ToArray();
 
-         Build(LeanPromptLevel.Lean, crowd).Length.Should().BeLessThan(8500);
+         Build(LeanPromptLevel.Lean, crowd).Length.Should().BeLessThan(8800);
       }
    }
 }

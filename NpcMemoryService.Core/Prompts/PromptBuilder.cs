@@ -5227,6 +5227,28 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   States what this character cannot know and cannot do, which is the general case of the block above.
+      ///   A shut DEED can name its own closed door; a deed the game has no verb for at all cannot, and neither
+      ///   can a fact nobody supplied, so both are said here instead of left to be inferred from silence.
+      ///   <para>
+      ///     Two player reports on 2026-09-10 are the reason, from opposite ends of one hole: characters getting
+      ///     a battle's numbers "completely wrong", inventing where goods were bought, not knowing the player's
+      ///     inventory; and agreeing to "send troops to X location", which is not a deed this mod has ever had.
+      ///   </para>
+      ///   <para>
+      ///     Rendered for EVERY prompt, Lean included. A weaker model is the likeliest to invent, so sparing its
+      ///     budget by dropping the guard would remove it exactly where it does the most work; Lean gets the
+      ///     compact form instead. See KnowledgeBoundaryPolicy for why the line is drawn between ASSERTING and
+      ///     WONDERING rather than between speaking and silence.
+      ///   </para>
+      /// </summary>
+      private static void AppendKnowledgeBoundary(StringBuilder sb, LeanPromptLevel lean)
+      {
+         sb.AppendLine(KnowledgeBoundaryPolicy.Text(lean));
+         sb.AppendLine();
+      }
+
+      /// <summary>
       ///   Renders <see cref="EncounterContext.SpouseDivorceDemandNote" /> verbatim, right after
       ///   <see cref="AppendExtraActionTeachings" />, when the host supplied one for this NPC this
       ///   conversation (Divorce, Phase 2b: the player's own spouse pressing a divorce demand). The host
@@ -6778,6 +6800,10 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine();
             }
 
+            // A small model is the LIKELIEST to invent a fact or a capability, so the boundary is the last thing
+            // it reads rather than the first thing dropped for budget. Compact form; see KnowledgeBoundaryPolicy.
+            AppendKnowledgeBoundary(sb, lean);
+
             sb.AppendLine("Stay in character at all times. Never break the fourth wall.");
             sb.AppendLine();
             sb.AppendLine("─────────────────────────────────────────────");
@@ -6888,6 +6914,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendActionInstructions(sb, lean);
          AppendExtraActionTeachings(sb, context);
          AppendUnavailableDeeds(sb, context);
+         AppendKnowledgeBoundary(sb, lean);
          AppendSpouseDivorceDemandNote(sb, context);
          AppendPlayerEndOwnMarriageNote(sb, context);
          AppendSpouseEstrangementNote(sb, context);
