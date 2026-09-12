@@ -1189,6 +1189,19 @@ namespace NpcMemoryService.Core.Models
       public Knowledge.ListeningAudience? Audience { get; init; }
 
       /// <summary>
+      ///   The season, the hour, the weather. Everyone knows it and nobody had been told: a grep of this file
+      ///   returned ZERO for season, night, weather and terrain before 2026-09-12, so a character would wish you
+      ///   a fine morning at midnight in a blizzard.
+      ///   <para>
+      ///     <c>CouncilPromptInput</c> has carried a Season all along, which is the finding rather than the
+      ///     excuse: the mod had already decided this was worth saying, for ONE surface, and never generalised
+      ///     it. The council can migrate onto this later; it is left alone here so one increment changes one
+      ///     thing.
+      ///   </para>
+      /// </summary>
+      public Knowledge.HereAndNowFacts? HereAndNow { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map
       ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
       ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).

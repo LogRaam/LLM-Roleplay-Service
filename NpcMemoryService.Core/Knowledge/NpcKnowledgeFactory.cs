@@ -30,6 +30,8 @@ namespace NpcMemoryService.Core.Knowledge
         ///   comment somebody writes.
         /// </summary>
         public static IReadOnlyList<KnowledgePack> All { get; } = new List<KnowledgePack> {
+            // The room first: where and when they are standing frames everything said after it.
+            new HereAndNowPack(),
             new HouseStandingPack(),
             new PersonalBondsPack()
         };
