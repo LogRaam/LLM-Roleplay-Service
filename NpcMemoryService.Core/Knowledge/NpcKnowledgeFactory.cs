@@ -32,6 +32,10 @@ namespace NpcMemoryService.Core.Knowledge
         public static IReadOnlyList<KnowledgePack> All { get; } = new List<KnowledgePack> {
             // The room first: where and when they are standing frames everything said after it.
             new HereAndNowPack(),
+
+            // The body they are standing in, right after the room they are standing in. Costs nothing when
+            // they are well, which is most conversations.
+            new OwnBodyPack(),
             new HouseStandingPack(),
 
             // What the house IS, then what it can bring to bear.

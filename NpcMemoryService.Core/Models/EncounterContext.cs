@@ -1227,6 +1227,16 @@ namespace NpcMemoryService.Core.Models
       public Knowledge.HouseMeansFacts? HouseMeans { get; init; }
 
       /// <summary>
+      ///   Whether this character is hurt, and whether they carry a lasting maiming. Added 2026-09-12 after an
+      ///   audit of this file returned ZERO for wound, injury and health while the engine kept all of it, so a
+      ///   lord carried off a field talked as though nothing had happened.
+      ///   <para>
+      ///     Age is deliberately NOT here: the identity block already states their years and life stage.
+      ///   </para>
+      /// </summary>
+      public Knowledge.OwnBodyFacts? OwnBody { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map
       ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
       ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).

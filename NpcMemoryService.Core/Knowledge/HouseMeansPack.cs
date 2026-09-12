@@ -34,7 +34,8 @@ namespace NpcMemoryService.Core.Knowledge
         ///   ledger.
         /// </summary>
         public override bool CarriedBy(KnowledgeBearer bearer)
-            => bearer != null && bearer.HasHouse && (bearer.IsLord || bearer.OwnHouseIsPlayerHouse);
+            => bearer != null && !bearer.IsCutOff
+               && bearer.HasHouse && (bearer.IsLord || bearer.OwnHouseIsPlayerHouse);
 
         /// <summary>A house always has coffers and always has a muster, so an empty reading is a fault.</summary>
         public override bool IsSupplied(EncounterContext context)

@@ -39,7 +39,8 @@ namespace NpcMemoryService.Core.Knowledge
         ///     place that can see the home.
         ///   </para>
         /// </summary>
-        public override bool CarriedBy(KnowledgeBearer bearer) => bearer != null && bearer.HoldsASeat;
+        public override bool CarriedBy(KnowledgeBearer bearer)
+            => bearer != null && !bearer.IsCutOff && bearer.HoldsASeat;
 
         /// <summary>
         ///   A place always has a name and always has a state, so an empty one means nobody read the engine.

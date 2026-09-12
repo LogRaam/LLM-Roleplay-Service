@@ -69,8 +69,14 @@ namespace NpcMemoryService.Core.Knowledge
                                   + "not news to you, and you never hear it as news.");
             }
 
+            // A captive keeps his family's lands and loses the news. Where a house holds land does not change
+            // from one month to the next, so a man in a cell still knows it; who it is fighting THIS WEEK is
+            // exactly what a courier would have had to bring him. Gabriel's cut-off ruling, 2026-09-12, and
+            // the same durable-versus-today's line that put house_means in its own pack.
+            bool cutOff = context?.Bearer?.IsCutOff == true;
+
             int warCap = lean ? HouseStandingFacts.MaxWarsNamedLean : HouseStandingFacts.MaxWarsNamed;
-            List<string> wars = Named(facts.AtWarWith, warCap);
+            List<string> wars = cutOff ? new List<string>() : Named(facts.AtWarWith, warCap);
             if (wars.Count > 0)
                 sb.AppendLine($"Your house is at war with {Join(wars, facts.AtWarWith.Count, warCap)}.");
 

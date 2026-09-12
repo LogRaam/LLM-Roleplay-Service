@@ -168,6 +168,28 @@ namespace NpcMemoryServiceTests
          NpcKnowledgeFactory.LeanBudgetChars.Should().BeLessThan(1000);
       }
 
+      // WHY IDENTITY IS NOT A KNOWLEDGE PACK, made mechanical. Gabriel asked on 2026-09-12 whether the identity
+      // block should migrate to the pack architecture. It must not, and this is the reason rather than a
+      // preference: the Compact allowance SKIPS a pack that will not fit. That is right for what a character
+      // knows and catastrophic for who a character IS - a busy landed lord would silently lose his own name
+      // and station from a small model's prompt, which is the king-denying-his-crown bug rebuilt on purpose.
+      //
+      // So identity renders outside the allowance, unconditionally, and this asserts it survives the most
+      // crowded character the game can produce.
+      [Test]
+      public void GIVEN_a_character_who_knows_everything_WHEN_compact_THEN_he_still_knows_who_he_is()
+      {
+         string lean = Build(LeanPromptLevel.Lean);
+
+         // The identity line upper-cases the name, which is why this asserts the rendered form rather than the
+         // profile's: a guard that checks a spelling the prompt never uses is a guard that proves nothing.
+         lean.Should().Contain("YOU ARE TEST LORD");
+         lean.Should().Contain("Vlandia");
+
+         // And it must sit OUTSIDE the knowledge section, not merely happen to survive it.
+         lean.IndexOf("YOU ARE TEST LORD").Should().BeGreaterThan(-1);
+      }
+
       // DuskSymphony's ceiling. 8192 tokens is the common local default and the one he ran into; the system
       // prompt must leave real room for the conversation and the reply, so it is held to roughly half of it.
       // At ~4 characters per token that is 16,000 characters.

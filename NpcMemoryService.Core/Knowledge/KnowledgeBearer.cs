@@ -47,6 +47,23 @@ namespace NpcMemoryService.Core.Knowledge
         public bool HoldsASeat { get; init; }
 
         /// <summary>
+        ///   No news reaches them. A prisoner in a cell is the case the game already models as cut off.
+        ///   <para>
+        ///     Gabriel ruled on 2026-09-11 that knowledge is CURRENT, and gave the reason from the world
+        ///     rather than from the code: "considerant qu'il y a un systeme de courrier, je pencherais pour
+        ///     que le Seigneur soit au courant de ce qui se passe". This is the same reasoning run backwards,
+        ///     and he ruled it in on 2026-09-12: a man who receives no couriers hears nothing.
+        ///   </para>
+        ///   <para>
+        ///     What it does NOT do is make knowledge STALE. A captive does not carry a months-old copy of his
+        ///     house's ledger - he does not carry it at all. That keeps staleness out of the design entirely,
+        ///     which was the whole point of the current-knowledge ruling, and it means no pack anywhere needs
+        ///     a freshness axis.
+        ///   </para>
+        /// </summary>
+        public bool IsCutOff { get; init; }
+
+        /// <summary>
         ///   True when this character's own house is the PLAYER'S house, which is what makes a companion's
         ///   knowledge of the player's holdings ordinary rather than a leak.
         /// </summary>
