@@ -2591,7 +2591,13 @@ namespace NpcMemoryService.Core.Prompts
          bool lean = (context.LeanLevel) == LeanPromptLevel.Lean;
          var spent = 0;
 
-         foreach (Knowledge.KnowledgePack pack in Knowledge.NpcKnowledgeFactory.For(context.Bearer))
+         // What a character IS comes first and is never budgeted; what a character KNOWS follows and is.
+         // Dropping a contingent pack leaves someone less informed; dropping a constitutive one leaves nobody
+         // at all (Gabriel, 2026-09-12).
+         foreach (Knowledge.KnowledgePack pack in Knowledge.NpcKnowledgeFactory.For(context.Bearer)
+                                                           .OrderBy(p => p.Kind == Knowledge.PackKind.Constitutive
+                                                                       ? 0
+                                                                       : 1))
          {
             if (!pack.IsSupplied(context)) continue;
 
@@ -2605,10 +2611,15 @@ namespace NpcMemoryService.Core.Prompts
             // rather than truncated: half a fact reads as a corrupted prompt, and a fact cut mid-clause can
             // say the opposite of what it meant. See NpcKnowledgeFactory.LeanBudgetChars for the measurement
             // that forced this.
-            if (lean && spent + rendered.Length > Knowledge.NpcKnowledgeFactory.LeanBudgetChars) continue;
+            if (lean
+                && pack.Kind == Knowledge.PackKind.Contingent
+                && spent + rendered.Length > Knowledge.NpcKnowledgeFactory.LeanBudgetChars) continue;
 
             sb.Append(rendered);
-            spent += rendered.Length;
+
+            // Only what is budgeted counts against the budget: a constitutive pack cannot be made to crowd out
+            // the knowledge, and cannot be crowded out by it either.
+            if (pack.Kind == Knowledge.PackKind.Contingent) spent += rendered.Length;
          }
       }
 

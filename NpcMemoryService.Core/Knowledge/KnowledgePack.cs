@@ -27,9 +27,40 @@ using NpcMemoryService.Core.Models;
 
 namespace NpcMemoryService.Core.Knowledge
 {
+    /// <summary>
+    ///   Whether a pack says what a character IS or what a character KNOWS. Gabriel's distinction, 2026-09-12,
+    ///   and it exists because the two must be treated differently by the prompt BUDGET.
+    /// </summary>
+    public enum PackKind
+    {
+        /// <summary>
+        ///   What the character KNOWS. Contingent: they could be ignorant of it, it can change under them, and
+        ///   dropping it from a Compact prompt leaves a character who is merely less informed. Budgeted.
+        /// </summary>
+        Contingent,
+
+        /// <summary>
+        ///   What the character IS. Their name, their station, their nature. Dropping it does not leave a
+        ///   character who knows less; it leaves a character who is nobody - which is the king-denies-his-crown
+        ///   bug rebuilt on purpose.
+        ///   <para>
+        ///     So a constitutive pack is rendered FIRST and OUTSIDE the Compact allowance, and it must be
+        ///     carried by every bearer there is. A constitutive pack with a composition rule that can refuse
+        ///     is a contradiction, and a test asserts that none of them has one.
+        ///   </para>
+        /// </summary>
+        Constitutive
+    }
+
     /// <summary>One coherent body of knowledge a character may carry, and everything askable about it.</summary>
     public abstract class KnowledgePack
     {
+        /// <summary>
+        ///   IS or KNOWS. Defaults to <see cref="PackKind.Contingent" />, so a new pack is budgeted unless
+        ///   somebody deliberately argues it is part of who the character is.
+        /// </summary>
+        public virtual PackKind Kind => PackKind.Contingent;
+
         /// <summary>Short stable name, used by the completeness sweep and the generated design page.</summary>
         public abstract string Name { get; }
 
