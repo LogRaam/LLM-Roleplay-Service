@@ -7806,6 +7806,22 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine($"- {DescribePreference(pref)}");
          }
 
+         // Player report 2026-09-12: "even if an NPC from the Empire accepts polyamory, their affinity
+         // continues to drop... there is no specific information regarding jealousy". He was right that
+         // something contradicted itself. The line above already told such a character they are comfortable
+         // with several partners, while the jealousy ledger quietly docked them for exactly that, and the
+         // custom that explains the difference never reached the prompt at all - it only fed the selector
+         // that picks who is most aggrieved. Said HERE, beside the preference it qualifies, rather than as a
+         // pack of its own: two sources for one fact is how two sources come to disagree.
+         if (context?.SharedPartnersAreCustomary == true)
+         {
+            sb.AppendLine("By the custom of your own people, one of your standing may keep more than one "
+                          + "partner, so the player taking another is NOT a betrayal and you never treat it as "
+                          + "one. What is yours to mind is your STANDING among them: being set beneath another, "
+                          + "or left unattended while they are courted, is a real slight and you may say so "
+                          + "plainly. Jealousy of the arrangement itself is not in your nature.");
+         }
+
          if (!string.IsNullOrWhiteSpace(npc.Romantic.RelationalSketch))
          {
             sb.AppendLine();

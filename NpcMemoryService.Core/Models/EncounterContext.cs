@@ -1270,6 +1270,20 @@ namespace NpcMemoryService.Core.Models
       public Knowledge.RealmNewsFacts? RealmNews { get; init; }
 
       /// <summary>
+      ///   True when THIS character's own culture accepts the player keeping several partners at once, at the
+      ///   player's current standing.
+      ///   <para>
+      ///     Player report 2026-09-12, and it is the internal conflict he suspected: the romantic profile
+      ///     already tells such a character they are "comfortable with multiple committed partners", while the
+      ///     jealousy ledger quietly docked them for exactly that, and nothing anywhere explained the
+      ///     difference. The tolerance existed in the code (JealousyCulture.ToleratesSharedPartners) and fed
+      ///     only the selector that picks who is most aggrieved - it never reached the prompt, so the
+      ///     character could not say what the number was doing.
+      ///   </para>
+      /// </summary>
+      public bool SharedPartnersAreCustomary { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map
       ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
       ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).
