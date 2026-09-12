@@ -2589,10 +2589,27 @@ namespace NpcMemoryService.Core.Prompts
          if (context?.Bearer == null) return;
 
          bool lean = (context.LeanLevel) == LeanPromptLevel.Lean;
+         var spent = 0;
 
          foreach (Knowledge.KnowledgePack pack in Knowledge.NpcKnowledgeFactory.For(context.Bearer))
-            if (pack.IsSupplied(context))
-               pack.Render(sb, context, lean);
+         {
+            if (!pack.IsSupplied(context)) continue;
+
+            var rendered = new StringBuilder();
+            pack.Render(rendered, context, lean);
+
+            if (rendered.Length == 0) continue;
+
+            // Compact spends a fixed allowance across ALL packs, so what a character costs cannot grow with
+            // how full their life is or with how many packs exist. A pack that will not fit is skipped whole
+            // rather than truncated: half a fact reads as a corrupted prompt, and a fact cut mid-clause can
+            // say the opposite of what it meant. See NpcKnowledgeFactory.LeanBudgetChars for the measurement
+            // that forced this.
+            if (lean && spent + rendered.Length > Knowledge.NpcKnowledgeFactory.LeanBudgetChars) continue;
+
+            sb.Append(rendered);
+            spent += rendered.Length;
+         }
       }
 
       private static void AppendGovernorship(StringBuilder sb, EncounterContext context)

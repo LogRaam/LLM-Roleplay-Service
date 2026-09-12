@@ -31,9 +31,11 @@ using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using NpcMemoryService.Core.Actions;
+using NpcMemoryService.Core.Knowledge;
 using NpcMemoryService.Core.Models;
 using NpcMemoryService.Core.Prompts;
 using NUnit.Framework;
+using System.Text;
 
 #endregion
 
@@ -54,7 +56,64 @@ namespace NpcMemoryServiceTests
 
       private static string Build(LeanPromptLevel lean)
          => new PromptBuilder {ActionVocabulary = RealVocabulary()}
-            .BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, new EncounterContext {LeanLevel = lean});
+            .BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, Encounter(lean));
+
+      /// <summary>
+      ///   The most expensive character the game can actually produce: a landed lord of the player's own house
+      ///   who governs a town, so EVERY knowledge pack is both carried and supplied.
+      ///   <para>
+      ///     Until 2026-09-12 this was a bare <c>new EncounterContext {LeanLevel = lean}</c>, which has NO
+      ///     Bearer - so <c>NpcKnowledgeFactory.For</c> returned nothing and the budget was measured on a
+      ///     prompt containing not one knowledge pack. Green, and blind to five of them. That is the exact
+      ///     failure this file's own header was written about: a guard that constructs its subject differently
+      ///     from production measures its own construction.
+      ///   </para>
+      /// </summary>
+      private static EncounterContext Encounter(LeanPromptLevel lean)
+         => new() {
+            LeanLevel = lean,
+            Bearer = new KnowledgeBearer {
+               IsLord = true, HasHouse = true, IsPlayerCompanion = true, HoldsASeat = true
+            },
+            HouseStanding = new HouseStandingFacts {
+               HouseName = "dey Meroc", IsPlayerHouse = true,
+               Fiefs = new List<string> {"Ocs Hall", "Sargot", "Charas", "Jaculan", "Rovalt"},
+               AtWarWith = new List<string> {"Sturgia", "Battania", "Khuzait"}
+            },
+            HouseMeans = new HouseMeansFacts {
+               Treasury = TreasuryBand.Strained, OwesTheCrown = true, Muster = MusterBand.Respectable,
+               RidingWithAnArmy = true, Influence = InfluenceBand.Considerable
+            },
+            SeatStanding = new SeatStandingFacts {
+               Seats = new List<SeatFacts> {
+                  new() {
+                     PlaceName = "Ocs Hall", Role = SeatRole.Governor, Kind = SettlementKind.Town,
+                     IsPlayerHolding = true, Prosperity = ProsperityBand.Comfortable,
+                     FoodStores = FoodBand.Thin, FoodDirection = FoodTrend.Falling,
+                     Garrison = GarrisonBand.UnderStrength, Loyalty = LoyaltyBand.Restless,
+                     Security = SecurityBand.Uneasy, IsUnderSiege = true
+                  },
+                  new() {
+                     PlaceName = "Sargot", Role = SeatRole.Owner, Kind = SettlementKind.Town,
+                     IsPlayerHolding = true, Prosperity = ProsperityBand.Rich, FoodStores = FoodBand.Full,
+                     FoodDirection = FoodTrend.Rising, Garrison = GarrisonBand.Strong,
+                     Loyalty = LoyaltyBand.Devoted, Security = SecurityBand.Settled
+                  }
+               }
+            },
+            HereAndNow = new HereAndNowFacts {
+               Season = Season.Winter, HourOfDay = 2, IsNight = true, Weather = Weather.Blizzard,
+               NearestPlace = "Ocs Hall", BearingToPlace = "a short ride to the north-east", RealmName = "Vlandia"
+            },
+            PersonalBonds = new PersonalBondsFacts {
+               Bonds = new List<PersonalBond> {
+                  new() {PersonName = "Ingalther", Kind = BondKind.Kin, Discretion = Discretion.Open},
+                  new() {PersonName = "Talko", Kind = BondKind.Rival, Discretion = Discretion.Open},
+                  new() {PersonName = "Liena", Kind = BondKind.Beloved, Discretion = Discretion.Guarded}
+               }
+            },
+            Audience = new ListeningAudience {Regard = 70, InPrivate = true}
+         };
 
       // The catalog is real and large. If this ever drops to nothing, every other assertion here becomes
       // meaningless in exactly the way the old budget test was.
@@ -63,6 +122,50 @@ namespace NpcMemoryServiceTests
       {
          RealVocabulary().Count.Should().BeGreaterThan(50);
          Build(LeanPromptLevel.Lean).Should().Contain("GAME ACTIONS:");
+      }
+
+      // The companion guard to the one above, and it is the one that was missing: a budget measured on a
+      // character who knows nothing is a budget measured on a prompt nobody is ever sent. If this fails, the
+      // subject has stopped being the expensive case and every length below has quietly become meaningless.
+      [Test]
+      public void GIVEN_the_measured_character_WHEN_built_THEN_he_actually_carries_the_knowledge_packs()
+      {
+         NpcKnowledgeFactory.For(Encounter(LeanPromptLevel.Full).Bearer)
+                            .Should().HaveCount(NpcKnowledgeFactory.All.Count);
+
+         string full = Build(LeanPromptLevel.Full);
+
+         full.Should().Contain("dey Meroc").And.Contain("Ocs Hall").And.Contain("coffers")
+             .And.Contain("winter night");
+      }
+
+      // The mechanism that replaced the arithmetic. Before this, five packs fitted inside the 16,000-character
+      // ceiling because their prose had been trimmed until they did, with fourteen characters to spare - so
+      // the SIXTH pack would have broken a player's 8k context and nothing would have said so until he wrote
+      // in. Now Compact spends a fixed allowance whatever is supplied and however many packs exist.
+      [Test]
+      public void GIVEN_a_character_who_knows_everything_WHEN_compact_THEN_the_knowledge_section_stays_inside_its_allowance()
+      {
+         var knowledge = new StringBuilder();
+         EncounterContext context = Encounter(LeanPromptLevel.Lean);
+         var spent = 0;
+
+         foreach (KnowledgePack pack in NpcKnowledgeFactory.For(context.Bearer))
+         {
+            if (!pack.IsSupplied(context)) continue;
+
+            knowledge.Clear();
+            pack.Render(knowledge, context, true);
+
+            if (spent + knowledge.Length > NpcKnowledgeFactory.LeanBudgetChars) continue;
+
+            spent += knowledge.Length;
+         }
+
+         spent.Should().BeLessThanOrEqualTo(NpcKnowledgeFactory.LeanBudgetChars);
+
+         // And the allowance must not be so generous that it never binds: it is a budget, not a formality.
+         NpcKnowledgeFactory.LeanBudgetChars.Should().BeLessThan(1000);
       }
 
       // DuskSymphony's ceiling. 8192 tokens is the common local default and the one he ran into; the system

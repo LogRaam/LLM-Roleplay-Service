@@ -59,12 +59,17 @@ namespace NpcMemoryService.Core.Knowledge
             List<PersonalBond> tellable = facts.Bonds
                                                .Where(b => b != null && !string.IsNullOrWhiteSpace(b.PersonName))
                                                .Where(b => DiscretionPolicy.WouldSay(b.Discretion, audience))
-                                               .Take(PersonalBondsFacts.MaxNamed)
+                                               .Take(lean ? PersonalBondsFacts.MaxNamedLean : PersonalBondsFacts.MaxNamed)
                                                .ToList();
 
             if (tellable.Count == 0) return;
 
-            sb.AppendLine("PEOPLE YOU CARRY WITH YOU (not the player, and yours to raise or not):");
+            // Compact gets a bounded allowance and a bare label, the same shape the Lean witness recall was
+            // given for the same reason: cost must not grow with how full a character's life is. Measured
+            // 2026-09-12, when the budget guard was first handed a character who actually knows things.
+            sb.AppendLine(lean
+                              ? "People you carry:"
+                              : "PEOPLE YOU CARRY WITH YOU (not the player, and yours to raise or not):");
 
             foreach (PersonalBond bond in tellable)
                 sb.AppendLine("- " + Sentence(bond));

@@ -68,6 +68,13 @@ namespace NpcMemoryService.Core.Knowledge
         /// <summary>At most this many are named, however many the simulation could supply.</summary>
         public const int MaxNamed = 3;
 
+        /// <summary>
+        ///   How many are named in a Compact prompt. Two, matching the Lean witness allowance, because the
+        ///   cost of a character must not grow with how full their life is - and because in Compact a third
+        ///   name is colour while the first two are who they are.
+        /// </summary>
+        public const int MaxNamedLean = 2;
+
         /// <summary>Supplied whole; the pack trims and filters, so the bound and the discretion live in one place.</summary>
         public IReadOnlyList<PersonalBond> Bonds { get; init; } = new List<PersonalBond>();
     }

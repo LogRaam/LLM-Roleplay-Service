@@ -42,6 +42,25 @@ namespace NpcMemoryService.Core.Knowledge
             new PersonalBondsPack()
         };
 
+        /// <summary>
+        ///   How many characters the whole knowledge section may spend in a COMPACT prompt.
+        ///   <para>
+        ///     Why a collective allowance rather than five careful packs. On 2026-09-12 the budget guard was
+        ///     finally handed a character who knows things - until then it built a context with no Bearer, so
+        ///     it measured a prompt containing not one pack and was green and blind to all five. The real
+        ///     number was 16,329 against DuskSymphony's 16,000 ceiling, and trimming coaching out of every
+        ///     Lean path brought it to 15,986. Fourteen characters of headroom is not a guarantee, it is
+        ///     arithmetic that happened to work, and the next pack would have broken it silently.
+        ///   </para>
+        ///   <para>
+        ///     So Compact spends at most this, packs are offered the budget in <see cref="All" /> order, and
+        ///     one that will not fit is skipped rather than truncated - a half-rendered fact is worse than an
+        ///     absent one. The order is therefore a PRIORITY: the room first, then the house, then what it can
+        ///     bring to bear, then the seat, and personal bonds last because they are the most droppable.
+        ///   </para>
+        /// </summary>
+        public const int LeanBudgetChars = 700;
+
         /// <summary>What a person like this carries. Unknown bearer carries nothing, which refuses rather than guesses.</summary>
         public static IReadOnlyList<KnowledgePack> For(KnowledgeBearer bearer)
             => bearer == null

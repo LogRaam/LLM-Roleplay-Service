@@ -57,7 +57,11 @@ namespace NpcMemoryService.Core.Knowledge
 
             if (clauses.Count == 0) return;
 
-            sb.AppendLine($"Your own house's means, as you would know them without asking anyone: {Sentence(clauses)}");
+            string preamble = lean
+                ? "Your house:"
+                : "Your own house's means, as you would know them without asking anyone:";
+
+            sb.AppendLine($"{preamble} {Sentence(clauses)}");
 
             if (lean) return;
 

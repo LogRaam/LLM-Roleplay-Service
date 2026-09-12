@@ -39,7 +39,7 @@ namespace NpcMemoryService.Core.Knowledge
 
             sb.AppendLine($"It is {Moment(now)}{WeatherClause(now.Weather)}.");
 
-            string where = WhereClause(now);
+            string where = lean ? CompactWhereClause(now) : WhereClause(now);
             if (where.Length > 0) sb.AppendLine(where);
 
             // Lean stops at the fact. A model that has been told the hour rarely needs telling not to contradict
@@ -98,6 +98,22 @@ namespace NpcMemoryService.Core.Knowledge
             string whose = realm.Length == 0 ? "" : $", in the lands of {realm}";
 
             return $"You are out in open country, {from}{whose}.";
+        }
+
+        /// <summary>
+        ///   The same fact in a quarter of the words: "Near Ocs Hall, in Vlandia." A Compact prompt needs to
+        ///   know where the character is standing, not to be told it in a full sentence.
+        /// </summary>
+        private static string CompactWhereClause(HereAndNowFacts now)
+        {
+            if (now.IsInsideThatPlace) return "";
+
+            string place = (now.NearestPlace ?? "").Trim();
+            string realm = (now.RealmName ?? "").Trim();
+
+            if (place.Length == 0) return realm.Length == 0 ? "" : $"In {realm}.";
+
+            return realm.Length == 0 ? $"Near {place}." : $"Near {place}, in {realm}.";
         }
 
         private static string WeatherClause(Weather weather)

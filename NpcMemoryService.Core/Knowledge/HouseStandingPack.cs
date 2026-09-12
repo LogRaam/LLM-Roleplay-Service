@@ -53,15 +53,26 @@ namespace NpcMemoryService.Core.Knowledge
 
             sb.AppendLine(whose);
 
-            List<string> fiefs = Named(facts.Fiefs, HouseStandingFacts.MaxFiefsNamed);
+            int fiefCap = lean ? HouseStandingFacts.MaxFiefsNamedLean : HouseStandingFacts.MaxFiefsNamed;
+            List<string> fiefs = Named(facts.Fiefs, fiefCap);
             if (fiefs.Count > 0)
-                sb.AppendLine($"Your house holds {Join(fiefs, facts.Fiefs.Count, HouseStandingFacts.MaxFiefsNamed)}. "
-                              + "You know this the way anyone knows where their own family's lands are: it is not "
-                              + "news to you, and you never hear it as news.");
+            {
+                sb.Append($"Your house holds {Join(fiefs, facts.Fiefs.Count, fiefCap)}.");
 
-            List<string> wars = Named(facts.AtWarWith, HouseStandingFacts.MaxWarsNamed);
+                // Coaching, and it used to sit INSIDE this fact, so Compact paid 124 characters for it on every
+                // landed conversation. Measured 2026-09-12 when the budget guard was finally given a character
+                // who knows things: the five packs cost 947 characters in Compact and put the prompt 329 over
+                // DuskSymphony's 16,000 ceiling. Lean carries facts; it does not carry advice about them.
+                if (lean) sb.AppendLine();
+                else
+                    sb.AppendLine(" You know this the way anyone knows where their own family's lands are: it is "
+                                  + "not news to you, and you never hear it as news.");
+            }
+
+            int warCap = lean ? HouseStandingFacts.MaxWarsNamedLean : HouseStandingFacts.MaxWarsNamed;
+            List<string> wars = Named(facts.AtWarWith, warCap);
             if (wars.Count > 0)
-                sb.AppendLine($"Your house is at war with {Join(wars, facts.AtWarWith.Count, HouseStandingFacts.MaxWarsNamed)}.");
+                sb.AppendLine($"Your house is at war with {Join(wars, facts.AtWarWith.Count, warCap)}.");
 
             // Lean stops here. The Full prompt adds the one line that turns a list of facts into conduct, which
             // is the difference between a character who CAN answer and one who behaves as though he has lived

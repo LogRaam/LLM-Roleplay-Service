@@ -30,8 +30,19 @@ namespace NpcMemoryService.Core.Knowledge
         /// <summary>Bounded so a great house does not spend the prompt budget listing its map.</summary>
         public const int MaxFiefsNamed = 4;
 
+        /// <summary>
+        ///   How many are named in a Compact prompt. The same bounded allowance <c>personal_bonds</c> and the
+        ///   Lean witness recall use, and for the same reason: what a character costs must not grow with how
+        ///   much they have. The "and N others" tail still carries the scale, so a man with nine towns never
+        ///   sounds like a man with two.
+        /// </summary>
+        public const int MaxFiefsNamedLean = 2;
+
         /// <summary>Bounded for the same reason. A realm at war with everyone is one sentence, not a gazetteer.</summary>
         public const int MaxWarsNamed = 3;
+
+        /// <summary>How many wars are named in a Compact prompt. See <see cref="MaxFiefsNamedLean" />.</summary>
+        public const int MaxWarsNamedLean = 2;
 
         /// <summary>The house's own name, as the character would say it.</summary>
         public string? HouseName { get; init; }
