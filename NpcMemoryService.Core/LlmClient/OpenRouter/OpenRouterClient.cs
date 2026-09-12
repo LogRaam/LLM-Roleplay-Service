@@ -380,7 +380,12 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
       {
          var messages = new List<object> {BuildSystemMessage(request)};
 
-         foreach (LlmMessage msg in request.Messages)
+         // A strict chat template refuses a sequence that does not alternate after the system message, and CR
+         // legitimately produces one: a room of witnesses writes several user turns in a row, and a chat opened
+         // from vanilla dialogue starts with the NPC. The aggregators normalise it silently; a local server
+         // applying the model's own Jinja does not, and answers with a 500 nobody can read (Nexus, 2026-09-11).
+         // Normalised HERE, at the wire, for every provider alike: one road, so the two cannot drift.
+         foreach (LlmMessage msg in MessageAlternationPolicy.Normalize(request.Messages))
             messages.Add(new {
                role = msg.Role == MessageRole.User
                   ? "user"
