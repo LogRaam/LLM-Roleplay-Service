@@ -127,7 +127,7 @@ namespace NpcMemoryServiceTests
       {
          NpcKnowledgeFactory.All.Where(p => p.Volatility == PackVolatility.PerEncounter)
                             .Select(p => p.Name)
-                            .Should().BeEquivalentTo(new[] {"here_and_now"});
+                            .Should().BeEquivalentTo(new[] {"here_and_now", "realm_news"});
       }
 
       // The cost must not come back through the other door either: moving a pack below the marker must not

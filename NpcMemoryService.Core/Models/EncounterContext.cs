@@ -1261,6 +1261,15 @@ namespace NpcMemoryService.Core.Models
       public string? SpeakerClanName { get; init; }
 
       /// <summary>
+      ///   What word has brought this character about the wider world, supplied RAW and uncapped. Added
+      ///   2026-09-12: the news already reached the prompt through <see cref="RealmNewsLine" /> and
+      ///   <see cref="WorldRumorsBlock" />, but its REACH was a constant four lines for a village headman and
+      ///   a marshal of the realm alike. How much of it a character carries is a rule about people, so it
+      ///   belongs to the knowledge pack rather than to the host.
+      /// </summary>
+      public Knowledge.RealmNewsFacts? RealmNews { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map
       ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
       ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).

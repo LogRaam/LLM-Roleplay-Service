@@ -116,7 +116,19 @@ namespace NpcMemoryServiceTests
 
             // The worst case includes a player the law wants: a clean record renders nothing, so measuring a
             // budget against one would measure a prompt cheaper than the one a criminal campaign sends.
-            Underworld = new UnderworldFacts {PlayerNotoriety = Notoriety.Severe, PlaceName = "Ocs Hall"}
+            Underworld = new UnderworldFacts {PlayerNotoriety = Notoriety.Severe, PlaceName = "Ocs Hall"},
+
+            // A lord hears the furthest, so the worst case is a lord in a loud season.
+            RealmNews = new RealmNewsFacts {
+               Headline = "Vlandia has declared war on Sturgia.",
+               Tidings = new List<Tiding> {
+                  new() {Text = "A siege was broken at Ocs Hall."},
+                  new() {Text = "The count of Pravend has taken a wife.", Confidence = TidingConfidence.Secondhand},
+                  new() {Text = "Grain has failed around Charas."},
+                  new() {Text = "A lord was executed in the east.", Confidence = TidingConfidence.Distant},
+                  new() {Text = "A caravan was taken on the south road."}
+               }
+            }
          };
 
       // The catalog is real and large. If this ever drops to nothing, every other assertion here becomes
@@ -142,7 +154,7 @@ namespace NpcMemoryServiceTests
                             .Select(p => p.Name)
                             .Should().BeEquivalentTo(new[] {
                                "here_and_now", "own_body", "house_standing", "house_means", "seat_standing",
-                               "personal_bonds", "underworld", "station"
+                               "personal_bonds", "underworld", "station", "realm_news"
                             });
 
          string full = Build(LeanPromptLevel.Full);

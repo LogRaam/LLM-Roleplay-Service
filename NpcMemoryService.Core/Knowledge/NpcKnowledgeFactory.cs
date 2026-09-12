@@ -52,6 +52,9 @@ namespace NpcMemoryService.Core.Knowledge
 
             // The same town seen from underneath: who is wanted, and whose ground this is.
             new UnderworldPack(),
+
+            // The wider world, last of the outward-facing packs and the first whose REACH depends on rank.
+            new RealmNewsPack(),
             new PersonalBondsPack()
         };
 
