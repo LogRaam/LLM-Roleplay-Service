@@ -2562,6 +2562,41 @@ namespace NpcMemoryService.Core.Prompts
 
          if (context.LeadsOwnClan && !string.IsNullOrWhiteSpace(npc.Clan))
             sb.AppendLine($"You HEAD the {npc.Clan.Trim()} clan. Its people, its holdings and its word are yours to answer for.");
+
+         AppendGovernorship(sb, context);
+      }
+
+      /// <summary>
+      ///   The post this character actually holds, which they cannot possibly have failed to notice.
+      ///   <para>
+      ///     Player report 2026-09-11 (fkasad): a companion appointed governor through the vanilla interface did
+      ///     not know, a year later, either that he governed the town or that the player's house held it. The
+      ///     memory the conversation left says the player "REVEALED" it. Nothing was revealed; he was simply
+      ///     never told, and the model reported that honestly.
+      ///   </para>
+      ///   <para>
+      ///     Additive rather than an early return, unlike the crown above it: a man may head his house AND keep
+      ///     a town, and both are true at once.
+      ///   </para>
+      /// </summary>
+      private static void AppendGovernorship(StringBuilder sb, EncounterContext context)
+      {
+         if (string.IsNullOrWhiteSpace(context.GovernedSettlementName)) return;
+
+         string seat = context.GovernedSettlementName!.Trim();
+
+         if (context.GovernsForPlayerHouse)
+         {
+            sb.AppendLine($"YOU GOVERN {seat.ToUpperInvariant()}, and you govern it FOR THE PLAYER'S HOUSE. They hold "
+                          + "that town; you keep it in their name. Both of those are ordinary daily facts of your "
+                          + "life, not news: never receive either one as though you were hearing it for the first "
+                          + "time, and never congratulate them on holding what you have been administering for them.");
+
+            return;
+         }
+
+         sb.AppendLine($"You govern {seat} for your own house. It is the seat you answer for, and you know its "
+                       + "state without being told.");
       }
 
       private static void AppendIdentity(StringBuilder sb, NpcProfile npc, EncounterContext? encounterContext)

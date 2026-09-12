@@ -1129,6 +1129,32 @@ namespace NpcMemoryService.Core.Models
       public bool LeadsOwnClan { get; init; }
 
       /// <summary>
+      ///   The town or castle this NPC GOVERNS, from the engine's own <c>Hero.GovernorOf</c>, or null when they
+      ///   govern nothing. The same blind spot one rung further down again.
+      ///   <para>
+      ///     Player report 2026-09-11 (fkasad): he appointed a companion governor through the vanilla interface,
+      ///     came back a year later, and found the man "totally oblivious that 1. I own the city. and 2. He's
+      ///     governor." He told him so in conversation, it worked, and the memory it left reads: "Amfildor
+      ///     REVEALED that he conquered Hargendorf... and he officially appointed me as his governor."
+      ///   </para>
+      ///   <para>
+      ///     That word is the bug, stated precisely by the model itself. The mod has always KNOWN this fact: it
+      ///     reads <c>GovernorOf</c> to decide whether appoint_governor may even be offered. It used the fact to
+      ///     GATE AN ACTION and never to STATE A TRUTH, so the one man in Calradia certain to know he governs
+      ///     Hargendorf was the only one never told.
+      ///   </para>
+      /// </summary>
+      public string? GovernedSettlementName { get; init; }
+
+      /// <summary>
+      ///   True when the settlement in <see cref="GovernedSettlementName" /> belongs to the PLAYER'S house. Both
+      ///   halves of the report are one fact from the governor's side: he keeps that town, and he keeps it for
+      ///   someone. Knowing the first without the second is how a man ends up congratulating you on news he has
+      ///   been living inside for a year.
+      /// </summary>
+      public bool GovernsForPlayerHouse { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map
       ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
       ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).
