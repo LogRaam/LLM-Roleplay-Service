@@ -38,6 +38,14 @@ namespace NpcMemoryService.Core.Knowledge
         public override bool IsSupplied(EncounterContext context)
             => context?.PersonalBonds?.Bonds != null && context.PersonalBonds.Bonds.Count > 0;
 
+        /// <summary>
+        ///   A life can be legitimately empty here. The live sweep's first run reported four lords as "carried
+        ///   but not supplied" simply because none of them had a living feud with anyone or a lover, and calling
+        ///   that a missing fact would train everyone to ignore the report. Contrast house_standing, where an
+        ///   empty pack means somebody failed to read the engine.
+        /// </summary>
+        public override bool RequiresContent => false;
+
         public override void Render(StringBuilder sb, EncounterContext context, bool lean)
         {
             PersonalBondsFacts? facts = context?.PersonalBonds;

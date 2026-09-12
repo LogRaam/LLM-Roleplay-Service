@@ -169,6 +169,17 @@ namespace NpcMemoryServiceTests
          Pack.CarriedBy(null).Should().BeFalse();
       }
 
+      // An empty life is not a missing fact. The live sweep's FIRST run in a real game reported four lords as
+      // carried-but-not-supplied here, simply because none had a living feud or a lover; failing on that would
+      // train everyone to ignore the report. house_standing is the other kind: a man with a house has a house
+      // with a name, so an empty one means nobody read the engine.
+      [Test]
+      public void GIVEN_a_lord_with_no_feud_and_no_lover_WHEN_swept_THEN_his_empty_life_is_not_a_missing_fact()
+      {
+         Pack.RequiresContent.Should().BeFalse();
+         new HouseStandingPack().RequiresContent.Should().BeTrue();
+      }
+
       // Carried and supplied stay separate questions, so the live sweep can tell "he would know" from "anyone
       // told him" - the gap fkasad's governor lived in.
       [Test]

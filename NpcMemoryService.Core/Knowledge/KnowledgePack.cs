@@ -48,6 +48,24 @@ namespace NpcMemoryService.Core.Knowledge
         /// </summary>
         public abstract bool IsSupplied(EncounterContext context);
 
+        /// <summary>
+        ///   True when a CARRIED pack that arrives empty is a FAULT: the host was supposed to fill it and did
+        ///   not. False when emptiness is a legitimate state of a life.
+        ///   <para>
+        ///     Found by the sweep on its very first run in a live game (2026-09-11), which is a fair
+        ///     advertisement for the instrument. house_standing is the first kind: if a man has a house, that
+        ///     house has a name, so an empty one means nobody read the engine. personal_bonds is the second: a
+        ///     lord with no living feud and no lover simply has nothing to say about anyone, and reporting that
+        ///     as a missing fact would teach everyone to ignore the report.
+        ///   </para>
+        ///   <para>
+        ///     The cost of the distinction, stated rather than hidden: for an optional pack the sweep can no
+        ///     longer prove the host wired it at all, only note how often it arrives. The unit tests cover the
+        ///     wiring's shape; the sweep covers the facts it cannot see.
+        ///   </para>
+        /// </summary>
+        public virtual bool RequiresContent => true;
+
         /// <summary>Says it to the character. Called only when the pack is both carried and supplied.</summary>
         public abstract void Render(StringBuilder sb, EncounterContext context, bool lean);
     }
