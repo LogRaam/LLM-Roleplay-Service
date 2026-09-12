@@ -73,7 +73,7 @@ namespace NpcMemoryService.Core.Knowledge
         ///   True when the character would say it. Unknown audience is treated as a stranger in a crowded room,
         ///   which refuses everything but the open, because guessing wrong here costs a secret.
         /// </summary>
-        public static bool WouldSay(Discretion discretion, ListeningAudience audience)
+        public static bool WouldSay(Discretion discretion, ListeningAudience? audience)
         {
             if (discretion == Discretion.Open) return true;
 
