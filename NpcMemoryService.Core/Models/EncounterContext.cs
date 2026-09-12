@@ -1202,6 +1202,19 @@ namespace NpcMemoryService.Core.Models
       public Knowledge.HereAndNowFacts? HereAndNow { get; init; }
 
       /// <summary>
+      ///   How the places this character answers for are actually doing. Added 2026-09-12 after the first live
+      ///   cr.memory_bench run, where the two inventions worth chasing were inside PASSING probes: handed two
+      ///   fief names and nothing else, the character produced a harvest, grain lost to rot, granary stores and
+      ///   a garrison "at strength", none of which was in her prompt.
+      ///   <para>
+      ///     These are facts the GAME HAS - WorldConditionsFeeder already reads food and prosperity per town -
+      ///     so a player can open the town screen and catch the lie. In bands rather than figures: a lord knows
+      ///     how his seat fares and has never counted its stores.
+      ///   </para>
+      /// </summary>
+      public Knowledge.SeatStandingFacts? SeatStanding { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map
       ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
       ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).

@@ -38,6 +38,15 @@ namespace NpcMemoryService.Core.Knowledge
         public bool HasHouse { get; init; }
 
         /// <summary>
+        ///   They answer for a place: they hold it, they govern it for whoever does, or they are a notable of
+        ///   the place they live in. Separate from
+        ///   <see cref="IsLord" /> because the two come apart in both directions - a landless lord holds
+        ///   nothing, and a companion who governs a town is no lord at all but knows that town better than
+        ///   anyone. fkasad's governor was exactly the second case.
+        /// </summary>
+        public bool HoldsASeat { get; init; }
+
+        /// <summary>
         ///   True when this character's own house is the PLAYER'S house, which is what makes a companion's
         ///   knowledge of the player's holdings ordinary rather than a leak.
         /// </summary>

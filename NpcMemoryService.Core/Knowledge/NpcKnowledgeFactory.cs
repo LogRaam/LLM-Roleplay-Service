@@ -33,6 +33,9 @@ namespace NpcMemoryService.Core.Knowledge
             // The room first: where and when they are standing frames everything said after it.
             new HereAndNowPack(),
             new HouseStandingPack(),
+
+            // After the house, because a seat is one of the house's holdings seen close up.
+            new SeatStandingPack(),
             new PersonalBondsPack()
         };
 
