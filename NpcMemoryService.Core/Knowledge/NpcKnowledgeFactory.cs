@@ -30,7 +30,8 @@ namespace NpcMemoryService.Core.Knowledge
         ///   comment somebody writes.
         /// </summary>
         public static IReadOnlyList<KnowledgePack> All { get; } = new List<KnowledgePack> {
-            new HouseStandingPack()
+            new HouseStandingPack(),
+            new PersonalBondsPack()
         };
 
         /// <summary>What a person like this carries. Unknown bearer carries nothing, which refuses rather than guesses.</summary>

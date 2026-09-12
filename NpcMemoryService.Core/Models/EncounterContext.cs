@@ -1174,6 +1174,21 @@ namespace NpcMemoryService.Core.Models
       public Knowledge.KnowledgeBearer? Bearer { get; init; }
 
       /// <summary>
+      ///   The people this character carries who are NOT the player. Until now every relational field here was
+      ///   player-centric by construction (GrudgeNote is "against the player"; every romance field is about the
+      ///   player or the player's partner), while the simulation quietly ran NPC-to-NPC lives that nobody could
+      ///   mention: in one cr.testall pass a lady took a secret lover, another bore a lord's child, and a
+      ///   companion nursed a grudge against his captor rather than against the player.
+      /// </summary>
+      public Knowledge.PersonalBondsFacts? PersonalBonds { get; init; }
+
+      /// <summary>
+      ///   Who is listening and under what conditions, so a pack can decide what would actually be SAID rather
+      ///   than only what is known. Null is read as a stranger in a crowded room.
+      /// </summary>
+      public Knowledge.ListeningAudience? Audience { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map
       ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
       ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).
