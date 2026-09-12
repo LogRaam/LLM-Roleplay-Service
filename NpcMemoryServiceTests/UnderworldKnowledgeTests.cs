@@ -180,6 +180,11 @@ namespace NpcMemoryServiceTests
 
          Pack.IsSupplied(new EncounterContext()).Should().BeFalse();
          Pack.IsSupplied(new EncounterContext {Underworld = new UnderworldFacts()}).Should().BeFalse();
+
+         // And plenty of people have no law to answer to at all: a wanderer of no realm has no crime rating
+         // anywhere. Everyone carries this pack, so requiring content would report every one of them as a
+         // missing fact - the personal_bonds lesson, caught in review before the sweep could shout it.
+         Pack.RequiresContent.Should().BeFalse();
       }
    }
 }

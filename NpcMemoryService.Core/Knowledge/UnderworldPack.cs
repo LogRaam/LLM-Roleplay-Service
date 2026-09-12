@@ -36,6 +36,14 @@ namespace NpcMemoryService.Core.Knowledge
         }
 
         /// <summary>
+        ///   Everyone carries this pack, and plenty of people have no law to answer to: a wanderer of no realm
+        ///   has no crime rating anywhere, and a quiet town has no gang. Both are lives rather than faults, so
+        ///   the sweep must not report them - the personal_bonds distinction, and the reason this is the one
+        ///   universal pack that does not require content.
+        /// </summary>
+        public override bool RequiresContent => false;
+
+        /// <summary>
         ///   A clean-handed player in a peaceful town is a successful read, not a missing one, so this asks
         ///   whether the host looked rather than whether it found anything - the own_body distinction.
         /// </summary>
