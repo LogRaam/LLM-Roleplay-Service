@@ -150,6 +150,47 @@ namespace NpcMemoryServiceTests
          }
       }
 
+      // ── the boundary runs both ways (Gabriel, 2026-09-12) ────────────────
+
+      // His observation, and it is the half the boundary had never covered. A character invents a blight in his
+      // own fields; the player repeats it to somebody else; she has never heard of it - correctly, since
+      // knowledge here is what you were told - and DENIES it. Not knowing is right. Denying is the incoherence
+      // the player actually feels, because she cannot know it is false either.
+      [Test]
+      public void GIVEN_news_the_player_brings_WHEN_it_has_not_reached_him_THEN_he_may_not_call_it_untrue()
+      {
+         foreach (LeanPromptLevel lean in new[] {LeanPromptLevel.Full, LeanPromptLevel.Lean})
+         {
+            string text = KnowledgeBoundaryPolicy.Text(lean);
+
+            // Both forms must offer the true answer - it has not reached me - and neither may leave denial
+            // available as the easy one.
+            text.Should().Contain("not reached");
+            text.ToLowerInvariant().Should().Contain("not false");
+         }
+      }
+
+      // And the Full form has to say what to do INSTEAD, or the rule is obeyed by going quiet - the same lesson
+      // the seat packs learned when "never give a figure" needed "send for the steward's books" beside it.
+      [Test]
+      public void GIVEN_the_full_boundary_WHEN_read_THEN_it_offers_asking_who_told_them_rather_than_only_a_ban()
+      {
+         string text = KnowledgeBoundaryPolicy.Text(LeanPromptLevel.Full);
+
+         text.Should().Contain("ask who told them");
+         text.ToLowerInvariant().Should().Contain("do not deny it");
+      }
+
+      // The small model needs this MORE than the large one, for the same reason the rest of the boundary is
+      // kept in Compact: a weaker model is the likeliest both to invent and to flatly contradict.
+      [Test]
+      public void GIVEN_the_compact_boundary_WHEN_read_THEN_the_rule_survives_the_trim()
+      {
+         string compact = KnowledgeBoundaryPolicy.Text(LeanPromptLevel.Lean);
+
+         compact.Should().Contain("not reached").And.Contain("is not false");
+      }
+
       // It is a block, not a sentence buried in another one, so it can be found in a log and read by a person
       // debugging a conversation.
       [Test]

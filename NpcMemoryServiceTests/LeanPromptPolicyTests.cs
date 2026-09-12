@@ -100,7 +100,11 @@ namespace NpcMemoryServiceTests
       ///   characters inventing a battle's numbers and where goods were bought, and agreeing to "send troops to X
       ///   location", which is a deed this mod has no verb for at all). It costs ~270 chars in Lean, its SHORT
       ///   form, and it is deliberately not the thing cut for budget: a weaker model is the likeliest to invent,
-      ///   so dropping the guard would remove it exactly where it does the most work. 7250.
+      ///   so dropping the guard would remove it exactly where it does the most work. 7250. 2026-09-12 the
+      ///   boundary was made to run BOTH ways (Gabriel: a character invents a blight, the player repeats it
+      ///   elsewhere, and the second character DENIES it - she cannot know it is false either), adding one
+      ///   compact line of ~66 chars. Kept in Lean for the same reason the rest of the boundary is: a weaker
+      ///   model is the likeliest both to invent and to contradict flatly. 7320.
       /// </summary>
       [Test]
       public void GIVEN_a_lean_prompt_for_a_minimal_profile_WHEN_built_THEN_it_stays_under_the_token_budget()
@@ -110,7 +114,7 @@ namespace NpcMemoryServiceTests
 
          string prompt = builder.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
-         prompt.Length.Should().BeLessThan(7250);
+         prompt.Length.Should().BeLessThan(7320);
       }
    }
 }

@@ -59,7 +59,13 @@ namespace NpcMemoryService.Core.Knowledge
         ///     bring to bear, then the seat, and personal bonds last because they are the most droppable.
         ///   </para>
         /// </summary>
-        public const int LeanBudgetChars = 700;
+        public const int LeanBudgetChars = 560;
+
+        // 2026-09-12, second measurement: 700 never bound, so it was a declaration rather than a budget. When
+        // the knowledge boundary was made to run both ways it cost the Compact prompt 66 characters it did not
+        // have, and this is where they came from - personal_bonds, last in the order, yields in Compact only.
+        // That is the mechanism doing its job: a feature displaces a feature, visibly, instead of a player's
+        // 8k context breaking. Full keeps every pack.
 
         /// <summary>What a person like this carries. Unknown bearer carries nothing, which refuses rather than guesses.</summary>
         public static IReadOnlyList<KnowledgePack> For(KnowledgeBearer bearer)

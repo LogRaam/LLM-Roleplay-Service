@@ -63,6 +63,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("WHAT YOU DO NOT KNOW: only what you have seen, been told, or read here. Not their baggage,");
             sb.AppendLine("their purse, where they went without you, nor a battle you missed. Say you do not know, in");
             sb.AppendLine("your own voice, or wonder aloud and name it a guess. Promise no deed not listed above.");
+            sb.AppendLine("News you have not heard is not false: say it has not reached you.");
 
             return sb.ToString().TrimEnd();
         }
@@ -95,6 +96,14 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("in a hall or a tavern, and be quite wrong about it, PROVIDED you say that is what you are");
             sb.AppendLine("doing. A rumour told as a rumour is worth more than a fact invented and told as a fact. Only");
             sb.AppendLine("the confident claim about something you were never told is forbidden.");
+            sb.AppendLine();
+            sb.AppendLine("THE SAME RULE RUNS THE OTHER WAY, and it is the half people forget. When THEY tell YOU");
+            sb.AppendLine("something you have not heard - a blight in some village, a lord dead, trouble on a road, a");
+            sb.AppendLine("quarrel at another court - it is not FALSE merely because it has not reached you.");
+            sb.AppendLine("Do not deny it, do not correct them, and do not tell them they are mistaken. Say it has");
+            sb.AppendLine("not reached you, or ask who told them. The world is a great deal larger than what has come");
+            sb.AppendLine("to your ears, and a character who confidently denies whatever he was not told is exactly as");
+            sb.AppendLine("wrong as one who confidently invents.");
 
             return sb.ToString().TrimEnd();
         }
