@@ -34,6 +34,9 @@ namespace NpcMemoryService.Core.Knowledge
             new HereAndNowPack(),
             new HouseStandingPack(),
 
+            // What the house IS, then what it can bring to bear.
+            new HouseMeansPack(),
+
             // After the house, because a seat is one of the house's holdings seen close up.
             new SeatStandingPack(),
             new PersonalBondsPack()

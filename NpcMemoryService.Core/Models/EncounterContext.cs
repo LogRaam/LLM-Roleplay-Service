@@ -1215,6 +1215,18 @@ namespace NpcMemoryService.Core.Models
       public Knowledge.SeatStandingFacts? SeatStanding { get; init; }
 
       /// <summary>
+      ///   What this character's own house can bring to bear today: coin, men under arms, weight at court.
+      ///   The half of fkasad's report ("territories, armies, treasury, wars") that <see cref="HouseStanding" />
+      ///   did not answer.
+      ///   <para>
+      ///     Kept apart from standing because the two come apart the moment knowledge acquires a date: a man in
+      ///     a cell still knows where his family's lands are, and has no idea what is in the coffers this
+      ///     morning.
+      ///   </para>
+      /// </summary>
+      public Knowledge.HouseMeansFacts? HouseMeans { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map
       ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
       ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).
