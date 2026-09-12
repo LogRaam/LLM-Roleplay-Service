@@ -1155,6 +1155,25 @@ namespace NpcMemoryService.Core.Models
       public bool GovernsForPlayerHouse { get; init; }
 
       /// <summary>
+      ///   The standing of this character's OWN house: what it holds, who it fights. Composed rather than added
+      ///   as three more flat fields, because this record already carries 170 of those and what a character
+      ///   knows had become implicit in which of them the host happened to fill (ROADMAP, "WHAT A CHARACTER
+      ///   KNOWS"). New knowledge arrives as a pack from here on; the existing fields migrate by family.
+      ///   <para>
+      ///     Null means the host supplied nothing, which is NOT the same as a house with no lands: the
+      ///     completeness sweep reads exactly that difference to catch the fkasad class of bug, where the fact
+      ///     existed in the engine and nobody put it in the context.
+      ///   </para>
+      /// </summary>
+      public Knowledge.HouseStandingFacts? HouseStanding { get; init; }
+
+      /// <summary>
+      ///   Who this character is and what they are to the player, as the knowledge factory weighs it. Supplied
+      ///   by the host; null means nothing is composed, which refuses rather than guessing.
+      /// </summary>
+      public Knowledge.KnowledgeBearer? Bearer { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map
       ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
       ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).

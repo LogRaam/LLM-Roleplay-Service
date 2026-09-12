@@ -2579,6 +2579,22 @@ namespace NpcMemoryService.Core.Prompts
       ///     a town, and both are true at once.
       ///   </para>
       /// </summary>
+      /// <summary>
+      ///   Every knowledge pack this character CARRIES and the host actually SUPPLIED. The two conditions are
+      ///   asked separately on purpose: their gap is where fkasad's governor lived, and the live completeness
+      ///   sweep exists to report it rather than let it pass in silence.
+      /// </summary>
+      private static void AppendComposedKnowledge(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.Bearer == null) return;
+
+         bool lean = (context.LeanLevel) == LeanPromptLevel.Lean;
+
+         foreach (Knowledge.KnowledgePack pack in Knowledge.NpcKnowledgeFactory.For(context.Bearer))
+            if (pack.IsSupplied(context))
+               pack.Render(sb, context, lean);
+      }
+
       private static void AppendGovernorship(StringBuilder sb, EncounterContext context)
       {
          if (string.IsNullOrWhiteSpace(context.GovernedSettlementName)) return;
@@ -2624,6 +2640,11 @@ namespace NpcMemoryService.Core.Prompts
          // than inside the vassal-offer section where the only rulership fact used to live, gated behind an
          // offer being available at all.
          AppendStation(sb, npc, encounterContext);
+
+         // What this character knows, composed rather than scattered (ROADMAP: "WHAT A CHARACTER KNOWS").
+         // Rendered beside the station because both answer the same question - who is this person, and what does
+         // that make ordinary for them - and because a fact stated here cannot be received as news later.
+         AppendComposedKnowledge(sb, encounterContext);
 
          // Pregnancy awareness (fixes a player report: a pregnant NPC denied being with child because her
          // state was never injected here before). Rendered right after the age/life-stage line, in the
