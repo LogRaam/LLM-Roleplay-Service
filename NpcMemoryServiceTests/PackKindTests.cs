@@ -82,7 +82,8 @@ namespace NpcMemoryServiceTests
       {
          public override string Name => "stub";
          public override string Covers => "nothing at all";
-         public override bool CarriedBy(KnowledgeBearer bearer) => bearer != null;
+         public override KnowledgeDepth DepthFor(KnowledgeBearer bearer)
+            => bearer == null ? KnowledgeDepth.None : KnowledgeDepth.Ordinary;
          public override bool IsSupplied(NpcMemoryService.Core.Models.EncounterContext context) => false;
 
          public override void Render(System.Text.StringBuilder sb,

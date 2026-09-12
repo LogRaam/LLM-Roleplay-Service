@@ -34,8 +34,10 @@ namespace NpcMemoryService.Core.Knowledge
         ///     which is what keeps one rule from needing an exception for every relation.
         ///   </para>
         /// </summary>
-        public override bool CarriedBy(KnowledgeBearer bearer)
-            => bearer != null && bearer.HasHouse && (bearer.IsLord || bearer.OwnHouseIsPlayerHouse);
+        public override KnowledgeDepth DepthFor(KnowledgeBearer bearer)
+            => bearer != null && bearer.HasHouse && (bearer.IsLord || bearer.OwnHouseIsPlayerHouse)
+                ? KnowledgeDepth.Knowing
+                : KnowledgeDepth.None;
 
         public override bool IsSupplied(EncounterContext context)
             => context?.HouseStanding != null

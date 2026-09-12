@@ -24,8 +24,12 @@ namespace NpcMemoryService.Core.Knowledge
             + "noticed the characters had never been told. Age is NOT here: PromptBuilder already states their "
             + "years and their life stage.";
 
-        /// <summary>Everyone. A beggar knows he is bleeding as surely as a king does.</summary>
-        public override bool CarriedBy(KnowledgeBearer bearer) => bearer != null;
+        /// <summary>
+        ///   Everyone, and always at the greatest depth there is: a beggar knows he is bleeding as surely as a
+        ///   king does, and nobody knows a body better than the person standing in it.
+        /// </summary>
+        public override KnowledgeDepth DepthFor(KnowledgeBearer bearer)
+            => bearer == null ? KnowledgeDepth.None : KnowledgeDepth.Deep;
 
         /// <summary>
         ///   Supplied means the host READ the body, not that the body is interesting. A hero who is perfectly

@@ -33,7 +33,9 @@ namespace NpcMemoryService.Core.Knowledge
         ///   them - but what survives <see cref="DiscretionPolicy" />, and saying so plainly is better than
         ///   inventing a condition to make the rule look substantial.
         /// </summary>
-        public override bool CarriedBy(KnowledgeBearer bearer) => bearer != null;
+        /// <summary>Everyone has their own people, and nobody knows them better than they do.</summary>
+        public override KnowledgeDepth DepthFor(KnowledgeBearer bearer)
+            => bearer == null ? KnowledgeDepth.None : KnowledgeDepth.Deep;
 
         public override bool IsSupplied(EncounterContext context)
             => context?.PersonalBonds?.Bonds != null && context.PersonalBonds.Bonds.Count > 0;

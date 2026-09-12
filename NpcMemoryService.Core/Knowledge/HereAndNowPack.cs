@@ -30,7 +30,8 @@ namespace NpcMemoryService.Core.Knowledge
             + "of it without being told, which is exactly why nobody noticed the characters had never been told.";
 
         /// <summary>Everyone. Standing outdoors in the rain is not a privilege of rank.</summary>
-        public override bool CarriedBy(KnowledgeBearer bearer) => bearer != null;
+        public override KnowledgeDepth DepthFor(KnowledgeBearer bearer)
+            => bearer == null ? KnowledgeDepth.None : KnowledgeDepth.Ordinary;
 
         /// <summary>
         ///   The host can always answer this: there is always a season and always an hour. So unlike the bonds

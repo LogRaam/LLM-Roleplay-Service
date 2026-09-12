@@ -39,8 +39,16 @@ namespace NpcMemoryService.Core.Knowledge
         ///     place that can see the home.
         ///   </para>
         /// </summary>
-        public override bool CarriedBy(KnowledgeBearer bearer)
-            => bearer != null && !bearer.IsCutOff && bearer.HoldsASeat;
+        public override KnowledgeDepth DepthFor(KnowledgeBearer bearer)
+        {
+            if (bearer == null || bearer.IsCutOff || !bearer.HoldsASeat) return KnowledgeDepth.None;
+
+            // The first real use of the depth axis, and it is Gabriel's own example the other way round: a
+            // person who LIVES in a place knows it better than the person who owns it from three towns away.
+            // A headman can tell you what is in the granary this week; his count knows how the place fares and
+            // would have to send for the tally.
+            return bearer.IsNotable ? KnowledgeDepth.Deep : KnowledgeDepth.Knowing;
+        }
 
         /// <summary>
         ///   A place always has a name and always has a state, so an empty one means nobody read the engine.
@@ -55,7 +63,8 @@ namespace NpcMemoryService.Core.Knowledge
             if (seats.Count == 0) return;
 
             // Lean says only the most closely held place, and only what would change what the character says.
-            foreach (SeatFacts seat in lean ? seats.Take(1) : seats) sb.AppendLine(Describe(seat, lean));
+            foreach (SeatFacts seat in lean ? seats.Take(1) : seats)
+                sb.AppendLine(Describe(seat, lean, LivesThere(seat)));
 
             if (lean) return;
 
@@ -71,6 +80,20 @@ namespace NpcMemoryService.Core.Knowledge
 
         #region private
 
+        /// <summary>
+        ///   Whether they are ON the spot, which is what decides how finely they know it. Read from the SEAT
+        ///   rather than from the bearer, because the bearer cannot tell the two apart: a governor and an
+        ///   absentee owner both merely "hold a seat", and the governor administers the granary daily while
+        ///   the owner is three towns away.
+        ///   <para>
+        ///     This is the per-subject half of Gabriel's depth axis. The bearer-level half - is this a person
+        ///     who lives in a place at all - answers the composition question in <see cref="DepthFor" />; how
+        ///     finely they know THIS place is a question only the place can answer.
+        ///   </para>
+        /// </summary>
+        private static bool LivesThere(SeatFacts seat)
+            => seat.Role == SeatRole.Governor || seat.Role == SeatRole.Notable;
+
         /// <summary>The places worth describing: named, and with something actually read about them.</summary>
         private static List<SeatFacts> Described(EncounterContext? context)
             => (context?.SeatStanding?.Seats ?? new List<SeatFacts>())
@@ -78,12 +101,12 @@ namespace NpcMemoryService.Core.Knowledge
                .Take(SeatStandingFacts.MaxSeatsDescribed)
                .ToList();
 
-        private static string Describe(SeatFacts seat, bool lean)
+        private static string Describe(SeatFacts seat, bool lean, bool deep)
         {
             string place = seat.PlaceName!.Trim();
             var sentence = new StringBuilder($"{Holding(seat, place)}");
 
-            List<string> clauses = Clauses(seat, lean);
+            List<string> clauses = Clauses(seat, lean, deep);
             if (clauses.Count > 0) sentence.Append($" {Sentence(clauses)}");
 
             return sentence.ToString();
@@ -108,7 +131,7 @@ namespace NpcMemoryService.Core.Knowledge
         ///   What is true of the place, urgent first. An army at the walls outranks the state of the granary,
         ///   and a character who leads with the harvest while his town is besieged has not understood the room.
         /// </summary>
-        private static List<string> Clauses(SeatFacts seat, bool lean)
+        private static List<string> Clauses(SeatFacts seat, bool lean, bool deep)
         {
             var clauses = new List<string>();
 
@@ -123,7 +146,10 @@ namespace NpcMemoryService.Core.Knowledge
             if (lean) return clauses;
 
             AddIf(clauses, Prosperity(seat));
-            AddIf(clauses, Food(seat));
+
+            // The granary is the steward's book, and only somebody who lives there reads it weekly. An
+            // absentee holder knows how the place FARES; he does not know what came in on Tuesday.
+            if (deep) AddIf(clauses, Food(seat));
             AddIf(clauses, Garrison(seat));
             AddIf(clauses, Loyalty(seat));
             AddIf(clauses, Security(seat));

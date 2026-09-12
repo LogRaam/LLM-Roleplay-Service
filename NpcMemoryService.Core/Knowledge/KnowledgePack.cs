@@ -78,6 +78,42 @@ namespace NpcMemoryService.Core.Knowledge
         PerEncounter
     }
 
+    /// <summary>
+    ///   HOW WELL somebody knows a subject. Gabriel, 2026-09-12: "un pack pourrait avoir des niveaux requis de
+    ///   connaissance pour un sujet... un habitant de village pourrait être peu connaissant du reste du monde,
+    ///   mais un Lord pourrait être très connaissant."
+    ///   <para>
+    ///     The turn that makes it fit without bending anything: depth belongs to the PAIR of a person and a
+    ///     SUBJECT, not to a person. A villager is slight on the realm and deep on his own village; a lord is
+    ///     the reverse about the price of grain. A pack already IS a subject, so the question has a natural
+    ///     home - and because <see cref="KnowledgePack.CarriedBy" /> is derived from it, there is one source
+    ///     of truth rather than two predicates that must agree (the trap that HoldsASeat fell into earlier the
+    ///     same day).
+    ///   </para>
+    ///   <para>
+    ///     THE CONSTRAINT THAT KEEPS IT HONEST: a shallower depth means FEWER FACTS, never vaguer ones. "You
+    ///     know a little about the wars" is an invitation to invent the rest, which is the exact failure the
+    ///     whole pillar exists to close. Every level must render specific things, just less of them.
+    ///   </para>
+    /// </summary>
+    public enum KnowledgeDepth
+    {
+        /// <summary>They do not know this at all. The pack is not carried.</summary>
+        None,
+
+        /// <summary>They have heard of it. The barest concrete fact, and nothing that invites elaboration.</summary>
+        Slight,
+
+        /// <summary>What anyone in their position would know.</summary>
+        Ordinary,
+
+        /// <summary>Their business. They follow it and could be asked about it.</summary>
+        Knowing,
+
+        /// <summary>They live in it. Nobody knows this subject better than they do.</summary>
+        Deep
+    }
+
     /// <summary>One coherent body of knowledge a character may carry, and everything askable about it.</summary>
     public abstract class KnowledgePack
     {
@@ -103,8 +139,18 @@ namespace NpcMemoryService.Core.Knowledge
         /// </summary>
         public abstract string Covers { get; }
 
-        /// <summary>Whether a person like this would know it. The composition rule, and a rule about the world.</summary>
-        public abstract bool CarriedBy(KnowledgeBearer bearer);
+        /// <summary>
+        ///   How well a person like this knows the subject. The composition rule, and a rule about the world.
+        ///   <see cref="KnowledgeDepth.None" /> means they do not know it at all.
+        /// </summary>
+        public abstract KnowledgeDepth DepthFor(KnowledgeBearer bearer);
+
+        /// <summary>
+        ///   Whether they know it at all. DERIVED from <see cref="DepthFor" /> and deliberately not overridable:
+        ///   two predicates that must agree are two predicates that will one day disagree, which is exactly the
+        ///   fault that had "he would know this" and "somebody told him" drift apart in the first place.
+        /// </summary>
+        public bool CarriedBy(KnowledgeBearer bearer) => DepthFor(bearer) != KnowledgeDepth.None;
 
         /// <summary>
         ///   Whether the host actually supplied it for this encounter. Separate from <see cref="CarriedBy" /> on
