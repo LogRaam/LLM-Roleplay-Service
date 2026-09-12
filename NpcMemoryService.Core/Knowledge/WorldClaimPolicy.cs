@@ -57,11 +57,34 @@ namespace NpcMemoryService.Core.Knowledge
         public const int MinTextChars = 12;
 
         /// <summary>
-        ///   How heavily a promoted claim weighs against real events. Deliberately low: an invented rumour must
-        ///   never outrank a battle or a siege in what a character brings up, and if the tuning is ever wrong
-        ///   it should be wrong in the direction of being ignored.
+        ///   How far a promoted claim travels, on the awareness scale the rumour pipeline already uses.
+        ///   <para>
+        ///     CORRECTED 2026-09-12, and the mistake is worth keeping. This was 2, chosen on the reasoning that
+        ///     "an invented rumour must never outrank a battle" - the right instinct applied to the wrong
+        ///     scale. Magnitude is not a RANK, it is a REACH in points: awareness is
+        ///     (magnitude + 25 if the observer's faction is touched + up to 25 for proximity) x recency, and
+        ///     the threshold to have heard anything at all is 50. At 2, a claim maxed out at 52 - heard only
+        ///     by somebody of the same faction standing on the doorstep on the very day. In practice, nobody,
+        ///     ever. The whole feature recorded rows no character would ever reach.
+        ///   </para>
+        ///   <para>
+        ///     Caught by a t.Note in the live self-test reporting "a third party can reach it through the
+        ///     rumour road=False", which was written as an observation and turned out to be the finding.
+        ///   </para>
+        ///   <para>
+        ///     25 puts it just below a town's real hardship (30) and far below a war declared (75), which is
+        ///     where an invented local blight belongs: it reaches the district and the realm, and not a
+        ///     stranger across the map.
+        ///   </para>
         /// </summary>
-        public const int Magnitude = 2;
+        public const int Magnitude = 25;
+
+        /// <summary>
+        ///   A thing wondered aloud rather than stated flatly. Far enough below <see cref="Magnitude" /> to be
+        ///   a real difference on this scale - at 15 it needs proximity OR the realm to be heard at all, where
+        ///   a stated claim needs only one of them.
+        /// </summary>
+        public const int HedgedMagnitude = 15;
 
         /// <summary>The subjects the engine does not model, and therefore the only ones a claim may be about.</summary>
         public static IReadOnlyList<ClaimSubject> PromotableSubjects { get; } = new List<ClaimSubject> {
@@ -137,7 +160,7 @@ namespace NpcMemoryService.Core.Knowledge
         {
             if (claim == null) return 0;
 
-            return claim.StatedAsFact ? Magnitude : Magnitude - 1;
+            return claim.StatedAsFact ? Magnitude : HedgedMagnitude;
         }
     }
 }

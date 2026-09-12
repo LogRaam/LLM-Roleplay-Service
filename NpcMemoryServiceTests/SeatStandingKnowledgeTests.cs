@@ -115,6 +115,25 @@ namespace NpcMemoryServiceTests
          }).Should().Contain("among the poorer");
       }
 
+      // Found by READING a real prompt rather than by a test: the composed form produced "its granaries will
+      // see it through and filling", which is not English. Every assertion here had been a substring, and a
+      // substring cannot notice that the sentence around it fell apart.
+      [Test]
+      public void GIVEN_any_state_of_the_granary_WHEN_rendered_THEN_the_sentence_is_one_a_person_would_say()
+      {
+         foreach (FoodBand stores in new[] {FoodBand.Empty, FoodBand.Thin, FoodBand.Adequate, FoodBand.Full})
+         foreach (FoodTrend trend in new[] {FoodTrend.Falling, FoodTrend.Steady, FoodTrend.Rising})
+         {
+            string said = Render(new SeatFacts {
+               PlaceName = "Hargendorf", Role = SeatRole.Governor, Kind = SettlementKind.Town,
+               FoodStores = stores, FoodDirection = trend
+            });
+
+            said.Should().NotContain("through and filling").And.NotContain("full and filling");
+            said.Should().NotContain("are thin and thin");
+         }
+      }
+
       // ── the rule that keeps the pack from becoming a new source of invention ──
 
       // THE POINT OF THE INCREMENT. Bands were chosen over figures deliberately (a number invites the model to

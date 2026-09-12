@@ -174,32 +174,34 @@ namespace NpcMemoryService.Core.Knowledge
             }
         }
 
+        /// <summary>
+        ///   Whole phrases rather than a stem with a suffix bolted on. A real prompt dump on 2026-09-12 showed
+        ///   the composed form producing "its granaries will see it through and filling", which is not English
+        ///   - and which no test caught, because every test asserted a substring rather than reading the
+        ///   sentence.
+        /// </summary>
         private static string? Food(SeatFacts seat)
         {
-            string stores;
+            bool falling = seat.FoodDirection == FoodTrend.Falling;
+            bool rising = seat.FoodDirection == FoodTrend.Rising;
 
             switch (seat.FoodStores)
             {
                 case FoodBand.Empty:
-                    stores = "its granaries are all but empty";
-                    break;
+                    return falling ? "its granaries are all but empty and still emptying"
+                        : rising ? "its granaries are all but empty, though filling again"
+                        : "its granaries are all but empty";
                 case FoodBand.Thin:
-                    stores = "its granaries are thin";
-                    break;
+                    return falling ? "its granaries are thin and emptying"
+                        : rising ? "its granaries are thin, though filling again"
+                        : "its granaries are thin";
                 case FoodBand.Adequate:
-                    stores = "its granaries will see it through";
-                    break;
+                    return falling ? "its granaries will see it through, though they are dropping"
+                        : "its granaries will see it through";
                 case FoodBand.Full:
-                    stores = "its granaries are full";
-                    break;
+                    return falling ? "its granaries are full, though drawing down"
+                        : "its granaries are full";
                 default: return null;
-            }
-
-            switch (seat.FoodDirection)
-            {
-                case FoodTrend.Falling: return $"{stores} and emptying";
-                case FoodTrend.Rising: return $"{stores} and filling";
-                default: return stores;
             }
         }
 

@@ -123,8 +123,12 @@ namespace NpcMemoryService.Core.Knowledge
                 return;
             }
 
-            sb.AppendLine($"You govern {seat} for your own house. It is the seat you answer for, and you know its "
-                          + "state without being told.");
+            // The tail used to read "and you know its state without being told". Two things made it wrong once
+            // seat_standing existed: it says in a second place what that pack now says properly, and for a
+            // CAPTIVE governor - who carries no seat pack, because no courier reaches a cell - it promised
+            // knowledge that then never arrived. Seen for the first time in a real prompt dump, where the same
+            // town was described twice in eight lines.
+            sb.AppendLine($"You govern {seat} for your own house. It is the seat you answer for.");
         }
 
         #endregion

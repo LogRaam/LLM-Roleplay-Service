@@ -156,12 +156,20 @@ namespace NpcMemoryServiceTests
 
       // ── how far it travels ───────────────────────────────────────────────
 
-      // An invented rumour must never outweigh a battle or a siege in what a character brings up. If this
-      // tuning is ever wrong it must be wrong in the direction of being ignored.
+      // An invented rumour must never travel as far as something that actually happened - a war declared
+      // reaches 75 on the same scale, a town's real hardship 30.
+      //
+      // The NUMBER is not asserted here on purpose, and that omission is the lesson. This test used to read
+      // "BeLessThan(5)", which was green while the magnitude was so low that NOBODY EVER HEARD A CLAIM AT ALL:
+      // awareness is (magnitude + faction + proximity) x recency against a threshold of 50, so at 2 the
+      // feature was writing rows no character could reach. Who actually hears it is pinned in the mod's
+      // NewsReachTests, which is the one project that can see both this constant and the awareness rule.
       [Test]
       public void GIVEN_any_promoted_claim_WHEN_weighed_THEN_it_never_outranks_something_that_actually_happened()
       {
-         WorldClaimPolicy.Magnitude.Should().BeLessThan(5);
+         const int aTownsRealHardship = 30;
+
+         WorldClaimPolicy.Magnitude.Should().BeLessThan(aTownsRealHardship);
          WorldClaimPolicy.ReachOf(Mildew()).Should().BeLessThanOrEqualTo(WorldClaimPolicy.Magnitude);
       }
 
