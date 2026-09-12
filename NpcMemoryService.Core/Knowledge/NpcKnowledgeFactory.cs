@@ -43,6 +43,9 @@ namespace NpcMemoryService.Core.Knowledge
 
             // After the house, because a seat is one of the house's holdings seen close up.
             new SeatStandingPack(),
+
+            // After the seat: a trader's market is the same place seen through what it costs.
+            new MarketWordPack(),
             new PersonalBondsPack()
         };
 

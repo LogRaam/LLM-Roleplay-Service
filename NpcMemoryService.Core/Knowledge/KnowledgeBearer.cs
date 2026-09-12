@@ -64,6 +64,14 @@ namespace NpcMemoryService.Core.Knowledge
         public bool IsCutOff { get; init; }
 
         /// <summary>
+        ///   Trade is how they eat: a merchant, an artisan, a caravan master. Deliberately narrower than
+        ///   <see cref="IsNotable" />, which also covers headmen and preachers, and narrower than "has money":
+        ///   a lord knows his lands make wine and has no idea what wine fetched this week, and knowing that is
+        ///   exactly what separates a merchant from a man who buys things.
+        /// </summary>
+        public bool TradesForALiving { get; init; }
+
+        /// <summary>
         ///   True when this character's own house is the PLAYER'S house, which is what makes a companion's
         ///   knowledge of the player's holdings ordinary rather than a leak.
         /// </summary>

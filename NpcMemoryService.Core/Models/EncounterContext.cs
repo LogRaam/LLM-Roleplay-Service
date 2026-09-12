@@ -1237,6 +1237,14 @@ namespace NpcMemoryService.Core.Models
       public Knowledge.OwnBodyFacts? OwnBody { get; init; }
 
       /// <summary>
+      ///   What a trader knows of their own market: what the place makes, and what is dear or cheap in it.
+      ///   Added 2026-09-12 - the one knowledge category the audit found had NO representation here at all
+      ///   (a grep for trade, price, market, goods and caravan returned only CompanionAskingPrice, a hiring
+      ///   fee), in the one profession where it is the entire conversation.
+      /// </summary>
+      public Knowledge.MarketWordFacts? MarketWord { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map
       ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
       ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).

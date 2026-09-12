@@ -130,8 +130,16 @@ namespace NpcMemoryServiceTests
       [Test]
       public void GIVEN_the_measured_character_WHEN_built_THEN_he_actually_carries_the_knowledge_packs()
       {
+         // Named rather than counted, because "all of them" stopped being true the moment a pack could
+         // legitimately REFUSE somebody: market_word belongs to people who trade for a living, and a landed
+         // lord is not one. Naming the set means a NEW pack fails this loudly, which is the point - somebody
+         // then has to decide whether the budget's worst case should carry it.
          NpcKnowledgeFactory.For(Encounter(LeanPromptLevel.Full).Bearer)
-                            .Should().HaveCount(NpcKnowledgeFactory.All.Count);
+                            .Select(p => p.Name)
+                            .Should().BeEquivalentTo(new[] {
+                               "here_and_now", "own_body", "house_standing", "house_means", "seat_standing",
+                               "personal_bonds"
+                            });
 
          string full = Build(LeanPromptLevel.Full);
 
