@@ -316,6 +316,9 @@ namespace NpcMemoryService.Core.Prompts
          // volatile (day count, time of day, scene stage, witness turn flags) and MUST stay after the marker,
          // or it invalidates the prefix cache on every single turn of a long captive scene. ─────────────────
          AppendEncounterContext(sb, encounterContext);
+         // The knowledge that changes under the character (the hour, the sky, where they stand) belongs here
+         // with the rest of the per-turn tail, not up in the identity block - see AppendVolatileKnowledge.
+         AppendVolatileKnowledge(sb, encounterContext);
          AppendWorldState(sb, world);
          AppendAtSeaNote(sb, encounterContext);
          AppendPlayerDressNote(sb, encounterContext);
@@ -2585,10 +2588,34 @@ namespace NpcMemoryService.Core.Prompts
       ///   sweep exists to report it rather than let it pass in silence.
       /// </summary>
       private static void AppendComposedKnowledge(StringBuilder sb, EncounterContext? context)
+         => sb.Append(ComposeKnowledge(context).Stable);
+
+      /// <summary>
+      ///   The knowledge that changes under the character - the hour, the sky, where they are standing. Emitted
+      ///   BELOW the encounter marker, with the day count and the scene stage, because that is where the prompt
+      ///   already keeps what cannot be cached.
+      ///   <para>
+      ///     Measured 2026-09-12: with here_and_now rendered up in the identity block, changing only the hour
+      ///     and the weather cost 10,018 characters of a 37,267-character prompt - 27% - since every section
+      ///     below it was invalidated too. The seam comment above <c>AppendEncounterContext</c> had named "time
+      ///     of day" as belonging here all along; the packs simply had no way to say which of them was which.
+      ///   </para>
+      /// </summary>
+      private static void AppendVolatileKnowledge(StringBuilder sb, EncounterContext? context)
+         => sb.Append(ComposeKnowledge(context).Volatile);
+
+      /// <summary>
+      ///   Composes every pack this character carries and the host supplied, and splits the result by where it
+      ///   may be rendered. Deterministic and pure, so the two call sites agree without sharing state - and so
+      ///   the Compact ALLOWANCE is applied once across both halves rather than twice over.
+      /// </summary>
+      private static (string Stable, string Volatile) ComposeKnowledge(EncounterContext? context)
       {
-         if (context?.Bearer == null) return;
+         if (context?.Bearer == null) return ("", "");
 
          bool lean = (context.LeanLevel) == LeanPromptLevel.Lean;
+         var stable = new StringBuilder();
+         var volatileText = new StringBuilder();
          var spent = 0;
 
          // What a character IS comes first and is never budgeted; what a character KNOWS follows and is.
@@ -2615,12 +2642,15 @@ namespace NpcMemoryService.Core.Prompts
                 && pack.Kind == Knowledge.PackKind.Contingent
                 && spent + rendered.Length > Knowledge.NpcKnowledgeFactory.LeanBudgetChars) continue;
 
-            sb.Append(rendered);
+            if (pack.Volatility == Knowledge.PackVolatility.PerEncounter) volatileText.Append(rendered);
+            else stable.Append(rendered);
 
             // Only what is budgeted counts against the budget: a constitutive pack cannot be made to crowd out
             // the knowledge, and cannot be crowded out by it either.
             if (pack.Kind == Knowledge.PackKind.Contingent) spent += rendered.Length;
          }
+
+         return (stable.ToString(), volatileText.ToString());
       }
 
       private static void AppendGovernorship(StringBuilder sb, EncounterContext context)

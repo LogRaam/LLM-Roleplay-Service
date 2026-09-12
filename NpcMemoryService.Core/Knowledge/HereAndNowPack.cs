@@ -18,6 +18,13 @@ namespace NpcMemoryService.Core.Knowledge
     {
         public override string Name => "here_and_now";
 
+        /// <summary>
+        ///   The hour, the sky and the place all change under the character, so this must sit below the
+        ///   encounter marker or it takes the whole prefix with it every time the clock moves. Measured at
+        ///   10,018 characters of a 37,267-character prompt on 2026-09-12.
+        /// </summary>
+        public override PackVolatility Volatility => PackVolatility.PerEncounter;
+
         public override string Covers =>
             "The season, the hour, whether it is night, and what the weather is doing. Everyone alive knows all "
             + "of it without being told, which is exactly why nobody noticed the characters had never been told.";

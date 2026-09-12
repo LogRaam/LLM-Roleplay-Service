@@ -52,6 +52,32 @@ namespace NpcMemoryService.Core.Knowledge
         Constitutive
     }
 
+    /// <summary>
+    ///   Whether a pack's content survives from one encounter to the next, which decides WHERE in the prompt
+    ///   it may be rendered.
+    ///   <para>
+    ///     Measured 2026-09-12 and it was not theoretical: on a 37,267-character prompt, changing only the
+    ///     hour and the weather cost 10,018 characters of cacheable prefix - 27% - because here_and_now
+    ///     rendered inside the stable prefix and everything below it was invalidated with it. PromptBuilder's
+    ///     own seam comment had already named "time of day" as belonging after the marker; the pack simply
+    ///     had no way to say so.
+    ///   </para>
+    /// </summary>
+    public enum PackVolatility
+    {
+        /// <summary>
+        ///   Holds still from one conversation to the next. Belongs in the cacheable prefix, with everything
+        ///   else about who this person is.
+        /// </summary>
+        Stable,
+
+        /// <summary>
+        ///   Changes with the hour, the weather, the map. Belongs BELOW the encounter marker, with the day
+        ///   count and the scene stage, where the prompt already keeps what cannot be cached.
+        /// </summary>
+        PerEncounter
+    }
+
     /// <summary>One coherent body of knowledge a character may carry, and everything askable about it.</summary>
     public abstract class KnowledgePack
     {
@@ -60,6 +86,13 @@ namespace NpcMemoryService.Core.Knowledge
         ///   somebody deliberately argues it is part of who the character is.
         /// </summary>
         public virtual PackKind Kind => PackKind.Contingent;
+
+        /// <summary>
+        ///   Whether this survives from one encounter to the next. Defaults to <see cref="PackVolatility.Stable" />,
+        ///   because the safe direction is the cheap one: a stable pack wrongly marked volatile only moves down
+        ///   the prompt, while a volatile one left in the prefix silently costs every later section its cache.
+        /// </summary>
+        public virtual PackVolatility Volatility => PackVolatility.Stable;
 
         /// <summary>Short stable name, used by the completeness sweep and the generated design page.</summary>
         public abstract string Name { get; }
