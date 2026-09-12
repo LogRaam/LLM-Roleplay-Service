@@ -112,7 +112,11 @@ namespace NpcMemoryServiceTests
                   new() {PersonName = "Liena", Kind = BondKind.Beloved, Discretion = Discretion.Guarded}
                }
             },
-            Audience = new ListeningAudience {Regard = 70, InPrivate = true}
+            Audience = new ListeningAudience {Regard = 70, InPrivate = true},
+
+            // The worst case includes a player the law wants: a clean record renders nothing, so measuring a
+            // budget against one would measure a prompt cheaper than the one a criminal campaign sends.
+            Underworld = new UnderworldFacts {PlayerNotoriety = Notoriety.Severe, PlaceName = "Ocs Hall"}
          };
 
       // The catalog is real and large. If this ever drops to nothing, every other assertion here becomes
@@ -138,7 +142,7 @@ namespace NpcMemoryServiceTests
                             .Select(p => p.Name)
                             .Should().BeEquivalentTo(new[] {
                                "here_and_now", "own_body", "house_standing", "house_means", "seat_standing",
-                               "personal_bonds"
+                               "personal_bonds", "underworld", "station"
                             });
 
          string full = Build(LeanPromptLevel.Full);

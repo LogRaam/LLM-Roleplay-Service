@@ -72,6 +72,16 @@ namespace NpcMemoryService.Core.Knowledge
         public bool TradesForALiving { get; init; }
 
         /// <summary>
+        ///   They are of the criminal trade: a gang leader, a gangster. It decides whether they know WHOSE
+        ///   ground they are standing on, which a lord of the same town does not - the player's notoriety is
+        ///   public, the underworld's own arrangements are not.
+        ///   <para>
+        ///     Gabriel, 2026-09-12: "plusieurs joueurs jouent des malfrats avec le mod Fourberie."
+        ///   </para>
+        /// </summary>
+        public bool IsUnderworld { get; init; }
+
+        /// <summary>
         ///   True when this character's own house is the PLAYER'S house, which is what makes a companion's
         ///   knowledge of the player's holdings ordinary rather than a leak.
         /// </summary>

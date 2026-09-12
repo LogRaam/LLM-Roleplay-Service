@@ -107,7 +107,11 @@ namespace NpcMemoryServiceTests
       public void GIVEN_a_clan_head_who_also_governs_WHEN_built_THEN_both_are_said_because_both_are_true()
       {
          string prompt = Build(new EncounterContext {
-            LeadsOwnClan = true, GovernedSettlementName = "Hargendorf", GovernsForPlayerHouse = true
+            // The house NAME now travels on the context rather than on the profile: station became a
+            // knowledge pack on 2026-09-12, and a pack reads the context. The host fills it from the
+            // LIVE hero, so a context built by hand must do the same or it measures its own setup.
+            LeadsOwnClan = true, SpeakerClanName = "Aelindrath",
+            GovernedSettlementName = "Hargendorf", GovernsForPlayerHouse = true
          });
 
          prompt.Should().Contain("HEAD the Aelindrath clan");

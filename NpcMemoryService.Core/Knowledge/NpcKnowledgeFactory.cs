@@ -30,6 +30,9 @@ namespace NpcMemoryService.Core.Knowledge
         ///   comment somebody writes.
         /// </summary>
         public static IReadOnlyList<KnowledgePack> All { get; } = new List<KnowledgePack> {
+            // What they ARE comes first, and is never budgeted away. See PackKind.
+            new StationPack(),
+
             // The room first: where and when they are standing frames everything said after it.
             new HereAndNowPack(),
 
@@ -46,6 +49,9 @@ namespace NpcMemoryService.Core.Knowledge
 
             // After the seat: a trader's market is the same place seen through what it costs.
             new MarketWordPack(),
+
+            // The same town seen from underneath: who is wanted, and whose ground this is.
+            new UnderworldPack(),
             new PersonalBondsPack()
         };
 
@@ -73,6 +79,16 @@ namespace NpcMemoryService.Core.Knowledge
         // have, and this is where they came from - personal_bonds, last in the order, yields in Compact only.
         // That is the mechanism doing its job: a feature displaces a feature, visibly, instead of a player's
         // 8k context breaking. Full keeps every pack.
+
+        /// <summary>
+        ///   The packs that say what a character IS. They apply to EVERYBODY, including somebody the host
+        ///   could not compose a bearer for: "we do not know who this is" is precisely when a crown must
+        ///   still be stated, and making identity depend on a successful composition would rebuild the
+        ///   king-denies-his-crown bug one level down. Found by twelve existing tests failing the moment
+        ///   station became a pack (2026-09-12).
+        /// </summary>
+        public static IReadOnlyList<KnowledgePack> Constitutive { get; } =
+            All.Where(p => p.Kind == PackKind.Constitutive).ToList();
 
         /// <summary>What a person like this carries. Unknown bearer carries nothing, which refuses rather than guesses.</summary>
         public static IReadOnlyList<KnowledgePack> For(KnowledgeBearer bearer)

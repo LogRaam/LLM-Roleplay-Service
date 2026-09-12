@@ -1245,6 +1245,22 @@ namespace NpcMemoryService.Core.Models
       public Knowledge.MarketWordFacts? MarketWord { get; init; }
 
       /// <summary>
+      ///   What the streets know: how badly the player is wanted in this character's realm, and who holds the
+      ///   criminal trade of this place. Added 2026-09-12 for the players who run criminal campaigns, after an
+      ///   audit found the underworld's VOICE had existed for a long time (the station-matched behaviour
+      ///   guidelines already say "you are an outlaw and a cutthroat") while its KNOWLEDGE had never existed
+      ///   at all.
+      /// </summary>
+      public Knowledge.UnderworldFacts? Underworld { get; init; }
+
+      /// <summary>
+      ///   The SPEAKING character's own house name. Added 2026-09-12 when station became a knowledge pack: a
+      ///   pack reads the context and not the profile, and the clan-head line needs the name. The host has it
+      ///   either way, so this is a seam rather than a new fact.
+      /// </summary>
+      public string? SpeakerClanName { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map
       ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
       ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).

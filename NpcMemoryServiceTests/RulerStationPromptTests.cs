@@ -89,7 +89,9 @@ namespace NpcMemoryServiceTests
       [Test]
       public void GIVEN_an_npc_who_heads_their_clan_WHEN_built_THEN_they_are_told_they_lead_it()
       {
-         Build(new EncounterContext {LeadsOwnClan = true}).Should().Contain("You HEAD the dey Meroc clan");
+         // The house name travels on the context since station became a knowledge pack (2026-09-12).
+         Build(new EncounterContext {LeadsOwnClan = true, SpeakerClanName = "dey Meroc"})
+            .Should().Contain("You HEAD the dey Meroc clan");
       }
 
       // A king also heads the ruling clan, which is true and worth nothing beside a crown. Saying both would spend

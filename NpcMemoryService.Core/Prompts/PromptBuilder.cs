@@ -2549,39 +2549,6 @@ namespace NpcMemoryService.Core.Prompts
       ///   Tells an NPC what they ARE in the realm: the crown they wear, or failing that the house they head.
       ///   A ruler is not also told they head the ruling clan, which is true but says nothing next to a crown.
       /// </summary>
-      private static void AppendStation(StringBuilder sb, NpcProfile npc, EncounterContext? context)
-      {
-         if (context == null) return;
-
-         if (!string.IsNullOrWhiteSpace(context.RuledRealmName))
-         {
-            string title = string.IsNullOrWhiteSpace(context.RuledRealmRulerTitle) ? "ruler" : context.RuledRealmRulerTitle!.Trim();
-            sb.AppendLine($"YOU RULE {context.RuledRealmName!.Trim().ToUpperInvariant()}. You are its {title}, its sovereign, and you hold that "
-                          + "throne now. Never deny it, and never call yourself merely a lord in its service: whoever addresses you as "
-                          + $"{title} is simply correct.");
-
-            return;
-         }
-
-         if (context.LeadsOwnClan && !string.IsNullOrWhiteSpace(npc.Clan))
-            sb.AppendLine($"You HEAD the {npc.Clan.Trim()} clan. Its people, its holdings and its word are yours to answer for.");
-
-         AppendGovernorship(sb, context);
-      }
-
-      /// <summary>
-      ///   The post this character actually holds, which they cannot possibly have failed to notice.
-      ///   <para>
-      ///     Player report 2026-09-11 (fkasad): a companion appointed governor through the vanilla interface did
-      ///     not know, a year later, either that he governed the town or that the player's house held it. The
-      ///     memory the conversation left says the player "REVEALED" it. Nothing was revealed; he was simply
-      ///     never told, and the model reported that honestly.
-      ///   </para>
-      ///   <para>
-      ///     Additive rather than an early return, unlike the crown above it: a man may head his house AND keep
-      ///     a town, and both are true at once.
-      ///   </para>
-      /// </summary>
       /// <summary>
       ///   Every knowledge pack this character CARRIES and the host actually SUPPLIED. The two conditions are
       ///   asked separately on purpose: their gap is where fkasad's governor lived, and the live completeness
@@ -2611,7 +2578,7 @@ namespace NpcMemoryService.Core.Prompts
       /// </summary>
       private static (string Stable, string Volatile) ComposeKnowledge(EncounterContext? context)
       {
-         if (context?.Bearer == null) return ("", "");
+         if (context == null) return ("", "");
 
          bool lean = (context.LeanLevel) == LeanPromptLevel.Lean;
          var stable = new StringBuilder();
@@ -2621,10 +2588,14 @@ namespace NpcMemoryService.Core.Prompts
          // What a character IS comes first and is never budgeted; what a character KNOWS follows and is.
          // Dropping a contingent pack leaves someone less informed; dropping a constitutive one leaves nobody
          // at all (Gabriel, 2026-09-12).
-         foreach (Knowledge.KnowledgePack pack in Knowledge.NpcKnowledgeFactory.For(context.Bearer)
-                                                           .OrderBy(p => p.Kind == Knowledge.PackKind.Constitutive
-                                                                       ? 0
-                                                                       : 1))
+         // Constitutive packs apply to everybody, INCLUDING somebody the host could not compose a bearer for:
+         // an unknown speaker is exactly when a crown must still be stated. Contingent packs need a bearer,
+         // because "what would a person like this know" has no answer without one.
+         foreach (Knowledge.KnowledgePack pack in Knowledge.NpcKnowledgeFactory.Constitutive
+                                                           .Concat(Knowledge.NpcKnowledgeFactory
+                                                                            .For(context.Bearer)
+                                                                            .Where(p => p.Kind
+                                                                                     == Knowledge.PackKind.Contingent)))
          {
             if (!pack.IsSupplied(context)) continue;
 
@@ -2653,26 +2624,7 @@ namespace NpcMemoryService.Core.Prompts
          return (stable.ToString(), volatileText.ToString());
       }
 
-      private static void AppendGovernorship(StringBuilder sb, EncounterContext context)
-      {
-         if (string.IsNullOrWhiteSpace(context.GovernedSettlementName)) return;
-
-         string seat = context.GovernedSettlementName!.Trim();
-
-         if (context.GovernsForPlayerHouse)
-         {
-            sb.AppendLine($"YOU GOVERN {seat.ToUpperInvariant()}, and you govern it FOR THE PLAYER'S HOUSE. They hold "
-                          + "that town; you keep it in their name. Both of those are ordinary daily facts of your "
-                          + "life, not news: never receive either one as though you were hearing it for the first "
-                          + "time, and never congratulate them on holding what you have been administering for them.");
-
-            return;
-         }
-
-         sb.AppendLine($"You govern {seat} for your own house. It is the seat you answer for, and you know its "
-                       + "state without being told.");
-      }
-
+      /// <summary>
       private static void AppendIdentity(StringBuilder sb, NpcProfile npc, EncounterContext? encounterContext)
       {
          // A clanless NPC (a hunted notable, a landless wanderer) has no house to name. Older data stored the
@@ -2697,7 +2649,9 @@ namespace NpcMemoryService.Core.Prompts
          // exactly what a player reported of Derthert and Garios. Stated HERE, as part of who they are, rather
          // than inside the vassal-offer section where the only rulership fact used to live, gated behind an
          // offer being available at all.
-         AppendStation(sb, npc, encounterContext);
+         // Station used to be appended here. It is now the first CONSTITUTIVE knowledge pack, rendered by
+         // AppendComposedKnowledge a few lines below: same position, same strings, and now it can never be
+         // budgeted away - which is what a crown must never be.
 
          // What this character knows, composed rather than scattered (ROADMAP: "WHAT A CHARACTER KNOWS").
          // Rendered beside the station because both answer the same question - who is this person, and what does
