@@ -418,25 +418,12 @@ namespace NpcMemoryService.Core.Models
       public string? CompanionNewsReport { get; init; }
 
       /// <summary>
-      ///   Companion-briefing pillar (2026-09-07): a standing instruction the PLAYER gave THIS companion in a
-      ///   SEPARATE, private conversation ("a word with my own people") held before this one, captured verbatim
-      ///   (never an LLM summary, see <c>CalradiaRemembers.Logic.CompanionBriefPolicy</c>) and resolved by the
-      ///   host keyed on the SPEAKING hero's own id, so it is present ONLY when building this exact companion's
-      ///   own turn, and simply ABSENT (null) when building anyone else's, including the conversation's target,
-      ///   who was never present for the briefing and must never be handed it, not even with an instruction to
-      ///   keep it secret. Several briefings STACK, bounded, and it expires once the conversation it was
-      ///   actually carried into closes. Never gated by <see cref="LeanPromptPolicy.Include" />: the player's
-      ///   own explicit instruction survives Lean, unlike the flavour sections Lean drops.
-      /// </summary>
-      public string? CompanionBrief { get; init; }
-
-      /// <summary>
       ///   Companion-briefing pillar, revised per Gabriel's ruling (2026-09-07): the briefing chat must be a
       ///   REAL conversation, not a scripted acknowledgment, so a companion answering here needs to know WHAT
       ///   this scene is or they will answer as though <see cref="CompanionBriefingTargetName" /> were standing
       ///   right there. True only for a turn inside the private briefing chat ITSELF (the player drawing this
       ///   companion aside, out of the target's hearing, before going in to speak with them); false for every
-      ///   other conversation, including the later one the resulting <see cref="CompanionBrief" /> rides into.
+      ///   other conversation, including the later one the private memory it leaves behind reaches.
       ///   Drives a bespoke framing section telling the model this is not that meeting, and that it must answer
       ///   honestly (agree, question the plan, or plead unsuited), never reduced to a bare acknowledgment.
       ///   Default false.
