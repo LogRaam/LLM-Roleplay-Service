@@ -233,18 +233,34 @@ namespace NpcMemoryServiceTests
          Build(LeanPromptLevel.Lean).Length.Should().BeLessThan(16000);
       }
 
-      // And the trim is what buys that room. Every action survives; only the prose about it is cut, so a small
-      // model can still emit any verb a large one can.
+      // And the trim is what buys that room. The guarantee this pins USED to be "every one of the 69 verbs is
+      // still listed, only the prose is cut", and on 2026-09-12 it was deliberately narrowed: a verb with a
+      // gated teaching of its own is listed exactly when that teaching rendered. What must never narrow is
+      // the rest - a verb with NO gate is still offered to a small model exactly as it is to a large one, so
+      // Compact never quietly takes a capability away. See VerbCatalogPolicy.
       [Test]
-      public void GIVEN_compact_mode_WHEN_built_THEN_every_action_is_still_offered_just_described_briefly()
+      public void GIVEN_compact_mode_WHEN_built_THEN_every_ungated_action_is_still_offered_just_described_briefly()
       {
          string lean = Build(LeanPromptLevel.Lean);
          string full = Build(LeanPromptLevel.Full);
 
-         foreach (GameActionDefinition action in RealVocabulary())
+         foreach (GameActionDefinition action in RealVocabulary()
+                                                 .Where(a => !VerbCatalogPolicy.Gated.Contains(a.Type)))
             lean.Should().Contain("- " + action.Type + ":");
 
          lean.Length.Should().BeLessThan(full.Length);
+      }
+
+      // The other half of that narrowing, and the half that could hurt: this subject has NO availability flag
+      // set, so no gated teaching renders, so no gated verb may be listed. If one is, the catalogue is once
+      // more offering deeds the game will refuse - which was 7,019 characters of a 16,000-character prompt.
+      [Test]
+      public void GIVEN_a_subject_who_can_do_none_of_the_gated_deeds_WHEN_compact_THEN_none_of_them_is_offered()
+      {
+         string lean = Build(LeanPromptLevel.Lean);
+
+         foreach (string gated in VerbCatalogPolicy.Gated)
+            lean.Should().NotContain("- " + gated + ":", $"nothing in this prompt teaches {gated}");
       }
 
       // The saving must be substantial or the trim was not worth making. Measured at the time: the action list
@@ -283,7 +299,9 @@ namespace NpcMemoryServiceTests
       {
          string full = Build(LeanPromptLevel.Full);
 
-         foreach (GameActionDefinition action in RealVocabulary().Take(12))
+         foreach (GameActionDefinition action in RealVocabulary()
+                                                 .Where(a => !VerbCatalogPolicy.Gated.Contains(a.Type))
+                                                 .Take(12))
             full.Should().Contain(action.Description);
       }
 

@@ -347,7 +347,9 @@ namespace NpcMemoryService.Core.Prompts
          // Last of all (highest recency) — the modder's own post-history instructions, if any.
          AppendPostHistoryInstructions(sb, vars);
 
-         return sb.ToString();
+         // The verb catalogue is the LAST thing written even though it sits near the top of the prompt:
+         // it lists what this prompt TAUGHT, and until this line that was not known. See VerbCatalogPolicy.
+         return VerbCatalogPolicy.Resolve(sb.ToString(), ActionVocabulary, lean);
       }
 
       /// <summary>
@@ -5218,17 +5220,17 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Emit actions only when the world should actually change — not for narration alone.");
          sb.AppendLine();
          sb.AppendLine("Available actions:");
-         foreach (GameActionDefinition? def in ActionVocabulary)
-         {
-            string parameterList = def.Parameters.Count == 0
-               ? string.Empty
-               : $" (parameters: {string.Join(", ", def.Parameters)})";
-            // Lean carries all 69 actions but not all 11,565 characters of prose about them: a budget test that
-            // never set a vocabulary had been measuring a prompt with no GAME ACTIONS section at all, so nothing
-            // ever trimmed this and Compact mode was never compact (DuskSymphony, 2026-09-10, 9496 tokens into
-            // an 8192 context on a fresh install). Every verb stays emittable; only the prose is cut.
-            sb.AppendLine($"- {def.Type}: {ActionVocabularyPolicy.Describe(def.Description, lean)}{parameterList}");
-         }
+
+         // DEFERRED, not rendered here. The list can only be written once the whole prompt is known, because
+         // it lists what the prompt TAUGHT and every teaching section comes after this point. See
+         // VerbCatalogPolicy for the measurement that made a static list untenable: 7,019 of a 16,000-char
+         // Compact prompt, sixty-nine verbs, on a character for whom every one of them was refused.
+         //
+         // Lean also carries no more than 90 characters of prose per verb, which is the other half of the same
+         // fight (DuskSymphony, 2026-09-10, 9496 tokens into an 8192 context on a fresh install). That cut has
+         // reached its floor - the distribution is flat at a 105-character median - so what remains to cut is
+         // verbs, not words.
+         sb.AppendLine(VerbCatalogPolicy.Placeholder);
 
          sb.AppendLine();
          sb.AppendLine("Action format (one block per action; multiple actions per response allowed):");
