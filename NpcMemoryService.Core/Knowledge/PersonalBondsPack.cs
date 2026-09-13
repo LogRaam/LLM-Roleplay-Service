@@ -81,6 +81,20 @@ namespace NpcMemoryService.Core.Knowledge
             sb.AppendLine("These are your own affairs, and old ground to you. Bring one up when it bears on what "
                           + "is being said, the way anyone mentions their own people; never recite them, and "
                           + "never speak of them as though you had only just remembered they existed.");
+
+            // A direct question is not the same as an opening, and the restraint above used to cover both.
+            // Asked point blank whom she could not forgive, a lord with a live grievance answered "grudges are
+            // a currency in this land... but forgive is a heavier word" - a musing somebody with NO grudge
+            // would have given word for word. Twice in a row the same character named him and then did not,
+            // which is what an unqualified permission to stay silent buys: a coin flip.
+            //
+            // Nothing here needs guarding: anything a secret forbids has already been filtered out of the list
+            // above, so what remains is by definition sayable. Same shape as the granary rule - do not only
+            // restrain, say what to do when you ARE asked.
+            sb.AppendLine("If you are asked about them PLAINLY - whether you love anyone, whom you cannot "
+                          + "forgive - answer from what is written above rather than in generalities. A remark "
+                          + "about grudges or love in the abstract is exactly what somebody with none would "
+                          + "give, and you are not that person.");
         }
 
         #region private

@@ -22,6 +22,7 @@ using FluentAssertions;
 using NpcMemoryService.Core.Knowledge;
 using NpcMemoryService.Core.Models;
 using NUnit.Framework;
+using System.Linq;
 
 #endregion
 
@@ -146,7 +147,11 @@ namespace NpcMemoryServiceTests
 
          string said = Render(many, Confidant());
 
-         said.Split('\n').Length.Should().BeLessThan(PersonalBondsFacts.MaxNamed + 4);
+         // Counts the PEOPLE, not the lines. It used to count lines as a proxy, and a line of coaching added
+         // for an unrelated reason broke it - a test bound to the shape of the block rather than to the rule
+         // it guards, which is the thing this repository keeps learning not to write.
+         said.Split('\n').Count(line => line.StartsWith("- "))
+             .Should().Be(PersonalBondsFacts.MaxNamed);
       }
 
       // Nothing tellable must produce no heading, rather than a title over an empty list.
@@ -200,6 +205,28 @@ namespace NpcMemoryServiceTests
 
          Render(bonds, Confidant(), true).Should().Contain("Zerosica");
          Render(bonds, Confidant(), true).Length.Should().BeLessThan(Render(bonds, Confidant()).Length);
+      }
+
+      // Found by a FLAKY live probe, which is a finding rather than a nuisance. Asked point blank whom she
+      // could not forgive, a lord with a live grievance named him once and then, on the identical seed and the
+      // identical question, answered "grudges are a currency in this land... but forgive is a heavier word" -
+      // a musing somebody with NO grudge would have given word for word.
+      //
+      // The prompt had bought that coin flip: "yours to raise or not", and "bring one up when it bears on what
+      // is being said", are both unqualified permissions to stay silent, and a direct question is not an
+      // opening. The restraint stays - it is what stops recitation - and now it says what to do when asked.
+      [Test]
+      public void GIVEN_the_full_prompt_WHEN_read_THEN_a_plain_question_is_owed_a_plain_answer()
+      {
+         string said = Render(new[] {
+            new PersonalBond {PersonName = "Manteos", Kind = BondKind.Enemy, Discretion = Discretion.Open}
+         }, new ListeningAudience {Regard = 20, InPrivate = false});
+
+         said.Should().Contain("asked about them PLAINLY");
+         said.Should().Contain("rather than in generalities");
+
+         // And the restraint it qualifies must survive: without it every conversation opens with a roll-call.
+         said.Should().Contain("never recite them");
       }
    }
 }
