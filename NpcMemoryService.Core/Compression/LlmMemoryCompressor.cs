@@ -211,6 +211,23 @@ namespace NpcMemoryService.Core.Compression
          for (int i = Math.Max(0, events.Count - RecentEventsAlwaysKept); i < events.Count; i++)
             protected_.Add(i);
 
+         // PRIVATE MEMORIES ARE SINGLETONS, and that is the whole argument (audit, 13/09/2026). Every other
+         // event in this ledger left a trace somewhere else: it was rendered to a witness, it reached the
+         // target's prompt, it was summarised into somebody's BackgroundContext. A private one never did - it
+         // is deliberately excluded from BuildWitnessMemory, which is the single path by which one hero's
+         // memories reach another's prompt. So this list is the only copy in the game, and a compressor that
+         // drops it destroys the thing rather than compressing it.
+         //
+         // Concretely: a companion briefing is written as NotableEventType.Other, which is protected by
+         // nothing here. Five newer events and the compression model could quietly forget the mission the
+         // player drew him aside to give - the exact failure the whole pillar exists to prevent.
+         //
+         // Unconditional, matching every other entry below. These are rare by construction (one per private
+         // word), so this cannot crowd out the compressor's work the way protecting a common type would.
+         for (var i = 0; i < events.Count; i++)
+            if (events[i].IsPrivate)
+               protected_.Add(i);
+
          // Always-keep types
          for (var i = 0; i < events.Count; i++)
          {

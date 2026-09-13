@@ -2515,7 +2515,18 @@ namespace NpcMemoryService.Core.Prompts
          for (int i = start; i < npc.Events.Count; i++)
          {
             NotableEvent ev = npc.Events[i];
-            sb.AppendLine($"- Day {ev.gameDay} ({ev.type}{RecencySuffix(ev.gameDay, currentDay)}): {ev.summary}");
+
+            // A PRIVATE memory says so, here in the line itself (audit, 13/09/2026). IsPrivate already keeps
+            // this out of everyone ELSE's prompt (BuildWitnessMemory filters it), but the character who holds
+            // it was never told it was a confidence - so a companion briefed to charm a lord could name the
+            // instruction out loud to that very lord, and nothing in the prompt had suggested otherwise.
+            //
+            // This is ADVICE and cannot be anything else, which is worth being plain about in a codebase whose
+            // rule is that the bridge is law: an action has a verb the bridge can refuse, but a secret told
+            // aloud has no syntactic signature to catch. What this buys is that revealing it becomes a
+            // CHARACTER'S CHOICE rather than an accident of a prompt that never mentioned discretion.
+            string confided = ev.IsPrivate ? " [said to you in confidence - do not repeat it in front of others]" : "";
+            sb.AppendLine($"- Day {ev.gameDay} ({ev.type}{RecencySuffix(ev.gameDay, currentDay)}): {ev.summary}{confided}");
          }
          sb.AppendLine();
          sb.AppendLine("Respond as someone who lived through these events. Reference them when relevant,");
