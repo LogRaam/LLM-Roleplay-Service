@@ -25,6 +25,9 @@ namespace NpcMemoryService.Core.Knowledge
             + "clan member the house IS the player's, which is why they know the player's holdings without that "
             + "being a leak; for anyone else it is their own house, and the player's affairs are none of it.";
 
+        /// <summary>Lands and wars: durable, and mostly background to what is being said now.</summary>
+        public override int DropPriority => 40;
+
         /// <summary>
         ///   Anyone with a house of their own knows its standing. A landless wanderer has none to know about,
         ///   and a settlement notable answers for a town rather than sitting at a house's council.

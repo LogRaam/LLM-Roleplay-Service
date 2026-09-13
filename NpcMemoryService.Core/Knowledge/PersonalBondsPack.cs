@@ -28,12 +28,16 @@ namespace NpcMemoryService.Core.Knowledge
             + "enemies, and the ones they have loved. Everyone has these; what varies is whom, and how much of "
             + "it they would say to the person in front of them.";
 
+        /// <summary>Everyone has their own people, and nobody knows them better than they do.</summary>
+        /// <summary>The people he carries. The richest colour there is, and the first thing a small model
+        ///   can do without - it changes how a scene sounds, never what may be agreed in it.</summary>
+        public override int DropPriority => 65;
+
         /// <summary>
         ///   Everyone has a life. The interesting rule for this pack is not WHO carries it - that is all of
         ///   them - but what survives <see cref="DiscretionPolicy" />, and saying so plainly is better than
         ///   inventing a condition to make the rule look substantial.
         /// </summary>
-        /// <summary>Everyone has their own people, and nobody knows them better than they do.</summary>
         public override KnowledgeDepth DepthFor(KnowledgeBearer bearer)
             => bearer == null ? KnowledgeDepth.None : KnowledgeDepth.Deep;
 

@@ -26,6 +26,9 @@ namespace NpcMemoryService.Core.Knowledge
             + "a lord, who knows his fiefs make wine without knowing what wine fetched this week. Prosperity, "
             + "safety and the granary are NOT here: seat_standing already tells a notable those.";
 
+        /// <summary>A trader's whole living. He carries few other packs, so this rarely competes.</summary>
+        public override int DropPriority => 35;
+
         /// <summary>
         ///   Whose living it is. A real composition rule that can be false, unlike the packs everyone carries:
         ///   a lord knows his lands make wine and has no idea what wine fetched this week, and knowing prices

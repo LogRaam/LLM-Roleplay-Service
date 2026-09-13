@@ -24,6 +24,10 @@ namespace NpcMemoryService.Core.Knowledge
             + "temper of the camp, and how many are hurt. Everyone who marches with it knows whether it is "
             + "hungry or sullen; whoever holds the post that answers for a thing knows that thing more closely.";
 
+        /// <summary>The player's own company, and it decides what its people may promise him. Also the most
+        ///   leak-sensitive content here, so it is never worth trading away for atmosphere.</summary>
+        public override int DropPriority => 15;
+
         /// <summary>
         ///   Only the people actually in the company. A lord met on the road has no idea how the player's
         ///   waggons are stocked, and telling him would be the leak this pillar spends its time preventing.

@@ -24,6 +24,10 @@ namespace NpcMemoryService.Core.Knowledge
             + "noticed the characters had never been told. Age is NOT here: PromptBuilder already states their "
             + "years and their life stage.";
 
+        /// <summary>A body decides what may be PROMISED. A man barely on his feet who agrees to ride out
+        ///   has broken the anti-empty-promise rule, which no amount of colour makes up for.</summary>
+        public override int DropPriority => 10;
+
         /// <summary>
         ///   Everyone, and always at the greatest depth there is: a beggar knows he is bleeding as surely as a
         ///   king does, and nobody knows a body better than the person standing in it.

@@ -10,6 +10,7 @@
 
 #region
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -75,10 +76,15 @@ namespace NpcMemoryService.Core.Knowledge
         ///     arithmetic that happened to work, and the next pack would have broken it silently.
         ///   </para>
         ///   <para>
-        ///     So Compact spends at most this, packs are offered the budget in <see cref="All" /> order, and
-        ///     one that will not fit is skipped rather than truncated - a half-rendered fact is worse than an
-        ///     absent one. The order is therefore a PRIORITY: the room first, then the house, then what it can
-        ///     bring to bear, then the seat, and personal bonds last because they are the most droppable.
+        ///     So Compact spends at most this, and a pack that will not fit is skipped rather than truncated -
+        ///     a half-rendered fact is worse than an absent one.
+        ///   </para>
+        ///   <para>
+        ///     WHICH pack is skipped is <see cref="KnowledgePack.DropPriority" />, NOT this list. It was this
+        ///     list until 2026-09-12, when a second measurement showed what that costs at thirteen packs: a
+        ///     rich character in Compact kept his grudges and lost the fact that the player was wanted. The
+        ///     order below is the order things are SAID, and it is no longer asked to answer a question it was
+        ///     never written to answer.
         ///   </para>
         /// </summary>
         public const int LeanBudgetChars = 560;
@@ -98,6 +104,65 @@ namespace NpcMemoryService.Core.Knowledge
         /// </summary>
         public static IReadOnlyList<KnowledgePack> Constitutive { get; } =
             All.Where(p => p.Kind == PackKind.Constitutive).ToList();
+
+        /// <summary>
+        ///   Which of these packs a Compact prompt can afford, returned in the order they were given so the
+        ///   caller still SAYS them in narrative order. The two orderings are separate, and this is the seam.
+        ///   <para>
+        ///     THE ORDERINGS HAD TO BE SPLIT, and the measurement that forced it is worth keeping. Until
+        ///     2026-09-12 the drop was first-fit down <see cref="All" />, which is the order things are said.
+        ///     With seven packs that was harmless. With thirteen, a rich character in Compact kept his
+        ///     personal grudges - 60 characters, last in the registry - and lost, in this order: that the
+        ///     player is badly WANTED, that a war has been declared, and that his own company is short of
+        ///     food. Every one of those changes what he may say or agree to; the grudges change how it
+        ///     sounds. The registry had quietly become a priority list nobody had ever written as one.
+        ///   </para>
+        ///   <para>
+        ///     Greedy by <see cref="KnowledgePack.DropPriority" />, ties broken by the given order so the
+        ///     result is deterministic. A cheap pack may still slip in behind an expensive one that would not
+        ///     fit: the allowance exists to be spent, and the rule that matters is that a pack is skipped
+        ///     WHOLE rather than truncated, because half a fact can say the opposite of what it meant.
+        ///   </para>
+        ///   <para>
+        ///     It lives here rather than in the builder for the reason the registry does: a composition rule
+        ///     that only the producer can run is a rule no test can check without re-implementing it, and a
+        ///     re-implemented rule is the budget guard that was green and blind to all five packs.
+        ///   </para>
+        /// </summary>
+        /// <param name="carried">The packs that rendered something, in the order they will be said.</param>
+        /// <param name="costOf">What each one costs in characters, as actually rendered.</param>
+        public static IReadOnlyList<KnowledgePack> AffordableInCompact(IReadOnlyList<KnowledgePack> carried,
+                                                                      Func<KnowledgePack, int> costOf)
+        {
+            if (carried == null || costOf == null) return new List<KnowledgePack>();
+
+            var kept = new HashSet<KnowledgePack>();
+            var spent = 0;
+
+            IEnumerable<KnowledgePack> byValue = carried.Select((pack, order) => (pack, order))
+                                                        .OrderBy(x => x.pack.DropPriority)
+                                                        .ThenBy(x => x.order)
+                                                        .Select(x => x.pack);
+
+            foreach (KnowledgePack pack in byValue)
+            {
+                // Only what is budgeted counts against the budget: a constitutive pack cannot be made to
+                // crowd out the knowledge, and cannot be crowded out by it either.
+                if (pack.Kind == PackKind.Constitutive)
+                {
+                    kept.Add(pack);
+
+                    continue;
+                }
+
+                if (spent + costOf(pack) > LeanBudgetChars) continue;
+
+                kept.Add(pack);
+                spent += costOf(pack);
+            }
+
+            return carried.Where(kept.Contains).ToList();
+        }
 
         /// <summary>What a person like this carries. Unknown bearer carries nothing, which refuses rather than guesses.</summary>
         public static IReadOnlyList<KnowledgePack> For(KnowledgeBearer bearer)

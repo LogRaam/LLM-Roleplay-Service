@@ -29,6 +29,9 @@ namespace NpcMemoryService.Core.Knowledge
             "The season, the hour, whether it is night, and what the weather is doing. Everyone alive knows all "
             + "of it without being told, which is exactly why nobody noticed the characters had never been told.";
 
+        /// <summary>Atmosphere, and cheap enough that it usually fits anyway.</summary>
+        public override int DropPriority => 55;
+
         /// <summary>Everyone. Standing outdoors in the rain is not a privilege of rank.</summary>
         public override KnowledgeDepth DepthFor(KnowledgeBearer bearer)
             => bearer == null ? KnowledgeDepth.None : KnowledgeDepth.Ordinary;

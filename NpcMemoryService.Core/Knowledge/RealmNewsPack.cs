@@ -4,6 +4,7 @@
 
 #region
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,6 +20,9 @@ namespace NpcMemoryService.Core.Knowledge
     /// </summary>
     public sealed class RealmNewsPack : KnowledgePack
     {
+        /// <summary>How many tidings a COMPACT prompt can carry, whatever the character's reach.</summary>
+        public const int LeanTidings = 2;
+
         public override string Name => "realm_news";
 
         public override string Covers =>
@@ -32,6 +36,9 @@ namespace NpcMemoryService.Core.Knowledge
         ///   than up in the identity block where it would cost every later section its prefix.
         /// </summary>
         public override PackVolatility Volatility => PackVolatility.PerEncounter;
+
+        /// <summary>The wider world. It matters, and it matters less than the room he is standing in.</summary>
+        public override int DropPriority => 45;
 
         /// <summary>
         ///   Everybody hears something; how much depends on what they are. A lord's word reaches furthest, a
@@ -68,7 +75,7 @@ namespace NpcMemoryService.Core.Knowledge
             if (depth == KnowledgeDepth.None) return;
 
             AppendHeadline(sb, news.Headline, lean);
-            AppendTidings(sb, Reaching(news.Tidings, depth), lean);
+            AppendTidings(sb, Reaching(news.Tidings, depth, lean), lean);
         }
 
         #region private
@@ -78,13 +85,22 @@ namespace NpcMemoryService.Core.Knowledge
         ///   PEOPLE rather than a constant: it replaces a hard-coded four that applied to a headman and a
         ///   marshal alike.
         /// </summary>
-        private static List<Tiding> Reaching(IReadOnlyList<Tiding> all, KnowledgeDepth depth)
+        private static List<Tiding> Reaching(IReadOnlyList<Tiding> all, KnowledgeDepth depth, bool lean)
         {
             int room = depth switch {
                 KnowledgeDepth.Slight => 1,
                 KnowledgeDepth.Ordinary => 3,
                 _ => 5
             };
+
+            // A BOUNDED ALLOWANCE in Compact, and it is a budget rule rather than a depth rule - a lord's
+            // reach has not shrunk, his prompt has. Measured 2026-09-12: a lord's five tidings made this pack
+            // 358 characters of a 560-character Compact allowance, so it could almost never be afforded
+            // beside anything, and what a small model then lost was the WHOLE pack - the headline with it.
+            // Losing the war declaration to keep the fifth rumour about it is the wrong trade, so the list
+            // yields and the headline never does. Same shape as the Lean witness allowance shipped in 2.5.5,
+            // for the same reason: cost must not grow with how full a character's life is.
+            if (lean) room = Math.Min(room, LeanTidings);
 
             // A distant, unverified rumour has travelled a long way to arrive, and it arrives where people
             // keep couriers. Somebody who hears what the market hears does not get it at all - which is a

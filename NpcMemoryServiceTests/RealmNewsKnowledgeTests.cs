@@ -32,6 +32,7 @@ using NpcMemoryService.Core.Models;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 using System.Text;
 
 #endregion
@@ -192,6 +193,47 @@ namespace NpcMemoryServiceTests
       public void GIVEN_a_companion_of_the_players_house_WHEN_composing_THEN_they_hear_as_the_house_hears()
       {
          Pack.DepthFor(new KnowledgeBearer {IsPlayerCompanion = true}).Should().Be(KnowledgeDepth.Knowing);
+      }
+
+      // ── the Compact allowance, which is a BUDGET rule and not a depth rule ──
+
+      // Measured 2026-09-12: a lord's five tidings made this pack 358 characters of a 560-character Compact
+      // allowance, so it could hardly ever be afforded beside anything else - and a pack that cannot be
+      // afforded is dropped WHOLE, headline included. Losing "Vlandia has declared war on Sturgia" in order
+      // to keep the fifth rumour about it is the wrong trade, so in Compact the list yields and the headline
+      // never does. His reach has not shrunk; his prompt has.
+      [Test]
+      public void GIVEN_a_lord_who_hears_everything_WHEN_compact_THEN_the_headline_survives_and_the_list_yields()
+      {
+         var news = new RealmNewsFacts {
+            Headline = "Vlandia has declared war on Sturgia.",
+            Tidings = Enumerable.Range(1, 5)
+                                .Select(i => new Tiding {Text = $"A thing happened, the {i}th"})
+                                .ToList()
+         };
+
+         var sb = new StringBuilder();
+         new RealmNewsPack().Render(sb, new EncounterContext {RealmNews = news, Bearer = Lord()}, true);
+         string said = sb.ToString();
+
+         said.Should().Contain("declared war on Sturgia");
+         Items(said).Should().Be(RealmNewsPack.LeanTidings, "the list is bounded in Compact, the headline is not");
+      }
+
+      // And Full is untouched: the bound is what a small model can afford, never what a lord has heard.
+      [Test]
+      public void GIVEN_the_same_lord_WHEN_the_prompt_is_full_THEN_every_tiding_his_reach_allows_still_arrives()
+      {
+         var news = new RealmNewsFacts {
+            Tidings = Enumerable.Range(1, 5)
+                                .Select(i => new Tiding {Text = $"A thing happened, the {i}th"})
+                                .ToList()
+         };
+
+         var sb = new StringBuilder();
+         new RealmNewsPack().Render(sb, new EncounterContext {RealmNews = news, Bearer = Lord()}, false);
+
+         Items(sb.ToString()).Should().Be(5);
       }
    }
 }

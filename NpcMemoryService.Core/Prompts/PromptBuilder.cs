@@ -2580,10 +2580,7 @@ namespace NpcMemoryService.Core.Prompts
       {
          if (context == null) return ("", "");
 
-         bool lean = (context.LeanLevel) == LeanPromptLevel.Lean;
-         var stable = new StringBuilder();
-         var volatileText = new StringBuilder();
-         var spent = 0;
+         bool lean = context.LeanLevel == LeanPromptLevel.Lean;
 
          // What a character IS comes first and is never budgeted; what a character KNOWS follows and is.
          // Dropping a contingent pack leaves someone less informed; dropping a constitutive one leaves nobody
@@ -2591,34 +2588,45 @@ namespace NpcMemoryService.Core.Prompts
          // Constitutive packs apply to everybody, INCLUDING somebody the host could not compose a bearer for:
          // an unknown speaker is exactly when a crown must still be stated. Contingent packs need a bearer,
          // because "what would a person like this know" has no answer without one.
-         foreach (Knowledge.KnowledgePack pack in Knowledge.NpcKnowledgeFactory.Constitutive
-                                                           .Concat(Knowledge.NpcKnowledgeFactory
-                                                                            .For(context.Bearer)
-                                                                            .Where(p => p.Kind
-                                                                                     == Knowledge.PackKind.Contingent)))
+         List<Knowledge.KnowledgePack> carried =
+            Knowledge.NpcKnowledgeFactory.Constitutive
+                     .Concat(Knowledge.NpcKnowledgeFactory
+                                      .For(context.Bearer)
+                                      .Where(p => p.Kind == Knowledge.PackKind.Contingent))
+                     .ToList();
+
+         var spoken = new List<Knowledge.KnowledgePack>();
+         var said = new Dictionary<Knowledge.KnowledgePack, string>();
+
+         foreach (Knowledge.KnowledgePack pack in carried)
          {
             if (!pack.IsSupplied(context)) continue;
 
-            var rendered = new StringBuilder();
-            pack.Render(rendered, context, lean);
+            var sb = new StringBuilder();
+            pack.Render(sb, context, lean);
 
-            if (rendered.Length == 0) continue;
+            if (sb.Length == 0) continue;
 
-            // Compact spends a fixed allowance across ALL packs, so what a character costs cannot grow with
-            // how full their life is or with how many packs exist. A pack that will not fit is skipped whole
-            // rather than truncated: half a fact reads as a corrupted prompt, and a fact cut mid-clause can
-            // say the opposite of what it meant. See NpcKnowledgeFactory.LeanBudgetChars for the measurement
-            // that forced this.
-            if (lean
-                && pack.Kind == Knowledge.PackKind.Contingent
-                && spent + rendered.Length > Knowledge.NpcKnowledgeFactory.LeanBudgetChars) continue;
+            spoken.Add(pack);
+            said[pack] = sb.ToString();
+         }
 
-            if (pack.Volatility == Knowledge.PackVolatility.PerEncounter) volatileText.Append(rendered);
-            else stable.Append(rendered);
+         // WHAT is said is the loop above; WHICH of it survives a small model is a composition rule, and so
+         // it lives with the other composition rules. Full keeps everything.
+         var kept = new HashSet<Knowledge.KnowledgePack>(
+            lean
+               ? Knowledge.NpcKnowledgeFactory.AffordableInCompact(spoken, p => said[p].Length)
+               : spoken);
 
-            // Only what is budgeted counts against the budget: a constitutive pack cannot be made to crowd out
-            // the knowledge, and cannot be crowded out by it either.
-            if (pack.Kind == Knowledge.PackKind.Contingent) spent += rendered.Length;
+         var stable = new StringBuilder();
+         var volatileText = new StringBuilder();
+
+         foreach (Knowledge.KnowledgePack pack in spoken)
+         {
+            if (!kept.Contains(pack)) continue;
+
+            if (pack.Volatility == Knowledge.PackVolatility.PerEncounter) volatileText.Append(said[pack]);
+            else stable.Append(said[pack]);
          }
 
          return (stable.ToString(), volatileText.ToString());

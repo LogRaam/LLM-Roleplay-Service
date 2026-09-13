@@ -24,6 +24,10 @@ namespace NpcMemoryService.Core.Knowledge
             + "holds the criminal trade of this place, which only the underworld would. The voice of a gang "
             + "leader already existed in the behaviour guidelines; this is what he actually knows.";
 
+        /// <summary>Whether they know the player is wanted changes the entire scene. Measured 2026-09-12: on
+        ///   registry order this was DROPPED while personal grudges survived, which is the wrong scene.</summary>
+        public override int DropPriority => 20;
+
         /// <summary>
         ///   Everyone knows a wanted face; only the trade knows who runs the trade. The first pack whose two
         ///   depths carry genuinely different FACTS rather than the same fact at two lengths.

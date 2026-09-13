@@ -27,6 +27,9 @@ namespace NpcMemoryService.Core.Knowledge
             + "safe, and whether it is under siege, raided, starving or in revolt. In bands rather than figures, "
             + "because a lord knows how his seat fares and has never counted its stores.";
 
+        /// <summary>His own seat, and a siege at his walls outranks nearly anything else he might mention.</summary>
+        public override int DropPriority => 30;
+
         /// <summary>
         ///   Anyone who answers for a place: the lord who holds it, the companion who governs it, the headman
         ///   who lives in it. Note it is not about rank - a village headman knows his own granary far better

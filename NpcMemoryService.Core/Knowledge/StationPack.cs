@@ -41,6 +41,10 @@ namespace NpcMemoryService.Core.Knowledge
         /// <summary>What somebody IS is never contingent, so this is carried by everyone alive.</summary>
         public override PackKind Kind => PackKind.Constitutive;
 
+        /// <summary>Constitutive, so it is never budgeted at all - this is stated only so the ordering reads
+        ///   completely.</summary>
+        public override int DropPriority => 0;
+
         /// <summary>
         ///   Nobody knows their own rank at second hand, and nobody is unsure of it. Deep for anybody at all -
         ///   which a constitutive pack must be, since "mandatory" and "everyone has it" are the same claim.

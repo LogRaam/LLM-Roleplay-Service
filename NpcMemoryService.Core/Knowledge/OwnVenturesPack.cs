@@ -25,6 +25,9 @@ namespace NpcMemoryService.Core.Knowledge
             + "market_word, which is the market they stand in: these are the things that earn while they are "
             + "somewhere else, and a lord may own them without knowing the price of grain.";
 
+        /// <summary>What earns for him elsewhere. Colour in almost every conversation.</summary>
+        public override int DropPriority => 60;
+
         /// <summary>
         ///   Whoever owns one. The host decides that, because only the host can see whether the ventures were
         ///   actually read - the one-read rule that HoldsASeat and the market both learned.

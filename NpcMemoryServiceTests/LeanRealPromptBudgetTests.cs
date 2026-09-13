@@ -170,21 +170,31 @@ namespace NpcMemoryServiceTests
       [Test]
       public void GIVEN_a_character_who_knows_everything_WHEN_compact_THEN_the_knowledge_section_stays_inside_its_allowance()
       {
-         var knowledge = new StringBuilder();
          EncounterContext context = Encounter(LeanPromptLevel.Lean);
-         var spent = 0;
+
+         // Asks the REAL rule rather than re-implementing it. It used to re-implement it, which is how a
+         // budget guard came to be green while measuring a prompt that contained no packs at all.
+         var cost = new Dictionary<KnowledgePack, int>();
+         var carried = new List<KnowledgePack>();
 
          foreach (KnowledgePack pack in NpcKnowledgeFactory.For(context.Bearer))
          {
             if (!pack.IsSupplied(context)) continue;
 
-            knowledge.Clear();
-            pack.Render(knowledge, context, true);
+            var rendered = new StringBuilder();
+            pack.Render(rendered, context, true);
 
-            if (spent + knowledge.Length > NpcKnowledgeFactory.LeanBudgetChars) continue;
+            if (rendered.Length == 0) continue;
 
-            spent += knowledge.Length;
+            carried.Add(pack);
+            cost[pack] = rendered.Length;
          }
+
+         carried.Should().HaveCountGreaterThan(5, "the guard must measure somebody who actually knows things");
+
+         int spent = NpcKnowledgeFactory.AffordableInCompact(carried, p => cost[p])
+                                        .Where(p => p.Kind == PackKind.Contingent)
+                                        .Sum(p => cost[p]);
 
          spent.Should().BeLessThanOrEqualTo(NpcKnowledgeFactory.LeanBudgetChars);
 

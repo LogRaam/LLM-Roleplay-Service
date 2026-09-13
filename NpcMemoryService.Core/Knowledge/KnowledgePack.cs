@@ -124,6 +124,23 @@ namespace NpcMemoryService.Core.Knowledge
         public virtual PackKind Kind => PackKind.Contingent;
 
         /// <summary>
+        ///   Which packs a Compact prompt keeps when it cannot keep them all. LOWER survives longer.
+        ///   <para>
+        ///     Separate from the registry order on purpose, and it had to become separate the moment there
+        ///     were thirteen packs. The registry order is NARRATIVE - the order things are said - and using it
+        ///     to decide what to DROP produced exactly the wrong answer: measured 2026-09-12, a rich character
+        ///     in Compact kept his personal grudges and lost the fact that the player was BADLY WANTED, that a
+        ///     war had been declared, and that his own company was running out of food.
+        ///   </para>
+        ///   <para>
+        ///     The ordering principle: what changes what a character can SAY OR DO outranks what colours how
+        ///     he says it. A man who does not know the player is wanted plays a different scene; a man who
+        ///     does not mention his cousin plays the same one slightly flatter.
+        ///   </para>
+        /// </summary>
+        public virtual int DropPriority => 50;
+
+        /// <summary>
         ///   Whether this survives from one encounter to the next. Defaults to <see cref="PackVolatility.Stable" />,
         ///   because the safe direction is the cheap one: a stable pack wrongly marked volatile only moves down
         ///   the prompt, while a volatile one left in the prefix silently costs every later section its cache.

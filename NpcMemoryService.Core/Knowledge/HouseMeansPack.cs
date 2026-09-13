@@ -26,6 +26,9 @@ namespace NpcMemoryService.Core.Knowledge
             + "carries at court. The half of fkasad's report - 'armies, treasury' - that house_standing did not "
             + "answer.";
 
+        /// <summary>Coin and men decide what he can agree to, which is the anti-empty-promise rule again.</summary>
+        public override int DropPriority => 25;
+
         /// <summary>
         ///   The same rule as <c>house_standing</c> today, and deliberately written out rather than shared: a
         ///   member of a house knows what that house is worth, and for a companion the house IS the player's,
