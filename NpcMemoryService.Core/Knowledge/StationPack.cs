@@ -59,7 +59,8 @@ namespace NpcMemoryService.Core.Knowledge
                && (!string.IsNullOrWhiteSpace(context.RuledRealmName)
                    || context.LeadsOwnClan
                    || !string.IsNullOrWhiteSpace(context.GovernedSettlementName)
-                   || !string.IsNullOrWhiteSpace(context.PartyPostHeld));
+                   || !string.IsNullOrWhiteSpace(context.PartyPostHeld)
+                   || context.RidesAsRetainer);
 
         public override void Render(StringBuilder sb, EncounterContext context, bool lean)
         {
@@ -92,9 +93,29 @@ namespace NpcMemoryService.Core.Knowledge
 
             AppendGovernorship(sb, context);
             AppendPartyPost(sb, context);
+            AppendRetainer(sb, context);
         }
 
         #region private
+
+        /// <summary>
+        ///   Riding with the player without belonging to them, which is a distinction only this line makes.
+        ///   PresenceNote already tells such a lord he travels at the player's side and shares their camp; on
+        ///   its own that reads as having joined the household. The three things it cannot say are what make
+        ///   him a retainer: for a TIME, by his OWN agreement, and his house is still his own.
+        /// </summary>
+        private static void AppendRetainer(StringBuilder sb, EncounterContext context)
+        {
+            if (!context.RidesAsRetainer) return;
+
+            string house = (context.SpeakerClanName ?? "").Trim();
+            string mine = house.Length > 0 ? $"the {house}" : "your own house";
+
+            sb.AppendLine($"You ride in the player's company for a time, by your own agreement, and you remain "
+                          + $"of {mine}. You have not joined their household and you owe them no oath: this is "
+                          + "a courtesy between houses that either of you may end, and you speak as a guest "
+                          + "rather than as one of their people.");
+        }
 
         /// <summary>
         ///   The post they hold in the player's own company. Additive like the governorship: a man may head his

@@ -132,6 +132,38 @@ namespace NpcMemoryServiceTests
              .And.Contain("You are the scout");
       }
 
+      // The last of the posts the player grants that nobody had told the holder about, and the one whose
+      // absence was actively misleading: PresenceNote already says such a lord "travels at the player's side,
+      // sharing camp and road day after day", which on its own reads as having joined the household.
+      [Test]
+      public void GIVEN_a_lord_riding_along_by_agreement_WHEN_he_speaks_THEN_he_knows_he_has_not_joined_them()
+      {
+         string said = Render(new EncounterContext {RidesAsRetainer = true, SpeakerClanName = "Osticos"});
+
+         said.Should().Contain("for a time, by your own agreement");
+         said.Should().Contain("remain of the Osticos");
+         said.Should().Contain("have not joined their household");
+      }
+
+      // A host that forgot the house name costs the NAME and never the arrangement, the same rule the
+      // clan-head line learned when a real prompt dump showed it vanishing whole.
+      [Test]
+      public void GIVEN_a_retainer_whose_house_was_not_named_WHEN_rendered_THEN_the_arrangement_still_stands()
+      {
+         string said = Render(new EncounterContext {RidesAsRetainer = true});
+
+         said.Should().Contain("remain of your own house");
+         said.Should().Contain("by your own agreement");
+      }
+
+      // And it is not handed to the player's own people, who HAVE joined the household - that would tell a
+      // sworn companion he owes no oath, which is a worse sentence than the one being fixed.
+      [Test]
+      public void GIVEN_somebody_who_is_not_riding_as_a_retainer_WHEN_rendered_THEN_nothing_says_they_are_a_guest()
+      {
+         Render(new EncounterContext {PartyPostHeld = "quartermaster"}).Should().NotContain("owe them no oath");
+      }
+
       // ── what makes it constitutive ───────────────────────────────────────
 
       // The whole point of the kind. A crown must never be droppable, whatever else a character is carrying.

@@ -1302,6 +1302,18 @@ namespace NpcMemoryService.Core.Models
       public string? PartyPostHeld { get; init; }
 
       /// <summary>
+      ///   True when this character rides in the player's company as a RETAINER: a lord of another house who
+      ///   agreed to ride along for a time and remains of his own clan.
+      ///   <para>
+      ///     The last of the posts the player grants that nobody had told the holder about. PresenceNote
+      ///     already says "you travel at the player's side, sharing camp and road" - which, on its own, invites
+      ///     a lord of another house to conclude he has joined the household. What it cannot say is the part
+      ///     that makes him a retainer: it is temporary, it was HIS agreement, and his own house is still his.
+      ///   </para>
+      /// </summary>
+      public bool RidesAsRetainer { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map
       ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
       ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).
