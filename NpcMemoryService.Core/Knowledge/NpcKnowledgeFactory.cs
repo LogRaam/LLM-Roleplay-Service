@@ -47,6 +47,9 @@ namespace NpcMemoryService.Core.Knowledge
             // After the house, because a seat is one of the house's holdings seen close up.
             new SeatStandingPack(),
 
+            // The company they ride in, which is a seat of a different kind.
+            new PartyStandingPack(),
+
             // After the seat: a trader's market is the same place seen through what it costs.
             new MarketWordPack(),
 

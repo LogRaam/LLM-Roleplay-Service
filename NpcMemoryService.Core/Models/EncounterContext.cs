@@ -1284,6 +1284,24 @@ namespace NpcMemoryService.Core.Models
       public bool SharedPartnersAreCustomary { get; init; }
 
       /// <summary>
+      ///   How the player's own company is faring, for the people riding in it. Added 2026-09-12 with the post
+      ///   below: telling a man he is quartermaster and nothing else does not stop him inventing the stores, it
+      ///   gives him a reason to.
+      /// </summary>
+      public Knowledge.PartyStandingFacts? PartyStanding { get; init; }
+
+      /// <summary>
+      ///   The post this character holds in the player's company, as the engine records it. Empty for an
+      ///   ordinary member.
+      ///   <para>
+      ///     Found by the role audit: the context carried three OFFER gates and only ONE matching "post
+      ///     actually held". The mod assigns party roles through its own verb and never told the holder, which
+      ///     is exactly fkasad's governor a second time.
+      ///   </para>
+      /// </summary>
+      public string? PartyPostHeld { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map
       ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
       ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).

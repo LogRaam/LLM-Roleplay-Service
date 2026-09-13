@@ -107,6 +107,31 @@ namespace NpcMemoryServiceTests
          said.Should().Contain("HEAD the dey Meroc").And.Contain("You govern Ocs Hall");
       }
 
+      // fkasad's bug in its SECOND place, found by the role audit rather than by a player this time: the mod
+      // assigns party roles through its own verb and never told the man he held one.
+      [Test]
+      public void GIVEN_the_quartermaster_of_the_players_company_WHEN_he_speaks_THEN_his_post_is_not_news()
+      {
+         string said = Render(new EncounterContext {PartyPostHeld = "quartermaster"});
+
+         said.Should().Contain("You are the quartermaster of the player's own company");
+         said.Should().Contain("never receive it as news");
+      }
+
+      // Additive like the governorship: a man may head his house, keep a town AND carry the player's ledger,
+      // and all three are true at once.
+      [Test]
+      public void GIVEN_a_lord_who_also_carries_the_ledger_WHEN_rendered_THEN_every_post_he_holds_is_stated()
+      {
+         string said = Render(new EncounterContext {
+            LeadsOwnClan = true, SpeakerClanName = "dey Meroc",
+            GovernedSettlementName = "Ocs Hall", PartyPostHeld = "scout"
+         });
+
+         said.Should().Contain("HEAD the dey Meroc").And.Contain("You govern Ocs Hall")
+             .And.Contain("You are the scout");
+      }
+
       // ── what makes it constitutive ───────────────────────────────────────
 
       // The whole point of the kind. A crown must never be droppable, whatever else a character is carrying.

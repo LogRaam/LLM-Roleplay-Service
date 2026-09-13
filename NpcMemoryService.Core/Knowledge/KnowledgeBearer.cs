@@ -82,6 +82,20 @@ namespace NpcMemoryService.Core.Knowledge
         public bool IsUnderworld { get; init; }
 
         /// <summary>
+        ///   They march in the player's own company. What the waggons hold and how the camp feels is theirs to
+        ///   know; a lord met on the road has no business with either.
+        /// </summary>
+        public bool RidesWithThePlayer { get; init; }
+
+        /// <summary>
+        ///   The post they hold in that company, if any. The engine has kept EffectiveQuartermaster,
+        ///   EffectiveScout, EffectiveSurgeon and EffectiveEngineer all along, and the mod appoints to them
+        ///   through its own verb - and until 2026-09-12 never told the man he held one, which is fkasad's
+        ///   governor in a second place.
+        /// </summary>
+        public PartyPost PartyPost { get; init; } = PartyPost.None;
+
+        /// <summary>
         ///   True when this character's own house is the PLAYER'S house, which is what makes a companion's
         ///   knowledge of the player's holdings ordinary rather than a leak.
         /// </summary>

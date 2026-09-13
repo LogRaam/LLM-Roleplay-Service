@@ -58,7 +58,8 @@ namespace NpcMemoryService.Core.Knowledge
             => context != null
                && (!string.IsNullOrWhiteSpace(context.RuledRealmName)
                    || context.LeadsOwnClan
-                   || !string.IsNullOrWhiteSpace(context.GovernedSettlementName));
+                   || !string.IsNullOrWhiteSpace(context.GovernedSettlementName)
+                   || !string.IsNullOrWhiteSpace(context.PartyPostHeld));
 
         public override void Render(StringBuilder sb, EncounterContext context, bool lean)
         {
@@ -90,9 +91,24 @@ namespace NpcMemoryService.Core.Knowledge
             }
 
             AppendGovernorship(sb, context);
+            AppendPartyPost(sb, context);
         }
 
         #region private
+
+        /// <summary>
+        ///   The post they hold in the player's own company. Additive like the governorship: a man may head his
+        ///   house, keep a town AND carry the player's ledger, and all three are true at once.
+        /// </summary>
+        private static void AppendPartyPost(StringBuilder sb, EncounterContext context)
+        {
+            string post = (context.PartyPostHeld ?? "").Trim();
+            if (post.Length == 0) return;
+
+            sb.AppendLine($"You are the {post} of the player's own company. It is your post and your daily "
+                          + "work: never receive it as news, and never thank them for it as though it had just "
+                          + "been given.");
+        }
 
         /// <summary>
         ///   The post this character actually holds, which they cannot possibly have failed to notice.
