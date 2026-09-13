@@ -293,6 +293,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendRecruitPrisoner(sb, encounterContext);
          AppendPrisonerCannotDefect(sb, encounterContext);
          AppendRecruitNotable(sb, encounterContext);
+         AppendTakeIntoService(sb, encounterContext);
          AppendPrisonerRescueBargain(sb, encounterContext);
          AppendTeachSkill(sb, encounterContext);
          // gather_news was folded into dispatch_mission (2026-08-05): AppendDispatchMissionOffer above is now the
@@ -3880,6 +3881,46 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("The game then hands your role to a successor and moves you into the player's clan and party. If you");
          sb.AppendLine("are not yet ready, say so and emit nothing. Never claim you have joined them, or named a successor,");
          sb.AppendLine("unless you emit this action.");
+      }
+
+      /// <summary>
+      ///   take_into_service: the player has companions THIS lord could take into their own household, and the
+      ///   game has confirmed each of them is genuinely free to go (<see
+      ///   cref="EncounterContext.CompanionsOfferableToThisLord" /> lists them by name; a spouse, a sitting
+      ///   governor, or someone away on an errand is filtered out host-side and never appears).
+      ///   <para>
+      ///     THE ONE VERB THAT POINTS OUTWARD, which is exactly why the teaching names the companions rather
+      ///     than describing them: every neighbouring verb brings somebody in, and a model that has to pick a
+      ///     name off a list cannot drift into the reverse direction. Built 13/09/2026 because a lord agreed
+      ///     to take a companion under her banner and the game had nothing to execute.
+      ///   </para>
+      ///   <para>
+      ///     Suppressed in a captor scene and on council/round-table turns, the same carve-out every sibling
+      ///     1:1 offer applies. The bridge re-runs the whole gate, so a stray emission is harmless.
+      ///   </para>
+      /// </summary>
+      private static void AppendTakeIntoService(StringBuilder sb, EncounterContext? context)
+      {
+         if (string.IsNullOrWhiteSpace(context?.CompanionsOfferableToThisLord)) return;
+         if (context!.IsCaptorScene) return;
+         if (context.IsRoundTableTurn || context.IsCouncilNarratorTurn) return;
+
+         sb.AppendLine();
+         sb.AppendLine("TAKING ONE OF THEIR PEOPLE INTO YOUR OWN SERVICE:");
+         sb.AppendLine("They keep companions of their own, and these ones are free to change hands if it comes to that:");
+         sb.AppendLine(context.CompanionsOfferableToThisLord!.Trim());
+         sb.AppendLine("You may take one into YOUR household - your clan, your banner, your pay - if they offer and you");
+         sb.AppendLine("want them, or if you ask and they agree. This is a real parting: the player loses them. So it only");
+         sb.AppendLine("rings true once both of you have plainly said so in the conversation, never on a whim, and never as");
+         sb.AppendLine("something you will see to later.");
+         sb.AppendLine();
+         sb.AppendLine("When that is genuinely settled between you, play the moment in character, then emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: take_into_service");
+         sb.AppendLine("target: <the companion's name, exactly as written above>");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The game then moves them out of the player's clan and into yours. Never say you have taken someone");
+         sb.AppendLine("into your service unless you emit this action. If you are only weighing it, say so and emit nothing.");
       }
 
       /// <summary>

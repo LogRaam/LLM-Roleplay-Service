@@ -550,6 +550,19 @@ namespace NpcMemoryService.Core.Actions
                   "a NOBLE LORD forsaking their own house to join the clan instead (no post, no successor), which is the distinct verb join_clan",
                   "a free wanderer with no post, hired into the party for a price, which is join_party, never recruit_notable"
                }),
+            Spec("take_into_service",
+               "This NPC lord takes one of the PLAYER'S OWN companions into their household: the companion leaves the player's clan and party and enters this lord's service.",
+               tells: new[] {
+                  "one of the player's companions actually passes into this NPC's household or service in this reply, with both sides agreed"
+               },
+               antiPatterns: new[] {
+                  "the lord merely admiring, weighing, or asking after the companion, with no transfer actually agreed",
+                  "a future intention ('when the campaign is done', 'send him to me in the spring') rather than the companion entering service now",
+                  "the reverse direction, somebody joining the PLAYER instead, which is join_party / join_clan / recruit_notable / recruit_prisoner and never this verb",
+                  "the companion merely being lent for a task or riding along for a while, which is not entering another house's service",
+                  "the player's own SPOUSE being spoken of, whatever is agreed: a marriage is not a term of service"
+               },
+               new GameActionParam("target", "the companion's name (optional when only one companion is present, which the game then takes to be the one meant)")),
             Spec("grant_blessing",
                "The NPC, as head of their clan, consents to the player marrying the named kin of their house (or the NPC themselves).",
                tells: new[] {

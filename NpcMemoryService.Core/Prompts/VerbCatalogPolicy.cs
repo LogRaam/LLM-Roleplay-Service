@@ -85,6 +85,7 @@ namespace NpcMemoryService.Core.Prompts
 
             // Prisoners and recruitment.
             "recruit_prisoner", "recruit_notable", "rescue_prisoner", "teach_skill", "join_clan",
+            "take_into_service",
             "end_mercenary", "recall_companion", "scheme_heed",
 
             // Added 2026-09-13 from a live report: a companion in a PRIVATE BRIEFING reached for

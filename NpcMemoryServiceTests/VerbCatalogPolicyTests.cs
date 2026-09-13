@@ -63,6 +63,9 @@ namespace NpcMemoryServiceTests
             PartnerLoverKnown = true, PartnerLoverName = "Liena",
 
             CanRecruitPrisoner = true, CanRecruitNotable = true, NpcIsPrisonerOfAnother = true,
+            // take_into_service: the one verb that points OUTWARD, so the permissive subject has to be
+            // someone the player could give a companion TO, not just someone who could join them.
+            CompanionsOfferableToThisLord = "Nabb the Bloody Handed",
             TeachableSkills = new List<string> {"Riding", "Bow"},
 
             LordRecruitEligible = true, PlayerIsMercenary = true, CompanionOnErrand = true,

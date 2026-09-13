@@ -961,6 +961,25 @@ namespace NpcMemoryService.Core.Models
       public bool CanRecruitNotable { get; init; }
 
       /// <summary>
+      ///   take_into_service: the player's own companions THIS NPC could take into their household, one
+      ///   display name each (e.g. "Nabb the Bloody Handed, Coll the Unbroken"). Host-computed via
+      ///   <c>CalradiaRemembers.Logic.Companions.CompanionServiceTransferPolicy</c>, so a companion who is the
+      ///   player's spouse, governs one of their fiefs, or is away on an errand never appears here.
+      ///   <para>
+      ///     Null or empty means there is nobody to take, and the verb is not taught. THE DIRECTION IS WHAT
+      ///     MAKES IT DISTINCT: every other recruiting verb brings somebody INTO the player's household
+      ///     (<c>recruit_notable</c>, <c>join_clan</c>, <c>join_party</c>, <c>recruit_prisoner</c>); this one
+      ///     is the only one that gives somebody away.
+      ///   </para>
+      ///   <para>
+      ///     Built 13/09/2026 on Gabriel's ruling after a lord agreed in prose to take his companion under her
+      ///     banner and the game had no way to do it, so the model reached for <c>recruit_notable</c> and the
+      ///     scene's payoff evaporated.
+      ///   </para>
+      /// </summary>
+      public string? CompanionsOfferableToThisLord { get; init; }
+
+      /// <summary>
       ///   teach_skill: the skills THIS NPC has genuine mastery in right now, one display name per teachable
       ///   skill (e.g. "One Handed, Riding, Steward"), host-computed via
       ///   <c>CalradiaRemembers.Logic.TeachSkillPolicy.CanTeach</c> against the NPC's own live skill values, so

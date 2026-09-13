@@ -555,6 +555,37 @@ namespace NpcMemoryService.Core.Actions
                prose: "*Boris simply nods to the man beside him, who steps forward to take his place at the head of the gang without a word of ceremony.* The crew is his now, not mine anymore. I have led long enough here. See what use you have for me instead.",
                expectedType: "recruit_notable"),
 
+            // take_into_service: the MIRROR of the three recruit_notable cases just above, and the direction
+            // is the whole difference. The first is Gabriel's own scene of 13/09/2026, reduced to its beat.
+            ActionBenchCase.Expect("take_into_service", "take_into_service",
+               contextFacts: "NPC: Ira, governor of Onira. The player's companion Nabb the Bloody Handed stands with them and may be given over.",
+               prose: "*Ira's hand finds her belt, decision made.* I will have him. Nabb rides under my banner from today, in my household and on my pay. *She looks to him one last time.* Welcome to my service, Bloody Handed.",
+               expectedType: "take_into_service"),
+
+            ActionBenchCase.Expect("take_into_service_v2", "take_into_service",
+               contextFacts: "NPC: Lord Ansen of Clan Ravenhurst. The player's companion Coll the Unbroken may be given over.",
+               prose: "*Ansen clasps the man's forearm in the old way.* Then it is done, and he is mine to feed and mine to bury. Coll leaves your colours today and takes up my house's. *A nod to the player.* You will not find me ungrateful.",
+               expectedType: "take_into_service"),
+
+            ActionBenchCase.Expect("take_into_service_v3", "take_into_service",
+               contextFacts: "NPC: Lady Siga, head of her own clan. The player's companion Ajin the Hawk may be given over.",
+               prose: "*Siga does not hesitate.* Ajin, you serve me now. Draw your pay from my steward at the week's end and answer my summons as you answered theirs. *To the player.* Consider the debt between our houses settled by this.",
+               expectedType: "take_into_service"),
+
+            // The nearest look-alike, in the OPPOSITE direction: somebody joining the PLAYER is never this
+            // verb, however warmly the service is spoken of. This is the confusion that produced the bug the
+            // verb was built for (the model reached for recruit_notable when a lord took a companion away).
+            ActionBenchCase.ExpectNone("take_into_service_wrong_direction", "take_into_service",
+               contextFacts: "NPC: Uldric, headman of the village of Marunath, with an eligible successor.",
+               prose: "*Uldric sets down his hoe.* My cousin can take up the headman's mantle here. I will follow you instead, and take service under your banner.",
+               forbiddenType: "take_into_service"),
+
+            // Admiring a man is not hiring him: the lord is weighing, and nobody has changed hands.
+            ActionBenchCase.ExpectNone("take_into_service_only_admired", "take_into_service",
+               contextFacts: "NPC: Ira, governor of Onira. The player's companion Nabb the Bloody Handed stands with them and may be given over.",
+               prose: "*Ira looks him over the way she would a horse at market.* He has a bold mouth on him, I will give you that. Bold men either die young or become useful. *She turns back to the player.* Ask me again when I have seen him fight.",
+               forbiddenType: "take_into_service"),
+
             ActionBenchCase.Expect("grant_blessing", "grant_blessing",
                contextFacts: "NPC: Lord Ansen, head of Clan Ravenhurst. The player wishes to marry his sister Ymira.",
                prose: "*Ansen studies you, then nods once.* You have proven yourself worthy of my house. I consent, Ymira may wed you with my blessing.",
