@@ -78,11 +78,19 @@ namespace NpcMemoryService.Core.Knowledge
         /// <summary>How much the house's word is worth at court.</summary>
         public InfluenceBand Influence { get; init; } = InfluenceBand.Unknown;
 
+        /// <summary>
+        ///   The realm this house currently sells its swords to, when it is under contract. Named by the role
+        ///   audit: <c>PlayerIsMercenary</c> was carried all along and the NPC's OWN service was not, so a
+        ///   captain could not say who pays him.
+        /// </summary>
+        public string? SellsSwordsTo { get; init; }
+
         /// <summary>True when anything at all was read. An all-unknown record means nobody asked the engine.</summary>
         public bool HasAnyReading
             => Treasury != TreasuryBand.Unknown
                || Muster != MusterBand.Unknown
                || Influence != InfluenceBand.Unknown
-               || OwesTheCrown || RidingWithAnArmy;
+               || OwesTheCrown || RidingWithAnArmy
+               || !string.IsNullOrWhiteSpace(SellsSwordsTo);
     }
 }

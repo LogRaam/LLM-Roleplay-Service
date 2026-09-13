@@ -1314,6 +1314,12 @@ namespace NpcMemoryService.Core.Models
       public bool RidesAsRetainer { get; init; }
 
       /// <summary>
+      ///   The caravans and workshops this character owns. The last gap the role audit named - Gabriel raised
+      ///   caravans unprompted, and Hero.OwnedCaravans and Hero.OwnedWorkshops reached the context nowhere.
+      /// </summary>
+      public Knowledge.OwnVenturesFacts? OwnVentures { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map
       ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
       ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).

@@ -96,6 +96,13 @@ namespace NpcMemoryService.Core.Knowledge
         public PartyPost PartyPost { get; init; } = PartyPost.None;
 
         /// <summary>
+        ///   They own something that earns elsewhere - a caravan on the road, a workshop in a town. Set by the
+        ///   host from the SAME read that supplies the facts, so "he would know his ventures" and "here they
+        ///   are" cannot part company.
+        /// </summary>
+        public bool OwnsVentures { get; init; }
+
+        /// <summary>
         ///   True when this character's own house is the PLAYER'S house, which is what makes a companion's
         ///   knowledge of the player's holdings ordinary rather than a leak.
         /// </summary>

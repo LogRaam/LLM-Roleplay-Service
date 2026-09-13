@@ -54,6 +54,9 @@ namespace NpcMemoryService.Core.Knowledge
             if (means.OwesTheCrown) clauses.Add("it owes the crown a debt it has not repaid");
             AddIf(clauses, Muster(means.Muster, means.RidingWithAnArmy));
 
+            if (!string.IsNullOrWhiteSpace(means.SellsSwordsTo))
+                clauses.Add($"it sells its swords to {means.SellsSwordsTo!.Trim()} under contract, not by oath");
+
             // Court standing is the first thing Lean drops: it changes how a lord SPEAKS of the realm rather
             // than what he can do, and Compact has no room for register.
             if (!lean) AddIf(clauses, Influence(means.Influence));

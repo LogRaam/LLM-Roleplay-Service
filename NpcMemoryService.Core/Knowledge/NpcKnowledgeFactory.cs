@@ -53,6 +53,9 @@ namespace NpcMemoryService.Core.Knowledge
             // After the seat: a trader's market is the same place seen through what it costs.
             new MarketWordPack(),
 
+            // What earns while they are elsewhere, which is the market's opposite number.
+            new OwnVenturesPack(),
+
             // The same town seen from underneath: who is wanted, and whose ground this is.
             new UnderworldPack(),
 
