@@ -85,7 +85,19 @@ namespace NpcMemoryService.Core.Prompts
 
             // Prisoners and recruitment.
             "recruit_prisoner", "recruit_notable", "rescue_prisoner", "teach_skill", "join_clan",
-            "end_mercenary", "recall_companion", "scheme_heed"
+            "end_mercenary", "recall_companion", "scheme_heed",
+
+            // Added 2026-09-13 from a live report: a companion in a PRIVATE BRIEFING reached for
+            // scheme_assist, the bridge refused it, and the player read "(There is no plot of theirs you
+            // could help with just now.)" in the middle of his own scene. The verb is gated - on
+            // SchemeAgentTargetName - and the first pass missed it because the gate reads through a local
+            // (`string? target = context?.X; if (IsNullOrWhiteSpace(target)) return;`) rather than testing
+            // the context inline. A reminder that the Gated list is a floor found by evidence, never a
+            // reading of the code: each of these earns its place by the permissive test finding it taught.
+            // pay_blackmail was offered to the same test and REFUSED: nothing in a permissive prompt
+            // teaches it, so gating it would have deleted it rather than trimmed a duplicate. Left out,
+            // which is the whole point of making the list earn itself.
+            "scheme_assist", "reassure_companion", "retire"
         };
 
         /// <summary>

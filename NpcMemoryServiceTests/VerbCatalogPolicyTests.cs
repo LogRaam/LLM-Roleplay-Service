@@ -66,7 +66,15 @@ namespace NpcMemoryServiceTests
             TeachableSkills = new List<string> {"Riding", "Bow"},
 
             LordRecruitEligible = true, PlayerIsMercenary = true, CompanionOnErrand = true,
-            SchemeTargetsThisNpc = true
+            SchemeTargetsThisNpc = true,
+
+            // The second wave, each one a gate the first pass read past.
+            SchemeAgentTargetName = "Rhagaea",
+            CompanionMoodNote = "restless, and saying so",
+            CompanionAudience = CompanionAudienceReason.Retirement,
+            AudienceRetirementIsLanded = true,
+            BastardMotherTone = "cold",
+            BastardBlackmailDemand = 500
          };
 
       private static string Build(EncounterContext context)
