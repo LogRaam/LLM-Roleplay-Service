@@ -5314,9 +5314,9 @@ namespace NpcMemoryService.Core.Prompts
       ///     WONDERING rather than between speaking and silence.
       ///   </para>
       /// </summary>
-      private static void AppendKnowledgeBoundary(StringBuilder sb, LeanPromptLevel lean)
+      private static void AppendKnowledgeBoundary(StringBuilder sb, LeanPromptLevel lean, EncounterContext? context)
       {
-         sb.AppendLine(KnowledgeBoundaryPolicy.Text(lean));
+         sb.AppendLine(KnowledgeBoundaryPolicy.Text(lean, context?.HeldFor));
          sb.AppendLine();
       }
 
@@ -6874,7 +6874,7 @@ namespace NpcMemoryService.Core.Prompts
 
             // A small model is the LIKELIEST to invent a fact or a capability, so the boundary is the last thing
             // it reads rather than the first thing dropped for budget. Compact form; see KnowledgeBoundaryPolicy.
-            AppendKnowledgeBoundary(sb, lean);
+            AppendKnowledgeBoundary(sb, lean, context);
 
             sb.AppendLine("Stay in character at all times. Never break the fourth wall.");
             sb.AppendLine();
@@ -6986,7 +6986,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendActionInstructions(sb, lean);
          AppendExtraActionTeachings(sb, context);
          AppendUnavailableDeeds(sb, context);
-         AppendKnowledgeBoundary(sb, lean);
+         AppendKnowledgeBoundary(sb, lean, context);
          AppendSpouseDivorceDemandNote(sb, context);
          AppendPlayerEndOwnMarriageNote(sb, context);
          AppendSpouseEstrangementNote(sb, context);

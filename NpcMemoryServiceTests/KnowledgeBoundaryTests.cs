@@ -191,6 +191,62 @@ namespace NpcMemoryServiceTests
          compact.Should().Contain("not reached").And.Contain("is not false");
       }
 
+      // ── the cell, which used to be silent ────────────────────────────────
+
+      // THE HOLE THE CUT-OFF RULE OPENED. Gabriel ruled that a captive does not carry the news packs, which is
+      // right - no courier reaches a cell. But a man whose knowledge was quietly REMOVED does not know it is
+      // missing: he answers as though he still had it, and invents. Withholding without saying so causes the
+      // very invention it meant to prevent.
+      [Test]
+      public void GIVEN_a_man_who_has_been_held_for_months_WHEN_asked_about_the_world_THEN_he_knows_he_is_behind()
+      {
+         string said = KnowledgeBoundaryPolicy.Text(LeanPromptLevel.Full, "for months now");
+
+         said.Should().Contain("YOU HAVE BEEN HELD FOR MONTHS NOW");
+         said.Should().Contain("no word of the world has reached you since");
+      }
+
+      // What he knew BEFORE is still his, and he may say it - provided he dates it. Losing that too would be
+      // a different bug: a prisoner who cannot speak of the world he was taken from is not a prisoner, he is
+      // an amnesiac.
+      [Test]
+      public void GIVEN_a_captive_WHEN_told_THEN_his_old_knowledge_is_still_his_to_speak_if_he_dates_it()
+      {
+         string said = KnowledgeBoundaryPolicy.Text(LeanPromptLevel.Full, "for some weeks now");
+
+         said.Should().Contain("What you knew BEFORE is still");
+         said.Should().Contain("when they took me");
+      }
+
+      // And the way out, as everywhere else in this file: asking is a better answer than guessing, and a man
+      // out of the world for months would be hungry for news.
+      [Test]
+      public void GIVEN_the_captives_boundary_WHEN_read_THEN_asking_is_offered_rather_than_only_silence()
+      {
+         KnowledgeBoundaryPolicy.Text(LeanPromptLevel.Full, "for months now")
+                                .Should().Contain("hungry for news");
+      }
+
+      // The fact survives Compact even though the coaching does not: a small model is the likeliest to invent
+      // a world it was never told about.
+      [Test]
+      public void GIVEN_the_compact_prompt_WHEN_a_captive_reads_it_THEN_he_is_still_told_he_is_behind()
+      {
+         string lean = KnowledgeBoundaryPolicy.Text(LeanPromptLevel.Lean, "for months now");
+
+         lean.Should().Contain("no word of the world has reached you since");
+         lean.Should().NotContain("hungry for news");
+      }
+
+      // A free character must never see it, or every conversation in the game opens with a man explaining he
+      // has been in prison.
+      [Test]
+      public void GIVEN_somebody_who_is_free_WHEN_the_boundary_is_read_THEN_no_cell_is_mentioned()
+      {
+         foreach (LeanPromptLevel lean in new[] {LeanPromptLevel.Full, LeanPromptLevel.Lean})
+            KnowledgeBoundaryPolicy.Text(lean).Should().NotContain("HELD");
+      }
+
       // It is a block, not a sentence buried in another one, so it can be found in a log and read by a person
       // debugging a conversation.
       [Test]

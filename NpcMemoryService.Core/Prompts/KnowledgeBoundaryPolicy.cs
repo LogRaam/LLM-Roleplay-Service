@@ -49,8 +49,51 @@ namespace NpcMemoryService.Core.Prompts
         ///   model is the likeliest to invent, so cutting this to save its budget would remove the guard exactly
         ///   where it is needed most, which is the mistake the intimacy bar made in July.
         /// </summary>
-        public static string Text(LeanPromptLevel lean)
-            => lean == LeanPromptLevel.Lean ? Compact() : Full();
+        public static string Text(LeanPromptLevel lean, string? heldFor = null)
+        {
+            string boundary = lean == LeanPromptLevel.Lean ? Compact() : Full();
+
+            if (string.IsNullOrWhiteSpace(heldFor)) return boundary;
+
+            var sb = new StringBuilder(boundary);
+            sb.AppendLine();
+            sb.AppendLine();
+            sb.Append(InACell(heldFor!, lean));
+
+            return sb.ToString();
+        }
+
+        /// <summary>
+        ///   The captive's own boundary, and it exists because the CUT-OFF WAS SILENT.
+        ///   <para>
+        ///     Gabriel ruled on 2026-09-12 that a captive does not carry the news packs: no courier reaches a
+        ///     cell. That was right, and it left a hole of exactly the kind this pillar was built to close. A
+        ///     man whose knowledge has been quietly REMOVED does not know it is missing - he answers as though
+        ///     he still had it, and invents. The absence has to be stated, or withholding is just another way
+        ///     of causing the invention.
+        ///   </para>
+        ///   <para>
+        ///     And it hands over the way out, like every other rule here: "I have been in this cell since
+        ///     harvest, so you would know better than I" is a fine answer, and a far better one than a guess.
+        ///   </para>
+        /// </summary>
+        private static string InACell(string heldFor, LeanPromptLevel lean)
+        {
+            var sb = new StringBuilder();
+
+            sb.AppendLine($"YOU HAVE BEEN HELD {heldFor.ToUpperInvariant()}, and no word of the world has "
+                          + "reached you since. Whatever has happened out there - wars, marriages, who holds "
+                          + "which town, how your own house fares - stopped for you the day you were taken.");
+
+            if (lean == LeanPromptLevel.Lean) return sb.ToString().TrimEnd();
+
+            sb.AppendLine("So do not report any of it as though you knew it now. What you knew BEFORE is still "
+                          + "yours and you may speak of it freely, provided you say plainly that it is old: "
+                          + "\"when they took me, X held that town\". And ask - somebody who has been out of "
+                          + "the world is hungry for news, which is a better answer than a guess.");
+
+            return sb.ToString().TrimEnd();
+        }
 
         /// <summary>
         ///   The short form, and every word in it is load-bearing. A small model needs the boundary MORE than a

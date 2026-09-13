@@ -1320,6 +1320,18 @@ namespace NpcMemoryService.Core.Models
       public Knowledge.OwnVenturesFacts? OwnVentures { get; init; }
 
       /// <summary>
+      ///   How long this character has been a captive, in the words a person would use ("some weeks now").
+      ///   Null when they are free.
+      ///   <para>
+      ///     Added 2026-09-12 to close a hole the CUT-OFF RULE had opened. Gabriel ruled that a captive does
+      ///     not carry the news packs, which is right - no courier reaches a cell - but a man whose knowledge
+      ///     has been quietly REMOVED does not know it is missing. He answers as though he still had it, and
+      ///     invents. Withholding without saying so is just another way of causing the invention.
+      ///   </para>
+      /// </summary>
+      public string? HeldFor { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map
       ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
       ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).
