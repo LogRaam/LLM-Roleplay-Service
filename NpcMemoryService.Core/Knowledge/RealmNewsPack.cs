@@ -48,7 +48,7 @@ namespace NpcMemoryService.Core.Knowledge
         ///     constant four.
         ///   </para>
         /// </summary>
-        public override KnowledgeDepth DepthFor(KnowledgeBearer bearer)
+        public override KnowledgeDepth DepthFor(KnowledgeBearer? bearer)
         {
             if (bearer == null) return KnowledgeDepth.None;
             if (bearer.IsLord || bearer.OwnHouseIsPlayerHouse) return KnowledgeDepth.Knowing;

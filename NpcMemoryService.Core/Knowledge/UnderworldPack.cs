@@ -32,7 +32,7 @@ namespace NpcMemoryService.Core.Knowledge
         ///   Everyone knows a wanted face; only the trade knows who runs the trade. The first pack whose two
         ///   depths carry genuinely different FACTS rather than the same fact at two lengths.
         /// </summary>
-        public override KnowledgeDepth DepthFor(KnowledgeBearer bearer)
+        public override KnowledgeDepth DepthFor(KnowledgeBearer? bearer)
         {
             if (bearer == null) return KnowledgeDepth.None;
 

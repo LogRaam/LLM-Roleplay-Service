@@ -160,14 +160,14 @@ namespace NpcMemoryService.Core.Knowledge
         ///   How well a person like this knows the subject. The composition rule, and a rule about the world.
         ///   <see cref="KnowledgeDepth.None" /> means they do not know it at all.
         /// </summary>
-        public abstract KnowledgeDepth DepthFor(KnowledgeBearer bearer);
+        public abstract KnowledgeDepth DepthFor(KnowledgeBearer? bearer);
 
         /// <summary>
         ///   Whether they know it at all. DERIVED from <see cref="DepthFor" /> and deliberately not overridable:
         ///   two predicates that must agree are two predicates that will one day disagree, which is exactly the
         ///   fault that had "he would know this" and "somebody told him" drift apart in the first place.
         /// </summary>
-        public bool CarriedBy(KnowledgeBearer bearer) => DepthFor(bearer) != KnowledgeDepth.None;
+        public bool CarriedBy(KnowledgeBearer? bearer) => DepthFor(bearer) != KnowledgeDepth.None;
 
         /// <summary>
         ///   Whether the host actually supplied it for this encounter. Separate from <see cref="CarriedBy" /> on

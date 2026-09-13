@@ -36,7 +36,7 @@ namespace NpcMemoryService.Core.Knowledge
         ///     them closely; everyone else knows what anybody in a camp knows.
         ///   </para>
         /// </summary>
-        public override KnowledgeDepth DepthFor(KnowledgeBearer bearer)
+        public override KnowledgeDepth DepthFor(KnowledgeBearer? bearer)
         {
             if (bearer is not {RidesWithThePlayer: true}) return KnowledgeDepth.None;
 

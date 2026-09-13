@@ -32,7 +32,7 @@ namespace NpcMemoryService.Core.Knowledge
         ///   Whoever owns one. The host decides that, because only the host can see whether the ventures were
         ///   actually read - the one-read rule that HoldsASeat and the market both learned.
         /// </summary>
-        public override KnowledgeDepth DepthFor(KnowledgeBearer bearer)
+        public override KnowledgeDepth DepthFor(KnowledgeBearer? bearer)
             => bearer is {OwnsVentures: true} ? KnowledgeDepth.Deep : KnowledgeDepth.None;
 
         public override bool IsSupplied(EncounterContext context)

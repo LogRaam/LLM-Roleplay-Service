@@ -32,7 +32,7 @@ namespace NpcMemoryService.Core.Knowledge
         ///   Everyone, and always at the greatest depth there is: a beggar knows he is bleeding as surely as a
         ///   king does, and nobody knows a body better than the person standing in it.
         /// </summary>
-        public override KnowledgeDepth DepthFor(KnowledgeBearer bearer)
+        public override KnowledgeDepth DepthFor(KnowledgeBearer? bearer)
             => bearer == null ? KnowledgeDepth.None : KnowledgeDepth.Deep;
 
         /// <summary>

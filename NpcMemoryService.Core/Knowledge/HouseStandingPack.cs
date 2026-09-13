@@ -37,7 +37,7 @@ namespace NpcMemoryService.Core.Knowledge
         ///     which is what keeps one rule from needing an exception for every relation.
         ///   </para>
         /// </summary>
-        public override KnowledgeDepth DepthFor(KnowledgeBearer bearer)
+        public override KnowledgeDepth DepthFor(KnowledgeBearer? bearer)
             => bearer != null && bearer.HasHouse && (bearer.IsLord || bearer.OwnHouseIsPlayerHouse)
                 ? KnowledgeDepth.Knowing
                 : KnowledgeDepth.None;

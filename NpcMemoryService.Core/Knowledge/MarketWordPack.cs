@@ -34,7 +34,7 @@ namespace NpcMemoryService.Core.Knowledge
         ///   a lord knows his lands make wine and has no idea what wine fetched this week, and knowing prices
         ///   is exactly the thing that separates a merchant from a man who buys things.
         /// </summary>
-        public override KnowledgeDepth DepthFor(KnowledgeBearer bearer)
+        public override KnowledgeDepth DepthFor(KnowledgeBearer? bearer)
             => bearer is {TradesForALiving: true} ? KnowledgeDepth.Deep : KnowledgeDepth.None;
 
         /// <summary>

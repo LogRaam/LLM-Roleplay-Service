@@ -42,7 +42,7 @@ namespace NpcMemoryService.Core.Knowledge
         ///     place that can see the home.
         ///   </para>
         /// </summary>
-        public override KnowledgeDepth DepthFor(KnowledgeBearer bearer)
+        public override KnowledgeDepth DepthFor(KnowledgeBearer? bearer)
         {
             if (bearer == null || bearer.IsCutOff || !bearer.HoldsASeat) return KnowledgeDepth.None;
 

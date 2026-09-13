@@ -49,7 +49,7 @@ namespace NpcMemoryService.Core.Knowledge
         ///   Nobody knows their own rank at second hand, and nobody is unsure of it. Deep for anybody at all -
         ///   which a constitutive pack must be, since "mandatory" and "everyone has it" are the same claim.
         /// </summary>
-        public override KnowledgeDepth DepthFor(KnowledgeBearer bearer)
+        public override KnowledgeDepth DepthFor(KnowledgeBearer? bearer)
             => bearer == null ? KnowledgeDepth.None : KnowledgeDepth.Deep;
 
         /// <summary>

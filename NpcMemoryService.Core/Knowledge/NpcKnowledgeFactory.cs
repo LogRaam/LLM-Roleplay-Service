@@ -165,7 +165,7 @@ namespace NpcMemoryService.Core.Knowledge
         }
 
         /// <summary>What a person like this carries. Unknown bearer carries nothing, which refuses rather than guesses.</summary>
-        public static IReadOnlyList<KnowledgePack> For(KnowledgeBearer bearer)
+        public static IReadOnlyList<KnowledgePack> For(KnowledgeBearer? bearer)
             => bearer == null
                 ? new List<KnowledgePack>()
                 : All.Where(p => p.CarriedBy(bearer)).ToList();

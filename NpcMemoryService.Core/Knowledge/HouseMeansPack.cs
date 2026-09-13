@@ -36,7 +36,7 @@ namespace NpcMemoryService.Core.Knowledge
         ///   diverge when knowledge acquires a date, because a captive keeps his house's lands and loses its
         ///   ledger.
         /// </summary>
-        public override KnowledgeDepth DepthFor(KnowledgeBearer bearer)
+        public override KnowledgeDepth DepthFor(KnowledgeBearer? bearer)
             => bearer != null && !bearer.IsCutOff
                && bearer.HasHouse && (bearer.IsLord || bearer.OwnHouseIsPlayerHouse)
                 ? KnowledgeDepth.Knowing

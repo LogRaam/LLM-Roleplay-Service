@@ -33,7 +33,7 @@ namespace NpcMemoryService.Core.Knowledge
         public override int DropPriority => 55;
 
         /// <summary>Everyone. Standing outdoors in the rain is not a privilege of rank.</summary>
-        public override KnowledgeDepth DepthFor(KnowledgeBearer bearer)
+        public override KnowledgeDepth DepthFor(KnowledgeBearer? bearer)
             => bearer == null ? KnowledgeDepth.None : KnowledgeDepth.Ordinary;
 
         /// <summary>
