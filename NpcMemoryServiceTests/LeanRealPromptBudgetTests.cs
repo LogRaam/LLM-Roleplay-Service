@@ -98,6 +98,13 @@ namespace NpcMemoryServiceTests
       private const int WorldTxtChars = 2432;
       private const int BehaviorGuidelinesChars = 6629;
 
+      /// <summary>
+      ///   behavior_guidelines.txt after FactionGuidelinesPolicy keeps only the speaker's own culture: the
+      ///   FACTION BEHAVIOR section holds eight cultures and ~2,144 characters of it belong to somebody else.
+      ///   Pinned on the mod side by FactionGuidelinesPolicyTests.
+      /// </summary>
+      private const int NarrowedGuidelinesChars = 6629 - 2144;
+
       private static string Filler(int chars)
          => new StringBuilder().Insert(0, "Calradia is a hard country and its lords are harder. ", chars / 53 + 1)
                                .ToString().Substring(0, chars);
@@ -106,7 +113,15 @@ namespace NpcMemoryServiceTests
          => new PromptBuilder {
                ActionVocabulary = RealVocabulary(),
                WorldDescription = Filler(WorldTxtChars),
-               BehaviorGuidelinesOverride = Filler(BehaviorGuidelinesChars)
+               // The SESSION-level fallback. Since 2026-09-15 a lord is served the STATION override below
+               // instead (narrowed to his own culture), and PromptBuilder prefers that one — so this is the
+               // payload a speaker with no station file would get, and it must still be here for the
+               // preference to be the thing that is measured.
+               BehaviorGuidelinesOverride = Filler(BehaviorGuidelinesChars),
+               // The SHIPPED default (MCM "Adult Content Level"), not Off. Off suppresses the romantic
+               // sections AND the discovered-traits list, so measuring at Off measured a configuration almost
+               // nobody runs - the same mistake as the missing narrative files, one field along.
+               AdultLevel = AdultContentLevel.Mature
             }
             .BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, Encounter(lean));
 
@@ -124,6 +139,10 @@ namespace NpcMemoryServiceTests
       private static EncounterContext Encounter(LeanPromptLevel lean)
          => new() {
             LeanLevel = lean,
+            // What a LORD actually receives: the base guidelines narrowed to his own culture
+            // (FactionGuidelinesPolicy, 2026-09-15), which is ~2,144 characters lighter than the file.
+            // Measuring the un-narrowed file would over-report the budget by that much and hide progress.
+            StationGuidelinesOverride = Filler(NarrowedGuidelinesChars),
             Bearer = new KnowledgeBearer {
                IsLord = true, HasHouse = true, IsPlayerCompanion = true, HoldsASeat = true
             },

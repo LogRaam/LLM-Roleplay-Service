@@ -168,7 +168,7 @@ namespace NpcMemoryService.Core.Prompts
          // commoner holds no memory, gives no tasks, and the one action they have (take_gold) moves coin FROM
          // the player, so there is no reward an invented deed could unlock.
          AppendPlayerActionNarration(sb, LeanPromptLevel.Lean);
-         AppendLanguageMirror(sb);
+         AppendLanguageMirror(sb, LeanPromptLevel.Lean);
          // The player's chosen writing voice reaches commoners too: picking "Tolkien" must not leave the
          // tavernkeeper in the generic voice while the lord next door speaks it. Same cap as the lord path.
          AppendNarrativeStyle(sb, narrativeStyle, vars);
@@ -223,7 +223,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendRomanticContext(sb, npc, encounterContext);
          AppendIntimacyConsentRules(sb, npc, encounterContext);
          AppendSocialAttractionInstructions(sb, npc, encounterContext);
-         AppendDiscoveredTraits(sb, npc);
+         AppendDiscoveredTraits(sb, npc, lean);
          AppendInheritedNote(sb, npc);
          if (LeanPromptPolicy.Include(PromptSection.CulturalBackground, lean)) AppendBackgroundContext(sb, npc);
          AppendHistory(sb, npc, world.CurrentDay, LeanPromptPolicy.MemoryEventLimit(lean),
@@ -340,7 +340,7 @@ namespace NpcMemoryService.Core.Prompts
          // them are the anti-confabulation wall, one guarding what the NPC promises, one what a stage direction
          // can settle, and this one what the NPC is willing to believe.
          AppendClaimsAreNotProof(sb, lean);
-         AppendLanguageMirror(sb);
+         AppendLanguageMirror(sb, lean);
          // A short, forceful restatement of the machine-read contract, placed at the very end (highest recency)
          // because the full format teaching sits ~10k tokens up in the cached prefix: a weaker model that follows
          // instructions loosely (dialogue only, no [ACTION]/[EVENT]) is far more likely to emit the blocks when
@@ -2849,10 +2849,27 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
-      private void AppendLanguageMirror(StringBuilder sb)
+      /// <summary>
+      ///   Which language the reply is written in. In Compact the RULE is kept whole and only its ILLUSTRATION
+      ///   goes: the four "Player writes in X -> you reply in X" bullets restate, in examples, exactly what the
+      ///   line above them already says, and a starved context can spare an example far sooner than a rule.
+      ///   ~670 characters, for a player whose server refuses the prompt outright (DuskSymphony, Nexus).
+      /// </summary>
+      private void AppendLanguageMirror(StringBuilder sb, LeanPromptLevel lean)
       {
          sb.AppendLine();
          sb.AppendLine("CRITICAL — LANGUAGE OF YOUR REPLY:");
+
+         if (lean == LeanPromptLevel.Lean)
+         {
+            sb.AppendLine(string.IsNullOrWhiteSpace(ReplyLanguage)
+               ? "Reply in the SAME language as the player's last message; English if there is none yet."
+               : $"Always write your reply in {ReplyLanguage.Trim()}, whatever language anything else here uses.");
+            sb.AppendLine("Keep section labels and action keywords in English; translate only prose and speech.");
+            sb.AppendLine("Proper names stay exactly as given. This rule overrides everything else.");
+
+            return;
+         }
 
          if (!string.IsNullOrWhiteSpace(ReplyLanguage))
          {
@@ -6837,14 +6854,36 @@ namespace NpcMemoryService.Core.Prompts
       ///   and avoid emitting duplicate [DISCOVERY] blocks.
       ///   No-op when AdultLevel is Off or no traits have been discovered yet.
       /// </summary>
-      private void AppendDiscoveredTraits(StringBuilder sb, NpcProfile npc)
+      private void AppendDiscoveredTraits(StringBuilder sb, NpcProfile npc, LeanPromptLevel lean)
       {
          if (AdultLevel == AdultContentLevel.Off) return;
          if (npc.DiscoveredTraits == null || npc.DiscoveredTraits.Count == 0) return;
 
          sb.AppendLine("WHAT THIS PLAYER ALREADY KNOWS ABOUT YOU:");
-         foreach (DiscoveredTrait trait in npc.DiscoveredTraits)
-            sb.AppendLine($"- ({trait.Key}) {trait.Description}");
+
+         // Compact lists the KEYS only. This block has exactly one job - stop a [DISCOVERY] being emitted for
+         // something already known - and a key does that job whole; the descriptions are for the character's
+         // own colour, which is the first thing a starved context can spare. It is also the only list here
+         // that GROWS without bound: nothing caps or ages these out, so a long campaign quietly pushed a small
+         // model further over its context every time the player learned one more thing about someone
+         // (DuskSymphony, Nexus, 8,192-token local model). Measured at ten traits it is ~1,260 characters in
+         // Full and ~180 in Compact.
+         if (lean == LeanPromptLevel.Lean)
+         {
+            var keys = new List<string>();
+
+            foreach (DiscoveredTrait trait in npc.DiscoveredTraits)
+               if (!string.IsNullOrWhiteSpace(trait?.Key))
+                  keys.Add(trait!.Key.Trim());
+
+            sb.AppendLine(string.Join(", ", keys));
+         }
+         else
+         {
+            foreach (DiscoveredTrait trait in npc.DiscoveredTraits)
+               sb.AppendLine($"- ({trait.Key}) {trait.Description}");
+         }
+
          sb.AppendLine("Do not emit [DISCOVERY] for any of these keys — they are already known.");
          sb.AppendLine();
       }

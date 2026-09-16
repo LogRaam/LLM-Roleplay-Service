@@ -23,7 +23,13 @@ namespace NpcMemoryService.Core.Prompts
    /// </summary>
    public static class ActionInterpreterPromptBuilder
    {
-      private static readonly string _stablePrefix = BuildStablePrefix();
+      private static readonly string _stablePrefix = BuildStablePrefix(LeanPromptLevel.Full);
+
+      /// <summary>
+      ///   The Compact head. Neither field may read the other: both run from their own initializer, and the
+      ///   order of static field initialization is the trap this file already documents once below.
+      /// </summary>
+      private static readonly string _leanStablePrefix = BuildStablePrefix(LeanPromptLevel.Lean);
 
       /// <summary>
       ///   The invariant head of every interpreter prompt: the action interpreter's role, the tag vocabulary, the
@@ -37,6 +43,17 @@ namespace NpcMemoryService.Core.Prompts
       ///   prompt's text or order changes; only where cache_control falls.
       /// </summary>
       public static string StablePrefix => _stablePrefix;
+
+      /// <summary>
+      ///   The head for a given prompt level. Compact exists because this prompt had NO notion of one: at
+      ///   70,378 characters (~17.6k tokens) it is more than twice the whole context of the 8,192-token local
+      ///   models "Compact prompt for small models" is named for, so for those players the interpreter call
+      ///   could never once succeed — and its failure is swallowed (ActionInterpreterComposer applies no tags
+      ///   and plays on), so they got a silently degraded game in which no deed was ever recorded, and nothing
+      ///   said why (DuskSymphony, Nexus, 10/09/2026 and again 14/09/2026).
+      /// </summary>
+      public static string StablePrefixFor(LeanPromptLevel lean)
+         => lean == LeanPromptLevel.Lean ? _leanStablePrefix : _stablePrefix;
 
       /// <summary>
       ///   The single user-turn instruction closing every interpreter call (bench AND runtime must use the same
@@ -66,10 +83,16 @@ namespace NpcMemoryService.Core.Prompts
       ///   <paramref name="prose" /> to analyze. The result always begins with <see cref="StablePrefix" />.
       /// </summary>
       public static string Build(string prose, string contextFacts)
+         => Build(prose, contextFacts, LeanPromptLevel.Full);
+
+      /// <summary>
+      ///   The interpreter prompt at a given level. Prefix-first at both levels, so the head stays cacheable.
+      /// </summary>
+      public static string Build(string prose, string contextFacts, LeanPromptLevel lean)
       {
          var sb = new StringBuilder();
 
-         sb.Append(_stablePrefix);
+         sb.Append(StablePrefixFor(lean));
          sb.AppendLine();
          sb.AppendLine(contextFacts?.Trim() ?? string.Empty);
          sb.AppendLine();
@@ -93,7 +116,7 @@ namespace NpcMemoryService.Core.Prompts
       ///   field declared later in the file would be assigned, so a static exclusion set here would still read null
       ///   at that point.
       /// </summary>
-      private static void AppendOtherActions(StringBuilder sb)
+      private static void AppendOtherActions(StringBuilder sb, LeanPromptLevel lean)
       {
          sb.AppendLine("OTHER ACTIONS YOU MAY EMIT: ONLY when the prose UNAMBIGUOUSLY shows this exact concrete deed");
          sb.AppendLine("happening in the reply. When in doubt, do not emit. Format each as an [ACTION] block with a");
@@ -184,7 +207,8 @@ namespace NpcMemoryService.Core.Prompts
             if (coreTaughtTypes.Contains(spec.Type)) continue;
 
             var line = new StringBuilder();
-            line.Append("- ").Append(spec.Type).Append(": ").Append(spec.Description);
+            line.Append("- ").Append(spec.Type).Append(": ")
+                .Append(ActionVocabularyPolicy.Describe(spec.Description, lean));
 
             if (spec.Parameters.Count > 0)
             {
@@ -199,15 +223,27 @@ namespace NpcMemoryService.Core.Prompts
 
             sb.AppendLine(line.ToString());
 
-            if (spec.Tells.Count > 0)
-               sb.Append("    emit when: ").AppendLine(string.Join("; ", spec.Tells));
+            // WHAT COMPACT GIVES UP, stated plainly because it is a real loss: these two lines are the
+            // interpreter's precision. "emit when" is how a deed reads as genuinely done this turn, "not when"
+            // is the look-alike to withhold on, and without them a small model will both miss deeds and invent
+            // them. Every verb is still LISTED, so no capability is taken away - only the guidance on judging
+            // it. That is the trade, and it is only offered to players who asked for Compact, for whom the
+            // alternative today is an interpreter call their server refuses outright.
+            if (lean != LeanPromptLevel.Lean)
+            {
+               if (spec.Tells.Count > 0)
+                  sb.Append("    emit when: ").AppendLine(string.Join("; ", spec.Tells));
 
-            if (spec.AntiPatterns.Count > 0)
-               sb.Append("    not when: ").AppendLine(string.Join("; ", spec.AntiPatterns));
+               if (spec.AntiPatterns.Count > 0)
+                  sb.Append("    not when: ").AppendLine(string.Join("; ", spec.AntiPatterns));
+            }
          }
 
          sb.AppendLine();
-         AppendExamples(sb);
+
+         // Worked examples beat prose rules for a capable model, and are the first thing a starved context
+         // cannot afford. The FinalInstruction still demands the CHECK line, so the format survives.
+         if (lean != LeanPromptLevel.Lean) AppendExamples(sb);
       }
 
       /// <summary>
@@ -331,7 +367,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
-      private static string BuildStablePrefix()
+      private static string BuildStablePrefix(LeanPromptLevel lean)
       {
          var sb = new StringBuilder();
 
@@ -456,7 +492,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("the prose. Pick whichever type actually fits what happened this reply instead (collaboration,");
          sb.AppendLine("agreement, flirt, intimacy, confrontation, farewell, or other).");
          sb.AppendLine();
-         AppendOtherActions(sb);
+         AppendOtherActions(sb, lean);
          sb.AppendLine("GROUND IN THE FACTS, DO NOT INVENT: the facts below give the setting (place, who is present, the");
          sb.AppendLine("player's standing). Use them to ANCHOR a memory (where it happened, who witnessed it) when it fits");
          sb.AppendLine("what occurred, but record ONLY what actually happened in the reply; never invent events, people, or");
