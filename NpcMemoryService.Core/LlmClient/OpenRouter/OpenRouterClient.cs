@@ -36,6 +36,13 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          _config = config;
       }
 
+      /// <summary>
+      ///   Optional seat beside the wire: sees every request as it is sent, including where the cache
+      ///   breakpoint fell. Null by default and null in normal play — nothing is built, measured or
+      ///   allocated for it unless somebody is listening. See <see cref="ILlmWireObserver" />.
+      /// </summary>
+      public ILlmWireObserver? WireObserver { get; set; }
+
       private string ChatCompletionsUrl =>
          _config.ResolveBaseUrl().TrimEnd(trimChars: '/') + "/chat/completions";
 
@@ -289,12 +296,79 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
       {
          string json = JsonConvert.SerializeObject(ToWireFormat(request));
 
+         Observe(request, json);
+
          var httpRequest = new HttpRequestMessage(HttpMethod.Post, ChatCompletionsUrl);
          httpRequest.Headers.Authorization =
             new AuthenticationHeaderValue("Bearer", _config.ResolveApiKey());
          httpRequest.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
          return httpRequest;
+      }
+
+      /// <summary>
+      ///   Hands the outgoing request to the observer, if there is one, describing it the way its COST is
+      ///   decided: which part carried the breakpoint, which part is sent fresh, and how much of the body is
+      ///   conversation rather than prompt.
+      ///
+      ///   Guarded absolutely. A diagnostic must never be able to fail a player's conversation, so anything
+      ///   the observer raises dies here — including the split computation itself, which reads a prompt this
+      ///   client did not build.
+      /// </summary>
+      private void Observe(LlmRequest request, string json)
+      {
+         ILlmWireObserver? observer = WireObserver;
+
+         if (observer == null) return;
+
+         try
+         {
+            bool caching = _config.ResolveUseSystemPromptCaching();
+            string? stable = caching ? SplitPrefix(request) : null;
+
+            observer.OnRequest(new LlmWireSnapshot {
+               Model = request.ModelOverride ?? _config.ResolveModel(),
+               CachingRequested = caching,
+               StablePrefix = stable,
+               DynamicTail = stable == null
+                  ? request.SystemPrompt
+                  : request.SystemPrompt.Substring(stable.Length),
+               MessageChars = MessageChars(request),
+               MessageCount = request.Messages?.Count ?? 0,
+               Json = json
+            });
+         }
+         catch
+         {
+            // A broken observer is not a broken conversation.
+         }
+      }
+
+      /// <summary>
+      ///   The prefix this request will actually be sent with — the same test BuildSystemMessage applies,
+      ///   so the observer reports what goes on the wire rather than what was intended.
+      /// </summary>
+      private static string? SplitPrefix(LlmRequest request)
+      {
+         string? stable = request.StableSystemPrompt;
+
+         return !string.IsNullOrEmpty(stable)
+             && request.SystemPrompt.Length > stable!.Length
+             && request.SystemPrompt.StartsWith(stable, StringComparison.Ordinal)
+                   ? stable
+                   : null;
+      }
+
+      private static int MessageChars(LlmRequest request)
+      {
+         if (request.Messages == null) return 0;
+
+         var total = 0;
+
+         foreach (LlmMessage message in request.Messages)
+            total += message?.Content?.Length ?? 0;
+
+         return total;
       }
 
       /// <summary>
@@ -309,9 +383,12 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          if (!_config.ResolveUseSystemPromptCaching())
             return new {role = "system", content = request.SystemPrompt};
 
-         string? stable = request.StableSystemPrompt;
+         // The SAME test the observer reports on, deliberately one function: two copies of this rule would
+         // let a wire report drift away from the wire it is reporting on, which is the whole failure the
+         // prompt-cache guard exists to prevent.
+         string? stable = SplitPrefix(request);
 
-         if (!string.IsNullOrEmpty(stable) && request.SystemPrompt.Length > stable!.Length && request.SystemPrompt.StartsWith(stable, StringComparison.Ordinal))
+         if (stable != null)
             return new {
                role = "system",
                content = new object[] {
