@@ -12,6 +12,17 @@ namespace NpcMemoryService.Core.Prompts
       Lean
    }
 
+   /// <summary>
+   ///   How many tokens a Compact reply may spend. A local server counts the reply budget against the SAME
+   ///   context window as the prompt, so the shipped 3,000 costs an 8,192-token model over a third of its
+   ///   window before the character speaks — and buys nothing, since a small model's replies run a few
+   ///   hundred tokens. Sized above the longest reply observed in play (~1,018) with room to spare.
+   /// </summary>
+   public static class LeanReplyBudget
+   {
+      public const int Tokens = 1200;
+   }
+
    /// <summary>The heavy, always-on system-prompt sections a lean prompt may drop to save tokens.</summary>
    public enum PromptSection
    {

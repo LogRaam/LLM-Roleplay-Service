@@ -81,13 +81,24 @@ namespace NpcMemoryService.Core.Services
          // turns) sends ChatParameters unchanged, byte-for-byte. Only the Prose + Interpreter mod flow sets it
          // false, for its PROSE call only, to fail fast on a truncated reply instead of paying for the client's
          // own bigger-budget retry (see LlmParameters.AllowTruncationRetry).
-         LlmParameters parameters = allowTruncationRetry
+         // COMPACT ALSO BUDGETS THE REPLY, and this was the lever nobody had pulled. A local server counts the
+         // reply budget against the SAME window as the prompt, so on an 8,192-token model a 3,000-token
+         // MaxTokens spends over a third of the context before the character says a word — and it buys
+         // nothing there, because the replies a small model actually writes are a few hundred tokens (250 to
+         // ~1,000 across Gabriel's own sessions). A thousand is ample for the longest of those, and it frees
+         // two thousand tokens: more headroom than every trim to the prompt TEXT put together, and it takes
+         // no sentence away from anybody (DuskSymphony, Nexus, 8,192-token local model).
+         int maxTokens = encounterContext?.LeanLevel == LeanPromptLevel.Lean
+            ? Math.Min(ChatParameters.MaxTokens, LeanReplyBudget.Tokens)
+            : ChatParameters.MaxTokens;
+
+         LlmParameters parameters = allowTruncationRetry && maxTokens == ChatParameters.MaxTokens
             ? ChatParameters
             : new LlmParameters {
-               MaxTokens = ChatParameters.MaxTokens,
+               MaxTokens = maxTokens,
                Creativity = ChatParameters.Creativity,
                PresencePenalty = ChatParameters.PresencePenalty,
-               AllowTruncationRetry = false
+               AllowTruncationRetry = allowTruncationRetry
             };
 
          var request = new LlmRequest {

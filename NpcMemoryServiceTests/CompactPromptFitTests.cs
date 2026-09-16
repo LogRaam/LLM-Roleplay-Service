@@ -130,6 +130,22 @@ namespace NpcMemoryServiceTests
 
       #endregion
 
+      #region the reply budget
+
+      // THE LEVER NOBODY HAD PULLED, and the largest of the lot. A local server counts the reply budget
+      // against the SAME window as the prompt: on an 8,192-token model the shipped 3,000-token MaxTokens
+      // spends over a third of the context before the character says a word. It buys nothing there — the
+      // replies a small model writes run a few hundred tokens — and freeing two thousand of them is more
+      // headroom than every trim to the prompt TEXT put together, without taking one sentence from anybody.
+      [Test]
+      public void GIVEN_compact_mode_WHEN_a_turn_is_sent_THEN_the_reply_budget_leaves_room_for_the_prompt()
+      {
+         LeanReplyBudget.Tokens.Should().BeLessThan(2000, "a third of an 8k window cannot go to a reply nobody writes");
+         LeanReplyBudget.Tokens.Should().BeGreaterThan(1000, "the longest reply seen in play was ~1,018 tokens; do not cut into real answers");
+      }
+
+      #endregion
+
       #region private
 
       private static string WithTraits(LeanPromptLevel lean)

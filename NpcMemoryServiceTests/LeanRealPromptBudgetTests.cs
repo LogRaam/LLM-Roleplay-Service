@@ -295,13 +295,34 @@ namespace NpcMemoryServiceTests
          lean.IndexOf("YOU ARE TEST LORD").Should().BeGreaterThan(-1);
       }
 
-      // DuskSymphony's ceiling. 8192 tokens is the common local default and the one he ran into; the system
-      // prompt must leave real room for the conversation and the reply, so it is held to roughly half of it.
-      // At ~4 characters per token that is 16,000 characters.
+      /// <summary>
+      ///   DuskSymphony's ceiling: 8,192 tokens, the common local default and the one he ran into.
+      ///
+      ///   DERIVED, not rounded. It used to be a flat 16,000 characters — "roughly half" — which was coherent
+      ///   while the reply budget was 3,000 tokens, and stopped being so the moment that changed. A budget
+      ///   written as one magic number cannot say WHY it moved, so the next person either trusts it blindly or
+      ///   argues with it; written as a subtraction it goes red for a reason you can read.
+      ///
+      ///   The window holds three things at once and a local server counts them against the same context:
+      ///   this prompt, the reply it asks for, and the folded transcript of the conversation so far.
+      /// </summary>
+      private const int LocalContextTokens = 8192;
+
+      /// <summary>
+      ///   What a Compact conversation is allowed to carry as raw transcript plus running recap. Six unfolded
+      ///   lines (ConversationCompressionPolicy.CompactUnfoldedLineThreshold) plus the recap, measured against
+      ///   the turns in Gabriel's own sessions.
+      /// </summary>
+      private const int TranscriptAllowanceTokens = 1100;
+
       [Test]
       public void GIVEN_compact_mode_WHEN_the_real_prompt_is_built_THEN_it_leaves_room_inside_an_8k_context()
       {
-         Build(LeanPromptLevel.Lean).Length.Should().BeLessThan(16000);
+         int promptTokens = LocalContextTokens - LeanReplyBudget.Tokens - TranscriptAllowanceTokens;
+
+         Build(LeanPromptLevel.Lean).Length.Should().BeLessThan(promptTokens * 4,
+            $"an {LocalContextTokens}-token window must hold this prompt, a {LeanReplyBudget.Tokens}-token reply "
+          + $"and ~{TranscriptAllowanceTokens} tokens of folded transcript at the same time");
       }
 
       // And the trim is what buys that room. The guarantee this pins USED to be "every one of the 69 verbs is
