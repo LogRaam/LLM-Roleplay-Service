@@ -327,6 +327,9 @@ namespace NpcMemoryService.Core.Prompts
          if (ShouldAppendCaptiveStageDirective(encounterContext))
             AppendSceneStageDirective(sb, encounterContext, PlayerIsFemale);
          AppendSceneStyleDirective(sb, encounterContext);
+         // How often narration is wanted, which depends on WHICH BEAT this is — a per-turn fact, so it
+         // belongs here and nowhere above.
+         AppendNarrationFrequency(sb, encounterContext);
          AppendPowerBalance(sb, encounterContext);
          AppendPlayerGenderContext(sb, npc, encounterContext);
          // Hoisted out of AppendEncounterContext so it still renders when encounterContext is null, and kept
@@ -4121,6 +4124,57 @@ namespace NpcMemoryService.Core.Prompts
       ///   Sits in the dynamic tail (right after the per-turn stage directive), so it stays after the cache
       ///   marker and carries high recency. No-op when no lens was drawn (a non-captive turn).
       /// </summary>
+      /// <summary>
+      ///   How often [NARRATION] is wanted — ONE rule, chosen by the turn, and never both at once.
+      ///
+      ///   Both halves used to live near the top of the prompt, branched on IsConversationOpening, which put a
+      ///   per-turn fact inside the CACHED prefix: turn 2 of every conversation then diverged from turn 1 at
+      ///   ~2.5% and threw the whole prefix away (fkasad, Nexus, 15/09/2026; pinned by
+      ///   PromptCacheTurnStabilityTests). Making the wording constant was not open either — Gabriel's
+      ///   2026-07-19 ruling, from play: telling the model the block is rare while asking it to open with one
+      ///   is a split instruction, and a weaker model resolves it by emitting nothing, which is how the
+      ///   feature went invisible before. Rarity and the opening cannot be preached on the same turn.
+      ///
+      ///   So the whole question moved here, below the encounter marker. The prefix names the channel and what
+      ///   it carries; this says how often. Late placement also gives it recency, the position this prompt
+      ///   already reserves for rules a loose model tends to drop.
+      ///
+      ///   Skipped in a captive voice scene, which defines its own, different narration contract.
+      /// </summary>
+      private void AppendNarrationFrequency(StringBuilder sb, EncounterContext? context)
+      {
+         if (IsActiveCaptiveVoiceScene(context)) return;
+
+         bool opening = context?.IsConversationOpening == true;
+
+         // Lean carries no narration contract at all — the format block's [NARRATION] section and the whole
+         // NARRATIVE VOICE teaching are Full-only, so a frequency rule here would be the only thing in a Lean
+         // prompt telling a small model about a channel it was never taught. Measured, not assumed: a Lean
+         // prompt is 7261 chars with this silent and 7324 with a single line in it, against a budget ratchet
+         // of 7320 whose whole purpose is to catch exactly this kind of drift.
+         if (context?.LeanLevel == LeanPromptLevel.Lean) return;
+
+         if (opening)
+         {
+            sb.AppendLine("THIS TURN OPENS THE SCENE, so it CARRIES a [NARRATION], and that block comes FIRST,");
+            sb.AppendLine("BEFORE your [DIALOGUE]: the reader must see the place before anyone speaks in it.");
+            sb.AppendLine("Where you both stand, the light, the sounds, what the room or the road is doing");
+            sb.AppendLine("around you. One paragraph, concrete, no inventory of the furniture. After this opening");
+            sb.AppendLine("turn, narration becomes occasional again. Never narrate the same detail twice.");
+            sb.AppendLine();
+
+            return;
+         }
+
+         // These two sentences are kept UNBROKEN across the line wrap on purpose: NarrativeVoicePromptTests
+         // asserts them verbatim, and a wrap in the middle of one silently defeats the assertion.
+         sb.AppendLine("USE [NARRATION] SPARINGLY, when the moment earns it:");
+         sb.AppendLine("only when the scene itself is worth a line — an opening tableau, a change in the room,");
+         sb.AppendLine("a silence worth holding. Many turns need none at all, and a scene narrated every turn");
+         sb.AppendLine("stops being a scene. Never narrate the same detail twice.");
+         sb.AppendLine();
+      }
+
       private static void AppendSceneStyleDirective(StringBuilder sb, EncounterContext? context)
       {
          string? style = context?.CaptiveSceneStyle;
@@ -6672,7 +6726,7 @@ namespace NpcMemoryService.Core.Prompts
          // The narrative-voice teachings are Full-prompt only: Lean is a hard token budget for small
          // local models (pinned by LeanPromptPolicyTests), and ~2k chars of style guidance would bust it.
          if (context?.LeanLevel != LeanPromptLevel.Lean)
-            AppendNarrativeVoice(sb, context?.IsConversationOpening == true);
+            AppendNarrativeVoice(sb);
          string discoverySuffix = AdultLevel != AdultContentLevel.Off
             ? ", [DISCOVERY]"
             : "";
@@ -6697,7 +6751,7 @@ namespace NpcMemoryService.Core.Prompts
       ///   the same *action*-speech-narration template every turn). Captive scenes are excluded upstream: they carry
       ///   their own voice contract.
       /// </summary>
-      private static void AppendNarrativeVoice(StringBuilder sb, bool isOpening)
+      private static void AppendNarrativeVoice(StringBuilder sb)
       {
          sb.AppendLine("NARRATIVE VOICE (governs every reply):");
          sb.AppendLine("- Narrate in the third person: your character by name or \"he/she\", the world around");
@@ -6718,21 +6772,6 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("  a neutral camera on the SETTING, held apart from your own gestures:");
          sb.AppendLine("    [NARRATION]She stands motionless in the half-dark of the armoury, her shadow");
          sb.AppendLine("    wavering against the wall as the few remaining candles gutter.[/NARRATION]");
-         if (isOpening)
-         {
-            sb.AppendLine("- THIS TURN OPENS THE SCENE, so it CARRIES a [NARRATION], and that block comes FIRST,");
-            sb.AppendLine("  BEFORE your [DIALOGUE]: the reader must see the place before anyone speaks in it.");
-            sb.AppendLine("  Where you both stand, the light, the sounds, what the room or the road is doing");
-            sb.AppendLine("  around you. One paragraph, concrete, no inventory of the furniture. After this opening");
-            sb.AppendLine("  turn, narration becomes occasional again: a change in the room, a silence worth");
-            sb.AppendLine("  holding. Never narrate the same detail twice.");
-         }
-         else
-         {
-            sb.AppendLine("- Use [NARRATION] SPARINGLY, when the moment earns it: an opening tableau, a change in");
-            sb.AppendLine("  the room, a silence worth holding. Many turns need none at all, and a scene narrated");
-            sb.AppendLine("  every turn stops being a scene. Never narrate the same detail twice.");
-         }
          sb.AppendLine();
          sb.AppendLine("READING THE PLAYER'S TURN:");
          sb.AppendLine("- The player's *stage directions* are accomplished fact: they happened exactly as");
@@ -6971,9 +7010,14 @@ namespace NpcMemoryService.Core.Prompts
          // (Gabriel, in play 2026-07-19).
          if (!IsActiveCaptiveVoiceScene(context))
          {
-            sb.AppendLine(context?.IsConversationOpening == true
-               ? "[NARRATION]  (this turn: set the scene, and put this block BEFORE [DIALOGUE])"
-               : "[NARRATION]  (optional, and rare: only when the scene itself is worth a line)");
+            // HOW OFTEN this block is wanted is a fact about THIS TURN, and it is not stated here. It used
+            // to be, branched on IsConversationOpening — and this line sits ~2.5% into the prompt, inside the
+            // CACHED prefix, so turn 2 of every conversation rewrote the top of the prompt and discarded the
+            // whole prefix (fkasad, Nexus, 15/09/2026; pinned by PromptCacheTurnStabilityTests). It cannot be
+            // made constant either: Gabriel's 2026-07-19 ruling forbids preaching rarity on the turn that must
+            // open with a tableau, because a weaker model resolves the split instruction by emitting nothing.
+            // So frequency moved WHOLE into the dynamic tail — see AppendNarrationFrequency.
+            sb.AppendLine("[NARRATION]");
             sb.AppendLine("A neutral camera on the SETTING: the room, the light, the sounds. Never your own");
             sb.AppendLine("gestures, which belong in [DIALOGUE], and never the player's thoughts.");
             sb.AppendLine("[/NARRATION]");
