@@ -48,6 +48,9 @@ namespace NpcMemoryService.Core.Actions
 
             var request = new LlmRequest {
                SystemPrompt = prompt,
+               // Same breakpoint the game claims (ActionInterpreterComposer), for the same reason the MaxTokens
+               // below matches it: the bench must measure what the game does, cache behaviour included.
+               StableSystemPrompt = ActionInterpreterPromptBuilder.StablePrefix,
                Messages = new[] {new LlmMessage(MessageRole.User, ActionInterpreterPromptBuilder.FinalInstruction)},
                // 900, not 600: the two-step FinalInstruction makes the model write a CHECK grounding line per
                // candidate action BEFORE the tag block, so a reply carrying several deeds can exhaust 600 on the

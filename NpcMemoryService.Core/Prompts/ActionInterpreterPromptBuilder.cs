@@ -27,10 +27,16 @@ namespace NpcMemoryService.Core.Prompts
 
       /// <summary>
       ///   The invariant head of every interpreter prompt: the action interpreter's role, the tag vocabulary, the
-      ///   exact output format, and the hard "do NOT rewrite" rule. Exposed so a test can assert a built prompt
-      ///   STARTS with it (the prefix-first ordering that lets a provider cache this part across calls).
+      ///   exact output format, and the hard "do NOT rewrite" rule. The prompt is built prefix-first precisely so
+      ///   a provider can cache this part across calls.
+      ///
+      ///   PUBLIC since 15/09/2026, because being cacheable and being CACHED are not the same thing: the ordering
+      ///   was right from the start and nothing ever asked for the breakpoint, so every interpreter call — one per
+      ///   turn, on top of the prose call — sent this whole block at full price. A caller passes it as
+      ///   <c>LlmRequest.StableSystemPrompt</c> to claim what the ordering was always for. Nothing about the
+      ///   prompt's text or order changes; only where cache_control falls.
       /// </summary>
-      internal static string StablePrefix => _stablePrefix;
+      public static string StablePrefix => _stablePrefix;
 
       /// <summary>
       ///   The single user-turn instruction closing every interpreter call (bench AND runtime must use the same
