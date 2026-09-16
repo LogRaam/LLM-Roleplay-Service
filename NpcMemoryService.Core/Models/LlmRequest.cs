@@ -37,5 +37,18 @@ namespace NpcMemoryService.Core.Models
 
       /// <summary>System instructions: NPC profile, memory, world state, format rules.</summary>
       public required string SystemPrompt { get; init; }
+
+      /// <summary>
+      ///   WHO this request is about — a stable identity for the character being spoken to (or read for).
+      ///   DIAGNOSTIC ONLY: nothing in the request path reads it, it is never sent to any provider, and a
+      ///   null changes no behaviour.
+      ///
+      ///   It exists because a cache report without it is wrong in the normal case. Two characters speaking
+      ///   in turn on the SAME model legitimately have different prompts, so comparing one's prefix against
+      ///   the other's reports a catastrophic loss where nothing went wrong at all — which is exactly what
+      ///   cr.wire printed on its first run in a group scene ("81.5% discarded", for a turn that had simply
+      ///   been routed to another lord). An observer keys its history on this instead.
+      /// </summary>
+      public string? Subject { get; init; }
    }
 }

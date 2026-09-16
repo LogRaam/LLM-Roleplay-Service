@@ -93,6 +93,9 @@ namespace NpcMemoryService.Core.Services
          var request = new LlmRequest {
             SystemPrompt = systemPrompt,
             StableSystemPrompt = stablePrefix,
+            // Diagnostic only (see LlmRequest.Subject): lets a wire observer compare this character's prefix
+            // against HIS OWN previous one. A room of witnesses interleaves several speakers on one model.
+            Subject = npc?.Id,
             Messages = session.Messages,
             Parameters = parameters,
             // Null by default, exactly as before this parameter existed (the client resolves its own model).

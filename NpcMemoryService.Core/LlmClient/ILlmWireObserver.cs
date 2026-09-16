@@ -43,6 +43,13 @@ namespace NpcMemoryService.Core.LlmClient
       /// <summary>The model this went to, which is also who honours (or ignores) the breakpoint.</summary>
       public string? Model { get; init; }
 
+      /// <summary>
+      ///   WHO the request was about, when the caller said. An observer MUST key its history on this as well
+      ///   as the model: two characters speaking in turn share a model and legitimately differ in prompt, so
+      ///   comparing across them reports a loss that never happened.
+      /// </summary>
+      public string? Subject { get; init; }
+
       /// <summary>Whether a cache breakpoint was actually requested. False means every turn pays full price by design.</summary>
       public bool CachingRequested { get; init; }
 

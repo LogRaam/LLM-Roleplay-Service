@@ -84,6 +84,7 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
                   },
                   StableSystemPrompt = request.StableSystemPrompt,
                   SystemPrompt = request.SystemPrompt,
+                  Subject = request.Subject,
                   // Carry the per-request model override across the retry too, or the bigger-budget retry
                   // would silently fall back to the resolved model on exactly the extractor calls that set it.
                   ModelOverride = request.ModelOverride
@@ -328,6 +329,7 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
 
             observer.OnRequest(new LlmWireSnapshot {
                Model = request.ModelOverride ?? _config.ResolveModel(),
+               Subject = request.Subject,
                CachingRequested = caching,
                StablePrefix = stable,
                DynamicTail = stable == null
