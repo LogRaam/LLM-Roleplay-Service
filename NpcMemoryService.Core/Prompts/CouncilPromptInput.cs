@@ -56,6 +56,21 @@ namespace NpcMemoryService.Core.Prompts
       ///   (audit, 15/09/2026). Null for the many who hold no station, which is a life and not a gap.
       /// </summary>
       public string? StationLine { get; init; }
+
+      /// <summary>
+      ///   What this seat remembers of the PLAYER, bounded: the oldest kept memory and the most recent, joined.
+      ///   Null for somebody who has never dealt with them, which is common and is not a gap.
+      ///
+      ///   The council carried no memory at all until 16/09/2026, so a lord who had fought beside the player,
+      ///   been refused by them, or married into their house sat at the table with none of it — every seat
+      ///   met the player fresh, every sitting.
+      ///
+      ///   PRIVATE MEMORIES MUST NEVER ARRIVE HERE. A council is one prompt covering the whole table, so a
+      ///   seat's recall is read by the voice writing every OTHER seat, which makes this the second path by
+      ///   which one hero's memories reach another's prompt. The host filters NotableEvent.IsPrivate on the
+      ///   way in, through the same builder the witness path uses.
+      /// </summary>
+      public string? Memory { get; init; }
    }
 
    /// <summary>

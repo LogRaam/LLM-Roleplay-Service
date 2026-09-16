@@ -203,6 +203,13 @@ namespace NpcMemoryService.Core.Prompts
             // first fact read about this seat and can never be missed or overridden by a later clause.
             sb.AppendLine("- " + member.Name.Trim() + ", " + DescribeSex(member.IsFemale) + ": "
                            + string.Join("; ", clauses));
+
+            // Indented UNDER its own seat rather than folded into the clause list: a recall is a sentence or
+            // two in the character's own voice, and running it into a semicolon-separated line of attributes
+            // reads as one more attribute. The indent is what keeps it attached to the right person at a table
+            // where several are being described in a row.
+            if (!string.IsNullOrWhiteSpace(member.Memory))
+               sb.AppendLine("    remembers of you: " + member.Memory!.Trim());
          }
       }
 
