@@ -18,6 +18,7 @@
 
 #region
 
+using System.Collections.Generic;
 using System.Text;
 using NpcMemoryService.Core.Models;
 
@@ -98,6 +99,51 @@ namespace NpcMemoryService.Core.Knowledge
             AppendGovernorship(sb, context);
             AppendPartyPost(sb, context);
             AppendRetainer(sb, context);
+        }
+
+        /// <summary>
+        ///   The same station in ONE clause, for a roster line rather than a private word: "rules Vlandia as
+        ///   its King", "heads the dey Meroc clan", "governs Sargot". Null when this character holds no
+        ///   station at all, which is most people and is a life rather than a gap.
+        ///
+        ///   It lives HERE, beside <see cref="Render" />, on purpose. The COUNCIL had no station at all - a
+        ///   seated governor did not know he governed and a seated king did not know he ruled, which is the
+        ///   Derthert/Garios failure this pack exists to end, still live in a whole conversation mode (audit,
+        ///   15/09/2026). Giving the table its own idea of a station is how the two would drift the moment a
+        ///   new rank is added; two renderings of one fact set cannot.
+        ///
+        ///   Additive in the same order as Render, and for the same reason: a man may head his house, keep a
+        ///   town AND carry the player's ledger, and all three are true at once. Rulership is the exception
+        ///   that stands alone, exactly as it does above.
+        /// </summary>
+        public static string? DescribeBriefly(EncounterContext? context)
+        {
+            if (context == null) return null;
+
+            if (!string.IsNullOrWhiteSpace(context.RuledRealmName))
+            {
+                string title = string.IsNullOrWhiteSpace(context.RuledRealmRulerTitle)
+                    ? "ruler"
+                    : context.RuledRealmRulerTitle!.Trim();
+
+                return $"rules {context.RuledRealmName!.Trim()} as its {title}";
+            }
+
+            var clauses = new List<string>();
+            string house = (context.SpeakerClanName ?? "").Trim();
+
+            if (context.LeadsOwnClan)
+                clauses.Add(house.Length > 0 ? $"heads the {house} clan" : "heads their own clan");
+
+            string governs = (context.GovernedSettlementName ?? "").Trim();
+            if (governs.Length > 0) clauses.Add($"governs {governs}");
+
+            string post = (context.PartyPostHeld ?? "").Trim();
+            if (post.Length > 0) clauses.Add($"your {post}");
+
+            if (context.RidesAsRetainer) clauses.Add("rides with you as a retainer, of their own house still");
+
+            return clauses.Count == 0 ? null : string.Join(", ", clauses);
         }
 
         #region private

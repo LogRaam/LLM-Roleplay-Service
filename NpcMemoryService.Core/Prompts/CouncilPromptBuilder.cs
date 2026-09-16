@@ -188,6 +188,11 @@ namespace NpcMemoryService.Core.Prompts
             if (member == null || string.IsNullOrWhiteSpace(member.Name)) continue;
 
             var clauses = new List<string>();
+
+            // The RANK leads, ahead of age and manner, because it is the one clause that changes what a
+            // person may say rather than how they say it: a king who is not told he rules will deny the crown.
+            if (!string.IsNullOrWhiteSpace(member.StationLine)) clauses.Add(member.StationLine!.Trim());
+
             if (member.Age.HasValue) clauses.Add("aged " + member.Age.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
             if (!string.IsNullOrWhiteSpace(member.PersonaLine)) clauses.Add(member.PersonaLine!.Trim());
             if (!string.IsNullOrWhiteSpace(member.Culture)) clauses.Add(member.Culture!.Trim());

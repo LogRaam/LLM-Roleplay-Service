@@ -44,6 +44,18 @@ namespace NpcMemoryService.Core.Prompts
       ///   the clause.
       /// </summary>
       public int? Age { get; init; }
+
+      /// <summary>
+      ///   What this seat HOLDS, in one clause: "rules Vlandia as its King", "governs Sargot", "your
+      ///   quartermaster". Produced by StationPack.DescribeBriefly from the same facts a private word uses,
+      ///   so the table and the tete-a-tete cannot disagree about who somebody is.
+      ///
+      ///   The council carried NONE of this until 16/09/2026. A seated governor did not know he governed and
+      ///   a seated king did not know he ruled - the Derthert/Garios failure StationPack was written to end,
+      ///   still live in a whole conversation mode because the table built its own, emptier idea of a person
+      ///   (audit, 15/09/2026). Null for the many who hold no station, which is a life and not a gap.
+      /// </summary>
+      public string? StationLine { get; init; }
    }
 
    /// <summary>
