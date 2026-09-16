@@ -50,12 +50,64 @@ namespace NpcMemoryServiceTests
                              .Select(spec => new GameActionDefinition {Type = spec.Type, Description = spec.Description})
                              .ToList();
 
-      private static NpcProfile Npc() => new() {
-         Id = "npc_test", Name = "Test Lord", Faction = "Vlandia", Clan = "dey Meroc"
-      };
+      /// <summary>
+      ///   A character who has LIVED, because that is who a player talks to. The old profile here was
+      ///   <c>{Id, Name, Faction, Clan}</c> — no memories, no persona, no discovered traits — one screen below
+      ///   this file's own header about guards that construct their subject differently from production.
+      ///   Memories are capped in Compact (MemoryEventLimit), so six is the ceiling; discovered traits are NOT
+      ///   capped and only ever accumulate, so a long campaign carries more than this.
+      /// </summary>
+      private static NpcProfile Npc()
+      {
+         var npc = new NpcProfile {
+            Id = "npc_test", Name = "Test Lord", Faction = "Vlandia", Clan = "dey Meroc",
+            Personality = "A composed, calculating lord of the western marches, courteous to a fault and slow to forgive.",
+            Trait = "Calculating",
+            Relationships = "Married to Lady Ira. Sworn to King Derthert. Close friend of Ajin the Hawk; bitter enemy of Lord Temion.",
+            BackgroundContext = "Over the past season he and the player have crossed paths at tournaments, on campaign, "
+                              + "and once across a negotiating table, where he found them quicker than he had expected."
+         };
+
+         for (var i = 0; i < 6; i++)
+            npc.Events.Add(new NotableEvent(i * 3, NotableEventType.Other,
+               "I remembered Arwa asking me to join her warband and offering a share of future spoils along with her "
+             + "company in my bed, but I refused to mix my wages with such intimacy, agreeing only to teach her as I "
+             + "had promised."));
+
+         for (var i = 0; i < 10; i++)
+            npc.DiscoveredTraits.Add(new DiscoveredTrait {
+               Key = "trait_" + i.ToString(System.Globalization.CultureInfo.InvariantCulture),
+               Description = "She has shown a marked taste for being praised in front of others, and stiffens when it is withheld."
+            });
+
+         return npc;
+      }
+
+      /// <summary>
+      ///   The narrative payloads the HOST always injects and this guard never did (LlmServices.cs, where
+      ///   WorldDescription / BehaviorGuidelinesOverride / PlayerDescription / PostHistoryInstructions are set
+      ///   from NarrativeLoader). Between them, world.txt and behavior_guidelines.txt are 9,061 characters that
+      ///   went into every prompt the game has ever sent and into nothing this file ever measured — which is
+      ///   why a guard written FOR DuskSymphony, naming his ceiling in its own comment, stayed green while he
+      ///   could not hold one conversation.
+      ///
+      ///   Sized here rather than read from disk because the files live in the MOD repository and this one must
+      ///   stand alone. ShippedNarrativeSizeTests over there pins them to these numbers, so the pair cannot
+      ///   drift apart in silence.
+      /// </summary>
+      private const int WorldTxtChars = 2432;
+      private const int BehaviorGuidelinesChars = 6629;
+
+      private static string Filler(int chars)
+         => new StringBuilder().Insert(0, "Calradia is a hard country and its lords are harder. ", chars / 53 + 1)
+                               .ToString().Substring(0, chars);
 
       private static string Build(LeanPromptLevel lean)
-         => new PromptBuilder {ActionVocabulary = RealVocabulary()}
+         => new PromptBuilder {
+               ActionVocabulary = RealVocabulary(),
+               WorldDescription = Filler(WorldTxtChars),
+               BehaviorGuidelinesOverride = Filler(BehaviorGuidelinesChars)
+            }
             .BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, Encounter(lean));
 
       /// <summary>
