@@ -89,6 +89,45 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain(Recall);
       }
 
+      // AUDIT #9, INCREMENT 3: what a seat KNOWS reaches the table. Until 16/09/2026 the council rendered no
+      // knowledge pack at all, so a lord who could name his house's fiefs and its wars in a private word could
+      // name nothing at his own council.
+      [Test]
+      public void GIVEN_a_seat_that_knows_things_WHEN_the_council_prompt_is_built_THEN_its_knowledge_reaches_the_table()
+      {
+         var seat = new CouncilMemberInput {
+            Name = "Ajin the Hawk",
+            Knowledge = "Your house holds Sargot and Charas." + "\n" + "You are at war with Sturgia."
+         };
+
+         string prompt = Build(seat);
+
+         prompt.Should().Contain("Your house holds Sargot and Charas.");
+         prompt.Should().Contain("You are at war with Sturgia.");
+      }
+
+      // FLATTENED onto one line. The packs render in paragraphs, which is right for a private word and is a
+      // wall of text in a roster of six. Nothing is dropped by the flattening - what a seat can afford was
+      // already decided by the Compact budget, which is the packs' own rule.
+      [Test]
+      public void GIVEN_a_seat_whose_knowledge_runs_to_paragraphs_WHEN_built_THEN_it_is_rendered_as_one_line()
+      {
+         string prompt = Build(new CouncilMemberInput {
+            Name = "Ajin the Hawk",
+            Knowledge = "Your house holds Sargot." + "\n\n" + "You are at war with Sturgia."
+         });
+
+         prompt.Should().Contain("knows: Your house holds Sargot. You are at war with Sturgia.");
+      }
+
+      // A seat that knows nothing worth stating says nothing, exactly as with the recall.
+      [Test]
+      public void GIVEN_a_seat_that_knows_nothing_WHEN_built_THEN_no_empty_line_is_manufactured()
+      {
+         Build(new CouncilMemberInput {Name = "Ajin the Hawk", Knowledge = null}).Should().NotContain("knows:");
+         Build(new CouncilMemberInput {Name = "Ajin the Hawk", Knowledge = "  "}).Should().NotContain("knows:");
+      }
+
       #region private
 
       private static CouncilMemberInput Seat(string name, string? memory)

@@ -2570,62 +2570,13 @@ namespace NpcMemoryService.Core.Prompts
       ///   may be rendered. Deterministic and pure, so the two call sites agree without sharing state - and so
       ///   the Compact ALLOWANCE is applied once across both halves rather than twice over.
       /// </summary>
+      /// <summary>
+      ///   Delegates to <see cref="Knowledge.NpcKnowledgeFactory.Compose" />, where the rule now lives so the
+      ///   COUNCIL can compose through the same function rather than growing its own idea of what a person
+      ///   knows (audit, 15/09/2026: a whole conversation mode outside the pillar).
+      /// </summary>
       private static (string Stable, string Volatile) ComposeKnowledge(EncounterContext? context)
-      {
-         if (context == null) return ("", "");
-
-         bool lean = context.LeanLevel == LeanPromptLevel.Lean;
-
-         // What a character IS comes first and is never budgeted; what a character KNOWS follows and is.
-         // Dropping a contingent pack leaves someone less informed; dropping a constitutive one leaves nobody
-         // at all (Gabriel, 2026-09-12).
-         // Constitutive packs apply to everybody, INCLUDING somebody the host could not compose a bearer for:
-         // an unknown speaker is exactly when a crown must still be stated. Contingent packs need a bearer,
-         // because "what would a person like this know" has no answer without one.
-         List<Knowledge.KnowledgePack> carried =
-            Knowledge.NpcKnowledgeFactory.Constitutive
-                     .Concat(Knowledge.NpcKnowledgeFactory
-                                      .For(context.Bearer)
-                                      .Where(p => p.Kind == Knowledge.PackKind.Contingent))
-                     .ToList();
-
-         var spoken = new List<Knowledge.KnowledgePack>();
-         var said = new Dictionary<Knowledge.KnowledgePack, string>();
-
-         foreach (Knowledge.KnowledgePack pack in carried)
-         {
-            if (!pack.IsSupplied(context)) continue;
-
-            var sb = new StringBuilder();
-            pack.Render(sb, context, lean);
-
-            if (sb.Length == 0) continue;
-
-            spoken.Add(pack);
-            said[pack] = sb.ToString();
-         }
-
-         // WHAT is said is the loop above; WHICH of it survives a small model is a composition rule, and so
-         // it lives with the other composition rules. Full keeps everything.
-         var kept = new HashSet<Knowledge.KnowledgePack>(
-            lean
-               ? Knowledge.NpcKnowledgeFactory.AffordableInCompact(spoken, p => said[p].Length)
-               : spoken);
-
-         var stable = new StringBuilder();
-         var volatileText = new StringBuilder();
-
-         foreach (Knowledge.KnowledgePack pack in spoken)
-         {
-            if (!kept.Contains(pack)) continue;
-
-            if (pack.Volatility == Knowledge.PackVolatility.PerEncounter) volatileText.Append(said[pack]);
-            else stable.Append(said[pack]);
-         }
-
-         return (stable.ToString(), volatileText.ToString());
-      }
-
+         => Knowledge.NpcKnowledgeFactory.Compose(context);
       /// <summary>
       private static void AppendIdentity(StringBuilder sb, NpcProfile npc, EncounterContext? encounterContext)
       {

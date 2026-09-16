@@ -169,6 +169,28 @@ namespace NpcMemoryService.Core.Prompts
          return sb.ToString();
       }
 
+      /// <summary>
+      ///   A pack composition rendered for a ROSTER line: its paragraph breaks become one flowing line, since
+      ///   six seats of paragraphs is a wall rather than a table. Nothing is dropped here — what a seat can
+      ///   afford was already decided by the Compact budget, which is the packs' own rule.
+      /// </summary>
+      private static string Flatten(string text)
+      {
+         var flat = new StringBuilder();
+
+         foreach (string line in text.Split('\r', '\n'))
+         {
+            string t = line.Trim();
+
+            if (t.Length == 0) continue;
+            if (flat.Length > 0) flat.Append(' ');
+
+            flat.Append(t);
+         }
+
+         return flat.ToString();
+      }
+
       private static void AppendRoster(StringBuilder sb, IReadOnlyList<CouncilMemberInput> roster)
       {
          sb.AppendLine();
@@ -210,6 +232,11 @@ namespace NpcMemoryService.Core.Prompts
             // where several are being described in a row.
             if (!string.IsNullOrWhiteSpace(member.Memory))
                sb.AppendLine("    remembers of you: " + member.Memory!.Trim());
+
+            // Indented under its own seat like the recall, and flattened to one line: the packs render in
+            // paragraphs for a private word, which is right there and unreadable in a roster of six.
+            if (!string.IsNullOrWhiteSpace(member.Knowledge))
+               sb.AppendLine("    knows: " + Flatten(member.Knowledge!));
          }
       }
 

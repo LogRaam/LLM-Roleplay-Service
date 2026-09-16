@@ -71,6 +71,23 @@ namespace NpcMemoryService.Core.Prompts
       ///   way in, through the same builder the witness path uses.
       /// </summary>
       public string? Memory { get; init; }
+
+      /// <summary>
+      ///   What this seat KNOWS — their house's holdings and wars, its means, the word from the realm, the
+      ///   town they keep — composed by NpcKnowledgeFactory.Compose at the COMPACT budget from the same facts
+      ///   a private word uses.
+      ///
+      ///   The council rendered no knowledge pack at all until 16/09/2026: a whole conversation mode outside
+      ///   the pillar, and invisible to the completeness sweep because the sweep only ever looked at the 1:1
+      ///   path (audit, 15/09/2026). A lord who could name his fiefs in a private word could name nothing at
+      ///   his own table.
+      ///
+      ///   COMPACT and not Full, whatever the player's own prompt setting: a council renders EVERY seat at
+      ///   once, so this cost multiplies by the size of the table rather than by one speaker. The budget is
+      ///   the pillar's own (NpcKnowledgeFactory.AffordableInCompact), so which facts survive is a decision
+      ///   the packs already know how to make, by their own DropPriority, rather than a truncation here.
+      /// </summary>
+      public string? Knowledge { get; init; }
    }
 
    /// <summary>

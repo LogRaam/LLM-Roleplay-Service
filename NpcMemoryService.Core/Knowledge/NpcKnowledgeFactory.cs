@@ -13,6 +13,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using NpcMemoryService.Core.Models;
+using NpcMemoryService.Core.Prompts;
 
 #endregion
 
@@ -102,6 +105,71 @@ namespace NpcMemoryService.Core.Knowledge
         ///   king-denies-his-crown bug one level down. Found by twelve existing tests failing the moment
         ///   station became a pack (2026-09-12).
         /// </summary>
+    /// <summary>
+    ///   What this character IS and KNOWS, rendered and budgeted: the Stable half for the cacheable prefix and
+    ///   the Volatile half for the per-turn tail.
+    ///
+    ///   It lived private inside PromptBuilder, which is why the COUNCIL had none of it — a whole conversation
+    ///   mode outside the pillar, invisible to the completeness sweep (audit, 15/09/2026). Public here so the
+    ///   table composes through the same function a private word does, rather than growing its own opinion of
+    ///   what a person knows.
+    /// </summary>
+       public static (string Stable, string Volatile) Compose(EncounterContext? context)
+       {
+         if (context == null) return ("", "");
+
+         bool lean = context.LeanLevel == LeanPromptLevel.Lean;
+
+         // What a character IS comes first and is never budgeted; what a character KNOWS follows and is.
+         // Dropping a contingent pack leaves someone less informed; dropping a constitutive one leaves nobody
+         // at all (Gabriel, 2026-09-12).
+         // Constitutive packs apply to everybody, INCLUDING somebody the host could not compose a bearer for:
+         // an unknown speaker is exactly when a crown must still be stated. Contingent packs need a bearer,
+         // because "what would a person like this know" has no answer without one.
+         List<KnowledgePack> carried =
+            NpcKnowledgeFactory.Constitutive
+                    .Concat(NpcKnowledgeFactory
+                                   .For(context.Bearer)
+                                   .Where(p => p.Kind == PackKind.Contingent))
+                    .ToList();
+
+         var spoken = new List<KnowledgePack>();
+         var said = new Dictionary<KnowledgePack, string>();
+
+         foreach (KnowledgePack pack in carried)
+         {
+            if (!pack.IsSupplied(context)) continue;
+
+            var sb = new StringBuilder();
+            pack.Render(sb, context, lean);
+
+            if (sb.Length == 0) continue;
+
+            spoken.Add(pack);
+            said[pack] = sb.ToString();
+         }
+
+         // WHAT is said is the loop above; WHICH of it survives a small model is a composition rule, and so
+         // it lives with the other composition rules. Full keeps everything.
+         var kept = new HashSet<KnowledgePack>(
+            lean
+               ? NpcKnowledgeFactory.AffordableInCompact(spoken, p => said[p].Length)
+               : spoken);
+
+         var stable = new StringBuilder();
+         var volatileText = new StringBuilder();
+
+         foreach (KnowledgePack pack in spoken)
+         {
+            if (!kept.Contains(pack)) continue;
+
+            if (pack.Volatility == PackVolatility.PerEncounter) volatileText.Append(said[pack]);
+            else stable.Append(said[pack]);
+         }
+
+         return (stable.ToString(), volatileText.ToString());
+       }
+
         public static IReadOnlyList<KnowledgePack> Constitutive { get; } =
             All.Where(p => p.Kind == PackKind.Constitutive).ToList();
 
