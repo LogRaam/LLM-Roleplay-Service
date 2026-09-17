@@ -113,6 +113,34 @@ namespace NpcMemoryService.Core.Models
       ///   Significant past events with natural-language summaries.
       ///   This is the primary long-term memory surfaced to the LLM.
       /// </summary>
+      /// <summary>
+      ///   Where an anchor now lives, by identity when it has one and by value when it does not.
+      ///
+      ///   Every caller that came back to enrich a memory used FindLastIndex on an equal VALUE, and the
+      ///   conversation anchor's value is "Spoke with {player}." on today's date — so with two sittings on one
+      ///   day, the LAST match is the SECOND conversation's event and the first conversation's summary was
+      ///   written onto it (audit, 15/09/2026). An identity settles it; the value fallback keeps anchors from
+      ///   older saves working exactly as they do today.
+      /// </summary>
+      public int IndexOfAnchor(string? anchorId, NotableEvent byValue)
+      {
+         if (Events == null) return -1;
+
+         if (!string.IsNullOrEmpty(anchorId))
+         {
+            for (var i = 0; i < Events.Count; i++)
+               if (string.Equals(Events[i]?.Id, anchorId, System.StringComparison.Ordinal))
+                  return i;
+
+            // An identified anchor that is gone is GONE — it was compressed away, or already enriched into
+            // something that no longer matches. Falling back to a value match here would find a DIFFERENT
+            // conversation's event, which is the very defect this exists to end.
+            return -1;
+         }
+
+         return byValue == null ? -1 : Events.FindLastIndex(e => e != null && e.Equals(byValue));
+      }
+
       public List<NotableEvent> Events
       {
          get => _events;
