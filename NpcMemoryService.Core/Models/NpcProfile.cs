@@ -107,7 +107,7 @@ namespace NpcMemoryService.Core.Models
          init => _discoveredTraits = value ?? new List<DiscoveredTrait>();
       }
 
-      private readonly List<NotableEvent> _events = new();
+      private List<NotableEvent> _events = new();
 
       /// <summary>
       ///   Significant past events with natural-language summaries.
@@ -122,6 +122,25 @@ namespace NpcMemoryService.Core.Models
       ///   written onto it (audit, 15/09/2026). An identity settles it; the value fallback keeps anchors from
       ///   older saves working exactly as they do today.
       /// </summary>
+      /// <summary>
+      ///   Swaps the whole history for a new one in a SINGLE reference store.
+      ///
+      ///   Compression runs off the main thread (Task.Run) and used to write its result back as
+      ///   Events.Clear() followed by AddRange, while the main thread was reading the same list to build a
+      ///   prompt — AppendHistory enumerates it, and so does the compressor's own prompt builder. Between
+      ///   those two calls the character's entire past is GONE, and a reader landing there either enumerates
+      ///   an empty history or throws "Collection was modified" into a background task whose failure a player
+      ///   sees only as a memory that never arrived (audit, 15/09/2026).
+      ///
+      ///   A reference store has no such window: a reader either sees the old list, whole, or the new one,
+      ///   whole. This does NOT make the profile thread-safe in general, and does not pretend to — it closes
+      ///   the one window in which a reader could see a half-emptied history.
+      /// </summary>
+      public void ReplaceEvents(IReadOnlyList<NotableEvent>? replacement)
+         => _events = replacement == null
+            ? new List<NotableEvent>()
+            : new List<NotableEvent>(replacement);
+
       public int IndexOfAnchor(string? anchorId, NotableEvent byValue)
       {
          if (Events == null) return -1;

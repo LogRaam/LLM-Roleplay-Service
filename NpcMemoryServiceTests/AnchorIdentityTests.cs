@@ -91,6 +91,48 @@ namespace NpcMemoryServiceTests
             .IndexOfAnchor("anything", Anchor()).Should().Be(-1);
       }
 
+      // AUDIT #3. Compression runs off the main thread and used to write back as Clear() then AddRange, while
+      // the main thread read the same list to build a prompt. Between those two calls the character's whole
+      // past is GONE — a reader landing there enumerates an empty history, or throws "Collection was modified"
+      // into a background task whose failure a player sees only as a memory that never arrived.
+      //
+      // A reference store has no such window. This pins the property that matters: a reader holding the OLD
+      // list still has a whole history, not a half-emptied one.
+      [Test]
+      public void GIVEN_a_reader_holding_the_history_WHEN_it_is_replaced_THEN_what_they_hold_stays_whole()
+      {
+         NpcProfile npc = With(Anchor(), Anchor());
+         List<NotableEvent> readerHolds = npc.Events;
+
+         npc.ReplaceEvents(new List<NotableEvent> {Anchor()});
+
+         readerHolds.Count.Should().Be(2, "a reader mid-enumeration must never see the past emptied under it");
+         npc.Events.Count.Should().Be(1);
+      }
+
+      // And the swap must really take: a reader arriving AFTER it sees the new history, not the old one.
+      [Test]
+      public void GIVEN_a_reader_arriving_after_the_swap_WHEN_it_reads_THEN_it_sees_the_new_history()
+      {
+         NpcProfile npc = With(Anchor(), Anchor());
+
+         npc.ReplaceEvents(new List<NotableEvent> {new(11, NotableEventType.Other, "the folded past")});
+
+         npc.Events.Should().ContainSingle().Which.summary.Should().Be("the folded past");
+      }
+
+      // A null replacement is a caller error on a background thread; it must leave a usable empty history
+      // rather than a null nobody checks for.
+      [Test]
+      public void GIVEN_a_null_replacement_WHEN_applied_THEN_the_history_is_empty_and_not_null()
+      {
+         NpcProfile npc = With(Anchor());
+
+         npc.ReplaceEvents(null);
+
+         npc.Events.Should().NotBeNull().And.BeEmpty();
+      }
+
       #region private
 
       private static NotableEvent Anchor() => new(10, NotableEventType.Other, "Spoke with Arwa.");
