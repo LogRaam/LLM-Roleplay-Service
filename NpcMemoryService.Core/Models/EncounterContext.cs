@@ -1504,6 +1504,33 @@ namespace NpcMemoryService.Core.Models
       public bool IsConversationOpening { get; init; }
 
       /// <summary>
+      ///   How many memories this character already held when the CURRENT conversation opened. Everything past
+      ///   it was recorded during this very exchange and is deliberately kept out of the history block.
+      ///
+      ///   <para>
+      ///     Player report (17/09/2026): "the ai just keeps talking about the same thing over and over… even
+      ///     though the conversation has moved beyond that question, the ai keeps including the answer to that
+      ///     question in every single response", and "the longer the conversation goes, the longer their
+      ///     replies get because they feel the need to state the entire conversation in each reply."
+      ///   </para>
+      ///   <para>
+      ///     The cause is a loop. ProfileMutator runs EVERY turn, so an [EVENT] emitted on turn two is in the
+      ///     profile for turn three; AppendHistory then renders it as a notable memory — "earlier today" — and
+      ///     closes with "Respond as someone who lived through these events. Reference them when relevant."
+      ///     The model is being told to reference something it said twenty seconds ago, which is also still in
+      ///     the raw messages. Every turn adds one more, so the block grows into a restatement of the
+      ///     conversation, which is precisely what he described.
+      ///   </para>
+      ///   <para>
+      ///     NULLABLE on purpose, and this is not a detail: ZERO is a real and extremely common answer - a
+      ///     character the player has never met held no memories when the conversation opened - so zero cannot
+      ///     also mean "nobody said". Null is unset and renders everything, which is what every caller that
+      ///     does not supply one has today.
+      ///   </para>
+      /// </summary>
+      public int? HistoryKnownThrough { get; init; }
+
+      /// <summary>
       ///   The realm that binds the two of them, when one of them RULES it: the kingdom the player has sworn
       ///   to (<see cref="PlayerStatusVsNpc.Vassal" />) or the one the player rules and this NPC serves
       ///   (<see cref="PlayerStatusVsNpc.Liege" />). Null when unknown or when neither applies, in which case

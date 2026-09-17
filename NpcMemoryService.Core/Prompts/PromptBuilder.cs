@@ -227,7 +227,8 @@ namespace NpcMemoryService.Core.Prompts
          AppendInheritedNote(sb, npc);
          if (LeanPromptPolicy.Include(PromptSection.CulturalBackground, lean)) AppendBackgroundContext(sb, npc);
          AppendHistory(sb, npc, world.CurrentDay, LeanPromptPolicy.MemoryEventLimit(lean),
-            encounterContext?.NpcSpouseIsPlayer == true, encounterContext?.NpcIsPlayerHousehold == true);
+            encounterContext?.NpcSpouseIsPlayer == true, encounterContext?.NpcIsPlayerHousehold == true,
+            encounterContext?.HistoryKnownThrough);
          // A captor holding the player prisoner is not a quest-giver: listing the player's tasks
          // here let a bandit captor mistake a "clear the bandits" quest for one HE gave, and torture
          // the prisoner for "failing" it. Quests have no place in a captive scene. SuppressQuests withholds
@@ -2483,10 +2484,25 @@ namespace NpcMemoryService.Core.Prompts
 
       private static void AppendHistory(
          StringBuilder sb, NpcProfile npc, int currentDay, int maxEvents = int.MaxValue,
-         bool spouseIsPlayer = false, bool household = false)
+         bool spouseIsPlayer = false, bool household = false, int? knownThrough = null)
       {
+         // WHAT THIS CHARACTER ALREADY REMEMBERED WHEN THE CONVERSATION OPENED. Memories recorded DURING it
+         // are not history yet - they are the conversation, and the model already has them in the raw
+         // messages. Rendering them here as well, framed as notable past and followed by "reference them when
+         // relevant", is what made a character restate the same answer every turn and grow more verbose the
+         // longer a talk ran (player report, 17/09/2026).
+         //
+         // A count rather than a mark, and it falls back to rendering everything whenever it cannot be
+         // trusted: unset, or larger than the list, which is what a compression pass mid-conversation would
+         // leave behind. The fallback is today's behaviour, so a mis-read can never LOSE a memory.
+         //
+         // ZERO IS A REAL ANSWER, not an absence: a character the player has never met held no memories when
+         // the conversation opened, and that is the commonest case of all. It has to cut everything, which is
+         // why this is nullable rather than sentinelled.
+         int end = knownThrough is int cut && cut >= 0 && cut <= npc.Events.Count ? cut : npc.Events.Count;
+
          sb.AppendLine("YOUR HISTORY WITH THIS PLAYER:");
-         if (npc.Events.Count == 0)
+         if (end == 0)
          {
             // No shared moments are recorded yet. Normally that means a genuine first meeting, but when the mod
             // was added to a campaign already under way, an established spouse or close relative would also start
@@ -2509,13 +2525,15 @@ namespace NpcMemoryService.Core.Prompts
             return;
          }
 
-         // Lean prompt: keep only the most RECENT maxEvents so the memory fits a short context.
-         int start = maxEvents < npc.Events.Count ? npc.Events.Count - maxEvents : 0;
+         // Lean prompt: keep only the most RECENT maxEvents so the memory fits a short context. Measured
+         // against the cut, not the whole list, or Compact would spend its allowance on the turns the model is
+         // already reading verbatim.
+         int start = maxEvents < end ? end - maxEvents : 0;
 
          // Day numbers are absolute calendar days (5-digit); the model is bad at
          // subtracting them and invents recency ("three winters ago" for last week).
          // Spell the elapsed time out so it never has to.
-         for (int i = start; i < npc.Events.Count; i++)
+         for (int i = start; i < end; i++)
          {
             NotableEvent ev = npc.Events[i];
 
