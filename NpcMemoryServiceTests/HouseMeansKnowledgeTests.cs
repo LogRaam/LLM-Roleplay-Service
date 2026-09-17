@@ -179,5 +179,43 @@ namespace NpcMemoryServiceTests
          Pack.IsSupplied(empty).Should().BeTrue();
          Render(new HouseMeansFacts {Muster = MusterBand.Nothing}).Should().NotBeEmpty();
       }
+
+      // SUPPLIED BUT MUTE, the worst state a pack can be in: it reports itself answered, so the completeness
+      // sweep sees nothing wrong, and it says nothing at all. HasAnyReading counts RidingWithAnArmy on its
+      // own, while the muster clause returned null whenever the BAND was unknown — taking the army with it
+      // (audit, 15/09/2026). A missing band must cost the SIZE of the muster, never the fact that the men are
+      // in the field, which is the more consequential of the two.
+      [Test]
+      public void GIVEN_an_unknown_muster_but_men_in_the_field_WHEN_rendered_THEN_the_army_is_still_reported()
+      {
+         var facts = new HouseMeansFacts {Muster = MusterBand.Unknown, RidingWithAnArmy = true};
+
+         facts.HasAnyReading.Should().BeTrue("the army alone is a reading, which is why the silence was invisible");
+         Render(facts).Should().Contain("ride with an army");
+      }
+
+      // A house whose ONLY reading is its influence produced a sentence that began "and at court its word
+      // counts for very little." The Influence clauses carry a leading "and" so they read as a continuation,
+      // which is right after something and wrong after nothing. The old test passed because it asserted a
+      // SUBSTRING, and a dangling conjunction survives a substring check untouched.
+      [Test]
+      public void GIVEN_influence_as_the_only_reading_WHEN_rendered_THEN_the_sentence_does_not_open_with_a_conjunction()
+      {
+         string line = Render(new HouseMeansFacts {Influence = InfluenceBand.Negligible}).Trim();
+
+         // The clause follows the pack's own lead-in and its colon, so it stays lower-case; what must go is
+         // the conjunction, which had nothing to join.
+         line.Should().Contain(": at court its word counts for very little");
+         line.Should().NotContain(": and ");
+      }
+
+      // And the conjunction must SURVIVE when something really does precede it, or fixing the opening would
+      // have cost the reading of every multi-clause line.
+      [Test]
+      public void GIVEN_influence_after_another_reading_WHEN_rendered_THEN_it_still_reads_as_a_continuation()
+      {
+         Render(new HouseMeansFacts {Treasury = TreasuryBand.Strained, Influence = InfluenceBand.Negligible})
+            .Should().Contain("and at court its word counts for very little");
+      }
    }
 }

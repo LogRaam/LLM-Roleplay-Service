@@ -51,6 +51,14 @@ namespace NpcMemoryService.Core.Knowledge
         public override KnowledgeDepth DepthFor(KnowledgeBearer? bearer)
         {
             if (bearer == null) return KnowledgeDepth.None;
+
+            // NO POST, NO NEWS (Gabriel's rule, 12/09/2026). Reach is what this pack measures, and a man in a
+            // cell has none: no couriers, no court, no market. He keeps what he knew when the door shut, which
+            // is the ordinary history's business, not this pack's. house_means and seat_standing honoured this
+            // from the day the flag existed; this pack and underworld did not, so a captive was reading the
+            // CURRENT fortunes of his realm from a dungeon (audit, 15/09/2026).
+            if (bearer.IsCutOff) return KnowledgeDepth.None;
+
             if (bearer.IsLord || bearer.OwnHouseIsPlayerHouse) return KnowledgeDepth.Knowing;
             if (bearer.IsNotable) return KnowledgeDepth.Ordinary;
 

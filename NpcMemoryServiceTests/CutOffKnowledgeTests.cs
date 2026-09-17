@@ -124,6 +124,44 @@ namespace NpcMemoryServiceTests
                             .Should().Contain(new[] {"seat_standing", "house_means", "house_standing"});
       }
 
+      // THE AUDIT'S FINDING (15/09/2026). house_means and seat_standing honoured the cell from the day the
+      // flag existed; realm_news and underworld never looked at it, and nothing here pinned them. So a man in
+      // a dungeon was being handed the CURRENT fortunes of his realm — which is the whole of what this rule
+      // exists to stop, since reach is exactly what a cell takes away.
+      [Test]
+      public void GIVEN_a_captive_WHEN_the_realm_news_pack_is_weighed_THEN_no_word_reaches_the_cell()
+      {
+         new RealmNewsPack().DepthFor(CaptiveLord()).Should().Be(KnowledgeDepth.None);
+         new RealmNewsPack().DepthFor(FreeLord()).Should().NotBe(KnowledgeDepth.None,
+            "a free lord keeps couriers and a court; the rule is about the cell, not about lords");
+      }
+
+      // The quieter half of the same finding: a crime rating is CURRENT standing with the law and the
+      // streets, and a captive hears neither. What he knew before the door shut is the ordinary history's to
+      // carry, not this pack's.
+      [Test]
+      public void GIVEN_a_captive_WHEN_the_underworld_pack_is_weighed_THEN_he_does_not_know_who_is_wanted_today()
+      {
+         new UnderworldPack().DepthFor(CaptiveLord()).Should().Be(KnowledgeDepth.None);
+         new UnderworldPack().DepthFor(FreeLord()).Should().NotBe(KnowledgeDepth.None);
+      }
+
+      // THE RULE AS A RULE, rather than four packs checked one by one. Every pack whose subject is REACH —
+      // what a person hears from beyond the room they are shut in — must go silent in a cell. Written this
+      // way because the defect was not that one pack was wrong; it was that nothing stated the rule, so each
+      // new pack had to rediscover it, and two did not.
+      [Test]
+      public void GIVEN_a_captive_WHEN_every_pack_about_reach_is_weighed_THEN_all_of_them_go_silent()
+      {
+         var aboutReach = new KnowledgePack[] {
+            new RealmNewsPack(), new UnderworldPack(), new HouseMeansPack(), new SeatStandingPack()
+         };
+
+         foreach (KnowledgePack pack in aboutReach)
+            pack.DepthFor(CaptiveLord()).Should().Be(KnowledgeDepth.None,
+               $"{pack.Name} reports what a character HEARS from outside, and a cell is where hearing stops");
+      }
+
       #region private
 
       private static string Render(HouseStandingFacts facts, KnowledgeBearer bearer)

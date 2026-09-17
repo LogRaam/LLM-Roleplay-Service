@@ -119,7 +119,14 @@ namespace NpcMemoryService.Core.Knowledge
                 case MusterBand.Formidable:
                     men = "it fields one of the stronger musters in Calradia";
                     break;
-                default: return null;
+                default:
+
+                    // THE MUSTER BAND IS UNKNOWN, but the ARMY is not. Returning null here threw the "those men
+                    // ride with an army as you speak" clause away with it, while HasAnyReading counts
+                    // RidingWithAnArmy on its own as a supplied fact - so the pack reported itself supplied and
+                    // rendered nothing, which the completeness sweep cannot see (audit, 15/09/2026). A missing
+                    // band must cost the SIZE of the muster, never the fact that it is in the field.
+                    return ridingWithAnArmy ? "its men ride with an army as you speak" : null;
             }
 
             return ridingWithAnArmy ? $"{men}, and those men ride with an army as you speak" : men;
@@ -137,16 +144,26 @@ namespace NpcMemoryService.Core.Knowledge
             }
         }
 
-        /// <summary>The clauses as one sentence. Influence already carries its own "and", so it is not doubled.</summary>
+        /// <summary>
+        ///   The clauses as one sentence. The Influence clauses carry their own leading "and" so they read as
+        ///   a continuation, which is right when something precedes them and wrong when nothing does: a house
+        ///   whose ONLY reading was influence produced a sentence beginning "and at court its word counts for
+        ///   very little." (audit, 15/09/2026). The existing test missed it by asserting a substring, which a
+        ///   dangling conjunction survives untouched.
+        /// </summary>
         private static string Sentence(List<string> clauses)
         {
-            if (clauses.Count == 1) return $"{clauses[0]}.";
+            if (clauses.Count == 1) return $"{Opening(clauses[0])}.";
 
             string last = clauses[clauses.Count - 1];
             string head = string.Join(", ", clauses.GetRange(0, clauses.Count - 1));
 
             return last.StartsWith("and ") ? $"{head}, {last}." : $"{head} and {last}.";
         }
+
+        /// <summary>A clause that must START a sentence, with any leading conjunction removed.</summary>
+        private static string Opening(string clause)
+            => clause.StartsWith("and ") ? clause.Substring("and ".Length) : clause;
 
         #endregion
     }

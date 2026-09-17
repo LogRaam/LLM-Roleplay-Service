@@ -36,6 +36,12 @@ namespace NpcMemoryService.Core.Knowledge
         {
             if (bearer == null) return KnowledgeDepth.None;
 
+            // NO POST, NO NEWS. A crime rating is CURRENT standing with the law and the streets, and both are
+            // things a man hears; from a cell he hears neither. The same rule house_means and seat_standing
+            // have honoured since the flag existed (audit, 15/09/2026: a captive was being told how wanted the
+            // player is TODAY). What he knew before the door shut is the ordinary history's to carry.
+            if (bearer.IsCutOff) return KnowledgeDepth.None;
+
             return bearer.IsUnderworld ? KnowledgeDepth.Deep : KnowledgeDepth.Ordinary;
         }
 
