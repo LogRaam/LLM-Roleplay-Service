@@ -71,25 +71,7 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
             // A content-filter cut is not a budget problem, so it keeps the original budget (the filter trips at
             // a different point each roll).
             bool budgetExhausted = string.IsNullOrWhiteSpace(response.Content) || IsLengthTruncated(response.FinishReason);
-            LlmRequest retryRequest = budgetExhausted
-               ? new LlmRequest {
-                  Messages = request.Messages,
-                  Parameters = new LlmParameters {
-                     MaxTokens = request.Parameters.MaxTokens * 2,
-                     Creativity = request.Parameters.Creativity,
-                     // Carry every OTHER generation setting across untouched: only the budget is being
-                     // changed here. Rebuilding the object silently dropped the anti-repetition penalty on
-                     // exactly the retries most likely to ramble.
-                     PresencePenalty = request.Parameters.PresencePenalty
-                  },
-                  StableSystemPrompt = request.StableSystemPrompt,
-                  SystemPrompt = request.SystemPrompt,
-                  Subject = request.Subject,
-                  // Carry the per-request model override across the retry too, or the bigger-budget retry
-                  // would silently fall back to the resolved model on exactly the extractor calls that set it.
-                  ModelOverride = request.ModelOverride
-               }
-               : request;
+            LlmRequest retryRequest = budgetExhausted ? RebuildForBiggerBudget(request) : request;
 
             LlmResponse retry = await SendOnceAsync(retryRequest, ct).ConfigureAwait(false);
 
@@ -406,6 +388,54 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
             }
          };
       }
+
+
+      /// <summary>
+      ///   The same call, with room to finish. Only the completion budget changes.
+      ///
+      ///   Named and extracted (17/09/2026) because it is a HAND-REBUILT object, and a hand-rebuilt object is
+      ///   a list of things somebody remembered rather than a copy. It has now lost a setting twice: first the
+      ///   anti-repetition penalty, on exactly the retries most likely to ramble, and then — under a comment
+      ///   promising every other setting was carried across untouched — the reasoning dial, on every
+      ///   housekeeping call in the mod, which are the calls most likely to reach here at all.
+      ///
+      ///   With a name it has a test (TruncationRetryCarriesSettingsTests), and the next field added to
+      ///   LlmParameters has somewhere to be noticed.
+      /// </summary>
+      private static LlmRequest RebuildForBiggerBudget(LlmRequest request)
+         => new LlmRequest {
+                  Messages = request.Messages,
+                  Parameters = new LlmParameters {
+                     MaxTokens = request.Parameters.MaxTokens * 2,
+                     Creativity = request.Parameters.Creativity,
+                     // Carry every OTHER generation setting across untouched: only the budget is being
+                     // changed here. Rebuilding the object silently dropped the anti-repetition penalty on
+                     // exactly the retries most likely to ramble.
+                     PresencePenalty = request.Parameters.PresencePenalty,
+
+                     // And the reasoning dial, which this comment claimed to carry and did not (audit,
+                     // 16/09/2026). ReasoningOverride = "off" is set by every housekeeping call in the mod —
+                     // the conversation and letter summarizers, the memory and transcript compressors, the
+                     // claim and engagement extractors, the strategic assessment — because none of them wants
+                     // chain-of-thought and all of them have a tight structured budget. Which makes them the
+                     // calls MOST likely to hit this retry, and they were coming back with the global dial
+                     // switched back on: double the budget AND reasoning tokens eating it, on a call whose
+                     // whole point was to be cheap and mechanical. The exact failure the override exists to
+                     // prevent, reached through the door marked "carried across untouched".
+                     ReasoningOverride = request.Parameters.ReasoningOverride,
+
+                     // Likewise the truncation flag. A caller that asked to fail FAST on an incomplete reply
+                     // (the Prose+Interpreter prose call, which has its own fallback) must not have that
+                     // decision silently reversed by the very retry it opted out of.
+                     AllowTruncationRetry = request.Parameters.AllowTruncationRetry
+                  },
+                  StableSystemPrompt = request.StableSystemPrompt,
+                  SystemPrompt = request.SystemPrompt,
+                  Subject = request.Subject,
+                  // Carry the per-request model override across the retry too, or the bigger-budget retry
+                  // would silently fall back to the resolved model on exactly the extractor calls that set it.
+                  ModelOverride = request.ModelOverride
+         };
 
       private async Task<LlmResponse> SendOnceAsync(LlmRequest request, CancellationToken ct)
       {
