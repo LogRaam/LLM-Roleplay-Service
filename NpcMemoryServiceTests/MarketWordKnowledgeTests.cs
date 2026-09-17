@@ -163,5 +163,30 @@ namespace NpcMemoryServiceTests
          said.Should().NotContain("prosper").And.NotContain("granar").And.NotContain("garrison");
          said.Should().NotContain("roads");
       }
+
+      // An unnamed market produced "In here, iron is dear." The preposition belongs to the NAME, so without
+      // one the sentence has to open on the adverb instead (audit, 15/09/2026).
+      [Test]
+      public void GIVEN_a_market_with_no_name_WHEN_rendered_THEN_the_sentence_still_reads()
+      {
+         string line = Render(new MarketWordFacts {
+            PlaceName = null,
+            Goods = new List<MarketGood> {new() {Name = "iron", Price = PriceBand.Dear}}
+         });
+
+         line.Should().Contain("Here, iron is dear.");
+         line.Should().NotContain("In here");
+      }
+
+      // And a named one keeps its preposition, or fixing the blank case would have cost every other market
+      // its grammar.
+      [Test]
+      public void GIVEN_a_named_market_WHEN_rendered_THEN_it_still_names_the_place_properly()
+      {
+         Render(new MarketWordFacts {
+            PlaceName = "Pravend",
+            Goods = new List<MarketGood> {new() {Name = "iron", Price = PriceBand.Dear}}
+         }).Should().Contain("In Pravend, iron is dear.");
+      }
    }
 }

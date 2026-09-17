@@ -50,7 +50,11 @@ namespace NpcMemoryService.Core.Knowledge
             if (market == null || !market.HasAnyReading) return;
 
             string place = (market.PlaceName ?? "").Trim();
-            string here = place.Length == 0 ? "here" : place;
+
+            // "In {place}" reads well with a name and badly without one: an unnamed market produced "In here,
+            // iron is dear." (audit, 15/09/2026). The preposition belongs to the NAME, so when there is none
+            // the sentence opens on the adverb instead.
+            string here = place.Length == 0 ? "Here" : "In " + place;
 
             List<string> produces = Named(market.Produces);
             if (produces.Count > 0)
@@ -77,7 +81,12 @@ namespace NpcMemoryService.Core.Knowledge
 
             // Ordinary prices earn no words. A market where nothing stands out is a market with no news in it,
             // and this pack is read in every conversation with every merchant in the game.
-            if (dear.Count > 0) sb.AppendLine($"In {here}, {Join(dear)} {(dear.Count == 1 ? "is" : "are")} dear.");
+            // NOT given an "and N others" tail, unlike house_standing's fiefs and own_ventures' workshops,
+            // and the difference is deliberate. That rule exists so a man who holds nine towns does not sound
+            // like a man who holds four - it protects STANDING. A merchant naming three dear goods out of five
+            // is how anybody talks about a market; counting the rest would be a price list, which the very
+            // next line of this pack forbids.
+            if (dear.Count > 0) sb.AppendLine($"{here}, {Join(dear)} {(dear.Count == 1 ? "is" : "are")} dear.");
 
             if (cheap.Count > 0)
                 sb.AppendLine($"{Capitalise(Join(cheap))} {(cheap.Count == 1 ? "is" : "are")} going cheap.");

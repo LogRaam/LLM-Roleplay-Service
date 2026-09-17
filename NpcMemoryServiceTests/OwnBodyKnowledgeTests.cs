@@ -124,5 +124,38 @@ namespace NpcMemoryServiceTests
             Render(new OwnBodyFacts {Hurt = band, IsMaimed = true}).ToLowerInvariant()
                .Should().NotContain("years").And.NotContain("old man").And.NotContain("young");
       }
+
+      // A MAIMING IS A READING OF THE BODY. IsSupplied asked about the hurt band alone while HasAnythingToSay
+      // counts a maiming on its own, so a hero carrying an old injury and no current wound reported himself
+      // unsupplied — ComposeKnowledge never called Render, and the maiming was dropped without a word (audit,
+      // 15/09/2026). Two predicates about one thing must ask the same question.
+      [Test]
+      public void GIVEN_an_old_injury_and_no_fresh_wound_WHEN_swept_THEN_the_body_counts_as_read()
+      {
+         var facts = new OwnBodyFacts {Hurt = HurtBand.Unknown, IsMaimed = true};
+
+         facts.HasAnythingToSay.Should().BeTrue("the maiming is the thing worth saying");
+         Pack.IsSupplied(new EncounterContext {OwnBody = facts}).Should().BeTrue();
+      }
+
+      // And it must actually reach the prose, which is the half a player would notice. The mood design turns
+      // on this distinction — a fresh wound and an old one are different men — and it cannot land if the
+      // maiming never reaches the prompt at all.
+      [Test]
+      public void GIVEN_an_old_injury_and_no_fresh_wound_WHEN_rendered_THEN_it_is_still_spoken_of()
+      {
+         Render(new OwnBodyFacts {Hurt = HurtBand.Unknown, IsMaimed = true})
+            .Should().Contain("never healed");
+      }
+
+      // The control: a body nobody read at all is still NOT supplied, or the fix would have turned the sweep
+      // off for this pack rather than correcting it.
+      [Test]
+      public void GIVEN_a_body_nobody_read_WHEN_swept_THEN_it_is_still_reported_unsupplied()
+      {
+         Pack.IsSupplied(new EncounterContext {OwnBody = new OwnBodyFacts {Hurt = HurtBand.Unknown}})
+             .Should().BeFalse();
+         Pack.IsSupplied(new EncounterContext()).Should().BeFalse();
+      }
    }
 }

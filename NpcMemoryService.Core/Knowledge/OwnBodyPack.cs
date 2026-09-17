@@ -39,9 +39,23 @@ namespace NpcMemoryService.Core.Knowledge
         ///   Supplied means the host READ the body, not that the body is interesting. A hero who is perfectly
         ///   well is a successful read - so this asks for a reading, and <see cref="Render" /> is what stays
         ///   quiet when there is nothing to say.
+        ///
+        ///   <para>
+        ///     A MAIMING IS A READING. This asked about the hurt band alone, while HasAnythingToSay counts a
+        ///     maiming on its own — so a hero with an old injury and no current wound reported himself
+        ///     unsupplied, ComposeKnowledge never called Render, and the maiming was dropped without a word
+        ///     (audit, 15/09/2026). The two must ask the same question or the pack contradicts itself.
+        ///   </para>
+        ///   <para>
+        ///     It matters beyond tidiness: the mood design turns on exactly this distinction — a fresh wound
+        ///     and an old one are different men, and an injury somebody CARRIES is the one that shows
+        ///     self-possession rather than diminishment. That cannot land if the maiming never reaches the
+        ///     prompt.
+        ///   </para>
         /// </summary>
         public override bool IsSupplied(EncounterContext context)
-            => context?.OwnBody != null && context.OwnBody.Hurt != HurtBand.Unknown;
+            => context?.OwnBody != null
+               && (context.OwnBody.Hurt != HurtBand.Unknown || context.OwnBody.IsMaimed);
 
         public override void Render(StringBuilder sb, EncounterContext context, bool lean)
         {
