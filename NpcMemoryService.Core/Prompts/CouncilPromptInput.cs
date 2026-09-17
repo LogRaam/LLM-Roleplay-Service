@@ -70,7 +70,7 @@ namespace NpcMemoryService.Core.Prompts
       ///   which one hero's memories reach another's prompt. The host filters NotableEvent.IsPrivate on the
       ///   way in, through the same builder the witness path uses.
       /// </summary>
-      public string? Memory { get; init; }
+      public NpcMemoryService.Core.Memory.SharedRecall? Memory { get; init; }
 
       /// <summary>
       ///   What this seat KNOWS — their house's holdings and wars, its means, the word from the realm, the

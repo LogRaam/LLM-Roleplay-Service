@@ -85,7 +85,13 @@ namespace NpcMemoryService.Core.Models
       ///   a prior one-on-one answered, in a group scene, as if she had never heard of it). The mod builds it
       ///   from that witness's already-compressed profile events. Null when no profile is available.
       /// </summary>
-      public string? Memory { get; init; }
+      /// <summary>
+      ///   What this witness may be shown to remember IN FRONT OF THE ROOM. Typed rather than a string on
+      ///   purpose: a SharedRecall can only be obtained through SharedRecall.From, which drops anything the
+      ///   holder keeps in confidence, so a caller cannot hand this field raw event text even by accident.
+      ///   The filter used to be a private method and a careful comment; it is now the type.
+      /// </summary>
+      public Memory.SharedRecall? Memory { get; init; }
 
       /// <summary>
       ///   Equipment-awareness pillar (2026-08-29): this witness's notable equipped gear, one short Subject-voice

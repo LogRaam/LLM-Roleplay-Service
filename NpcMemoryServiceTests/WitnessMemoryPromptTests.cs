@@ -7,6 +7,7 @@
 
 using System.Collections.Generic;
 using FluentAssertions;
+using NpcMemoryService.Core.Memory;
 using NpcMemoryService.Core.Models;
 using NpcMemoryService.Core.Prompts;
 using NUnit.Framework;
@@ -43,7 +44,7 @@ namespace NpcMemoryServiceTests
          var w = new WitnessEntry {
             Name = "Arwa",
             RelationToNpc = "your companion",
-            Memory = "Agreed to speak up on the signal word."
+            Memory = Recalling("Agreed to speak up on the signal word.")
          };
 
          string prompt = Build(w);
@@ -60,5 +61,12 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().NotContain("A guard remembers:");
       }
+
+      /// <summary>
+      ///   A recall built the ONLY way one can be: through SharedRecall.From, so a test's fixture travels the
+      ///   same filter a real memory does. There is deliberately no way to mint one from a bare string.
+      /// </summary>
+      private static SharedRecall? Recalling(string text)
+         => SharedRecall.From(new List<NotableEvent> {new(1, NotableEventType.Other, text)}, 8);
    }
 }

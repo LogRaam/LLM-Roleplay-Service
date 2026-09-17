@@ -19,6 +19,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
+using NpcMemoryService.Core.Memory;
 using NpcMemoryService.Core.Models;
 using NpcMemoryService.Core.Prompts;
 using NUnit.Framework;
@@ -41,7 +42,7 @@ namespace NpcMemoryServiceTests
          Name = name,
          RelationToNpc = "a bystander",
          IsPlayerCompanion = companion,
-         Memory = memory
+         Memory = Recalling(memory)
       };
 
       private static string Build(LeanPromptLevel level, params WitnessEntry[] witnesses)
@@ -144,5 +145,12 @@ namespace NpcMemoryServiceTests
 
          Build(LeanPromptLevel.Lean, crowd).Length.Should().BeLessThan(8800);
       }
+
+      /// <summary>
+      ///   A recall built the ONLY way one can be: through SharedRecall.From, so a test's fixture travels the
+      ///   same filter a real memory does. There is deliberately no way to mint one from a bare string.
+      /// </summary>
+      private static SharedRecall? Recalling(string text)
+         => SharedRecall.From(new List<NotableEvent> {new(1, NotableEventType.Other, text)}, 8);
    }
 }

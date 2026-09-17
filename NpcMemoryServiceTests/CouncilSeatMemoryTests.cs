@@ -19,6 +19,8 @@
 
 using System.Collections.Generic;
 using FluentAssertions;
+using NpcMemoryService.Core.Models;
+using NpcMemoryService.Core.Memory;
 using NpcMemoryService.Core.Prompts;
 using NUnit.Framework;
 
@@ -80,7 +82,7 @@ namespace NpcMemoryServiceTests
       public void GIVEN_a_seat_with_both_a_station_and_a_recall_WHEN_built_THEN_both_reach_the_table()
       {
          var seat = new CouncilMemberInput {
-            Name = "Ajin the Hawk", StationLine = "governs Sargot", Memory = Recall
+            Name = "Ajin the Hawk", StationLine = "governs Sargot", Memory = Recalling(Recall)
          };
 
          string prompt = Build(seat);
@@ -131,7 +133,7 @@ namespace NpcMemoryServiceTests
       #region private
 
       private static CouncilMemberInput Seat(string name, string? memory)
-         => new() {Name = name, Memory = memory};
+         => new() {Name = name, Memory = memory == null ? null : Recalling(memory)};
 
       private static string Build(params CouncilMemberInput[] seats)
          => CouncilPromptBuilder.Build(new CouncilPromptInput {
@@ -141,5 +143,12 @@ namespace NpcMemoryServiceTests
          });
 
       #endregion
+
+      /// <summary>
+      ///   A recall built the ONLY way one can be: through SharedRecall.From, so a test's fixture travels the
+      ///   same filter a real memory does. There is deliberately no way to mint one from a bare string.
+      /// </summary>
+      private static SharedRecall? Recalling(string text)
+         => SharedRecall.From(new List<NotableEvent> {new(1, NotableEventType.Other, text)}, 8);
    }
 }

@@ -230,8 +230,8 @@ namespace NpcMemoryService.Core.Prompts
             // two in the character's own voice, and running it into a semicolon-separated line of attributes
             // reads as one more attribute. The indent is what keeps it attached to the right person at a table
             // where several are being described in a row.
-            if (!string.IsNullOrWhiteSpace(member.Memory))
-               sb.AppendLine("    remembers of you: " + member.Memory!.Trim());
+            if (!string.IsNullOrWhiteSpace(member.Memory?.Text))
+               sb.AppendLine("    remembers of you: " + member.Memory!.Text.Trim());
 
             // Indented under its own seat like the recall, and flattened to one line: the packs render in
             // paragraphs for a private word, which is right there and unreadable in a roster of six.

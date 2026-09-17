@@ -4627,7 +4627,7 @@ namespace NpcMemoryService.Core.Prompts
          // holds an agreement struck one-on-one, which is the case both player reports were about.
          var leanRecallLeft = LeanPromptPolicy.LeanWitnessMemoryCount;
          IEnumerable<WitnessEntry> leanRecallOrder = context.Witnesses
-            .Where(w => !string.IsNullOrWhiteSpace(w.Memory))
+            .Where(w => !string.IsNullOrWhiteSpace(w.Memory?.Text))
             .OrderByDescending(w => w.IsPlayerCompanion);
          var leanRecallChosen = new HashSet<WitnessEntry>(leanRecallOrder.Take(leanRecallLeft));
 
@@ -4663,11 +4663,11 @@ namespace NpcMemoryService.Core.Prompts
             // shared history), not as a stranger. Lean used to drop this outright, which quietly undid the
             // 2026-08-23 fix for every small-model player; it now gets a bounded, truncated allowance instead
             // (LeanPromptPolicy.LeanWitnessMemory), so the cost cannot grow with the size of the room.
-            if (lean == LeanPromptLevel.Full && !string.IsNullOrWhiteSpace(w.Memory))
-               sb.AppendLine($"    {w.Name} remembers: {w.Memory!.Trim()}");
+            if (lean == LeanPromptLevel.Full && !string.IsNullOrWhiteSpace(w.Memory?.Text))
+               sb.AppendLine($"    {w.Name} remembers: {w.Memory!.Text.Trim()}");
             else if (lean != LeanPromptLevel.Full && leanRecallChosen.Contains(w))
             {
-               string? recall = LeanPromptPolicy.LeanWitnessMemory(w.Memory);
+               string? recall = LeanPromptPolicy.LeanWitnessMemory(w.Memory?.Text);
                if (!string.IsNullOrWhiteSpace(recall)) sb.AppendLine($"    {w.Name} remembers: {recall}");
             }
 
