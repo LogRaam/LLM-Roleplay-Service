@@ -320,7 +320,13 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public string? MemoryDigest { get; set; }
 
-      public required string Name { get; init; }
+      /// <summary>
+      ///   Settable since 16/09/2026, for the same reason Faction and Clan are refreshed at every conversation
+      ///   open: a frozen creation-time value keeps introducing somebody as who they USED to be. A hero can be
+      ///   renamed at runtime — by the player for a companion, or by another mod — and the old name then led
+      ///   every prompt and expanded into {{char}} for the rest of the campaign (audit, 15/09/2026).
+      /// </summary>
+      public required string Name { get; set; }
 
       public string? Personality { get; set; }
 

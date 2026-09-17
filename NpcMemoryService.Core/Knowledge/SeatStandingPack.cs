@@ -50,6 +50,14 @@ namespace NpcMemoryService.Core.Knowledge
             // person who LIVES in a place knows it better than the person who owns it from three towns away.
             // A headman can tell you what is in the granary this week; his count knows how the place fares and
             // would have to send for the tally.
+            //
+            // WHAT THIS VALUE DOES AND DOES NOT DO, because an audit read the two as rival authorities
+            // (15/09/2026) and a test was pinning this number as though it decided the prose. It does not.
+            // Nothing reads the MAGNITUDE of this pack's depth: composition asks CarriedBy, which only wants
+            // None or not-None, and the two packs that do read their own magnitude are realm_news and
+            // underworld. How finely a PLACE is described is decided per seat by LivesThere, because a lord
+            // may govern one town himself and hold another from three towns away, and one number for the
+            // person cannot say that. Changing the value below will not change a word of any prompt.
             return bearer.IsNotable ? KnowledgeDepth.Deep : KnowledgeDepth.Knowing;
         }
 

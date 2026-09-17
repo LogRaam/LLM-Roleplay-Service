@@ -130,9 +130,15 @@ namespace NpcMemoryServiceTests
          new MarketWordPack().DepthFor(merchant).Should().Be(KnowledgeDepth.Deep);
          new HouseStandingPack().DepthFor(lord).Should().Be(KnowledgeDepth.Knowing);
 
-         ((int) new SeatStandingPack().DepthFor(merchant))
-            .Should().BeGreaterThan((int) new SeatStandingPack().DepthFor(lord),
-                                    "somebody who lives in a place knows it better than its absentee holder");
+         // AIMED AT THE RENDER, not at DepthFor. The rule is real and is honoured — a place somebody LIVES in
+         // is described more finely than one they merely hold — but seat_standing decides that per SEAT, in
+         // LivesThere, and its DepthFor magnitude is read by nothing at all (only CarriedBy, which asks None
+         // or not, plus realm_news and underworld reading their OWN). Asserting the unread number pinned the
+         // implementation: it would have gone red for a change no player could notice, and stayed green for
+         // one they would (audit, 15/09/2026, which reported the two as rival authorities).
+         Render(SeatRole.Notable).Length
+               .Should().BeGreaterThan(Render(SeatRole.Owner).Length,
+                                       "somebody who lives in a place knows it better than its absentee holder");
       }
 
       #region private
