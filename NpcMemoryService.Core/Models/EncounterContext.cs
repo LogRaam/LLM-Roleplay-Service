@@ -1772,52 +1772,11 @@ namespace NpcMemoryService.Core.Models
             case DiplomaticStatus.Allied: parts.Add("Your factions are formally allied or the same."); break;
          }
 
-         switch (PlayerStatus)
-         {
-            case PlayerStatusVsNpc.Captive: parts.Add("The player is currently your captive."); break;
-            case PlayerStatusVsNpc.NpcIsCaptive: parts.Add("You are currently the player's captive."); break;
-            case PlayerStatusVsNpc.ClanMember: parts.Add("The player belongs to your own clan."); break;
-            // Both feudal notes state WHO RULES WHAT alongside the conclusion, whenever the realm is known.
-            // A bare conclusion is unfalsifiable: it shipped inverted once, contradicted the NPC's own
-            // "Holds royal authority over a kingdom." rank line, and the model resolved the contradiction
-            // the wrong way (an Aserai Sultan denied being Sultan and called his new vassal "my liege").
-            // Naming the realm and its ruler gives the model something to check the conclusion against.
-            case PlayerStatusVsNpc.Vassal:
-               parts.Add(string.IsNullOrWhiteSpace(SharedRealmName)
-                  ? "The player is your sworn vassal."
-                  : $"You rule {SharedRealmName}, and the player has sworn to it: they are your vassal.");
-
-               break;
-            case PlayerStatusVsNpc.Liege:
-               parts.Add(string.IsNullOrWhiteSpace(SharedRealmName)
-                  ? "The player is your liege lord."
-                  : $"The player rules {SharedRealmName}, the realm you serve: they are your liege lord.");
-
-               break;
-            // Paid service, never fealty: the engine stores a mercenary contract the same way it stores an
-            // oath, so the prompt has to draw the line the data does not. What follows from it is the whole
-            // relationship: no loyalty is owed, the contract ends, and they may take the enemy's coin next.
-            case PlayerStatusVsNpc.Mercenary:
-               parts.Add(string.IsNullOrWhiteSpace(SharedRealmName)
-                  ? "The player's clan fights under a mercenary contract, for pay and not by oath."
-                  : $"The player's clan is hired to {SharedRealmName}, for pay and not by oath: mercenaries, not sworn vassals.");
-
-               break;
-            case PlayerStatusVsNpc.Employer:
-               parts.Add(string.IsNullOrWhiteSpace(SharedRealmName)
-                  ? "Your clan fights for the player's realm under a mercenary contract, for pay and not by oath."
-                  : $"The player rules {SharedRealmName}, which hires your clan: they are your paymaster, not your liege, and the contract will end.");
-
-               break;
-            case PlayerStatusVsNpc.SameRealm:
-               parts.Add(string.IsNullOrWhiteSpace(SharedRealmName)
-                  ? "The player is sworn to the same realm as you."
-                  : $"You and the player are both sworn to {SharedRealmName}: fellow vassals of the same crown, neither commanding the other.");
-
-               break;
-            case PlayerStatusVsNpc.Stranger: parts.Add("You have never met this person before."); break;
-            case PlayerStatusVsNpc.Free: /* default, no special note */ break;
-         }
+         // The player's STANDING used to be rendered here, which put it below the CURRENT ENCOUNTER marker
+         // and paid for it on every turn of every conversation. It is a fact about who two people are to
+         // each other: it moves when an oath is sworn or a war begins, not between one reply and the next.
+         // It now lives in PlayerStandingNote, rendered up in the cacheable prefix by
+         // PromptBuilder.AppendPlayerStanding. Stated once, in one place, and billed once.
 
          // The time-since-last-meeting note is rendered separately (PromptBuilder.AppendEncounterContext) with
          // its own restraint guidance, and only for a long-enough gap — see EncounterContext.MeetingGapNote.

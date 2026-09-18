@@ -210,6 +210,11 @@ namespace NpcMemoryService.Core.Prompts
          else AppendLeanBehaviorGuidelines(sb, encounterContext);
          // ── Per-NPC identity ─────────────────────────────────────────────────
          AppendIdentity(sb, npc, encounterContext);
+         // Who the player IS to this character: sworn, hired, kin, captive, or bound by nothing. It sits
+         // beside the identity because it is the same kind of fact and changes on the same scale (an oath, a
+         // war), and ABOVE the marker because it used to ride below it and was billed fresh every turn for a
+         // fact that had not moved. See PlayerStandingNote for the report that put it here.
+         AppendPlayerStanding(sb, encounterContext, lean);
          AppendNpcSelfAppearance(sb, encounterContext);
          // Voice first, then motive: the backstory says who they SOUND like, the conviction what they WANT.
          // Both ride the same lean gate, because an authored character is the whole reason a player authored one:
@@ -1329,14 +1334,21 @@ namespace NpcMemoryService.Core.Prompts
       private static void AppendEncounterContext(StringBuilder sb, EncounterContext? context)
       {
          if (context == null) return;
+
+         // THE MARKER IS NOT OPTIONAL. Everything below this line is the per-turn tail and everything above
+         // it is the cached prefix, so a prompt without the marker has no breakpoint at all and is billed
+         // whole, every turn. It used to be emitted only when the encounter had something to describe, which
+         // tied the cache to the contents of one paragraph: on 18/09/2026 the player's standing moved up into
+         // the prefix, and a context carrying nothing BUT a standing (a letter, most of all) would have lost
+         // its breakpoint as a side effect of an improvement. The tail that follows always has content, so
+         // the heading is never left standing over nothing.
+         sb.AppendLine(EncounterSectionHeading);
+
          string description = context.ToPromptDescription();
 
-         if (!string.IsNullOrWhiteSpace(description))
-         {
-            sb.AppendLine(EncounterSectionHeading);
-            sb.AppendLine(description);
-            sb.AppendLine();
-         }
+         if (!string.IsNullOrWhiteSpace(description)) sb.AppendLine(description);
+
+         sb.AppendLine();
 
          // How the NPC is at the player's side right now (riding along, marching in the army, sharing a town),
          // stated plainly and WITHOUT the gap note's restraint: closeness is a bond to lean into, and a partner
@@ -2596,6 +2608,22 @@ namespace NpcMemoryService.Core.Prompts
       private static (string Stable, string Volatile) ComposeKnowledge(EncounterContext? context)
          => Knowledge.NpcKnowledgeFactory.Compose(context);
       /// <summary>
+      /// <summary>
+      ///   States where the player stands with this character, or says nothing when the host could not
+      ///   answer. The sentence itself lives in <see cref="PlayerStandingNote" />, so the mod-side tests that
+      ///   guard the vassal/liege pair keep asserting the words the model is actually shown.
+      /// </summary>
+      private static void AppendPlayerStanding(StringBuilder sb, EncounterContext? context, LeanPromptLevel lean)
+      {
+         string? standing = PlayerStandingNote.Sentence(context, lean != LeanPromptLevel.Full);
+
+         if (string.IsNullOrWhiteSpace(standing)) return;
+
+         sb.AppendLine(PlayerStandingNote.Heading);
+         sb.AppendLine(standing);
+         sb.AppendLine();
+      }
+
       private static void AppendIdentity(StringBuilder sb, NpcProfile npc, EncounterContext? encounterContext)
       {
          // A clanless NPC (a hunted notable, a landless wanderer) has no house to name. Older data stored the
