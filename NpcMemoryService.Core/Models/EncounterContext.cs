@@ -1531,6 +1531,20 @@ namespace NpcMemoryService.Core.Models
       public int? HistoryKnownThrough { get; init; }
 
       /// <summary>
+      ///   How many quests this character already held when the conversation opened. Anything past this count
+      ///   was agreed DURING it, and must not be spoken of as an errand already under way.
+      ///   <para>
+      ///     Player report (raphareish, 18/09/2026): "after accepting a quest and talking about the deal that
+      ///     was just made, NPCs behave like it happened hours before on the same day, even though the chat has
+      ///     never been closed and there had been no roleplay about time passing."
+      ///   </para>
+      ///   The same shape as <see cref="HistoryKnownThrough" /> and for the same reason, because the day stamp
+      ///   cannot answer this: a quest given a minute ago and one given at dawn share it, and "the same day" is
+      ///   exactly what he was describing. Null means unset, which renders everything the way it always did.
+      /// </summary>
+      public int? QuestsKnownThrough { get; init; }
+
+      /// <summary>
       ///   The realm that binds the two of them, when one of them RULES it: the kingdom the player has sworn
       ///   to (<see cref="PlayerStatusVsNpc.Vassal" />) or the one the player rules and this NPC serves
       ///   (<see cref="PlayerStatusVsNpc.Liege" />). Null when unknown or when neither applies, in which case

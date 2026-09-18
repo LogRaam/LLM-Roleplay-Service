@@ -241,7 +241,7 @@ namespace NpcMemoryService.Core.Prompts
          // intimate scene never mints a quest from a vow).
          if (encounterContext?.PlayerStatus != PlayerStatusVsNpc.Captive && encounterContext?.SuppressQuests != true)
          {
-            AppendActiveQuests(sb, npc);
+            AppendActiveQuests(sb, npc, encounterContext?.QuestsKnownThrough);
             AppendNativeQuestNote(sb, encounterContext);
          }
          AppendCurrentStance(sb, npc);
@@ -5519,27 +5519,57 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
-      private void AppendActiveQuests(StringBuilder sb, NpcProfile npc)
+      private void AppendActiveQuests(StringBuilder sb, NpcProfile npc, int? questsKnownThrough = null)
       {
          if (!EnableQuests) return;
          if (npc.ActiveQuests == null || npc.ActiveQuests.Count == 0) return;
 
+         // WHICH OF THESE ALREADY EXISTED WHEN THE CONVERSATION OPENED. A quest agreed thirty seconds ago is
+         // in ActiveQuests by the next turn, and it used to be rendered as OUTSTANDING with "you may ask how
+         // it fares" - so a character asked after the progress of an errand the player had not left the room
+         // to begin (raphareish, 18/09/2026). The day stamp cannot tell these apart: a deal struck a minute
+         // ago and one struck at dawn share it, and "the same day" is what he actually reported.
+         //
+         // A count, falling back to "all of them are old" whenever it cannot be trusted, exactly like the
+         // history cut this mirrors: the fallback is the behaviour that shipped, so a mis-read can never hide
+         // a quest, only fail to mark one as fresh.
+         int settled = questsKnownThrough is int cut && cut >= 0 && cut <= npc.ActiveQuests.Count
+            ? cut
+            : npc.ActiveQuests.Count;
+
          var outstanding = new List<InformalQuest>();
+         var justAgreed = new List<InformalQuest>();
          var ready = new List<InformalQuest>();
          var past = new List<InformalQuest>();
-         foreach (InformalQuest q in npc.ActiveQuests)
+
+         for (var i = 0; i < npc.ActiveQuests.Count; i++)
+         {
+            InformalQuest q = npc.ActiveQuests[i];
+
             if (q.IsAwaitingReward) ready.Add(q);
+            else if (q.IsOutstanding && i >= settled) justAgreed.Add(q);
             else if (q.IsOutstanding) outstanding.Add(q);
             else past.Add(q);
+         }
 
          sb.AppendLine("YOUR QUESTS (tasks you have given this player):");
+
+         foreach (InformalQuest q in justAgreed)
+         {
+            sb.AppendLine($"- JUST AGREED, in this very conversation: {q.Description}{RewardSuffix(q)}{DeadlineSuffix(q)}");
+            if (!string.IsNullOrWhiteSpace(q.DirectionHint))
+               sb.AppendLine($"  The lair lies to the {q.DirectionHint}; tell them so if they ask where to look.");
+            sb.AppendLine("  It was settled moments ago, with the player still standing in front of you. They have had");
+            sb.AppendLine("  no chance to begin it: do not ask how it fares, do not speak of it as already under way,");
+            sb.AppendLine("  and never as something arranged on an earlier day.");
+         }
 
          foreach (InformalQuest q in outstanding)
          {
             sb.AppendLine($"- OUTSTANDING: {q.Description}{RewardSuffix(q)}{DeadlineSuffix(q)}");
             if (!string.IsNullOrWhiteSpace(q.DirectionHint))
                sb.AppendLine($"  The lair lies to the {q.DirectionHint}; tell them so if they ask where to look.");
-            sb.AppendLine("  Not yet done — you may ask how it fares, but you have no proof it is finished.");
+            sb.AppendLine("  Not yet done: you may ask how it fares, but you have no proof it is finished.");
          }
 
          foreach (InformalQuest q in ready)
