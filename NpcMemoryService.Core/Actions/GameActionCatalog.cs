@@ -446,7 +446,7 @@ namespace NpcMemoryService.Core.Actions
                },
                antiPatterns: new[] {
                   "the handover merely being discussed or promised, without the captive actually changing hands",
-                  "a captive sold for a NEW price rather than fulfilling an already-struck deliver-prisoner bargain, which is sell_prisoner",
+                  "a captive sold to them for a NEW price rather than fulfilling an already-struck deliver-prisoner bargain, which is buy_prisoner (they buy it from the player)",
                   "releasing the captive to freedom rather than into custody, which are free_prisoner or release_prisoner"
                }),
             Spec("free_prisoner",
