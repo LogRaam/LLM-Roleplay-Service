@@ -49,6 +49,14 @@ namespace NpcMemoryServiceTests
          yield return Flag("IsBroughtCaptiveTurn", on => Ctx(broughtCaptive: on));
          yield return Flag("IsRoundTableTurn", on => Ctx(roundTable: on));
          yield return Flag("IsCouncilNarratorTurn", on => Ctx(councilNarrator: on));
+
+         // THE ONES THIS FIXTURE MISSED. The 15/09 fix listed the booleans it knew about, and two one-shot
+         // STRINGS with the same contract were left above the marker: both are consumed on read by the host, so
+         // they are there on one turn and gone on the next, which is the very definition of a per-turn fact.
+         // Fakade's report (19/09/2026) was the interception one surfacing as a role swap rather than as a bill.
+         yield return Flag("InterceptionReason", on => Ctx(interception: on ? "It is YOU who sought this meeting." : null));
+         yield return Flag("LlmFormatFeedbackNote", on => Ctx(formatNote: on ? "Your last [QUEST] named no target." : null));
+         yield return Flag("NpcSoughtThePlayer", on => Ctx(sought: on));
       }
 
       // THE REGRESSION, as fkasad measured it from the outside.
@@ -118,6 +126,9 @@ namespace NpcMemoryServiceTests
          bool roundTable = false,
          bool councilNarrator = false,
          bool atSea = false,
+         bool sought = false,
+         string? interception = null,
+         string? formatNote = null,
          string? style = null) => new() {
          LeanLevel = LeanPromptLevel.Full,
          Scene = SceneType.Keep,
@@ -130,6 +141,9 @@ namespace NpcMemoryServiceTests
          IsRoundTableTurn = roundTable,
          IsCouncilNarratorTurn = councilNarrator,
          AtSea = atSea,
+         NpcSoughtThePlayer = sought,
+         InterceptionReason = interception,
+         LlmFormatFeedbackNote = formatNote,
          NarrativeStyle = style
       };
 

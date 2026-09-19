@@ -277,8 +277,6 @@ namespace NpcMemoryService.Core.Prompts
          AppendLordRecruitment(sb, encounterContext);
          AppendSchemeRecruitment(sb, encounterContext);
          AppendSchemeWarning(sb, encounterContext);
-         AppendInterception(sb, encounterContext);
-         AppendFormatFeedback(sb, encounterContext);
          AppendLoveMatchProposal(sb, npc, encounterContext);
          AppendConsortProposal(sb, encounterContext);
          AppendSecretLoverProposal(sb, encounterContext);
@@ -322,6 +320,14 @@ namespace NpcMemoryService.Core.Prompts
          // volatile (day count, time of day, scene stage, witness turn flags) and MUST stay after the marker,
          // or it invalidates the prefix cache on every single turn of a long captive scene. ─────────────────
          AppendEncounterContext(sb, encounterContext);
+         // WHO SOUGHT WHOM, and the two one-shot notes. All three describe THIS turn (the first two are consumed
+         // on read by the host, so they are present on one turn and gone on the next), and they sat above the
+         // marker until 19/09/2026: the same defect IsConversationOpening had, which killed the prefix cache on
+         // turn two. Below the marker they cost nothing and the standing line can be restated every turn.
+         AppendWhoSoughtWhom(sb, encounterContext);
+         AppendInterception(sb, encounterContext);
+         AppendFormatFeedback(sb, encounterContext);
+         AppendHeldPrisonersBrief(sb, encounterContext, lean);
          // The knowledge that changes under the character (the hour, the sky, where they stand) belongs here
          // with the rest of the per-turn tail, not up in the identity block - see AppendVolatileKnowledge.
          AppendVolatileKnowledge(sb, encounterContext);
@@ -2721,6 +2727,37 @@ namespace NpcMemoryService.Core.Prompts
       ///   riding out to the player (<see cref="EncounterContext.InterceptionReason" /> non-null):
       ///   a directive to open on that footing instead of waiting on the player.
       /// </summary>
+      /// <summary>
+      ///   The standing fact, restated every turn: this meeting is one the CHARACTER sought. See
+      ///   <see cref="EncounterContext.NpcSoughtThePlayer" /> for the report behind it.
+      /// </summary>
+      private static void AppendWhoSoughtWhom(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.NpcSoughtThePlayer != true) return;
+
+         sb.AppendLine("WHO SOUGHT WHOM: you approached the player, not the other way round. That stays true for the");
+         sb.AppendLine("whole of this conversation, whatever is said in it: the business here is YOURS, and the player");
+         sb.AppendLine("is answering you. Never speak as though they came to you.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   Who holds the captives, in one line, for the COMPACT prompt only: the full prompt says it inside the
+      ///   prisoner-bargain teaching (<see cref="AppendDeliverPrisoner" />), which Lean drops entirely. Without it a
+      ///   small model that raises the player's prisoners has nothing anywhere telling it whose they are, and
+      ///   Fakade watched one claim them as its own spoils of war (19/09/2026).
+      /// </summary>
+      private static void AppendHeldPrisonersBrief(StringBuilder sb, EncounterContext? context, LeanPromptLevel lean)
+      {
+         if (LeanPromptPolicy.Include(PromptSection.DeliverPrisonerOffer, lean)) return;
+         if (string.IsNullOrWhiteSpace(context?.HeldLordPrisoners)) return;
+         if (context?.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+
+         sb.AppendLine("THE PLAYER holds these lord captives, not you:");
+         sb.AppendLine(context!.HeldLordPrisoners);
+         sb.AppendLine();
+      }
+
       private static void AppendInterception(StringBuilder sb, EncounterContext? context)
       {
          string? reason = context?.InterceptionReason;

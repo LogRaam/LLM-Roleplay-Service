@@ -614,6 +614,20 @@ namespace NpcMemoryService.Core.Models
       public string? InterceptionReason { get; init; }
 
       /// <summary>
+      ///   True for EVERY turn of a conversation the NPC began by seeking the player out, where
+      ///   <see cref="InterceptionReason" /> only ever colours the first one.
+      ///   <para>
+      ///     Fakade (Nexus, 19/09/2026), on a local model: "it says that it knows they approached me, and the
+      ///     dialogue begins normally. I respond, then the AI treats the conversation as if I approached them."
+      ///     He was right, and the prompt was the reason: who sought whom was stated once and never again, so
+      ///     from turn two the only trace of it was the transcript, whose most recent voice is the player's.
+      ///   </para>
+      ///   Renders as one short standing line in the per-turn tail, in the compact prompt as well as the full
+      ///   one, since a small model is exactly the one that loses the thread.
+      /// </summary>
+      public bool NpcSoughtThePlayer { get; init; }
+
+      /// <summary>
       ///   A one-line FEEDBACK note for the model when its PREVIOUS reply emitted a [QUEST] or [ACTION] block
       ///   the host could not register (unknown / ungroundable target, unparseable). Without it, only the player
       ///   was ever told, so a weak model kept referencing a task the game never recorded. The host sets this on
