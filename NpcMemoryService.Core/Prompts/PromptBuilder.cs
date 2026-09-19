@@ -2571,6 +2571,10 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
          sb.AppendLine("Respond as someone who lived through these events. Reference them when relevant,");
          sb.AppendLine("and use the elapsed times given above — do not invent how long ago something was.");
+         // A memory keeps the allegiances of its day ("we fought for the king"), and this section is read AFTER the
+         // standing note, so it was the fresher voice: tashmetu (19/09/2026), expelled from his kingdom, was still
+         // spoken to as a member. The standing note is built live every turn; the memories are not.
+         sb.AppendLine("Allegiances in these memories are as they stood then; where the player's standing has changed since, the present one stated above is true now.");
          sb.AppendLine();
       }
 
