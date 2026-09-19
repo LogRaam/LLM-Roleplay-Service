@@ -894,6 +894,17 @@ namespace NpcMemoryService.Core.Actions
                   "a grievance settled by a PAYMENT or a deed rather than by the player's spoken apology or earnest words, which is take_gold (or no action at all), not make_amends",
                   "softening a companion's voiced unhappiness in general, which is the distinct verb reassure_companion"
                }),
+            Spec("hear_account",
+               "The player gives their account of, or justification for, a grievance the NPC knowingly holds against them, and the NPC records having heard it. Hearing is not forgiving: the grievance keeps its full weight.",
+               tells: new[] {
+                  "the player explains why they did the thing the NPC holds against them, or gives their side of it, in this reply"
+               },
+               antiPatterns: new[] {
+                  "the player apologising or offering to set things right, which is make_amends",
+                  "the NPC merely asking for an explanation the player has not yet given",
+                  "an explanation about something other than the grievance this NPC holds against the player"
+               },
+               new GameActionParam("account", "the player's account, one short line in the NPC's own words")),
             Spec("pledge_against",
                "A lord, moved by genuine standing enmity, vows to move against a named rival: launches a real scheme (slander or sabotage) and records a tracked commitment. A political act only, never a declaration of war.",
                tells: new[] {

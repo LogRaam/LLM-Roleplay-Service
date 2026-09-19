@@ -1025,6 +1025,21 @@ namespace NpcMemoryService.Core.Actions
                prose: "*Vsevolod's stiff posture eases as you speak, and he extends his hand for the first time since the insult passed between you.* You name the insult you dealt me at court plainly, without excuse or softening. Words alone rarely settle such things. Yours, somehow, have.",
                expectedType: "make_amends"),
 
+            ActionBenchCase.Expect("hear_account", "hear_account",
+               contextFacts: "NPC: Lord Garios, who holds a vendetta against the player for executing his brother. The player has just explained why.",
+               prose: "*Garios hears you out without a word, jaw set.* So that is your account of it: my brother raised his banner against his own liege, and you judged him for it. I have heard it now. It changes nothing between us.",
+               expectedType: "hear_account"),
+
+            ActionBenchCase.Expect("hear_account_v2", "hear_account",
+               contextFacts: "NPC: Lady Silvia, who knowingly holds a grievance against the player over a raided village. The player has just given their side of it.",
+               prose: "*Silvia's gaze does not waver.* You say the village sheltered the men who burned your own camp. Perhaps. I will remember that you told me so. I will not ask you again.",
+               expectedType: "hear_account"),
+
+            ActionBenchCase.Expect("hear_account_v3", "hear_account",
+               contextFacts: "NPC: Jarl Hrothgar, who knowingly holds a grievance against the player over a lost battle. The player has just explained what happened.",
+               prose: "*Hrothgar grunts.* The river rose and your riders could not cross in time. That is the tale, then. I believe perhaps half of it, but I have heard it, and that is the end of my asking.",
+               expectedType: "hear_account"),
+
             ActionBenchCase.Expect("pledge_against", "pledge_against",
                contextFacts: "NPC: Lord Ansen, holding genuine standing enmity against Lord Caladog (not his own kin).",
                prose: "*Ansen's knuckles whiten around his cup.* I have borne Caladog's insults long enough. I vow it here: I will see his name blackened and his schemes unravelled before this year is out.",
