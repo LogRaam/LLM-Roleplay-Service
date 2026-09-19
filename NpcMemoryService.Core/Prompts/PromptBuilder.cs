@@ -3980,7 +3980,11 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.AppendLine();
          sb.AppendLine("A LESSON YOU COULD GIVE (only as a topic THE PLAYER raises):");
-         sb.AppendLine($"You have real mastery in: {string.Join(", ", skills)}. Do not offer to teach on your own");
+         // "and the player knows less of them than you do": the list is now filtered to exactly that, so the
+         // words say so. Left as a bare "you have real mastery in", it would read as the WHOLE of this person's
+         // mastery and quietly misdescribe a master whose student had already overtaken him somewhere.
+         sb.AppendLine($"You have real mastery in these, and the player knows less of them than you do: {string.Join(", ", skills)}.");
+         sb.AppendLine("Do not offer to teach on your own");
          sb.AppendLine("initiative; this is the player's matter to raise. If they ask you to teach or show them");
          sb.AppendLine("something of your craft, actually instruct them here and now, in character: correct their");
          sb.AppendLine("grip, adjust their seat, walk them through the trick of it, something they are SHOWN and");
