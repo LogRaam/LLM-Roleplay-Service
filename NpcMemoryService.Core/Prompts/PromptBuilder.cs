@@ -8143,6 +8143,24 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("WORLD:");
          sb.AppendLine(PromptVariableExpander.Expand(WorldDescription, vars));
          sb.AppendLine();
+
+         // WHICH NAME WINS WHEN TWO DISAGREE. The block above is a lore DOCUMENT: it is written once, by hand,
+         // and it names the realms of an unmodified Calradia. Everything else in this prompt is read from the
+         // running game a moment ago. A mod that renames kingdoms at runtime (Bellum Civile, reported
+         // 18/09/2026: "Southern Empire" becomes "Basileia ton Notion Kalradon"), a total conversion, or a
+         // player who founds a kingdom all leave the document behind, and the model was resolving the
+         // contradiction the wrong way because the document is the longer and more confident text.
+         //
+         // The modder's own evidence is what makes this the right shape: the rebel kingdoms his mod spawns at
+         // runtime WERE named correctly, precisely because no document mentions them. Nothing needs inventing,
+         // only a precedence, and it is four lines in a prefix that is written once per conversation.
+         sb.AppendLine("WHICH NAMES ARE CURRENT:");
+         sb.AppendLine("The section above is background reading and may be out of date. Every name given to you");
+         sb.AppendLine("elsewhere in this prompt (your own realm, the realms named in the news, in the wars, and in");
+         sb.AppendLine("who stands where) is read from the world as it is TODAY. Where the two disagree about what a");
+         sb.AppendLine("realm is called, the current name is the true one and the background reading is an old book:");
+         sb.AppendLine("use the current name, and never correct someone who uses it.");
+         sb.AppendLine();
       }
 
       /// <summary>
