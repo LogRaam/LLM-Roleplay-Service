@@ -1312,9 +1312,13 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine($"duel between you could happen. It would be fought at once{venue} as soon as this conversation");
          sb.AppendLine("ends, and it is NOT to the death: the loser is beaten senseless and lives. Never speak of");
          sb.AppendLine("killing them, never appoint a later hour or a distant place, and never send seconds.");
-         sb.AppendLine("A duel is a grave thing. Do not reach for one over a trifle and do not raise it out of");
-         sb.AppendLine("nowhere: it belongs to a real affront, a grudge you carry, or a rivalry words have failed to");
-         sb.AppendLine("settle. If the player merely speaks OF duels, or boasts, that is talk and nothing more.");
+         sb.AppendLine("A duel in anger is a grave thing. Do not reach for one over a trifle and do not raise it out");
+         sb.AppendLine("of nowhere: it belongs to a real affront, a grudge you carry, or a rivalry words have failed");
+         sb.AppendLine("to settle. If the player merely speaks OF duels, or boasts, that is talk and nothing more.");
+         sb.AppendLine("A FRIENDLY BOUT is a different thing and needs none of that gravity: a wager, a test of arms,");
+         sb.AppendLine("a match somebody proposes for the pleasure of it. Say which of the two this is in the action");
+         sb.AppendLine("below, because the game treats them differently and a match nobody resented must not leave");
+         sb.AppendLine("you thinking less of them.");
          sb.AppendLine("This puts YOU and the PLAYER, and no one else, to steel. If your quarrel is with someone ELSE");
          sb.AppendLine("present (another lord in the room), this does NOT apply: it cannot name them, only you and the");
          sb.AppendLine("player, so do NOT emit it for a grievance against a third party, settle that in words instead.");
@@ -1323,6 +1327,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: challenge_duel");
          sb.AppendLine("challenger: player   (they called for it)   OR   challenger: you   (you demand it)");
+         sb.AppendLine("spirit: grievance   (default: a real affront, and the loser is humbled by it)");
+         sb.AppendLine("        OR   spirit: friendly   (a bout you BOTH want: a wager, a test of arms, a match");
+         sb.AppendLine("        between people who mean no harm by it and will think no worse of each other after)");
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("Then STOP AT THE CHALLENGE. Your line ends the instant the matter is put to steel: do NOT say");
          sb.AppendLine("whether you accept, do NOT refuse, and do NOT describe drawing, the fight, a wound, or who");
