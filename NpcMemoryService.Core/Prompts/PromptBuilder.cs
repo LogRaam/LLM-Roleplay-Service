@@ -206,8 +206,8 @@ namespace NpcMemoryService.Core.Prompts
          // before it splits: a modder with a large custom world.txt (TOR, reported 2026-09-01) saw the stranded
          // world block cost prefix-cache reuse when switching characters. Still inside the cacheable prefix
          // (above the CURRENT ENCOUNTER marker) and above the per-NPC identity that follows.
-         if (LeanPromptPolicy.UseFullBehaviorGuidelines(lean)) AppendBehaviorGuidelines(sb, encounterContext);
-         else AppendLeanBehaviorGuidelines(sb, encounterContext);
+         if (LeanPromptPolicy.UseFullBehaviorGuidelines(lean)) AppendBehaviorGuidelines(sb, encounterContext, vars);
+         else AppendLeanBehaviorGuidelines(sb, encounterContext, vars);
          // ── Per-NPC identity ─────────────────────────────────────────────────
          AppendIdentity(sb, npc, encounterContext);
          // Who the player IS to this character: sworn, hired, kin, captive, or bound by nothing. It sits
@@ -5802,13 +5802,21 @@ namespace NpcMemoryService.Core.Prompts
 
       // ── Sprint 8.1: behavior guidelines ──────────────────────────────────
 
-      private void AppendBehaviorGuidelines(StringBuilder sb, EncounterContext? context)
+      /// <remarks>
+      ///   Prompt variables ({{name}}) are expanded here as in every other prose file. They were not, until a modder
+      ///   (tashmetu, Bellum Civile bridge, 19/09/2026) wrote {{bc_office}} into a cr_patch contribution to this
+      ///   file and it reached the model as the raw token: the same mechanism worked in his other file, so there
+      ///   was no way to guess it would not work here. This block sits in the CACHED prefix, like the world
+      ///   description, so a variable used here should be one that changes rarely; a per-turn value belongs in
+      ///   post_history_instructions, which is re-sent every turn anyway.
+      /// </remarks>
+      private void AppendBehaviorGuidelines(StringBuilder sb, EncounterContext? context, IReadOnlyDictionary<string, string> vars)
       {
          // The station-matched register outranks the global override: a gang leader must never
          // inherit the lordly voice just because the global file speaks as a noble.
          if (!string.IsNullOrWhiteSpace(context?.StationGuidelinesOverride))
          {
-            sb.AppendLine(context!.StationGuidelinesOverride);
+            sb.AppendLine(PromptVariableExpander.Expand(context!.StationGuidelinesOverride, vars));
             sb.AppendLine();
             sb.AppendLine("─────────────────────────────────────────────");
             sb.AppendLine();
@@ -5818,7 +5826,7 @@ namespace NpcMemoryService.Core.Prompts
 
          if (!string.IsNullOrWhiteSpace(BehaviorGuidelinesOverride))
          {
-            sb.AppendLine(BehaviorGuidelinesOverride);
+            sb.AppendLine(PromptVariableExpander.Expand(BehaviorGuidelinesOverride, vars));
             sb.AppendLine();
             sb.AppendLine("─────────────────────────────────────────────");
             sb.AppendLine();
@@ -5860,11 +5868,12 @@ namespace NpcMemoryService.Core.Prompts
       ///   The LEAN-prompt substitute for the long behaviour guidelines — the essence in a few lines, so a small
       ///   model's short context is not eaten by the full block. A player-authored override still wins.
       /// </summary>
-      private void AppendLeanBehaviorGuidelines(StringBuilder sb, EncounterContext? context)
+      private void AppendLeanBehaviorGuidelines(StringBuilder sb, EncounterContext? context, IReadOnlyDictionary<string, string> vars)
       {
+         // Same expansion as the full form: a small model must not be the one that reads a raw {{token}}.
          if (!string.IsNullOrWhiteSpace(context?.StationGuidelinesOverride))
          {
-            sb.AppendLine(context!.StationGuidelinesOverride);
+            sb.AppendLine(PromptVariableExpander.Expand(context!.StationGuidelinesOverride, vars));
             sb.AppendLine();
 
             return;
@@ -5872,7 +5881,7 @@ namespace NpcMemoryService.Core.Prompts
 
          if (!string.IsNullOrWhiteSpace(BehaviorGuidelinesOverride))
          {
-            sb.AppendLine(BehaviorGuidelinesOverride);
+            sb.AppendLine(PromptVariableExpander.Expand(BehaviorGuidelinesOverride, vars));
             sb.AppendLine();
 
             return;
