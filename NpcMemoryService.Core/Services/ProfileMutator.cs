@@ -101,7 +101,7 @@ namespace NpcMemoryService.Core.Services
             // like "Day N (Other):" that carry no information for future prompts.
             if (response.NewEventData != null && !string.IsNullOrWhiteSpace(response.NewEventData.Summary) && !eventIsMeta)
             {
-                ApplyNotableEvent(profile, response.NewEventData.Type, response.NewEventData.Summary, gameDay);
+                ApplyNotableEvent(profile, response.NewEventData.Type, response.NewEventData.Summary, gameDay, playerName);
             }
 
             // Adjust reputation when present. C2: skipped when the caller disabled the legacy [REPUTATION] block
@@ -157,8 +157,12 @@ namespace NpcMemoryService.Core.Services
         /// <param name="type">The event's category.</param>
         /// <param name="summary">Natural-language summary. Callers should pre-check it is non-blank.</param>
         /// <param name="gameDay">The current game day, used to timestamp the event.</param>
-        public static void ApplyNotableEvent(NpcProfile profile, NotableEventType type, string summary, int gameDay)
+        public static void ApplyNotableEvent(NpcProfile profile, NotableEventType type, string summary, int gameDay, string? playerName = null)
         {
+            // A memory is re-read every turn for the rest of the campaign, so "the player" in one is a pronoun
+            // puzzle the model solves again and again (reminensce, 19/09/2026). Name them once, here.
+            summary = EventSubjectNormalizer.Normalize(summary, playerName) ?? summary;
+
             if (type == NotableEventType.FirstMeeting
                 && profile.Events.Any(e => e.type == NotableEventType.FirstMeeting))
                 return;

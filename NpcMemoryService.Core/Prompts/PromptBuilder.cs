@@ -233,7 +233,7 @@ namespace NpcMemoryService.Core.Prompts
          if (LeanPromptPolicy.Include(PromptSection.CulturalBackground, lean)) AppendBackgroundContext(sb, npc);
          AppendHistory(sb, npc, world.CurrentDay, LeanPromptPolicy.MemoryEventLimit(lean),
             encounterContext?.NpcSpouseIsPlayer == true, encounterContext?.NpcIsPlayerHousehold == true,
-            encounterContext?.HistoryKnownThrough);
+            encounterContext?.HistoryKnownThrough, PlayerName);
          // A captor holding the player prisoner is not a quest-giver: listing the player's tasks
          // here let a bandit captor mistake a "clear the bandits" quest for one HE gave, and torture
          // the prisoner for "failing" it. Quests have no place in a captive scene. SuppressQuests withholds
@@ -2509,7 +2509,7 @@ namespace NpcMemoryService.Core.Prompts
 
       private static void AppendHistory(
          StringBuilder sb, NpcProfile npc, int currentDay, int maxEvents = int.MaxValue,
-         bool spouseIsPlayer = false, bool household = false, int? knownThrough = null)
+         bool spouseIsPlayer = false, bool household = false, int? knownThrough = null, string playerName = "")
       {
          // WHAT THIS CHARACTER ALREADY REMEMBERED WHEN THE CONVERSATION OPENED. Memories recorded DURING it
          // are not history yet - they are the conversation, and the model already has them in the raw
@@ -2557,6 +2557,15 @@ namespace NpcMemoryService.Core.Prompts
 
          // Day numbers are absolute calendar days (5-digit); the model is bad at
          // subtracting them and invents recency ("three winters ago" for last week).
+         // WHOSE "YOU". Every other line in this prompt says "you" to mean the character. These memory lines were
+         // written the other way round, addressed to the player ("Fought at your side when you broke the enemy"),
+         // and nothing marked the switch. reminensce (Nexus, 19/09/2026) watched Chief Rolan take the PLAYER's
+         // defeat at Vladiv for his own and throw the player's taunt back at them. New memories name the player
+         // outright, but every save already written is full of the old wording, so the convention is stated here.
+         sb.AppendLine(string.IsNullOrWhiteSpace(playerName)
+            ? "In the lines below, \"you\" and \"your\" mean the PLAYER, and \"I\", \"me\" and \"my\" mean you."
+            : $"In the lines below, \"you\" and \"your\" mean the player, {playerName}, and \"I\", \"me\" and \"my\" mean you.");
+
          // Spell the elapsed time out so it never has to.
          for (int i = start; i < end; i++)
          {
@@ -7045,7 +7054,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
             sb.AppendLine("[EVENT]");
             sb.AppendLine("type: first_meeting|farewell|conflict|collaboration|agreement|betrayal|confrontation|other");
-            sb.AppendLine("summary: One sentence, in the first person (\"I ...\"), never your own name.");
+            sb.AppendLine("summary: One sentence, in the first person (\"I ...\"), never your own name; name the other party by name, not \"you\".");
             sb.AppendLine("[/EVENT]");
             sb.AppendLine();
 
@@ -7165,7 +7174,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine(AdultLevel != AdultContentLevel.Off
             ? "type: first_meeting|farewell|conflict|collaboration|agreement|flirt|intimacy|betrayal|confrontation|other"
             : "type: first_meeting|farewell|conflict|collaboration|agreement|betrayal|confrontation|other");
-         sb.AppendLine("summary: One sentence, in the FIRST PERSON and past tense (your own memory: \"I ...\", never your own name or \"he\"/\"she\"); write so a future you can recall what happened and why it mattered. Use \"I\" ONLY for what YOU did: an act your soldiers or men carried out at your command is \"I had my men do X\" or \"my men did X while I watched\", never \"I did X\" for what someone else performed.");
+         sb.AppendLine("summary: One sentence, in the FIRST PERSON and past tense (your own memory: \"I ...\", never your own name or \"he\"/\"she\"); write so a future you can recall what happened and why it mattered. Use \"I\" ONLY for what YOU did: an act your soldiers or men carried out at your command is \"I had my men do X\" or \"my men did X while I watched\", never \"I did X\" for what someone else performed. Name the other party by NAME rather than writing \"you\": a future you reads this line among many, with nobody standing in front of you.");
          sb.AppendLine("[/EVENT]");
          sb.AppendLine();
 
