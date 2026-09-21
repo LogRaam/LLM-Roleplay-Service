@@ -24,7 +24,7 @@ namespace NpcMemoryService.Core.Models
    public static class HeldSecretPolicy
    {
       /// <summary>At or above this personal regard, the NPC counts the player a real friend and keeps the secret in trust. Tuning.</summary>
-      public const int ConfidantRegardFloor = 20;
+      public const int ConfidantRegardFloor = Standing.Regard.WarmTier;
 
       /// <summary>At or below this personal regard, quiet distrust curdles into temptation to use the secret. Tuning.</summary>
       public const int LeverageRegardCeiling = -10;

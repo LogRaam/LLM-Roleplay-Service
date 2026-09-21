@@ -67,7 +67,7 @@ namespace NpcMemoryService.Core.Knowledge
         ///   Regard at or above which a guarded matter may be spoken of. Set at the same bar the mod already
         ///   uses for a confidence rather than invented: below this you are an acquaintance, not a confidant.
         /// </summary>
-        public const int ConfidingRegardFloor = 30;
+        public const int ConfidingRegardFloor = Standing.Regard.ConfidingTier;
 
         /// <summary>
         ///   True when the character would say it. Unknown audience is treated as a stranger in a crowded room,
