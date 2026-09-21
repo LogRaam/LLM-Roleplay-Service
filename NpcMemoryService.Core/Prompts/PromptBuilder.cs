@@ -358,6 +358,7 @@ namespace NpcMemoryService.Core.Prompts
          // because the full format teaching sits ~10k tokens up in the cached prefix: a weaker model that follows
          // instructions loosely (dialogue only, no [ACTION]/[EVENT]) is far more likely to emit the blocks when
          // the rule is the last thing it reads before generating.
+         AppendRoleAnchor(sb, npc, encounterContext, lean);
          AppendFormatReminder(sb, lean, styleActive: !string.IsNullOrWhiteSpace(encounterContext?.NarrativeStyle),
             authoredVoiceActive: !string.IsNullOrWhiteSpace(npc?.AuthoredBackstory));
          // Last of all (highest recency) — the modder's own post-history instructions, if any.
@@ -2770,14 +2771,13 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
-      ///   Who holds the captives, in one line, for the COMPACT prompt only: the full prompt says it inside the
-      ///   prisoner-bargain teaching (<see cref="AppendDeliverPrisoner" />), which Lean drops entirely. Without it a
-      ///   small model that raises the player's prisoners has nothing anywhere telling it whose they are, and
-      ///   Fakade watched one claim them as its own spoils of war (19/09/2026).
+      ///   Who holds the captives, in one line, in the per-turn tail. Lean drops the prisoner-bargain teaching
+      ///   (<see cref="AppendDeliverPrisoner" />) entirely, and Full keeps it thousands of characters up in the
+      ///   cached prefix, which a short-context model may never read: Fakade watched a character claim the
+      ///   player's captives as its own spoils of war on 19/09/2026, and again on 20/09 after the Lean-only fix.
       /// </summary>
       private static void AppendHeldPrisonersBrief(StringBuilder sb, EncounterContext? context, LeanPromptLevel lean)
       {
-         if (LeanPromptPolicy.Include(PromptSection.DeliverPrisonerOffer, lean)) return;
          if (string.IsNullOrWhiteSpace(context?.HeldLordPrisoners)) return;
          if (context?.PlayerStatus == PlayerStatusVsNpc.Captive) return;
 
@@ -8277,6 +8277,48 @@ namespace NpcMemoryService.Core.Prompts
       ///   cacheable prefix, but the player report of 2026-09-03 (style switching changed almost nothing) showed
       ///   the voice was drowned by the imperative tail; a pointer here is the cheap way to re-anchor it.
       /// </summary>
+      /// <summary>
+      ///   WHO IS WHO, as the last thing read before the reply is written.
+      ///   <para>
+      ///     Fakade (Nexus, 20/09/2026) pasted his model's own reasoning, which shows the failure exactly. Turn
+      ///     one: "Goal: I sought this meeting. The matter is 'Arthur took Lady Debana captive'" -- correct. Turn
+      ///     two, after the player confirms he holds her: "Analyze the Player's Speech/Action: ... He challenges
+      ///     Diasca's right to hold her captive" -- the character has taken the player's side of the matter for
+      ///     its own. The identity contract is stated near the TOP of the prompt, thousands of characters away
+      ///     and, for a small model on a short context, possibly truncated out of the middle altogether.
+      ///   </para>
+      ///   Two sentences at the point of highest recency, naming both parties and saying whose deeds are whose.
+      ///   Full and Lean alike: the small model that needs it most is the one on Lean.
+      /// </summary>
+      private void AppendRoleAnchor(StringBuilder sb, NpcProfile? npc, EncounterContext? context, LeanPromptLevel lean)
+      {
+         string me = string.IsNullOrWhiteSpace(npc?.Name) ? "the character described above" : npc!.Name;
+
+         // A captor who has not been told the prisoner's name must not read it here of all places, at the point
+         // of highest recency (CaptorPlayerPerceptionPromptTests guards exactly this).
+         bool nameWithheld = context?.PlayerStatus == PlayerStatusVsNpc.Captive && !context.CaptorKnowsPlayerName;
+         string them = nameWithheld || string.IsNullOrWhiteSpace(PlayerName) ? "the other person here" : PlayerName;
+
+         sb.AppendLine();
+
+         if (lean == LeanPromptLevel.Lean)
+         {
+            sb.AppendLine($"WHO IS WHO: you are {me}; the other voice is {them}. Their words, deeds and claims are");
+            sb.AppendLine("theirs, never yours.");
+         }
+         else
+         {
+            sb.AppendLine($"WHO IS WHO: you are {me}. The other voice is {them}, the player.");
+            sb.AppendLine($"What {them} says is theirs, never yours: their deeds, their captives, their claims, their");
+            sb.AppendLine("grievances. Never answer as though their words, or their side of the matter, were your own.");
+         }
+
+         // The one ownership fact a model gets wrong most visibly, restated where it cannot be lost: Fakade's
+         // character went from being told the player held Lady Debana to speaking as her captor.
+         if (!string.IsNullOrWhiteSpace(context?.HeldLordPrisoners) && context?.PlayerStatus != PlayerStatusVsNpc.Captive)
+            sb.AppendLine($"{them} holds the lord captives listed above, not you.");
+      }
+
       private static void AppendFormatReminder(StringBuilder sb, LeanPromptLevel lean, bool styleActive, bool authoredVoiceActive)
       {
          sb.AppendLine();

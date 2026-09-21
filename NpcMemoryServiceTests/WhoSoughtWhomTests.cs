@@ -79,14 +79,16 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("Lord Ergeon");
       }
 
-      // The full prompt already names the holder inside the bargain teaching; a second line would be noise.
+      // The full prompt names the holder inside the bargain teaching too, but that sits thousands of characters
+      // up in the cached prefix, which is exactly the part a short-context model loses. Fakade saw the swap again
+      // on 20/09/2026, after the Lean-only version of this line shipped, so the tail carries it in Full as well.
       [Test]
-      public void GIVEN_a_full_prompt_WHEN_the_player_holds_lord_captives_THEN_the_brief_line_is_not_repeated()
+      public void GIVEN_a_full_prompt_WHEN_the_player_holds_lord_captives_THEN_the_tail_says_so_too()
       {
          string prompt = Build(sought: true, captives: Captives);
 
          prompt.Should().Contain("The player currently holds these lord captives:");
-         prompt.Should().NotContain("THE PLAYER holds these lord captives, not you:");
+         prompt.Should().Contain("THE PLAYER holds these lord captives, not you:");
       }
 
       // A compact prompt costs the player money and a small model its attention, so the line appears only when
