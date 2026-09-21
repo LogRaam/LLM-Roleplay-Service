@@ -244,6 +244,7 @@ namespace NpcMemoryService.Core.Prompts
             AppendActiveQuests(sb, npc, encounterContext?.QuestsKnownThrough);
             AppendNativeQuestNote(sb, encounterContext);
          }
+         AppendNoAppointments(sb);
          AppendCurrentStance(sb, npc);
          AppendRegardShadowNote(sb, encounterContext);
          AppendStanceNote(sb, encounterContext);
@@ -2504,6 +2505,24 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("to the block, 'count: <whole number>'; a single item needs none (one is assumed), and the game");
             sb.AppendLine("never gives more than the player holds.");
          }
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   The one promise the game cannot keep. yozakura12 (Nexus, 19/09/2026): "NPCs tell me when and where to
+      ///   meet them. However, when I go to the designated location at the appointed time, the NPC isn't there.
+      ///   Consequently, the NPC gets upset, claiming I didn't keep the promise." There is no appointment in this
+      ///   mod: the character invents one, its own memory records the promise, and the player is then blamed for a
+      ///   meeting nobody could have kept. Until a real rendezvous exists, characters must not make one, and the
+      ///   second half matters as much as the first: promises already written into saves keep coming back.
+      /// </summary>
+      private static void AppendNoAppointments(StringBuilder sb)
+      {
+         sb.AppendLine("MEETINGS YOU CANNOT ARRANGE: the game keeps no appointments, so never fix a place and a time to");
+         sb.AppendLine("meet again (\"come to Epicrotea in three days\", \"meet me at the tavern tonight\"). Ask for what you");
+         sb.AppendLine("want now, say you will write, or leave it that you will speak again when your paths next cross.");
+         sb.AppendLine("And never reproach the player for missing a meeting, whoever seemed to arrange it: no such meeting");
+         sb.AppendLine("was ever one they could keep.");
          sb.AppendLine();
       }
 
