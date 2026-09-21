@@ -5135,8 +5135,8 @@ namespace NpcMemoryService.Core.Prompts
             ? $"CURRENT WORLD STATE (Day {world.CurrentDay} — {world.Season}):"
             : $"CURRENT WORLD STATE (Day {world.CurrentDay}):";
          sb.AppendLine(header);
-         sb.AppendLine($"(Days are absolute calendar days; the {PromptLore.WorldAdjective} year is {CalradianCalendar.DaysPerYear} days — "
-                     + $"{CalradianCalendar.SeasonsPerYear} seasons of {CalradianCalendar.DaysPerSeason}.)");
+         sb.AppendLine($"(Days are absolute calendar days; the {PromptLore.WorldAdjective} year is {WorldCalendar.DaysPerYear} days — "
+                     + $"{WorldCalendar.SeasonsPerYear} seasons of {WorldCalendar.DaysPerSeason}.)");
          if (!string.IsNullOrWhiteSpace(world.TimeOfDay))
             sb.AppendLine($"Time of day: it is {world.TimeOfDay}. Match the scene's light, sky, and ambiance to this — " + "do NOT describe darkness or torches in daylight, nor bright sun at night.");
          if (!string.IsNullOrWhiteSpace(world.ActiveConflicts))
@@ -5380,10 +5380,10 @@ namespace NpcMemoryService.Core.Prompts
 
          if (days == 0) return ", earlier today";
          if (days == 1) return ", yesterday";
-         if (days < CalradianCalendar.DaysPerSeason) return $", {days} days ago";
-         if (days < CalradianCalendar.DaysPerYear) return $", about {days / CalradianCalendar.DaysPerSeason} season(s) ago";
+         if (days < WorldCalendar.DaysPerSeason) return $", {days} days ago";
+         if (days < WorldCalendar.DaysPerYear) return $", about {days / WorldCalendar.DaysPerSeason} season(s) ago";
 
-         return $", about {days / CalradianCalendar.DaysPerYear} year(s) ago";
+         return $", about {days / WorldCalendar.DaysPerYear} year(s) ago";
       }
 
       private static string RewardSuffix(InformalQuest q)
