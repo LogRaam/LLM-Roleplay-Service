@@ -628,6 +628,21 @@ namespace NpcMemoryService.Core.Models
       public bool NpcSoughtThePlayer { get; init; }
 
       /// <summary>
+      ///   Third-party <c>{{variables}}</c> ALREADY RESOLVED by the host, on the host's own thread, before the
+      ///   call was handed to the network.
+      ///   <para>
+      ///     tashmetu (Nexus, 21/09/2026) asked the question nobody had asked: "do CrPrompt.RegisterVariable
+      ///     callbacks always run on the main thread, synchronously, before the prompt is sent off?" They did
+      ///     not. The mod calls ChatAsync inside a Task.Run, and the prompt, variables included, is built at the
+      ///     top of it, so a provider reading Hero.MainHero or Campaign.Current was touching campaign objects
+      ///     from a thread-pool thread while the simulation ran. His own bridge reads them live on purpose.
+      ///   </para>
+      ///   When this is set, the builder uses it and never calls a provider itself. Null keeps the old
+      ///   behaviour for any host that has not moved its resolution earlier.
+      /// </summary>
+      public IReadOnlyDictionary<string, string>? ExternalPromptVariables { get; init; }
+
+      /// <summary>
       ///   A one-line FEEDBACK note for the model when its PREVIOUS reply emitted a [QUEST] or [ACTION] block
       ///   the host could not register (unknown / ungroundable target, unparseable). Without it, only the player
       ///   was ever told, so a weak model kept referencing a task the game never recorded. The host sets this on

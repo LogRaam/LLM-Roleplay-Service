@@ -401,11 +401,19 @@ namespace NpcMemoryService.Core.Prompts
          // Merge in any third-party live variables (Extension Surface, Prompt Variables volet). Built-ins
          // ALWAYS win a name collision: a third-party provider must never be able to shadow a core token
          // like {{user}} or {{char}}, so a registered name already present above is skipped, not overwritten.
+         //
+         // PREFER WHAT THE HOST ALREADY RESOLVED. This prompt is built inside the mod's Task.Run, off the game's
+         // main thread, so calling a provider HERE hands a third-party callback a thread-pool thread and lets it
+         // read campaign objects while the simulation is running (tashmetu, 21/09/2026). A host that resolves
+         // them on its own thread first passes them in, and no provider runs here at all.
          var facts = new PromptVarFacts {
             NpcId = profile?.Id ?? "",
             RelationToPlayer = profile?.ReputationWithPlayer ?? 0
          };
-         foreach (KeyValuePair<string, string> kv in PromptVariableRegistry.Compose(facts))
+         IEnumerable<KeyValuePair<string, string>> external =
+            context?.ExternalPromptVariables ?? PromptVariableRegistry.Compose(facts);
+
+         foreach (KeyValuePair<string, string> kv in external)
             if (!vars.ContainsKey(kv.Key))
                vars[kv.Key] = kv.Value ?? "";
 

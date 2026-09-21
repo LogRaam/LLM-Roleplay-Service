@@ -65,7 +65,14 @@ namespace NpcMemoryService.Core.Extension
       ///   unregisters another during its own call cannot mutate the collection this loop is iterating.
       ///   Returns an empty dictionary when nothing is registered.
       /// </summary>
-      internal static IReadOnlyDictionary<string, string> Compose(PromptVarFacts facts)
+      ///   <para>
+      ///     PUBLIC since 21/09/2026 so the HOST can call it on its own thread, before handing the prompt build
+      ///     to a background task, and pass the result in as
+      ///     <see cref="Models.EncounterContext.ExternalPromptVariables" />. A provider that reads live game
+      ///     state (tashmetu's bridge reads Hero.MainHero and Campaign.Current on purpose) must not be invoked
+      ///     from a thread-pool thread while the simulation runs.
+      ///   </para>
+      public static IReadOnlyDictionary<string, string> Compose(PromptVarFacts facts)
       {
          List<KeyValuePair<string, Func<PromptVarFacts, string>>> snapshot;
 
