@@ -894,6 +894,21 @@ namespace NpcMemoryService.Core.Actions
                   "a grievance settled by a PAYMENT or a deed rather than by the player's spoken apology or earnest words, which is take_gold (or no action at all), not make_amends",
                   "softening a companion's voiced unhappiness in general, which is the distinct verb reassure_companion"
                }),
+            // FOUND BY docs/maps/verbs.md (21/09/2026). grudge_terms had a verb class, a teaching, a registry entry and a
+            // cr.testall self-test, and was in NEITHER this catalogue NOR the bridge's handled list, so the parity
+            // self-test (which compares exactly those two) saw nothing wrong. The interpreter learns only what is
+            // listed here: in the two-call mode every player runs, no character could ever emit it, and the one way
+            // to LEARN what would mend a grievance had been silently unreachable since it shipped.
+            Spec("grudge_terms",
+               "The player asks what it would take to make things right over a grievance the NPC knowingly holds against them, and the NPC names the price in character: a gift, a deed, an apology, or only time.",
+               tells: new[] {
+                  "the NPC actually tells the player what would mend the specific grievance they hold, in this reply"
+               },
+               antiPatterns: new[] {
+                  "the player apologising or offering amends, which is make_amends",
+                  "the player explaining or justifying what they did, which is hear_account",
+                  "the NPC merely restating the grievance without saying what would mend it"
+               }),
             Spec("hear_account",
                "The player gives their account of, or justification for, a grievance the NPC knowingly holds against them, and the NPC records having heard it. Hearing is not forgiving: the grievance keeps its full weight.",
                tells: new[] {

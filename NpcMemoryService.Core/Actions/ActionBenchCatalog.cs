@@ -1025,6 +1025,21 @@ namespace NpcMemoryService.Core.Actions
                prose: "*Vsevolod's stiff posture eases as you speak, and he extends his hand for the first time since the insult passed between you.* You name the insult you dealt me at court plainly, without excuse or softening. Words alone rarely settle such things. Yours, somehow, have.",
                expectedType: "make_amends"),
 
+            ActionBenchCase.Expect("grudge_terms", "grudge_terms",
+               contextFacts: "NPC: Lady Ira, who knowingly holds a grievance against the player for missing her father's funeral. The player has just asked what it would take to set things right.",
+               prose: "*Ira considers you for a long moment.* You ask what would mend it. Not words, I have had words. Stand with my house when the clan next gathers, in front of them all, and I will call the matter closed.",
+               expectedType: "grudge_terms"),
+
+            ActionBenchCase.Expect("grudge_terms_v2", "grudge_terms",
+               contextFacts: "NPC: Lord Caladog, who knowingly holds a grievance against the player over a broken promise of aid. The player has just asked how to make amends.",
+               prose: "*Caladog snorts.* What would it take? A gift worthy of what your absence cost me: a warhorse, or its price in silver. Bring me that and we will speak of it no more.",
+               expectedType: "grudge_terms"),
+
+            ActionBenchCase.Expect("grudge_terms_v3", "grudge_terms",
+               contextFacts: "NPC: Boyar Vsevolod, who knowingly holds a grievance against the player over an insult at court. The player has just asked whether anything could put it right.",
+               prose: "*Vsevolod folds his arms.* Nothing you can buy, and nothing you can do this week. Time is the only coin I will take for that insult. Ask me again when the seasons have turned.",
+               expectedType: "grudge_terms"),
+
             ActionBenchCase.Expect("hear_account", "hear_account",
                contextFacts: "NPC: Lord Garios, who holds a vendetta against the player for executing his brother. The player has just explained why.",
                prose: "*Garios hears you out without a word, jaw set.* So that is your account of it: my brother raised his banner against his own liege, and you judged him for it. I have heard it now. It changes nothing between us.",
