@@ -1,4 +1,4 @@
-// Code written by Gabriel Mailhot, 17/08/2026.
+﻿// Code written by Gabriel Mailhot, 17/08/2026.
 // The corpus of the interpreter extraction bench: hand-written NPC replies paired with what the Action Interpreter
 // should (or must not) extract from them. Authored per verb from GameActionCatalog, so a coverage test can pin
 // that every dispatchable action has at least one positive case. This is also the labelled dataset a future
@@ -400,6 +400,21 @@ namespace NpcMemoryService.Core.Actions
                contextFacts: "NPC: Halla, the player's own wife.",
                prose: "*Halla simply shrugs and pours you both more wine.* Take whoever warms your bed when I am not beside you. I ask only the same freedom for myself, and we need never quarrel over it again.",
                expectedType: "open_relationship"),
+
+            ActionBenchCase.Expect("accept_other_partners", "accept_other_partners",
+               contextFacts: "NPC: Corein, the player's own wife, of a people who hold marriage to one alone.",
+               prose: "*Corein is quiet for a long moment, and when she speaks her voice is level.* Take them, then. I will not pretend it costs me nothing. But I remain first in this house, and I remain yours alone.",
+               expectedType: "accept_other_partners"),
+
+            ActionBenchCase.Expect("accept_other_partners_v2", "accept_other_partners",
+               contextFacts: "NPC: Yana, the player's own consort under a committed bond short of marriage.",
+               prose: "*Yana sets down the cup.* I know what you are. I knew it when I came to you. Keep your other women, and I will keep my place beside you, and neither of us need lie about it.",
+               expectedType: "accept_other_partners"),
+
+            ActionBenchCase.Expect("accept_other_partners_v3", "accept_other_partners",
+               contextFacts: "NPC: Ira, the player's own wife.",
+               prose: "*She laughs, without much warmth.* You want my blessing for the next one. Very well, you have it. Do not ask me to share you gladly, and do not ever ask me to look elsewhere myself.",
+               expectedType: "accept_other_partners"),
 
             ActionBenchCase.Expect("close_relationship", "close_relationship",
                contextFacts: "NPC: Sonja, the player's own wife, under previously-agreed open terms.",

@@ -1,4 +1,4 @@
-// Code written by Gabriel Mailhot, 27/06/2026.
+﻿// Code written by Gabriel Mailhot, 27/06/2026.
 
 #region
 
@@ -283,6 +283,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendConsortProposal(sb, encounterContext);
          AppendSecretLoverProposal(sb, encounterContext);
          AppendOpenRelationshipProposal(sb, encounterContext);
+         AppendPluralAcceptance(sb, encounterContext);
          AppendPartnerLoverKnown(sb, encounterContext);
          AppendHeldSecret(sb, npc, encounterContext);
          AppendGiveItem(sb, encounterContext, lean);
@@ -1056,6 +1057,39 @@ namespace NpcMemoryService.Core.Prompts
       ///   only once BOTH have clearly and explicitly agreed. Never taught to a stranger or a non-partner (the
       ///   eligibility gate lives game-side, alongside the consort/secret-lover gates).
       /// </summary>
+      /// <summary>
+      ///   The CLOSED, one-sided household: she accepts that the player keeps others and remains his alone.
+      ///   Written only for a partner PluralAcceptancePolicy allows to be asked (a committed bond, and devotion
+      ///   where her own people hold marriage to one alone).
+      ///   <para>
+      ///     It sits beside the open-bond section deliberately, and each says what the other is, because the
+      ///     interpreter was reading "I accept your other wives" as reciprocal open terms and setting an
+      ///     arrangement the player never agreed to (yozakura12, 22/09/2026).
+      ///   </para>
+      /// </summary>
+      private static void AppendPluralAcceptance(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.AcceptOtherPartnersEligible != true) return;
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+
+         sb.AppendLine("A HOUSEHOLD OF MORE THAN ONE, IF YOU WILL BEAR IT:");
+         sb.AppendLine("You are the player's committed partner. You may, if it is true to you, accept that they keep");
+         sb.AppendLine("OTHER partners while you remain theirs alone. This is not the same thing as an open bond: you");
+         sb.AppendLine("claim no freedom for yourself here, and you must not be written as though you had. It is your");
+         sb.AppendLine("consent to THEIR other loves, nothing more.");
+         sb.AppendLine();
+         sb.AppendLine("Accepting is not the same as being glad of it, and it costs you something real if your own");
+         sb.AppendLine("people hold marriage to one alone. You may accept and still be jealous, still demand your place");
+         sb.AppendLine("as the first among them, still say plainly what it takes from you. Never accept merely to end an");
+         sb.AppendLine("argument, and never accept on someone else's behalf.");
+         sb.AppendLine();
+         sb.AppendLine("If, and only if, you truly accept it in this reply, end with:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: accept_other_partners");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine();
+      }
+
       private static void AppendOpenRelationshipProposal(StringBuilder sb, EncounterContext? context)
       {
          if (context?.OpenRelationshipEligible != true) return;

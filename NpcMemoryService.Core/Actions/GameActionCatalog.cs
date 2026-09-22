@@ -1,4 +1,4 @@
-// Code written by Gabriel Mailhot, 14/08/2026.
+﻿// Code written by Gabriel Mailhot, 14/08/2026.
 // Unified Action Catalog, Stage 1: the mod's bridge (BannerlordGameStateBridge.ExecuteAction) dispatches far more
 // action verbs than the Action Interpreter was ever taught, so a real deed the LLM narrates can silently never
 // fire. This file is the SINGLE source of truth for every verb the bridge (and its ChatViewModel chat-flow
@@ -405,6 +405,18 @@ namespace NpcMemoryService.Core.Actions
                antiPatterns: new[] {
                   "the partner merely discussing or considering the idea, without actually agreeing to it",
                   "revoking previously-agreed open terms rather than agreeing to them, which is the mirror verb close_relationship",
+                  "her accepting that the PLAYER may have other partners while she remains his alone, which is accept_other_partners: open terms are RECIPROCAL and she must claim the same freedom for herself",
+                  "an NPC who is not the player's own committed partner (spouse or consort)"
+               }),
+            Spec("accept_other_partners",
+               "The player's committed partner accepts that the PLAYER may have other partners, while she herself remains his alone. A closed, one-sided household, not an open couple.",
+               tells: new[] {
+                  "the player's own committed partner explicitly accepts, in this reply, that he may take or keep other wives, consorts or lovers"
+               },
+               antiPatterns: new[] {
+                  "her merely discussing, weighing, or resenting the idea without accepting it",
+                  "her asking for the same freedom in return, or the two of them agreeing both are free, which is the reciprocal verb open_relationship",
+                  "the player taking a new partner, which is take_as_consort or marry; this is only her CONSENT to his doing so",
                   "an NPC who is not the player's own committed partner (spouse or consort)"
                }),
             Spec("close_relationship",

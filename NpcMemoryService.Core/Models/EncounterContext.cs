@@ -1,4 +1,4 @@
-// Code written by Gabriel Mailhot, 23/06/2026.
+﻿// Code written by Gabriel Mailhot, 23/06/2026.
 
 #region
 
@@ -478,6 +478,15 @@ namespace NpcMemoryService.Core.Models
       ///   Only ever set for a committed partner, never a stranger or a non-partner.
       /// </summary>
       public bool OpenRelationshipEligible { get; init; }
+
+      /// <summary>
+      ///   True when this committed partner may be asked to accept that the PLAYER keeps other partners while
+      ///   she remains his alone: the closed, one-sided household yozakura12 asked for (22/09/2026), which is
+      ///   NOT the reciprocal <see cref="OpenRelationshipEligible" />. Gated by PluralAcceptancePolicy, which
+      ///   asks devotion of a woman whose own people hold marriage to one alone and nothing extra of one whose
+      ///   people already share partners.
+      /// </summary>
+      public bool AcceptOtherPartnersEligible { get; init; }
 
       /// <summary>
       ///   Inc 3b-b: true when this COMMITTED partner has taken a lover the player already KNOWS about (her
