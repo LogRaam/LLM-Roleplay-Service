@@ -1,4 +1,4 @@
-// Code written by Gabriel Mailhot, 18/06/2026.
+﻿// Code written by Gabriel Mailhot, 18/06/2026.
 
 #region
 
@@ -89,6 +89,26 @@ namespace NpcMemoryService.Core.Models
       ///   <see cref="IsConsort" /> (a committed bond) and <see cref="IsSecretLover" /> (a hidden one).
       /// </summary>
       public bool IsOpenArrangement { get; set; }
+
+      /// <summary>
+      ///   True when this partner has said she accepts the player having OTHER partners, while remaining
+      ///   exclusive to the player herself. An asymmetric, CLOSED arrangement, and deliberately not
+      ///   <see cref="IsOpenArrangement" />, which is the reciprocal one.
+      ///   <para>
+      ///     yozakura12 (Nexus, 22/09/2026) needed the distinction and did not have it: "accepting the player
+      ///     having multiple wives is not the same as agreeing to a reciprocal open relationship... The player
+      ///     may have multiple wives/consorts, but each wife remains exclusive to the player." Merging the two
+      ///     is not a rounding error, because open terms SUPPRESS her jealousy outright and for good, where
+      ///     this only changes what it costs her (<see cref="Logic" /> side: JealousyTrackPolicy).
+      ///   </para>
+      ///   <para>
+      ///     It is her WORD, so it can be withdrawn: set false again and she returns to her own culture's
+      ///     price. It covers the household she was told about and nothing else, so a bond kept from her is
+      ///     still a betrayal at full price. Additive and save-safe: absent on older saves, where it defaults
+      ///     to false, which is exactly today's behaviour.
+      ///   </para>
+      /// </summary>
+      public bool AcceptsPlayersOtherPartners { get; set; }
 
       /// <summary>
       ///   The StringId of the NPC hero this OPEN partner has taken as HER OWN lover: an affair she is free
