@@ -1010,6 +1010,30 @@ namespace NpcMemoryService.Core.Actions
                expectedType: "sell_prisoner",
                expectedParams: new Dictionary<string, string> {{"target", "Halla"}, {"price", "450"}}),
 
+            // exchange_prisoners (fkasad, 25/09/2026): one hero captive for another, both ways at once.
+            ActionBenchCase.Expect("exchange_prisoners", "exchange_prisoners",
+               contextFacts: "The player holds the hero captive Lord Garios. NPC: Lady Ira's own clan holds the hero captive Borcha, the player's companion.",
+               prose: "*Ira's men lead Borcha out as your riders hand Garios over, and the two captives pass each other in the mud without a word.* There. Your man for mine, and neither of us the poorer.",
+               expectedType: "exchange_prisoners",
+               expectedParams: new Dictionary<string, string> {{"give", "Garios"}, {"receive", "Borcha"}}),
+
+            ActionBenchCase.Expect("exchange_prisoners_v2", "exchange_prisoners",
+               contextFacts: "The player holds the hero captive Boyar Vsevolod. NPC: Khan Sechen's own clan holds the hero captive Lady Halla.",
+               prose: "*Sechen nods once, and his guards unchain Halla as yours unchain Vsevolod.* A fair trade. Take her, and send my kinsman back to me.",
+               expectedType: "exchange_prisoners",
+               expectedParams: new Dictionary<string, string> {{"give", "Vsevolod"}, {"receive", "Halla"}}),
+
+            ActionBenchCase.Expect("exchange_prisoners_v3", "exchange_prisoners",
+               contextFacts: "The player holds the hero captive Doran. NPC: Lord Ansen's own clan holds the hero captive Marcos, the player's companion.",
+               prose: "*Ansen tallies the difference and pushes a small purse across with Marcos.* Doran for Marcos, and these coins to even it. The trade is done.",
+               expectedType: "exchange_prisoners",
+               expectedParams: new Dictionary<string, string> {{"give", "Doran"}, {"receive", "Marcos"}}),
+
+            ActionBenchCase.ExpectNone("exchange_prisoners_proposed_not_done", "exchange_prisoners",
+               contextFacts: "The player holds the hero captive Lord Garios. NPC: Lady Ira's own clan holds the hero captive Borcha.",
+               prose: "Garios for Borcha? *She turns the idea over, unhurried.* Perhaps. Let me think on it, and send word before the week is out.",
+               forbiddenType: "exchange_prisoners"),
+
             ActionBenchCase.Expect("end_marriage", "end_marriage",
                contextFacts: "NPC: Lord Caladog, unhappily married to someone other than the player.",
                prose: "*Caladog exhales slowly.* You are right, I cannot go on pretending contentment I do not feel. I will begin the steps to end my marriage, starting today, though I know it will take time to unwind.",

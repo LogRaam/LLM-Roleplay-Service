@@ -869,7 +869,8 @@ namespace NpcMemoryService.Core.Actions
                antiPatterns: new[] {
                   "the purchase merely being offered or negotiated, without the captive actually changing custody",
                   "the NPC SELLING a captive of their own to the player instead, which is the mirror verb sell_prisoner",
-                  "the captive merely being released to freedom rather than taken into the NPC's custody, which are free_prisoner or release_prisoner"
+                  "the captive merely being released to freedom rather than taken into the NPC's custody, which are free_prisoner or release_prisoner",
+                  "one captive traded for another rather than for gold, which is exchange_prisoners"
                },
                new GameActionParam("target", "the captive's name, exactly as listed among the player's held prisoners"),
                new GameActionParam("price", "the agreed denars, clamped around the game's own ransom valuation")),
@@ -881,10 +882,23 @@ namespace NpcMemoryService.Core.Actions
                antiPatterns: new[] {
                   "the sale merely being offered or negotiated, without the captive actually changing hands",
                   "the NPC BUYING a captive from the player instead, which is the mirror verb buy_prisoner",
-                  "the captive being freed outright rather than sold into the player's custody, which is release_prisoner"
+                  "the captive being freed outright rather than sold into the player's custody, which is release_prisoner",
+                  "one captive traded for another rather than for gold, which is exchange_prisoners"
                },
                new GameActionParam("target", "the captive's name, exactly as listed among the NPC's held prisoners"),
                new GameActionParam("price", "the agreed denars, clamped around the game's own ransom valuation")),
+            Spec("exchange_prisoners",
+               "The player and the NPC trade captives: the player hands over a hero captive they hold and receives one the NPC's clan holds (lords and companions, never troops); any gold evening an uneven swap is settled by the exchange itself.",
+               tells: new[] {
+                  "one captive actually changes hands for another in this reply, the player giving one of theirs and receiving one the NPC's clan held"
+               },
+               antiPatterns: new[] {
+                  "the exchange merely being proposed, weighed, or haggled over, without both captives actually changing hands",
+                  "a captive sold for gold with no captive given in return, which is buy_prisoner or sell_prisoner",
+                  "a captive simply set free with nothing traded for them, which are free_prisoner or release_prisoner"
+               },
+               new GameActionParam("give", "the name of the captive the PLAYER hands over, exactly as listed among the player's held prisoners"),
+               new GameActionParam("receive", "the name of the captive the NPC's clan hands over, exactly as listed among the NPC's held prisoners")),
             Spec("end_marriage",
                "The player persuades the NPC to BEGIN ending their OWN marriage (never the player's own spouse); a slow estrangement that plays out over days, not an instant act.",
                tells: new[] {
