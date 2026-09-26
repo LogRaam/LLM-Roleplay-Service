@@ -45,6 +45,19 @@ namespace NpcMemoryServiceTests
          result["bc_court_state"].Should().Be("court-of-lord_007");
       }
 
+      // STAKE: tashmetu (25/09/2026) wants his tokens to shrink when the player turns on "Compact prompt for small
+      // models", because CR trims its own sections while a bridge's text went in whole. He was reading the host's
+      // settings by reflection to find out. The level must reach the provider through the facts it is handed.
+      [Test]
+      public void GIVEN_a_compact_prompt_WHEN_Compose_runs_THEN_the_provider_is_told_and_can_shrink()
+      {
+         PromptVariableRegistry.Register("bc_temper", facts => facts.Lean ? "short" : "the full judgement");
+
+         PromptVariableRegistry.Compose(new PromptVarFacts {NpcId = "lord_007", Lean = true})["bc_temper"].Should().Be("short");
+         PromptVariableRegistry.Compose(new PromptVarFacts {NpcId = "lord_007"})["bc_temper"].Should().Be("the full judgement",
+            "a full prompt is the default, so a bridge that never reads the flag behaves as before");
+      }
+
       // STAKE: a mod that reloads, or a second registration under the same convention name, must never leave
       // two providers answering for one token: the LAST registration is authoritative, never a stack of both.
       [Test]

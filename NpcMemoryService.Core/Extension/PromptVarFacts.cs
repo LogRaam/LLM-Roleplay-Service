@@ -30,6 +30,14 @@ namespace NpcMemoryService.Core.Extension
       public int RelationToPlayer { get; set; }
 
       /// <summary>
+      ///   True when the prompt this value goes into is being built Compact (the player's "Compact prompt for small
+      ///   models"): CR is trimming its own sections to fit a short context, and a provider should shrink its text
+      ///   too. It is the level of THIS prompt, not the setting alone (a letter is always built in full). Asked for
+      ///   by tashmetu, 25/09/2026, who was reading the host's settings by reflection to find it.
+      /// </summary>
+      public bool Lean { get; set; }
+
+      /// <summary>
       ///   Free-form extra facts a provider may need that the base shape doesn't name, keyed by the
       ///   provider's own convention (mirrors <see cref="VerbFacts.Extra" />).
       /// </summary>
