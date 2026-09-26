@@ -65,8 +65,11 @@ namespace NpcMemoryService.Core.Prompts
    /// <summary>Builds the envoy's system prompt. Pure and stateless.</summary>
    public static class EnvoyPromptBuilder
    {
-      /// <summary>The two actions an envoy may ever emit.</summary>
-      public static readonly IReadOnlyList<string> AllowedActions = new[] {"buy_prisoner", "exchange_prisoners"};
+      /// <summary>
+      ///   The two actions an envoy may ever emit. A fresh list on every read, so no caller can alter the list the host
+      ///   filters by (the shared-state map flagged the first version, a static array behind a read-only face).
+      /// </summary>
+      public static IReadOnlyList<string> AllowedActions => new[] {"buy_prisoner", "exchange_prisoners"};
 
       /// <summary>Builds the full prompt for one envoy turn.</summary>
       public static string Build(EnvoyPromptInput input)
