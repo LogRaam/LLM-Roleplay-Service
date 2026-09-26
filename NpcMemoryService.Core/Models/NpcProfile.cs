@@ -226,6 +226,13 @@ namespace NpcMemoryService.Core.Models
       public string? InheritedKinship { get; set; }
 
       /// <summary>
+      ///   True when <see cref="InheritedFromName" /> RETIRED rather than died: the predecessor is alive, and the prompt
+      ///   must not call them dead (a checkable falsehood). False on every profile reframed before 26/09/2026, when a
+      ///   succession was always read as a death.
+      /// </summary>
+      public bool InheritedPredecessorRetired { get; set; }
+
+      /// <summary>
       ///   Negotiation Phase 3: set once a cynical man has had the female player in a leveraged
       ///   transaction (intimacy traded for a favour). He remembers it and may press the advantage in
       ///   later talks. Adult-gated and only ever set for the exploiter archetype; false for everyone else.

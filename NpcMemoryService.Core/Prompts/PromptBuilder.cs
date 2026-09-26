@@ -2785,7 +2785,8 @@ namespace NpcMemoryService.Core.Prompts
             ? "kin"
             : npc.InheritedKinship!;
          sb.AppendLine("A NEW GENERATION — IMPORTANT:");
-         sb.AppendLine($"The person before you now is the HEIR of {npc.InheritedFromName}, their {kin}, who has died.");
+         sb.AppendLine($"The person before you now is the HEIR of {npc.InheritedFromName}, their {kin}, "
+                       + (npc.InheritedPredecessorRetired ? "who has stepped down and still lives." : "who has died."));
          sb.AppendLine($"Everything recorded below was your history with {npc.InheritedFromName} — NOT with the heir.");
          sb.AppendLine("You inherit the standing, debts, alliances, and grudges of that history toward their HOUSE:");
          sb.AppendLine($"refer to what their {kin} did ('your {kin} once helped me at…', 'your {kin}'s broken word still");
