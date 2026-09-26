@@ -27,6 +27,13 @@ namespace NpcMemoryService.Core.Standing
    /// </summary>
    public readonly struct Regard
    {
+      /// <summary>
+      ///   The line between goodwill and ill will: above it a character leans toward the player, below it against.
+      ///   Named on 26/09/2026 when the inline-comparison map found a trial deciding on "below zero" with no rung to
+      ///   point at.
+      /// </summary>
+      public const int NeutralTier = 0;
+
       /// <summary>Past cold politeness into actual goodwill.</summary>
       public const int CordialTier = 5;
 
