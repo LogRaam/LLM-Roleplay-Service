@@ -18,11 +18,11 @@ namespace NpcMemoryServiceTests
    [TestFixture]
    public class EnvoyPromptBuilderTests
    {
-      private static EnvoyPromptInput Input(string exchange = null, int gold = 0)
+      private static EnvoyPromptInput Input(string exchange = null, int gold = 0, int opening = 0)
          => new() {
             EnvoyName = "Envoy of Derthert", LordName = "Derthert", LordRealm = "Vlandia", PlayerName = "Arwa",
             WantedCaptiveName = "Lord Garios", WantedCaptiveStake = "who is Derthert's own nephew",
-            RansomCeiling = 1800, ExchangeCaptiveName = exchange, ExchangeGoldToPlayer = gold
+            RansomCeiling = 1800, ExchangeCaptiveName = exchange, ExchangeGoldToPlayer = gold, OpeningOffer = opening
          };
 
       // Gabriel's ruling: never the lord in person. The model must not play Derthert, or the anonymous envoy is the
@@ -42,6 +42,31 @@ namespace NpcMemoryServiceTests
       public void GIVEN_a_ransom_ceiling_WHEN_the_prompt_is_built_THEN_the_envoy_is_bound_by_it()
       {
          EnvoyPromptBuilder.Build(Input()).Should().Contain("A RANSOM of up to 1800 denars for Lord Garios").And.Contain("never go above it");
+      }
+
+      // fkasad (Nexus, 26/09/2026): the one who asks should open with an offer and haggle, not wait for the player to
+      // name a price. The envoy names his opening figure and rises only in steps, never past the ceiling.
+      [Test]
+      public void GIVEN_an_opening_offer_WHEN_the_prompt_is_built_THEN_the_envoy_opens_with_it_and_haggles()
+      {
+         string prompt = EnvoyPromptBuilder.Build(Input(opening: 900));
+
+         prompt.Should().Contain("You make the first offer, 900 denars").And.Contain("Haggle").And.Contain("do not agree to it");
+      }
+
+      // fkasad: "the prisoner is yours for 0 denars" left the model unsure a gift was a deal at all. A captive given
+      // up for nothing is agreed, and the block says how to write it.
+      [Test]
+      public void GIVEN_an_envoy_WHEN_the_prompt_is_built_THEN_a_captive_given_for_nothing_is_a_deal_at_price_zero()
+      {
+         EnvoyPromptBuilder.Build(Input()).Should().Contain("settle it with price 0").And.Contain("(0 if given for nothing)");
+      }
+
+      // fkasad: asked about an exchange when none was possible, the envoy should at least say it is off the table.
+      [Test]
+      public void GIVEN_the_lord_holds_nobody_to_trade_WHEN_the_prompt_is_built_THEN_the_envoy_knows_to_say_so()
+      {
+         EnvoyPromptBuilder.Build(Input(exchange: null)).Should().Contain("NO TRADE OF CAPTIVES").And.Contain("not on the table");
       }
 
       // An exchange is only on the table when the lord holds someone to give: otherwise the envoy must not offer one

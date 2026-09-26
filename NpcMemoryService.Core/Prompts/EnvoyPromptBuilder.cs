@@ -49,6 +49,12 @@ namespace NpcMemoryService.Core.Prompts
       /// <summary>The most the lord authorised for a ransom, in denars.</summary>
       public int RansomCeiling { get; init; }
 
+      /// <summary>
+      ///   What the envoy offers first (fkasad, 26/09/2026: the one who asks makes the first offer, and haggles), or 0
+      ///   for no set opening.
+      /// </summary>
+      public int OpeningOffer { get; init; }
+
       /// <summary>The captive the lord would give in exchange, or null when he holds nobody to offer.</summary>
       public string? ExchangeCaptiveName { get; init; }
 
@@ -102,6 +108,11 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.AppendLine("WHAT YOUR LORD AUTHORISED, AND NOTHING MORE:");
          sb.AppendLine($"- A RANSOM of up to {input.RansomCeiling} denars for {captive}. Open lower if you can; never go above it.");
+         if (input.OpeningOffer > 0 && input.OpeningOffer < input.RansomCeiling)
+            sb.AppendLine($"  You make the first offer, {input.OpeningOffer} denars, and name the figure. Haggle: rise grudgingly, in steps,"
+                          + $" and only when pressed; after two or three counter-offers give your last word. Asked for more than {input.RansomCeiling},"
+                          + " say plainly your lord will not pay it, and do not agree to it.");
+         sb.AppendLine($"  If {player} gives {captive} up for nothing, that is agreed too: settle it with price 0.");
          if (!string.IsNullOrWhiteSpace(input.ExchangeCaptiveName))
          {
             string even = input.ExchangeGoldToPlayer > 0
@@ -110,6 +121,12 @@ namespace NpcMemoryService.Core.Prompts
                   ? $" {player} would have to add {-input.ExchangeGoldToPlayer} denars to make it even."
                   : " The two are near enough in worth that no gold need change hands.";
             sb.AppendLine($"- AN EXCHANGE: {lord} holds {input.ExchangeCaptiveName}, and would trade {input.ExchangeCaptiveName} for {captive}.{even}");
+         }
+
+         else
+         {
+            sb.AppendLine($"- NO TRADE OF CAPTIVES: {lord} holds none of {player}'s people to give. If {player} raises one, say plainly it is");
+            sb.AppendLine("  not on the table.");
          }
 
          sb.AppendLine("You may promise nothing else: no alliance, no marriage, no land, no favour, no future meeting. If");
@@ -135,7 +152,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: buy_prisoner");
          sb.AppendLine($"target: {captive}");
-         sb.AppendLine("price: the agreed denars");
+         sb.AppendLine("price: the agreed denars (0 if given for nothing)");
          sb.AppendLine("[/ACTION]");
          if (!string.IsNullOrWhiteSpace(input.ExchangeCaptiveName))
          {
