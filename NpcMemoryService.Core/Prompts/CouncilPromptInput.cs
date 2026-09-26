@@ -136,5 +136,15 @@ namespace NpcMemoryService.Core.Prompts
       ///   <c>quest</c> is on offer this turn.
       /// </summary>
       public IReadOnlyList<string> OfferedResolutionKinds { get; init; } = new List<string>();
+
+      /// <summary>
+      ///   Set when this sitting is a TRIAL (the mod's arrests, 26/09/2026): what the player is charged with, in plain
+      ///   words ("treason and flight from arrest"). Null for every ordinary council. A trial turns the table from
+      ///   the player's counsel into their judges: see <see cref="TrialPresiding" />.
+      /// </summary>
+      public string? TrialCharges { get; init; }
+
+      /// <summary>The seated member who presides over a trial and pronounces its verdict (the player's liege).</summary>
+      public string? TrialPresiding { get; init; }
    }
 }

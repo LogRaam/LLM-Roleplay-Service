@@ -29,6 +29,29 @@ namespace NpcMemoryServiceTests
          return new CouncilPromptInput {Roster = roster};
       }
 
+      // Arrests (26/09/2026): a trial turns the table into the player's judges, names the charges and who presides,
+      // and teaches the one motion it may take, the verdict, pronounced by the presiding lord.
+      [Test]
+      public void GIVEN_a_trial_WHEN_building_the_prompt_THEN_the_table_judges_the_accused_and_is_taught_the_verdict()
+      {
+         var roster = new List<CouncilMemberInput> {new() {Name = "Derthert"}, new() {Name = "Aldric"}};
+         string prompt = CouncilPromptBuilder.Build(new CouncilPromptInput {
+            Roster = roster, PlayerName = "Arwa", TrialCharges = "treason", TrialPresiding = "Derthert",
+            OfferedResolutionKinds = new List<string> {"verdict"}
+         });
+
+         prompt.Should().Contain("THIS SITTING IS A TRIAL").And.Contain("Arwa stands before you, a prisoner, accused of treason. Derthert presides.");
+         prompt.Should().Contain("type: verdict").And.Contain("detail: convict").And.Contain("detail: acquit");
+         prompt.Should().NotContain("BEYOND THE ALWAYS-AVAILABLE");
+      }
+
+      // An ordinary council never reads as a trial.
+      [Test]
+      public void GIVEN_an_ordinary_council_WHEN_building_the_prompt_THEN_there_is_no_trial()
+      {
+         CouncilPromptBuilder.Build(MinimalInput("Ajin")).Should().NotContain("THIS SITTING IS A TRIAL");
+      }
+
       // Baseline: without every roster member's name actually appearing, the model has nothing to echo back in
       // its own [SPEAKER: Name] tags, and CouncilResponseParser's tolerant match has no seat to resolve against.
       [Test]

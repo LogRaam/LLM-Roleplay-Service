@@ -56,6 +56,7 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.Append(_stableHead);
          AppendRoster(sb, input.Roster);
+         AppendTrial(sb, input);
          AppendPlayerIdentity(sb, input);
          AppendWorldState(sb, input);
          AppendTranscript(sb, input.TranscriptSoFar);
@@ -286,12 +287,44 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine(line.Trim());
       }
 
+      /// <summary>
+      ///   A TRIAL turns the table from the player's counsel into their judges (the mod's arrests, 26/09/2026:
+      ///   "le joueur doit sentir qu'il confronte une assemblee"). The seats hear, accuse and weigh; the presiding
+      ///   member pronounces the verdict as a [RESOLUTION] of type verdict, once the accused has been heard.
+      /// </summary>
+      private static void AppendTrial(StringBuilder sb, CouncilPromptInput input)
+      {
+         if (string.IsNullOrWhiteSpace(input.TrialCharges)) return;
+
+         string accused = string.IsNullOrWhiteSpace(input.PlayerName) ? "the player" : input.PlayerName!.Trim();
+         string presiding = string.IsNullOrWhiteSpace(input.TrialPresiding) ? "the presiding lord" : input.TrialPresiding!.Trim();
+
+         sb.AppendLine();
+         sb.AppendLine("THIS SITTING IS A TRIAL. YOU ARE NOT THE PLAYER'S COUNSEL: YOU ARE THEIR JUDGES.");
+         sb.AppendLine($"{accused} stands before you, a prisoner, accused of {input.TrialCharges!.Trim()}. {presiding} presides.");
+         sb.AppendLine("Each of you judges as yourself: press the charges, question the accused, answer their defence,");
+         sb.AppendLine("and let your own regard for them show, whether it is hard or merciful. The accused may still win");
+         sb.AppendLine("you over; a bench that is truly persuaded may acquit. No task is set and nothing else is decided");
+         sb.AppendLine("here: the trial's one business is the verdict.");
+         sb.AppendLine($"Once the accused has been heard, {presiding} pronounces the verdict, for the whole bench:");
+         sb.AppendLine("[RESOLUTION]");
+         sb.AppendLine("type: verdict");
+         sb.AppendLine($"actor: {presiding}");
+         sb.AppendLine("detail: convict");
+         sb.AppendLine("[/RESOLUTION]");
+         sb.AppendLine("or, if the bench is persuaded of their innocence, detail: acquit. Pronounce it only once, and");
+         sb.AppendLine("never before the accused has had a chance to answer.");
+      }
+
       private static void AppendOfferedKinds(StringBuilder sb, IReadOnlyList<string> offeredResolutionKinds)
       {
          List<string>? kinds = offeredResolutionKinds?.Where(k => !string.IsNullOrWhiteSpace(k)).ToList();
          if (kinds == null || kinds.Count == 0) return;
 
          sb.AppendLine();
+         // A trial offers only its verdict (taught in the TRIAL block); the quest line would contradict it.
+         if (kinds.Count == 1 && kinds[0] == "verdict") return;
+
          sb.AppendLine("BEYOND THE ALWAYS-AVAILABLE \"quest\" KIND, THIS COUNCIL MAY ALSO RESOLVE: "
                         + string.Join(", ", kinds) + ".");
          sb.AppendLine("Each still uses the exact [RESOLUTION] block shape above (type/actor/detail, plus whatever");
