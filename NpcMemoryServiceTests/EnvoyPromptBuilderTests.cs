@@ -81,6 +81,20 @@ namespace NpcMemoryServiceTests
          EnvoyPromptBuilder.AllowedActions.Should().BeEquivalentTo("buy_prisoner", "exchange_prisoners");
       }
 
+      // fkasad's hating ally does not want the captive home: he wants him in his own cells. The errand must say so, or
+      // the envoy promises a release his lord never intended.
+      [Test]
+      public void GIVEN_a_lord_who_wants_the_captive_in_his_own_hands_WHEN_the_prompt_is_built_THEN_the_errand_is_custody_not_return()
+      {
+         string prompt = EnvoyPromptBuilder.Build(new EnvoyPromptInput {
+            EnvoyName = "Envoy of Derthert", LordName = "Derthert", PlayerName = "Arwa", WantedCaptiveName = "Lord Garios",
+            RansomCeiling = 1800, WantsCaptiveBack = false
+         });
+
+         prompt.Should().Contain("Derthert wants Lord Garios delivered into Derthert's own hands, a prisoner still.");
+         prompt.Should().NotContain("wants Lord Garios back");
+      }
+
       // The envoy opens the audience, since he asked for it; without the cue the first reply waits on the player.
       [Test]
       public void GIVEN_the_opening_turn_WHEN_the_prompt_is_built_THEN_the_envoy_states_his_errand()

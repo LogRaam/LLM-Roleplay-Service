@@ -40,6 +40,12 @@ namespace NpcMemoryService.Core.Prompts
       /// <summary>What the captive is to the lord ("his son", "a lord of his realm"), or null.</summary>
       public string? WantedCaptiveStake { get; init; }
 
+      /// <summary>
+      ///   True (the default) when the lord wants the captive BACK, free; false when he wants the captive in his own
+      ///   custody (a lord who bitterly hates him; fkasad, 25/09/2026).
+      /// </summary>
+      public bool WantsCaptiveBack { get; init; } = true;
+
       /// <summary>The most the lord authorised for a ransom, in denars.</summary>
       public int RansomCeiling { get; init; }
 
@@ -89,7 +95,9 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.AppendLine("YOUR ERRAND:");
          sb.AppendLine($"{player} holds {captive} prisoner" + (string.IsNullOrWhiteSpace(input.WantedCaptiveStake) ? "." : $", {input.WantedCaptiveStake}."));
-         sb.AppendLine($"{lord} wants {captive} back.");
+         sb.AppendLine(input.WantsCaptiveBack
+            ? $"{lord} wants {captive} back."
+            : $"{lord} wants {captive} delivered into {lord}'s own hands, a prisoner still. {captive} is not {lord}'s to free, and you do not pretend otherwise.");
          sb.AppendLine();
 
          sb.AppendLine("WHAT YOUR LORD AUTHORISED, AND NOTHING MORE:");
