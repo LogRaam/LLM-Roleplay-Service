@@ -47,6 +47,12 @@ namespace NpcMemoryService.Core.Models
       public bool IsLost { get; set; }
 
       /// <summary>
+      ///   True when this letter is going again after its first courier was lost (Gabriel, 26/09/2026: a lost letter
+      ///   is sent again until it arrives). Its courier rides guarded, immune to interception, as an escorted thread's.
+      /// </summary>
+      public bool Resent { get; set; }
+
+      /// <summary>
       ///   Sprint 12d — set true once <see cref="LetterGenerationService" /> has been
       ///   asked to generate an NPC reply, preventing duplicate LLM calls on subsequent
       ///   daily ticks. Set regardless of whether the LLM ultimately decides to reply.
