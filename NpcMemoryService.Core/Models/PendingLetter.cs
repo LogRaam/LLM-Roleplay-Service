@@ -78,6 +78,13 @@ namespace NpcMemoryService.Core.Models
       public bool IsLost { get; set; }
 
       /// <summary>
+      ///   True once the sender's own memory of writing this letter has been recorded. Since 26/09/2026 that happens
+      ///   when the letter is SENT (raphareish: a letter lost on the road left its sender no memory of writing it, so
+      ///   he invented an excuse); a letter queued on an older save is remembered on delivery, as before.
+      /// </summary>
+      public bool SenderRemembers { get; set; }
+
+      /// <summary>
       ///   True once an <see cref="LetterReason.AwaitingReply"/> follow-up has been
       ///   queued for this unanswered letter. Stored on the original letter so the guard
       ///   survives even when the follow-up placeholder is later removed (LLM failure or
