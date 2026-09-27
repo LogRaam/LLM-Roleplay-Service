@@ -37,6 +37,19 @@ namespace NpcMemoryService.Core.Standing
       /// <summary>Past cold politeness into actual goodwill.</summary>
       public const int CordialTier = 5;
 
+      /// <summary>
+      ///   Fond: enough for a flirt to turn into courtship, for a romantic advance not to be refused outright, or for a
+      ///   victory to be worth a letter of congratulation. Named 26/09/2026 from four inline <c>10</c>s; it is NOT a
+      ///   RegardBands edge (the character still reads "cordial regard" here).
+      /// </summary>
+      public const int FondTier = 10;
+
+      /// <summary>
+      ///   Genuine regard, RegardBands' own word from this point (aligned): enough for a lover to keep writing, or for
+      ///   a captor to remember an interest from before the capture. Named 26/09/2026 from three inline <c>15</c>s.
+      /// </summary>
+      public const int GenuineTier = 15;
+
       /// <summary>Warm enough to write to the player unbidden, or to speak for them at court.</summary>
       public const int WarmTier = 20;
 
@@ -49,8 +62,21 @@ namespace NpcMemoryService.Core.Standing
       /// <summary>Deep enough to uproot a life: the mark lord, notable and prisoner recruitment all share.</summary>
       public const int DeepBondTier = 60;
 
+      /// <summary>
+      ///   Cool: no goodwill left toward the player, what a captor is told at this point. Named 26/09/2026 from an inline
+      ///   <c>-5</c>. One point off RegardBands, which still says "neutral" AT -5 and "wary" below it; recorded, not
+      ///   moved, since moving it would change what a captor is told.
+      /// </summary>
+      public const int CoolTier = -5;
+
       /// <summary>Cold enough to be wary, the first negative word RegardBands gives.</summary>
       public const int WaryTier = -20;
+
+      /// <summary>
+      ///   Soured: cold enough that a lover's affair breaks rather than cools. Named 26/09/2026 from an inline
+      ///   <c>-30</c>; inside RegardBands' "quiet distrust", not on its edge.
+      /// </summary>
+      public const int SouredTier = -30;
 
       /// <summary>Cold enough that only the barest dealings remain.</summary>
       public const int HostileTier = -55;

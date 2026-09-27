@@ -12,6 +12,7 @@ using NpcMemoryService.Core.Models;
 #endregion
 
 using NpcMemoryService.Core.Calendar;
+using NpcMemoryService.Core.Standing;
 namespace NpcMemoryService.Core.Prompts
 {
    /// <summary>
@@ -6525,7 +6526,7 @@ namespace NpcMemoryService.Core.Prompts
          // taught only when the mod's own opt-in + Hardcore/Adult gate allowed CaptorMayExecutePlayer through.
          AppendCaptorExecutionRule(sb, context, intent);
 
-         if (relation >= 15)
+         if (relation >= Regard.GenuineTier)
          {
             sb.AppendLine("NOTE ON YOUR HISTORY: You have shown genuine interest in this person before");
             sb.AppendLine("their capture. That interest has not vanished — it has simply shifted into a");
@@ -6534,14 +6535,14 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("the power imbalance.");
             sb.AppendLine();
          }
-         else if (relation <= -20)
+         else if (relation <= Regard.WaryTier)
          {
             sb.AppendLine("NOTE ON YOUR HISTORY: You hold this person in contempt — for what they did,");
             sb.AppendLine("what they represent, or simply what they are. Mercy is not your first instinct.");
             sb.AppendLine("What follows carries that weight.");
             sb.AppendLine();
          }
-         else if (relation <= -5)
+         else if (relation <= Regard.CoolTier)
          {
             sb.AppendLine("NOTE ON YOUR HISTORY: You bear no goodwill toward this person. That colors");
             sb.AppendLine("everything that follows.");
@@ -8049,7 +8050,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("or with blunt indifference, as your nature dictates.");
          sb.AppendLine("You will not yield to such advances regardless of persistence or flattery.");
 
-         if (npc.ReputationWithPlayer >= 10)
+         if (npc.ReputationWithPlayer >= Regard.FondTier)
          {
             sb.AppendLine();
             sb.AppendLine("Your feelings toward this player are favorable. If the moment invites it —");

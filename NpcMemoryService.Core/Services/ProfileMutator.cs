@@ -7,6 +7,7 @@ using System;
 using System.Linq;
 using NpcMemoryService.Core.Models;
 using NpcMemoryService.Core.Parsing;
+using NpcMemoryService.Core.Standing;
 
 #endregion
 
@@ -287,7 +288,7 @@ namespace NpcMemoryService.Core.Services
             if (eventType == NotableEventType.Conflict
                 && (status == RomanticStatus.Intimate || status == RomanticStatus.SecretLover))
             {
-                profile.Romantic.Status = relation <= -30
+                profile.Romantic.Status = relation <= Regard.SouredTier
                     ? RomanticStatus.Broken
                     : RomanticStatus.Estranged;
                 return;
@@ -345,7 +346,7 @@ namespace NpcMemoryService.Core.Services
             if (isCasual)
             {
                 if (eventType == NotableEventType.Intimacy
-                    && relation >= 5
+                    && relation >= Regard.CordialTier
                     && status != RomanticStatus.Intimate
                     && status != RomanticStatus.Broken)
                 {
@@ -363,7 +364,7 @@ namespace NpcMemoryService.Core.Services
                     return;
                 }
                 if (eventType == NotableEventType.Intimacy
-                    && relation >= 10
+                    && relation >= Regard.FondTier
                     && status == RomanticStatus.Courting)
                 {
                     profile.Romantic.Status = RomanticStatus.Intimate;
@@ -379,11 +380,11 @@ namespace NpcMemoryService.Core.Services
                         profile.Romantic.Status = RomanticStatus.Curious;
                     break;
                 case RomanticStatus.Curious:
-                    if (eventType == NotableEventType.Flirt && relation >= 10)
+                    if (eventType == NotableEventType.Flirt && relation >= Regard.FondTier)
                         profile.Romantic.Status = RomanticStatus.Courting;
                     break;
                 case RomanticStatus.Courting:
-                    if (eventType == NotableEventType.Intimacy && relation >= 20)
+                    if (eventType == NotableEventType.Intimacy && relation >= Regard.WarmTier)
                         profile.Romantic.Status = RomanticStatus.Intimate;
                     break;
             }

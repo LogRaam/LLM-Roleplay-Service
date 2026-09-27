@@ -39,8 +39,20 @@ namespace NpcMemoryService.Core.Standing
       /// <summary>Deep trust, the top tier the prompt names ("a very close friend").</summary>
       public const int CloseTier = 30;
 
+      /// <summary>
+      ///   The zero line: no history either way. A third party at exactly this is "not personally known", and a grant
+      ///   that scales with goodwill gives nothing at or below it. Named 26/09/2026 from three inline <c>0</c>s.
+      /// </summary>
+      public const int NeutralTier = 0;
+
       /// <summary>Cold enough to be called an enemy.</summary>
       public const int EnemyTier = -10;
+
+      /// <summary>
+      ///   Wary: cold enough that a lord met on the road treats the player as hostile, war or no war. Named 26/09/2026
+      ///   from an inline <c>-20</c>; between an enemy and a bitter one.
+      /// </summary>
+      public const int WaryTier = -20;
 
       /// <summary>Cold enough to be called a bitter enemy.</summary>
       public const int BitterTier = -30;
