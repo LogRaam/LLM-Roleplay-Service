@@ -108,11 +108,16 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.AppendLine("WHAT YOUR LORD AUTHORISED, AND NOTHING MORE:");
          sb.AppendLine($"- A RANSOM of up to {input.RansomCeiling} denars for {captive}. Open lower if you can; never go above it.");
+         // tashmetu (2.5.26): "my lord's final authority extends only to 4,839", then 3,400 offered against his 4,000.
+         sb.AppendLine("  That ceiling is for you alone: never name it, and never say or hint how high you may go."
+                       + $" If {player}'s figure is within it, you may accept it after a round or two of haggling.");
          if (input.OpeningOffer > 0 && input.OpeningOffer < input.RansomCeiling)
             sb.AppendLine($"  You make the first offer, {input.OpeningOffer} denars, and name the figure. Haggle: rise grudgingly, in steps,"
                           + $" and only when pressed; after two or three counter-offers give your last word. Asked for more than {input.RansomCeiling},"
                           + " say plainly your lord will not pay it, and do not agree to it.");
-         sb.AppendLine($"  If {player} gives {captive} up for nothing, that is agreed too: settle it with price 0.");
+         // tashmetu (2.5.25): "i will return him", said to a final offer of 11,500, was settled as a gift at 0.
+         sb.AppendLine($"  If {player} gives {captive} up for nothing, in so many words (free, for nothing, no ransom), that is agreed too:"
+                       + " settle it with price 0. A plain yes, or \"I will return him\", accepts YOUR last offer: settle at that figure.");
          if (!string.IsNullOrWhiteSpace(input.ExchangeCaptiveName))
          {
             string even = input.ExchangeGoldToPlayer > 0
@@ -120,7 +125,12 @@ namespace NpcMemoryService.Core.Prompts
                : input.ExchangeGoldToPlayer < 0
                   ? $" {player} would have to add {-input.ExchangeGoldToPlayer} denars to make it even."
                   : " The two are near enough in worth that no gold need change hands.";
-            sb.AppendLine($"- AN EXCHANGE: {lord} holds {input.ExchangeCaptiveName}, and would trade {input.ExchangeCaptiveName} for {captive}.{even}");
+            // tashmetu: the ransom is an OPENING offer and this gold the full difference in worth, so the two read oddly side
+            // by side unless the envoy says what the gold is.
+            string evens = input.ExchangeGoldToPlayer != 0
+               ? " That gold evens out what the two captives are worth; it is not a ransom offer, so say so if you name both."
+               : "";
+            sb.AppendLine($"- AN EXCHANGE: {lord} holds {input.ExchangeCaptiveName}, and would trade {input.ExchangeCaptiveName} for {captive}.{even}{evens}");
          }
 
          else
@@ -152,7 +162,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: buy_prisoner");
          sb.AppendLine($"target: {captive}");
-         sb.AppendLine("price: the agreed denars (0 if given for nothing)");
+         sb.AppendLine($"price: the agreed denars (your last offer when {player} accepts it without naming a sum; 0 only if {player} said it is for nothing)");
          sb.AppendLine("[/ACTION]");
          if (!string.IsNullOrWhiteSpace(input.ExchangeCaptiveName))
          {

@@ -59,7 +59,38 @@ namespace NpcMemoryServiceTests
       [Test]
       public void GIVEN_an_envoy_WHEN_the_prompt_is_built_THEN_a_captive_given_for_nothing_is_a_deal_at_price_zero()
       {
-         EnvoyPromptBuilder.Build(Input()).Should().Contain("settle it with price 0").And.Contain("(0 if given for nothing)");
+         EnvoyPromptBuilder.Build(Input()).Should().Contain("settle it with price 0");
+      }
+
+      // tashmetu (Nexus, 27/09/2026, on 2.5.25): "i will return him", said to a final offer of 11,500, was settled as a
+      // gift. A plain acceptance takes the envoy's LAST offer; only the player's own words make it a gift.
+      [Test]
+      public void GIVEN_a_plain_acceptance_WHEN_the_prompt_is_built_THEN_it_settles_at_the_envoys_last_offer()
+      {
+         string prompt = EnvoyPromptBuilder.Build(Input());
+
+         prompt.Should().Contain("A plain yes, or \"I will return him\", accepts YOUR last offer: settle at that figure.");
+         prompt.Should().Contain("0 only if Arwa said it is for nothing");
+      }
+
+      // tashmetu (2.5.26): the envoy told him "my lord's final authority extends only to 4,839", then offered 3,400
+      // against his 4,000. The ceiling was handed over as a number and never said to be secret.
+      [Test]
+      public void GIVEN_a_ransom_ceiling_WHEN_the_prompt_is_built_THEN_the_envoy_keeps_it_to_himself()
+      {
+         string prompt = EnvoyPromptBuilder.Build(Input());
+
+         prompt.Should().Contain("That ceiling is for you alone: never name it");
+         prompt.Should().Contain("If Arwa's figure is within it, you may accept it after a round or two of haggling.");
+      }
+
+      // tashmetu: "a ransom of 4,581, or Ethenbold for Gerluch plus 4,754 denars" read oddly side by side, because the
+      // ransom is an opening offer and the exchange gold is the full difference in worth. The envoy says what it is.
+      [Test]
+      public void GIVEN_an_exchange_with_gold_WHEN_the_prompt_is_built_THEN_the_gold_is_said_to_even_out_the_captives_worth()
+      {
+         EnvoyPromptBuilder.Build(Input(exchange: "Borcha", gold: 400))
+                           .Should().Contain("That gold evens out what the two captives are worth; it is not a ransom offer");
       }
 
       // fkasad: asked about an exchange when none was possible, the envoy should at least say it is off the table.
