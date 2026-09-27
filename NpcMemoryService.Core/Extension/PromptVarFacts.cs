@@ -38,6 +38,14 @@ namespace NpcMemoryService.Core.Extension
       public bool Lean { get; set; }
 
       /// <summary>
+      ///   True when this value is for ONE SEAT of a council table (the council_seat.txt template, since 2.6.2), not a
+      ///   private word. One prompt voices the whole table there, and "you" means the PLAYER in it, so write about this
+      ///   person in the third person (their name, he or she), never as "you". <see cref="NpcId" /> is the seat.
+      ///   Asked for by tashmetu (Bellum Civile bridge, 26/09/2026).
+      /// </summary>
+      public bool CouncilSeat { get; set; }
+
+      /// <summary>
       ///   Free-form extra facts a provider may need that the base shape doesn't name, keyed by the
       ///   provider's own convention (mirrors <see cref="VerbFacts.Extra" />).
       /// </summary>

@@ -238,6 +238,12 @@ namespace NpcMemoryService.Core.Prompts
             // paragraphs for a private word, which is right there and unreadable in a roster of six.
             if (!string.IsNullOrWhiteSpace(member.Knowledge))
                sb.AppendLine("    knows: " + Flatten(member.Knowledge!));
+
+            // Another mod's view of this seat (council_seat.txt). Named, because "you" is the PLAYER at this table:
+            // a note announced only as "own view" under a roster line could be read as said to or about the player.
+            if (!string.IsNullOrWhiteSpace(member.ModderNote))
+               sb.AppendLine("    " + member.Name.Trim() + "'s own view (not common knowledge; it shows only when the matter touches it): "
+                              + Flatten(member.ModderNote!));
          }
       }
 

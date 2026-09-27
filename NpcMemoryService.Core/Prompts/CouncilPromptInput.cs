@@ -58,6 +58,14 @@ namespace NpcMemoryService.Core.Prompts
       public string? StationLine { get; init; }
 
       /// <summary>
+      ///   Another mod's text about THIS seat: the council_seat.txt template (contributed through cr_patch) expanded
+      ///   with this member's own {{variables}} by <see cref="CouncilSeatNote" />, on the host's game thread. Null when
+      ///   no template exists or every variable came back empty, which is the ordinary case. tashmetu (Bellum Civile
+      ///   bridge, 26/09/2026) asked for it: the council carried no modder text at all.
+      /// </summary>
+      public string? ModderNote { get; init; }
+
+      /// <summary>
       ///   What this seat remembers of the PLAYER, bounded: the oldest kept memory and the most recent, joined.
       ///   Null for somebody who has never dealt with them, which is common and is not a gap.
       ///
