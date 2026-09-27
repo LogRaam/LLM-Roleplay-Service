@@ -9,9 +9,9 @@
 namespace NpcMemoryService.Core.Prompts
 {
    /// <summary>
-   ///   The single canonical banding of <see cref="Models.NpcProfile.ReputationWithPlayer" /> into the 14
-   ///   named tiers first established by the encyclopedia's "Personal regard" row
-   ///   (<c>EncyclopediaHeroPagePersonalRelationMixin.Describe</c>). Every site that turns this number
+   ///   The single canonical banding of <see cref="Models.NpcProfile.ReputationWithPlayer" /> into the 15
+   ///   named tiers (14 first established by the encyclopedia's "Personal regard" row
+   ///   (<c>EncyclopediaHeroPagePersonalRelationMixin.Describe</c>), plus "fond regard" on 26/09/2026). Every site that turns this number
    ///   into words must delegate to <see cref="Describe" /> so no two places can ever disagree again.
    /// </summary>
    public static class RegardBands
@@ -32,6 +32,9 @@ namespace NpcMemoryService.Core.Prompts
 
          // === BONNES RELATIONS ===
          >= 15 => "genuine regard",
+         // Gabriel, 26/09/2026: a band where a flirt can turn into courtship (Regard.FondTier), so the character
+         // reads "fond" exactly where the romance rules start treating them as fond.
+         >= 10 => "fond regard",
          >= 5 => "cordial regard",
 
          // === PIVOT ===

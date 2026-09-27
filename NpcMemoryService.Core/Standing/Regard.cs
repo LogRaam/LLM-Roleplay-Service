@@ -9,10 +9,12 @@
 // players experience for no reason anybody asked for:
 //
 //   Cordial      5  = RegardBands "cordial regard"      aligned
+//   Fond        10  = RegardBands "fond regard"         aligned (band added 26/09/2026)
 //   Warm        20    RegardBands says "genuine regard" from 15   NOT aligned
 //   Confiding   30  = RegardBands "deep affection"       aligned
 //   Devoted     50  = RegardBands "profound admiration"  aligned
 //   DeepBond    60    RegardBands says "most cherished ally" from 70   NOT aligned
+//   Cool        -6  = RegardBands "wary", the first point below "neutral"   aligned (moved from -5, 26/09/2026)
 //
 // Whether the two stragglers should move to the band edges is a tuning question for Gabriel, and a real one: it would
 // shift when a lord agrees to leave his house. It is NOT a refactor, so it does not happen inside one.
@@ -39,8 +41,8 @@ namespace NpcMemoryService.Core.Standing
 
       /// <summary>
       ///   Fond: enough for a flirt to turn into courtship, for a romantic advance not to be refused outright, or for a
-      ///   victory to be worth a letter of congratulation. Named 26/09/2026 from four inline <c>10</c>s; it is NOT a
-      ///   RegardBands edge (the character still reads "cordial regard" here).
+      ///   victory to be worth a letter of congratulation. Named 26/09/2026 from four inline <c>10</c>s; RegardBands
+      ///   gained "fond regard" from this point the same day (Gabriel), so the word and the rule turn together.
       /// </summary>
       public const int FondTier = 10;
 
@@ -64,10 +66,10 @@ namespace NpcMemoryService.Core.Standing
 
       /// <summary>
       ///   Cool: no goodwill left toward the player, what a captor is told at this point. Named 26/09/2026 from an inline
-      ///   <c>-5</c>. One point off RegardBands, which still says "neutral" AT -5 and "wary" below it; recorded, not
-      ///   moved, since moving it would change what a captor is told.
+      ///   <c>-5</c>, then moved to -6 the same day (Gabriel) so it turns where RegardBands stops saying "neutral": a
+      ///   captor at exactly -5 reads "neutral" and is no longer told they bear the player no goodwill.
       /// </summary>
-      public const int CoolTier = -5;
+      public const int CoolTier = -6;
 
       /// <summary>Cold enough to be wary, the first negative word RegardBands gives.</summary>
       public const int WaryTier = -20;

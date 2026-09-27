@@ -116,6 +116,20 @@ namespace NpcMemoryServiceTests
          RegardBands.Describe(Regard.DeepBondTier).Should().Be("profound admiration", "the band turns at 70, the gate at 60");
       }
 
+      // Gabriel, 26/09/2026 ("oui ajuste"): the two rungs named that day off a band edge were aligned. A character must
+      // read "fond" exactly where a flirt can become courtship, and a captor must read "wary" (not "neutral") exactly
+      // where the prompt tells them they bear the player no goodwill. Otherwise the same character is told two
+      // different things about one number.
+      [Test]
+      public void GIVEN_the_fond_and_cool_rungs_WHEN_compared_with_the_spoken_bands_THEN_each_turns_where_its_word_turns()
+      {
+         RegardBands.Describe(Regard.FondTier).Should().Be("fond regard");
+         RegardBands.Describe(Regard.FondTier - 1).Should().Be("cordial regard");
+
+         RegardBands.Describe(Regard.CoolTier).Should().Be("wary");
+         RegardBands.Describe(Regard.CoolTier + 1).Should().Be("neutral");
+      }
+
       // THE WHOLE POINT OF TWO TYPES: the compiler now refuses what an int allowed. This cannot be written as a
       // failing call (it would not compile, which IS the guarantee), so it is stated here as the contract in prose.
       [Test]
