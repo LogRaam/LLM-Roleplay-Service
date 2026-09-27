@@ -9,7 +9,7 @@
 // players experience for no reason anybody asked for:
 //
 //   Cordial      5  = RegardBands "cordial regard"      aligned
-//   Fond        10  = RegardBands "fond regard"         aligned (band added 26/09/2026)
+//   Friendly    10  = RegardBands "friendly regard"     aligned (band added 26/09/2026)
 //   Warm        20    RegardBands says "genuine regard" from 15   NOT aligned
 //   Confiding   30  = RegardBands "deep affection"       aligned
 //   Devoted     50  = RegardBands "profound admiration"  aligned
@@ -40,11 +40,11 @@ namespace NpcMemoryService.Core.Standing
       public const int CordialTier = 5;
 
       /// <summary>
-      ///   Fond: enough for a flirt to turn into courtship, for a romantic advance not to be refused outright, or for a
+      ///   Friendly: enough for a flirt to turn into courtship, for a romantic advance not to be refused outright, or for a
       ///   victory to be worth a letter of congratulation. Named 26/09/2026 from four inline <c>10</c>s; RegardBands
-      ///   gained "fond regard" from this point the same day (Gabriel), so the word and the rule turn together.
+      ///   gained "friendly regard" from this point the same day (Gabriel), so the word and the rule turn together.
       /// </summary>
-      public const int FondTier = 10;
+      public const int FriendlyTier = 10;
 
       /// <summary>
       ///   Genuine regard, RegardBands' own word from this point (aligned): enough for a lover to keep writing, or for

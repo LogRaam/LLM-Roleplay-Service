@@ -48,9 +48,9 @@ namespace NpcMemoryServiceTests
       }
 
       // One case per tier across the entire [-100, 100] range, each wording taken verbatim from the
-      // encyclopedia page (the pre-existing player-visible canon this table now centralizes). "fond regard"
-      // (10 to 14) was added on 26/09/2026 by Gabriel's ruling, so a character reads "fond" exactly where a
-      // flirt can turn into courtship (Regard.FondTier). A value
+      // encyclopedia page (the pre-existing player-visible canon this table now centralizes). "friendly regard"
+      // (10 to 14) was added on 26/09/2026 by Gabriel's ruling, so a character reads "friendly" exactly where a
+      // flirt can turn into courtship (Regard.FriendlyTier). A value
       // landing on the wrong word here means the prompt (PromptBuilder.DescribePersonalRegard) and the
       // encyclopedia page would once again describe the SAME numeric relation differently.
       [TestCase(100, "oathbound devotion")]
@@ -61,8 +61,8 @@ namespace NpcMemoryServiceTests
       [TestCase(50, "profound admiration")]
       [TestCase(30, "deep affection")]
       [TestCase(15, "genuine regard")]
-      [TestCase(14, "fond regard")]
-      [TestCase(10, "fond regard")]
+      [TestCase(14, "friendly regard")]
+      [TestCase(10, "friendly regard")]
       [TestCase(9, "cordial regard")]
       [TestCase(5, "cordial regard")]
       [TestCase(-20, "wary")]

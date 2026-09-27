@@ -8050,7 +8050,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("or with blunt indifference, as your nature dictates.");
          sb.AppendLine("You will not yield to such advances regardless of persistence or flattery.");
 
-         if (npc.ReputationWithPlayer >= Regard.FondTier)
+         if (npc.ReputationWithPlayer >= Regard.FriendlyTier)
          {
             sb.AppendLine();
             sb.AppendLine("Your feelings toward this player are favorable. If the moment invites it —");

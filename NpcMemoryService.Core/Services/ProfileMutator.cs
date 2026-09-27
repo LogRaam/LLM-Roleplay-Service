@@ -364,7 +364,7 @@ namespace NpcMemoryService.Core.Services
                     return;
                 }
                 if (eventType == NotableEventType.Intimacy
-                    && relation >= Regard.FondTier
+                    && relation >= Regard.FriendlyTier
                     && status == RomanticStatus.Courting)
                 {
                     profile.Romantic.Status = RomanticStatus.Intimate;
@@ -380,7 +380,7 @@ namespace NpcMemoryService.Core.Services
                         profile.Romantic.Status = RomanticStatus.Curious;
                     break;
                 case RomanticStatus.Curious:
-                    if (eventType == NotableEventType.Flirt && relation >= Regard.FondTier)
+                    if (eventType == NotableEventType.Flirt && relation >= Regard.FriendlyTier)
                         profile.Romantic.Status = RomanticStatus.Courting;
                     break;
                 case RomanticStatus.Courting:
