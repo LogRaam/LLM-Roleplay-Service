@@ -279,6 +279,13 @@ namespace NpcMemoryService.Core.Models
       public double? LastIntimacyGainHour { get; set; }
 
       /// <summary>
+      ///   The campaign day a LETTER last earned regard with this character (Lordfadooboo, 28/09/2026): letters have
+      ///   their own, slower pace, separate from <see cref="LastRelationGainHour" />, so a letter never spends a
+      ///   meeting's warmth nor a meeting a letter's. Null = none yet. Additive; absent on old saves.
+      /// </summary>
+      public int? LastLetterRegardGainDay { get; set; }
+
+      /// <summary>
       ///   Progressive-regard model: how many routine warm moments this NPC now demands for the NEXT +1 of personal
       ///   regard, minus one (tier 0 = 1 moment, tier 1 = 2 moments, tier 2 = 3, ...). Rises by one each time a +1
       ///   is granted (deep bonds get harder to deepen) and decays back down over time (see

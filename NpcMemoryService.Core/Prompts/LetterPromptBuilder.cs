@@ -120,7 +120,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine($"Write your reply in the SAME language as the quoted letter from {playerName} above, not the");
          sb.AppendLine("language of this internal instruction.");
          sb.AppendLine("Write ONLY the letter body after the DELAY line. Do not emit [EVENT], [ACTION], [STANCE], or");
-         sb.AppendLine("any section other than the letter text, with one narrow exception below. No section headers.");
+         sb.AppendLine("any section other than the letter text, with the narrow exceptions below. No section headers.");
          sb.AppendLine();
          sb.AppendLine("If, and only if, the player's letter clearly asks for MORE or FEWER letters going forward,");
          sb.AppendLine("append exactly one further line, on its own, after the letter body:");
@@ -129,10 +129,15 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("is about correspondence in general. Omit the line entirely when the player asked for no such");
          sb.AppendLine("thing; never invent one. It is metadata for the courier system, never part of the letter.");
          sb.AppendLine();
+         AppendToneLine(sb, playerName);
+         sb.AppendLine("Even when you PASS, add that line after the PASS line.");
+         sb.AppendLine();
          sb.AppendLine("Example output:");
          sb.AppendLine("DELAY: 3");
          sb.AppendLine("(blank line, then 2-3 paragraphs of the letter)");
+         sb.AppendLine("[LETTER_TONE] warmer");
          sb.AppendLine("Or, to decline: PASS: the message insults my house and I will not dignify it with a reply.");
+         sb.AppendLine("[LETTER_TONE] cooler");
          return sb.ToString();
       }
 
@@ -172,11 +177,26 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine($"Write the letter in the same language as the quoted letter from {playerName} above, not the");
          sb.AppendLine("language of this internal instruction.");
          sb.AppendLine("Write ONLY the letter body in [DIALOGUE]. Do not emit [EVENT], [ACTION], [STANCE], or any");
-         sb.AppendLine("section other than the letter text. No section headers, no meta-text.");
+         sb.AppendLine("section other than the letter text, with the one control line below. No section headers.");
+         AppendToneLine(sb, playerName);
          return sb.ToString();
       }
 
       // ── Helpers ─────────────────────────────────────────────────────────────
+
+      // Lordfadooboo (Nexus, 28/09/2026): a dozen letters and the reader's regard had not moved, because a letter may
+      // emit no [ACTION]. The reader judges the letter here; the mod alone decides what that is worth (a small, paced
+      // amount, less than a meeting), so the line asks for a direction, never a number.
+      private static void AppendToneLine(StringBuilder sb, string playerName)
+      {
+         sb.AppendLine();
+         sb.AppendLine($"Last, on a line of its own after everything else, say how {playerName}'s letter leaves you feeling");
+         sb.AppendLine("toward them, with exactly one of:");
+         sb.AppendLine("  [LETTER_TONE] warmer | same | cooler");
+         sb.AppendLine("warmer: it was kind, thoughtful or welcome to you; cooler: it was rude, cold, threatening or");
+         sb.AppendLine("unwelcome; same: neither. Judge THIS letter as your character would, not your feeling before it.");
+         sb.AppendLine("It is metadata for the courier system, never part of the letter.");
+      }
 
       /// <summary>
       ///   Reasons whose whole point is the player HANDING OVER COIN, which no letter can do: a letter is
