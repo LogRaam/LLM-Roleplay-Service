@@ -73,6 +73,16 @@ namespace NpcMemoryServiceTests
          line.Should().Contain("Aldric");
       }
 
+      // Gabriel (28/09/2026): a letter written by a lord's chancellery is still the lord's letter, in their memory
+      // too. Remembered as "I wrote to Arwa" it would be a small lie; remembered not at all, the lord would deny it.
+      [Test]
+      public void GIVEN_a_letter_written_in_the_lords_name_WHEN_building_the_base_memory_THEN_the_lord_remembers_having_it_written()
+      {
+         string line = LetterMemoryPolicy.BaseMemory(LetterReason.QuestUpdate, "Rhagaea", "Arwa", true, dictated: true);
+
+         line.Should().StartWith("I had a letter written in my name to Arwa");
+      }
+
       // A blank/null player name must still leave a usable, non-crashing fallback line (the same defensive
       // convention as every other "Hero.MainHero?.Name ?? \"the player\"" call site in the mod).
       [Test]

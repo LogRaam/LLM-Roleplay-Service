@@ -48,12 +48,13 @@ namespace NpcMemoryService.Core.Services
          bool npcIsSender,
          string playerName,
          string? replyLanguage = null,
-         CancellationToken ct = default)
+         CancellationToken ct = default,
+         string? writtenBy = null)
       {
          if (npc == null || string.IsNullOrWhiteSpace(letterContent)) return null;
 
          var request = new LlmRequest {
-            SystemPrompt = BuildSystemPrompt(npc, npcIsSender, playerName, replyLanguage),
+            SystemPrompt = BuildSystemPrompt(npc, npcIsSender, playerName, replyLanguage, writtenBy),
             Messages = [new LlmMessage(MessageRole.User, letterContent)],
             Parameters = Parameters
          };
@@ -74,15 +75,20 @@ namespace NpcMemoryService.Core.Services
 
       #region private
 
-      private static string BuildSystemPrompt(NpcProfile npc, bool npcIsSender, string playerName, string? replyLanguage)
+      private static string BuildSystemPrompt(NpcProfile npc, bool npcIsSender, string playerName, string? replyLanguage, string? writtenBy = null)
       {
          string who = string.IsNullOrWhiteSpace(playerName)
             ? "the player"
             : playerName;
          var sb = new StringBuilder();
-         sb.AppendLine(npcIsSender
-            ? $"You are {npc.Name}. Below is a letter YOU wrote and sent to {who}."
-            : $"You are {npc.Name}. Below is a letter {who} sent to you.");
+         // A letter written at the NPC's dictation (Gabriel, 28/09/2026) speaks of them in the third person; it is
+         // still their own letter, and must be remembered as one they had written, not one they received.
+         sb.AppendLine(npcIsSender && !string.IsNullOrWhiteSpace(writtenBy)
+            ? $"You are {npc.Name}. Below is a letter written in YOUR name, at your dictation, by {writtenBy}, and sent to {who}. "
+              + "It speaks of you in the third person; remember it as your own letter, one you had written."
+            : npcIsSender
+               ? $"You are {npc.Name}. Below is a letter YOU wrote and sent to {who}."
+               : $"You are {npc.Name}. Below is a letter {who} sent to you.");
          sb.AppendLine();
          sb.AppendLine("Write ONE or TWO sentences, in the FIRST PERSON and PAST TENSE, capturing what YOU");
          sb.AppendLine("remember of this letter, for your own private memory: what it proposed, asked, agreed,");

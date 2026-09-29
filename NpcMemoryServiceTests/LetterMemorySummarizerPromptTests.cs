@@ -81,6 +81,21 @@ namespace NpcMemoryServiceTests
          capturingClient.LastRequest!.SystemPrompt.Should().Contain("Aldric sent to you");
       }
 
+      // Gabriel (28/09/2026): a letter written at the lord's dictation speaks of the lord in the third person ("Her
+      // Majesty wishes to know..."). Summarised as a letter from someone else, the lord would remember receiving
+      // her own letter; the summarizer must be told it was written in her name.
+      [Test]
+      public async Task GIVEN_a_letter_written_in_the_npcs_name_WHEN_the_system_prompt_is_built_THEN_it_is_remembered_as_their_own()
+      {
+         var capturingClient = new CapturingLlmClient();
+         var summarizer = new LetterMemorySummarizer(capturingClient);
+
+         await summarizer.SummarizeAsync(Npc(), "Her Majesty wishes to know how the matter stands.", true, "Aldric",
+                                         writtenBy: "the chancellery of Her Majesty Rhagaea");
+
+         capturingClient.LastRequest!.SystemPrompt.Should().Contain("written in YOUR name, at your dictation, by the chancellery of Her Majesty Rhagaea");
+      }
+
       #region private
 
       private static NpcProfile Npc() => new() {

@@ -44,10 +44,13 @@ namespace NpcMemoryService.Core.Models
       ///   received the player's letter). <paramref name="npcName" /> is accepted for symmetry with the reason's
       ///   other consumers, but the line is written in the first person and never needs to name its own author.
       /// </summary>
-      public static string BaseMemory(LetterReason reason, string npcName, string playerName, bool npcIsSender)
+      public static string BaseMemory(LetterReason reason, string npcName, string playerName, bool npcIsSender, bool dictated = false)
       {
          string player = string.IsNullOrWhiteSpace(playerName) ? "the player" : playerName.Trim();
          string phrase = PlainWords(reason);
+
+         // Gabriel (28/09/2026): a letter a greater lord had written for them is still theirs, and remembered so.
+         if (npcIsSender && dictated) return $"I had a letter written in my name to {player} ({phrase}).";
 
          return npcIsSender
             ? $"I wrote to {player} ({phrase})."
