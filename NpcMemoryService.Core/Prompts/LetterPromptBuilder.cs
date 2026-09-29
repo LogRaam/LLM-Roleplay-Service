@@ -57,11 +57,26 @@ namespace NpcMemoryService.Core.Prompts
           + "wrote it and whom to answer. If the two of you are barely acquainted, also name yourself and your "
           + "house plainly in the opening.";
 
+      // Gabriel (28/09/2026): an empress does not write in her own hand to a landless newcomer. The host decides the
+      // rank (CorrespondenceRankPolicy); here the letter is dictated, and it reads like it: no clerk is named or
+      // invented, the writer speaks of their lord in the third person, and it is signed with the title alone.
+      private static string DictatedLine(NpcProfile npc, string playerName, string writtenBy)
+         => $"You do not write this letter in your own hand: {playerName} does not stand high enough for that. It is "
+          + $"written at your dictation by {writtenBy}, in a formal, measured register, speaking of you in the third "
+          + $"person (by your title or as {npc.Name}), never as \"I\". Say through it only what you would have your "
+          + $"household write. Sign it: \"{Capitalised(writtenBy)}\". Name no clerk.";
+
+      private static string Capitalised(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpperInvariant(s[0]) + s.Substring(1);
+
+      private static string SignatureLine(NpcProfile npc, string playerName, string? writtenBy)
+         => string.IsNullOrWhiteSpace(writtenBy) ? SignOffLine(npc, playerName) : DictatedLine(npc, playerName, writtenBy!);
+
       /// <summary>
       ///   Builds the trigger message for an NPC-initiated letter (no player reply).
       /// </summary>
       public static string BuildInitialLetterMessage(
-         NpcProfile npc, LetterReason reason, string triggerContext, string playerName, string? whereabouts = null, string? playerSituation = null)
+         NpcProfile npc, LetterReason reason, string triggerContext, string playerName, string? whereabouts = null, string? playerSituation = null,
+         string? writtenBy = null)
       {
          var sb = new StringBuilder();
          sb.AppendLine("[LETTER GENERATION — INTERNAL INSTRUCTION, DO NOT INCLUDE IN YOUR RESPONSE]");
@@ -76,7 +91,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Write the letter now, in your own voice. This is correspondence,");
          sb.AppendLine("not a face-to-face conversation. Keep it to 2-3 paragraphs.");
          sb.AppendLine($"Address {playerName} by name. Do not use modern expressions.");
-         sb.AppendLine(SignOffLine(npc, playerName));
+         sb.AppendLine(SignatureLine(npc, playerName, writtenBy));
          AppendPlace(sb, whereabouts, playerSituation);
          sb.AppendLine("Write ONLY the letter body in [DIALOGUE]. Do not emit [EVENT], [ACTION], [STANCE], or any");
          sb.AppendLine("section other than the letter text. No section headers, no meta-text.");
@@ -90,7 +105,8 @@ namespace NpcMemoryService.Core.Prompts
       ///   waits before dispatching the courier — 1 (urgent) to 7 (considered).
       /// </summary>
       public static string BuildPlayerLetterReplyDecisionMessage(
-         NpcProfile npc, string playerLetterContent, string playerName, string? whereabouts = null, string? playerSituation = null)
+         NpcProfile npc, string playerLetterContent, string playerName, string? whereabouts = null, string? playerSituation = null,
+         string? writtenBy = null)
       {
          var sb = new StringBuilder();
          sb.AppendLine("[PLAYER LETTER RECEIVED — INTERNAL INSTRUCTION, DO NOT INCLUDE IN YOUR RESPONSE]");
@@ -110,7 +126,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("where N is the days you would wait before sending (1=urgent, 2-3=normal, 4-7=considered).");
          sb.AppendLine("Leave one blank line, then write your reply letter in 2-3 paragraphs.");
          sb.AppendLine($"Address {playerName} by name. Period-appropriate language only.");
-         sb.AppendLine(SignOffLine(npc, playerName));
+         sb.AppendLine(SignatureLine(npc, playerName, writtenBy));
          // The weaker form of AppendNothingIsSettledByLetter: this path answers a letter the PLAYER chose to
          // write, so the host cannot know what is being answered and cannot name the debt. The invariant still
          // holds for every reason, and it is the only guard on this path.
@@ -145,7 +161,8 @@ namespace NpcMemoryService.Core.Prompts
       ///   Builds the trigger message for an NPC reply to the player's response.
       /// </summary>
       public static string BuildReplyLetterMessage(
-         NpcProfile npc, string playerReply, LetterReason originalReason, string playerName, string? whereabouts = null, string? playerSituation = null)
+         NpcProfile npc, string playerReply, LetterReason originalReason, string playerName, string? whereabouts = null, string? playerSituation = null,
+         string? writtenBy = null)
       {
          var sb = new StringBuilder();
          sb.AppendLine("[LETTER REPLY GENERATION — INTERNAL INSTRUCTION, DO NOT INCLUDE IN YOUR RESPONSE]");
@@ -172,7 +189,7 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.AppendLine("Write your reply letter in 2-3 paragraphs. Stay in character.");
          sb.AppendLine($"Address {playerName} by name. Do not use modern expressions.");
-         sb.AppendLine(SignOffLine(npc, playerName));
+         sb.AppendLine(SignatureLine(npc, playerName, writtenBy));
          AppendPlace(sb, whereabouts, playerSituation);
          sb.AppendLine($"Write the letter in the same language as the quoted letter from {playerName} above, not the");
          sb.AppendLine("language of this internal instruction.");
