@@ -293,6 +293,25 @@ namespace NpcMemoryService.Core.Models
       public int? ClanStandingSeedDay { get; set; }
 
       /// <summary>
+      ///   SELF-ESTEEM (30/09/2026, Lordfadooboo): how far what has befallen this character lately moves how he regards
+      ///   himself from his baseline (rank, a personal draw, valour). Mends with time from
+      ///   <see cref="SelfEsteemShiftDay" />; the mod's SelfEsteemPolicy owns the rules. Additive; 0 on old saves.
+      /// </summary>
+      public int SelfEsteemShift { get; set; }
+
+      /// <summary>The day <see cref="SelfEsteemShift" /> was last set. Null = never. Additive.</summary>
+      public int? SelfEsteemShiftDay { get; set; }
+
+      /// <summary>The days this character was taken captive lately: each makes the next land harder (Maifailun). Additive.</summary>
+      public List<int> SelfEsteemCapturedOnDays { get; set; } = new();
+
+      /// <summary>The day of this character's last personal blow (a fief lost, a death in the house), for the mood of the day. Additive.</summary>
+      public int? LastPersonalBlowDay { get; set; }
+
+      /// <summary>The day of this character's last personal gladness (a fief gained, a tournament won), for the mood of the day. Additive.</summary>
+      public int? LastPersonalGladnessDay { get; set; }
+
+      /// <summary>
       ///   Progressive-regard model: how many routine warm moments this NPC now demands for the NEXT +1 of personal
       ///   regard, minus one (tier 0 = 1 moment, tier 1 = 2 moments, tier 2 = 3, ...). Rises by one each time a +1
       ///   is granted (deep bonds get harder to deepen) and decays back down over time (see

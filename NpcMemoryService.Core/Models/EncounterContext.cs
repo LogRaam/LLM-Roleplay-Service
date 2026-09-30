@@ -1261,6 +1261,9 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public Mood.DayMood? DayMoodNow { get; init; }
 
+      /// <summary>How the character regards himself lately (SELF-ESTEEM, 30/09/2026). Null when unknown or not met.</summary>
+      public Mood.SelfEsteemBand? SelfEsteem { get; init; }
+
       /// <summary>
       ///   How the places this character answers for are actually doing. Added 2026-09-12 after the first live
       ///   cr.memory_bench run, where the two inventions worth chasing were inside PASSING probes: handed two

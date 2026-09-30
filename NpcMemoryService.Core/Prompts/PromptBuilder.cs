@@ -2691,7 +2691,11 @@ namespace NpcMemoryService.Core.Prompts
       ///   tail: it is drawn per conversation and moves per turn, so in the prefix it would cost the cache every time.
       /// </summary>
       private static void AppendDayMood(StringBuilder sb, EncounterContext? context)
-         => sb.Append(Mood.MoodLine.Compose(context?.DayMood, context?.DayMoodNow, context?.WitPermitted ?? false));
+      {
+         // Self-esteem first: the ground the day stands on (SELF-ESTEEM, 30/09/2026).
+         sb.Append(Mood.SelfEsteemLine.Compose(context?.SelfEsteem));
+         sb.Append(Mood.MoodLine.Compose(context?.DayMood, context?.DayMoodNow, context?.WitPermitted ?? false));
+      }
 
       /// <summary>
       ///   Composes every pack this character carries and the host supplied, and splits the result by where it

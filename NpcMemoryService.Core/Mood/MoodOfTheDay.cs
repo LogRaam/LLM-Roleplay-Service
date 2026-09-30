@@ -98,6 +98,12 @@ namespace NpcMemoryService.Core.Mood
 
       /// <summary>Held prisoner. Overrides nearly everything else.</summary>
       public bool IsCaptive { get; init; }
+
+      /// <summary>He thinks little of himself lately (self-esteem shaken or broken, 30/09/2026).</summary>
+      public bool SelfRegardLow { get; init; }
+
+      /// <summary>He is sure of himself lately (self-esteem assured or proud).</summary>
+      public bool SelfRegardHigh { get; init; }
    }
 
    /// <summary>
@@ -168,6 +174,10 @@ namespace NpcMemoryService.Core.Mood
          if (facts.RealmHasLatelyWon) { Lean(w, DayMood.Expansive, 4); Lean(w, DayMood.HighSpirits, 3); Dampen(w, DayMood.Grim); }
          if (facts.PersonalGladness) { Lean(w, DayMood.HighSpirits, 5); Lean(w, DayMood.Expansive, 3); Dampen(w, DayMood.Grim); }
          if (facts.AtEase) { Lean(w, DayMood.Expansive, 2); Lean(w, DayMood.HighSpirits, 2); }
+
+         // Self-esteem is the ground the day stands on (ROADMAP, SELF-ESTEEM, 30/09/2026): it leans, never forbids.
+         if (facts.SelfRegardLow) { Lean(w, DayMood.Grim, 2); Lean(w, DayMood.Guarded, 3); Dampen(w, DayMood.HighSpirits); }
+         if (facts.SelfRegardHigh) { Lean(w, DayMood.Expansive, 2); Dampen(w, DayMood.Grim); }
 
          // The floor. Grim is never forbidden above, but a future rule could, and an all-zero table would make
          // the draw throw on somebody's save rather than fail here where it can be seen.

@@ -292,6 +292,31 @@ namespace NpcMemoryServiceTests
             MoodOfTheDay.WitIsPermitted(DayMood.HighSpirits, held, seed).Should().BeFalse();
       }
    
+      // ── Self-esteem weighs on the draw (E4, 30/09/2026) ──────────────────────────────────────────
+
+      // "A lord humbled three times draws grim or defensive more often" (ROADMAP, SELF-ESTEEM).
+      [Test]
+      public void GIVEN_a_man_who_thinks_little_of_himself_WHEN_weighed_THEN_bleak_and_closed_days_are_likelier_and_high_spirits_rarer()
+      {
+         var plain = MoodOfTheDay.Weights(Ordinary());
+         var low = MoodOfTheDay.Weights(Ordinary() with {SelfRegardLow = true});
+
+         low[DayMood.Grim].Should().BeGreaterThan(plain[DayMood.Grim]);
+         low[DayMood.Guarded].Should().BeGreaterThan(plain[DayMood.Guarded]);
+         low[DayMood.HighSpirits].Should().BeLessThan(plain[DayMood.HighSpirits]);
+      }
+
+      // A man sure of himself is more often open-handed, and a grim day is rarer.
+      [Test]
+      public void GIVEN_a_man_sure_of_himself_WHEN_weighed_THEN_open_handed_days_are_likelier_and_grim_ones_rarer()
+      {
+         var plain = MoodOfTheDay.Weights(Ordinary());
+         var high = MoodOfTheDay.Weights(Ordinary() with {SelfRegardHigh = true});
+
+         high[DayMood.Expansive].Should().BeGreaterThan(plain[DayMood.Expansive]);
+         high[DayMood.Grim].Should().BeLessThan(plain[DayMood.Grim]);
+      }
+
       // ── The seed (increment 2, 30/09/2026) ─────────────────────────────────────────────────────────
 
       // Ruling 3: talking to the same man twice in one afternoon finds the same man. The seed must be the same on

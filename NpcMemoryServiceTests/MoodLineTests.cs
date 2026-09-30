@@ -102,6 +102,38 @@ namespace NpcMemoryServiceTests
          MoodLine.Compose(null, null, false).Should().BeEmpty();
       }
 
+      // ── Self-esteem in the prompt (E3, 30/09/2026) ─────────────────────────────────────────────────
+
+      // Lordfadooboo: "it may have affects on their expectations when speaking to you and how they respond to failure...
+      // a character might become insecure with you... they might require you to tell them things they want to hear."
+      [Test]
+      public void GIVEN_a_shaken_man_WHEN_his_self_regard_is_composed_THEN_it_speaks_of_offence_failure_and_wanting_reassurance()
+      {
+         string line = SelfEsteemLine.Compose(SelfEsteemBand.Shaken);
+
+         line.Should().Contain("shaken");
+         line.Should().Contain("reassurance");
+         line.Should().Contain("never what you will agree to");
+      }
+
+      // "If they have a high self esteem they might be unphased by difficulties."
+      [Test]
+      public void GIVEN_a_proud_man_WHEN_composed_THEN_he_is_not_easily_shaken_and_expects_deference()
+      {
+         string line = SelfEsteemLine.Compose(SelfEsteemBand.Proud);
+
+         line.Should().Contain("not easily shaken");
+         line.Should().Contain("deference");
+      }
+
+      // Most men are steady most days: that says nothing, and nothing known says nothing.
+      [Test]
+      public void GIVEN_a_steady_man_or_none_WHEN_composed_THEN_nothing_is_written()
+      {
+         SelfEsteemLine.Compose(SelfEsteemBand.Steady).Should().BeEmpty();
+         SelfEsteemLine.Compose(null).Should().BeEmpty();
+      }
+
       // ── Letters (increment 5, Ruling 6): a letter is written on a day too ───────────────────────
 
       // "A note dashed off by a man having a bleak one should not read like the same man at a feast."
