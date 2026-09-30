@@ -223,6 +223,27 @@ namespace NpcMemoryService.Core.Mood
          return Index(seed ^ 0x5F37, WitInOneConversationIn) == 0;
       }
 
+      /// <summary>
+      ///   The seed for one character on one day (Ruling 3): the same on every machine and every run, so FNV-1a over
+      ///   the id rather than string.GetHashCode, which .NET randomises per process.
+      /// </summary>
+      public static int SeedFor(string heroId, int day)
+      {
+         unchecked
+         {
+            var h = 2166136261u;
+            foreach (char c in heroId ?? string.Empty)
+            {
+               h ^= c;
+               h *= 16777619u;
+            }
+
+            h ^= (uint) day * 0x9E3779B9u;
+
+            return (int) h;
+         }
+      }
+
       #region private
 
       private static void Forbid(IDictionary<DayMood, int> w, params DayMood[] moods)

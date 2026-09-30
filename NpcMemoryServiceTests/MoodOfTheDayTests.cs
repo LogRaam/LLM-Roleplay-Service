@@ -291,5 +291,31 @@ namespace NpcMemoryServiceTests
          for (var seed = 0; seed < 100; seed++)
             MoodOfTheDay.WitIsPermitted(DayMood.HighSpirits, held, seed).Should().BeFalse();
       }
+   
+      // ── The seed (increment 2, 30/09/2026) ─────────────────────────────────────────────────────────
+
+      // Ruling 3: talking to the same man twice in one afternoon finds the same man. The seed must be the same on
+      // every machine and every run, which string.GetHashCode is not (randomised per process).
+      [Test]
+      public void GIVEN_the_same_hero_on_the_same_day_WHEN_seeded_twice_THEN_it_is_the_same_seed()
+      {
+         MoodOfTheDay.SeedFor("lord_1_1", 120).Should().Be(MoodOfTheDay.SeedFor("lord_1_1", 120));
+      }
+
+      // ... and tomorrow is another day, and another man is another man.
+      [Test]
+      public void GIVEN_another_day_or_another_hero_WHEN_seeded_THEN_the_seeds_differ()
+      {
+         MoodOfTheDay.SeedFor("lord_1_1", 121).Should().NotBe(MoodOfTheDay.SeedFor("lord_1_1", 120));
+         MoodOfTheDay.SeedFor("lord_1_2", 120).Should().NotBe(MoodOfTheDay.SeedFor("lord_1_1", 120));
+      }
+
+      // Across a month, one man is not the same mood every day: a draw stuck on one answer is a fixed trait.
+      [Test]
+      public void GIVEN_a_month_of_days_WHEN_one_man_s_moods_are_drawn_THEN_more_than_one_mood_appears()
+      {
+         Enumerable.Range(100, 30).Select(d => MoodOfTheDay.Draw(Ordinary(), MoodOfTheDay.SeedFor("lord_1_1", d)))
+                   .Distinct().Count().Should().BeGreaterThan(2);
+      }
    }
 }

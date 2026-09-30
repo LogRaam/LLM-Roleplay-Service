@@ -1246,6 +1246,16 @@ namespace NpcMemoryService.Core.Models
       public Knowledge.HereAndNowFacts? HereAndNow { get; init; }
 
       /// <summary>
+      ///   The kind of day this character is having (THE MOOD OF THE DAY, increment 2, 30/09/2026): drawn by the host
+      ///   from the day's facts and a seed of hero and day, so the same man all day. Null when the host drew none.
+      ///   Colours how he speaks; never what he may do (Ruling 1).
+      /// </summary>
+      public Mood.DayMood? DayMood { get; init; }
+
+      /// <summary>Whether a dry remark may surface in this conversation (rare by design, see MoodOfTheDay.WitIsPermitted).</summary>
+      public bool WitPermitted { get; init; }
+
+      /// <summary>
       ///   How the places this character answers for are actually doing. Added 2026-09-12 after the first live
       ///   cr.memory_bench run, where the two inventions worth chasing were inside PASSING probes: handed two
       ///   fief names and nothing else, the character produced a harvest, grain lost to rot, granary stores and
