@@ -286,6 +286,13 @@ namespace NpcMemoryService.Core.Models
       public int? LastLetterRegardGainDay { get; set; }
 
       /// <summary>
+      ///   The campaign day this character's clan standing gave its one-time warm start to their regard (tashmetu,
+      ///   30/09/2026). Set once, never again, so the clan's standing can never wash away a quarrel later. Null = not
+      ///   given yet. Additive; absent on old saves.
+      /// </summary>
+      public int? ClanStandingSeedDay { get; set; }
+
+      /// <summary>
       ///   Progressive-regard model: how many routine warm moments this NPC now demands for the NEXT +1 of personal
       ///   regard, minus one (tier 0 = 1 moment, tier 1 = 2 moments, tier 2 = 3, ...). Rises by one each time a +1
       ///   is granted (deep bonds get harder to deepen) and decays back down over time (see

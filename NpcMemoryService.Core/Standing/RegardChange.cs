@@ -45,6 +45,12 @@ namespace NpcMemoryService.Core.Standing
       /// <summary>A mercenary or vassal leaving the character's realm, judged by how it left.</summary>
       public const string Departure = "departure";
 
+      /// <summary>
+      ///   The one-time warm start a character's clan standing with the player gives at a first meeting (2.6.8). Its source
+      ///   is the game's relation: a mod mirroring regard into that relation should skip this cause, or count it twice.
+      /// </summary>
+      public const string ClanStanding = "clan_standing";
+
       /// <summary>No cause was given (an older caller).</summary>
       public const string Unspecified = "unspecified";
    }
