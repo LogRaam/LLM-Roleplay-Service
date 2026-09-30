@@ -2370,7 +2370,7 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
-      ///   Anti-confabulation guard — the primary fix for invented parent names and made-up troop
+      ///   Anti-confabulation guard: the primary fix for invented parent names and made-up troop
       ///   movements. Hoisted out of <see cref="AppendEncounterContext" /> so it renders even when
       ///   <paramref name="context" /> would otherwise be entirely absent (a console session with no
       ///   encounter data still needs this), and positioned late in the dynamic tail, near the language
@@ -2870,14 +2870,14 @@ namespace NpcMemoryService.Core.Prompts
 
       /// <summary>
       ///   Teaches that a captive's escape attempt is resolved by fate, not by the captor's
-      ///   narration — the single biggest reason the LLM otherwise "always wins". The NPC emits
+      ///   narration: the single biggest reason the LLM otherwise "always wins". The NPC emits
       ///   an escape_attempt action and narrates only the START of the scuffle; the host rolls the
       ///   outcome and narrates it. Shared by every captive scene (lord, bandit, sexual or menace).
       /// </summary>
       /// <summary>
       ///   Hard brevity rule for captive scenes. Without it the model tends to produce
       ///   sprawling multi-paragraph turns that re-describe the whole situation every beat,
-      ///   killing pace and dragging the scene out — the single most common complaint.
+      ///   killing pace and dragging the scene out: the single most common complaint.
       /// </summary>
       /// <summary>
       ///   Placed at the very end of the system prompt (recency effect) so the model reads it
@@ -8308,7 +8308,7 @@ namespace NpcMemoryService.Core.Prompts
 
       /// <summary>
       ///   Appends the modder's <c>post_history_instructions.txt</c> verbatim (aside from <c>{{token}}</c>
-      ///   expansion, see <see cref="PromptVariableExpander" />) at the very end of the system prompt — the
+      ///   expansion, see <see cref="PromptVariableExpander" />) at the very end of the system prompt: the
       ///   highest-recency position, read immediately before the conversation. Empty → nothing is added (the
       ///   stock prompt is unchanged). The text is otherwise emitted as-is, with no CR-imposed framing, so a
       ///   modder controls it completely.
