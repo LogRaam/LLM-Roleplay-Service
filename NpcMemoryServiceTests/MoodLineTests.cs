@@ -102,6 +102,37 @@ namespace NpcMemoryServiceTests
          MoodLine.Compose(null, null, false).Should().BeEmpty();
       }
 
+      // ── Letters (increment 5, Ruling 6): a letter is written on a day too ───────────────────────
+
+      // "A note dashed off by a man having a bleak one should not read like the same man at a feast."
+      [Test]
+      public void GIVEN_a_grim_day_WHEN_he_writes_THEN_the_letter_is_told_the_day_and_that_it_decides_nothing()
+      {
+         string line = MoodLine.ForLetter(DayMood.Grim)!;
+
+         line.Should().Contain("grim");
+         line.Should().Contain("never in what you decide");
+      }
+
+      // An ordinary day, or none drawn, adds nothing to a letter.
+      [Test]
+      public void GIVEN_an_ordinary_day_or_none_WHEN_he_writes_THEN_nothing_is_added()
+      {
+         MoodLine.ForLetter(DayMood.Even).Should().BeNull();
+         MoodLine.ForLetter(null).Should().BeNull();
+      }
+
+      // The letter builders carry it: an initial letter written on a grim day says so.
+      [Test]
+      public void GIVEN_an_initial_letter_on_a_grim_day_WHEN_built_THEN_the_day_is_in_the_instruction()
+      {
+         var npc = new NpcMemoryService.Core.Models.NpcProfile {Id = "lord_1", Name = "Derthert", Clan = "Dey Meroc", Faction = "Vlandia"};
+
+         NpcMemoryService.Core.Prompts.LetterPromptBuilder
+            .BuildInitialLetterMessage(npc, NpcMemoryService.Core.Models.LetterReason.RomanticCorrespondence, "", "Aldric", mood: DayMood.Grim)
+            .Should().Contain("grim");
+      }
+
       // ── The judgement comes back ─────────────────────────────────────────────────────────────────
 
       // The character's own verdict on the exchange rides in the [STANCE] block it already knows, and is read.

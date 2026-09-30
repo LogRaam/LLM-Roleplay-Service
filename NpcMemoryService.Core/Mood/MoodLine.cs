@@ -87,6 +87,17 @@ namespace NpcMemoryService.Core.Mood
          return sb.ToString();
       }
 
+      /// <summary>
+      ///   The line for a letter written today (increment 5, Ruling 6: "a letter is written on a day too"), or null on an
+      ///   ordinary day or none. A letter cannot be moved by the player as it is written, so it carries the day alone.
+      /// </summary>
+      public static string? ForLetter(DayMood? mood)
+      {
+         if (mood == null || mood == DayMood.Even) return null;
+
+         return $"You write this on a day when you are {Brief(mood.Value)}. Let it show in how you write, never in what you decide.";
+      }
+
       private static string? Describe(DayMood mood) => mood switch {
          DayMood.Grim => "It is a grim day for you. Your answers run shorter than the question deserves, and you do not pretend otherwise.",
          DayMood.ShortTempered => "Your patience is thin today. Courtesy is there, but it costs you, and it shows.",

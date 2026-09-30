@@ -66,6 +66,16 @@ namespace NpcMemoryService.Core.Prompts
           + $"person (by your title or as {npc.Name}), never as \"I\". Say through it only what you would have your "
           + $"household write. Sign it: \"{Capitalised(writtenBy)}\". Name no clerk.";
 
+      // The writer's mood of the day (Ruling 6). A letter written by the household at dictation keeps its formal
+      // register instead: the steward does not write grimly because his lord is grim.
+      private static void AppendDay(StringBuilder sb, Mood.DayMood? mood, string? writtenBy)
+      {
+         if (!string.IsNullOrWhiteSpace(writtenBy)) return;
+
+         string? line = Mood.MoodLine.ForLetter(mood);
+         if (line != null) sb.AppendLine(line);
+      }
+
       private static string Capitalised(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpperInvariant(s[0]) + s.Substring(1);
 
       private static string SignatureLine(NpcProfile npc, string playerName, string? writtenBy)
@@ -76,7 +86,7 @@ namespace NpcMemoryService.Core.Prompts
       /// </summary>
       public static string BuildInitialLetterMessage(
          NpcProfile npc, LetterReason reason, string triggerContext, string playerName, string? whereabouts = null, string? playerSituation = null,
-         string? writtenBy = null)
+         string? writtenBy = null, Mood.DayMood? mood = null)
       {
          var sb = new StringBuilder();
          sb.AppendLine("[LETTER GENERATION — INTERNAL INSTRUCTION, DO NOT INCLUDE IN YOUR RESPONSE]");
@@ -92,6 +102,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("not a face-to-face conversation. Keep it to 2-3 paragraphs.");
          sb.AppendLine($"Address {playerName} by name. Do not use modern expressions.");
          sb.AppendLine(SignatureLine(npc, playerName, writtenBy));
+         AppendDay(sb, mood, writtenBy);
          AppendPlace(sb, whereabouts, playerSituation);
          sb.AppendLine("Write ONLY the letter body in [DIALOGUE]. Do not emit [EVENT], [ACTION], [STANCE], or any");
          sb.AppendLine("section other than the letter text. No section headers, no meta-text.");
@@ -106,7 +117,7 @@ namespace NpcMemoryService.Core.Prompts
       /// </summary>
       public static string BuildPlayerLetterReplyDecisionMessage(
          NpcProfile npc, string playerLetterContent, string playerName, string? whereabouts = null, string? playerSituation = null,
-         string? writtenBy = null)
+         string? writtenBy = null, Mood.DayMood? mood = null)
       {
          var sb = new StringBuilder();
          sb.AppendLine("[PLAYER LETTER RECEIVED — INTERNAL INSTRUCTION, DO NOT INCLUDE IN YOUR RESPONSE]");
@@ -132,6 +143,7 @@ namespace NpcMemoryService.Core.Prompts
          // holds for every reason, and it is the only guard on this path.
          sb.AppendLine("Coin and goods do not travel with a letter. If they promise a payment here, it has NOT");
          sb.AppendLine("been made: never write as though you had received it, and settle such things in person.");
+         AppendDay(sb, mood, writtenBy);
          AppendPlace(sb, whereabouts, playerSituation);
          sb.AppendLine($"Write your reply in the SAME language as the quoted letter from {playerName} above, not the");
          sb.AppendLine("language of this internal instruction.");
@@ -162,7 +174,7 @@ namespace NpcMemoryService.Core.Prompts
       /// </summary>
       public static string BuildReplyLetterMessage(
          NpcProfile npc, string playerReply, LetterReason originalReason, string playerName, string? whereabouts = null, string? playerSituation = null,
-         string? writtenBy = null)
+         string? writtenBy = null, Mood.DayMood? mood = null)
       {
          var sb = new StringBuilder();
          sb.AppendLine("[LETTER REPLY GENERATION — INTERNAL INSTRUCTION, DO NOT INCLUDE IN YOUR RESPONSE]");
@@ -190,6 +202,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Write your reply letter in 2-3 paragraphs. Stay in character.");
          sb.AppendLine($"Address {playerName} by name. Do not use modern expressions.");
          sb.AppendLine(SignatureLine(npc, playerName, writtenBy));
+         AppendDay(sb, mood, writtenBy);
          AppendPlace(sb, whereabouts, playerSituation);
          sb.AppendLine($"Write the letter in the same language as the quoted letter from {playerName} above, not the");
          sb.AppendLine("language of this internal instruction.");
