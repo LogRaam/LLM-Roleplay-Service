@@ -20,7 +20,10 @@ namespace NpcMemoryService.Core.Extension
       /// <summary>The conversation partner's stable engine id (a Hero StringId on the Bannerlord side).</summary>
       public string NpcId { get; set; } = string.Empty;
 
-      /// <summary>The partner's personal relation score toward the player.</summary>
+      /// <summary>
+      ///   The partner's PERSONAL REGARD for the player: CR's own ledger (-100 to 100), built in conversation, never the
+      ///   game's relation (which the prompt calls "your clan's standing").
+      /// </summary>
       public int RelationToPlayer { get; set; }
 
       /// <summary>The partner's faction id (kingdom/clan StringId), or null when they belong to none.</summary>

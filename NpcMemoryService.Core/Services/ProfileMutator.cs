@@ -107,7 +107,7 @@ namespace NpcMemoryService.Core.Services
 
             // Adjust reputation when present. C2: skipped when the caller disabled the legacy [REPUTATION] block
             // (the mod), so a model emitting it unprompted can never move regard outside the gated change_relation path.
-            if (applyReputation && response.Reputation != null) ApplyReputationDelta(profile, response.Reputation.ClanDelta ?? 0);
+            if (applyReputation && response.Reputation != null) ApplyReputationDelta(profile, response.Reputation.ClanDelta ?? 0, RegardCause.Conversation);
 
             // Advance the romantic arc based on the event type and current trust level. Skipped entirely when the
             // romance system is off (M-R3), so no romantic state accumulates behind the player's back.
@@ -202,10 +202,40 @@ namespace NpcMemoryService.Core.Services
         /// </summary>
         /// <param name="profile">The NPC whose reputation is being updated. Must not be null.</param>
         /// <param name="delta">Signed change to apply, positive or negative.</param>
-        public static void ApplyReputationDelta(NpcProfile profile, int delta)
+        /// <param name="cause">Why it changed, one of <see cref="RegardCause" />; carried to <see cref="RegardChanged" />.</param>
+        public static void ApplyReputationDelta(NpcProfile profile, int delta, string cause = RegardCause.Unspecified)
         {
-            int updated = profile.ReputationWithPlayer + delta;
+            int before = profile.ReputationWithPlayer;
+            int updated = before + delta;
             profile.ReputationWithPlayer = Math.Max(-100, Math.Min(100, updated));
+
+            if (profile.ReputationWithPlayer != before)
+                RaiseRegardChanged(new RegardChange {
+                    NpcId = profile.Id ?? string.Empty, NpcName = profile.Name ?? string.Empty,
+                    Before = before, After = profile.ReputationWithPlayer, Cause = cause ?? RegardCause.Unspecified
+                });
+        }
+
+        /// <summary>
+        ///   Raised after a character's regard for the player actually changed, by the one place it changes (29/09/2026,
+        ///   for tashmetu's bridge). Listeners only listen: each is called under its own guard, so one that throws never
+        ///   breaks the change or the others. On the game side, the host re-raises it as its own public event.
+        /// </summary>
+        public static event Action<RegardChange>? RegardChanged;
+
+        private static void RaiseRegardChanged(RegardChange change)
+        {
+            Action<RegardChange>? handlers = RegardChanged;
+            if (handlers == null) return;
+
+            foreach (Delegate handler in handlers.GetInvocationList())
+            {
+                try { ((Action<RegardChange>) handler)(change); }
+                catch
+                {
+                    // a listener's fault is its own: the regard change already happened and stands
+                }
+            }
         }
 
         /// <summary>
