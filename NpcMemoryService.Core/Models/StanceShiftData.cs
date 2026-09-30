@@ -16,5 +16,11 @@ namespace NpcMemoryService.Core.Models
 
         /// <summary>Spoken nudge to the NPC's fear of the player (signed; capped by the consumer).</summary>
         public int Fear { get; init; }
+
+        /// <summary>
+        ///   How the exchange left the character's mood of the day: +1 lifted, -1 lowered, 0 neither (a "mood:" line in
+        ///   the [STANCE] block, since 30/09/2026). The consumer moves the mood one band per turn at most.
+        /// </summary>
+        public int Mood { get; init; }
     }
 }

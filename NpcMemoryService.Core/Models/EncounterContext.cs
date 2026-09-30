@@ -1256,6 +1256,12 @@ namespace NpcMemoryService.Core.Models
       public bool WitPermitted { get; init; }
 
       /// <summary>
+      ///   Where the player has brought the mood so far in this conversation (increment 4): the host moves it along
+      ///   MoodLadder from what the character reports. Null when unmoved; the prompt then speaks of DayMood alone.
+      /// </summary>
+      public Mood.DayMood? DayMoodNow { get; init; }
+
+      /// <summary>
       ///   How the places this character answers for are actually doing. Added 2026-09-12 after the first live
       ///   cr.memory_bench run, where the two inventions worth chasing were inside PASSING probes: handed two
       ///   fief names and nothing else, the character produced a harvest, grain lost to rot, granary stores and

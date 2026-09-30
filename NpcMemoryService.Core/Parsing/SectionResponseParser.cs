@@ -849,10 +849,22 @@ namespace NpcMemoryService.Core.Parsing
          int trust = TryParseSignedInt(fields, "trust") ?? 0;
          int respect = TryParseSignedInt(fields, "respect") ?? 0;
          int fear = TryParseSignedInt(fields, "fear") ?? 0;
+         int mood = ParseMood(fields);
 
-         if (trust == 0 && respect == 0 && fear == 0) return null;
+         if (trust == 0 && respect == 0 && fear == 0 && mood == 0) return null;
 
-         return new StanceShiftData {Trust = trust, Respect = respect, Fear = fear};
+         return new StanceShiftData {Trust = trust, Respect = respect, Fear = fear, Mood = mood};
+      }
+
+      // "mood: lifted | lowered" (the mood of the day, 30/09/2026); anything else, or nothing, is no change.
+      private static int ParseMood(Dictionary<string, string> fields)
+      {
+         if (!fields.TryGetValue("mood", out string? value) || string.IsNullOrWhiteSpace(value)) return 0;
+
+         string v = value.Trim().ToLowerInvariant();
+         if (v.StartsWith("lift", StringComparison.Ordinal) || v.StartsWith("rais", StringComparison.Ordinal)) return 1;
+
+         return v.StartsWith("lower", StringComparison.Ordinal) || v.StartsWith("sour", StringComparison.Ordinal) ? -1 : 0;
       }
 
       /// <summary>

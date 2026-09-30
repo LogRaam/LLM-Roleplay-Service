@@ -335,6 +335,7 @@ namespace NpcMemoryService.Core.Prompts
          // The knowledge that changes under the character (the hour, the sky, where they stand) belongs here
          // with the rest of the per-turn tail, not up in the identity block - see AppendVolatileKnowledge.
          AppendVolatileKnowledge(sb, encounterContext);
+         AppendDayMood(sb, encounterContext);
          AppendWorldState(sb, world);
          AppendAtSeaNote(sb, encounterContext);
          AppendPlayerDressNote(sb, encounterContext);
@@ -2684,6 +2685,13 @@ namespace NpcMemoryService.Core.Prompts
       /// </summary>
       private static void AppendVolatileKnowledge(StringBuilder sb, EncounterContext? context)
          => sb.Append(ComposeKnowledge(context).Volatile);
+
+      /// <summary>
+      ///   The kind of day the character is having, and how far the player has moved it (THE MOOD OF THE DAY). In the
+      ///   tail: it is drawn per conversation and moves per turn, so in the prefix it would cost the cache every time.
+      /// </summary>
+      private static void AppendDayMood(StringBuilder sb, EncounterContext? context)
+         => sb.Append(Mood.MoodLine.Compose(context?.DayMood, context?.DayMoodNow, context?.WitPermitted ?? false));
 
       /// <summary>
       ///   Composes every pack this character carries and the host supplied, and splits the result by where it
