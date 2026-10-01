@@ -293,8 +293,10 @@ namespace NpcMemoryService.Core.Prompts
          // the host, while a companion, bandit, or commoner leaves it at the Unknown default — the closest existing
          // "is this a lord" signal in EncounterContext, so a companion chat no longer gets taught a prisoner bargain
          // it can never use.
+         // Never to a character at war with the player: the bargain is a task (deliver_prisoner), and an enemy sets the
+         // player no task (fkasad, 29/09/2026).
          if (LeanPromptPolicy.Include(PromptSection.DeliverPrisonerOffer, lean)
-             && encounterContext?.WarStatus is DiplomaticStatus.AtWar or DiplomaticStatus.AtPeace or DiplomaticStatus.Allied)
+             && encounterContext?.WarStatus is DiplomaticStatus.AtPeace or DiplomaticStatus.Allied)
             AppendDeliverPrisoner(sb, encounterContext);
          AppendPrisonerFreedomBargain(sb, encounterContext);
          AppendOrdinaryPrisonerExecutionRule(sb, encounterContext);
@@ -7837,9 +7839,18 @@ namespace NpcMemoryService.Core.Prompts
       ///   promise only what they would truly give. Completion is gated on verified
       ///   evidence (surfaced under YOUR QUESTS) — a player's bare claim is never enough.
       /// </summary>
+      /// <summary>
+      ///   Whether this character may be taught to OFFER a task this turn. Never when quests are suppressed (captive,
+      ///   NSFW), and never to a character at war with the player (fkasad, 29/09/2026: "Vanilla lords don't give quest
+      ///   to enemies"; an enemy lord buying back a prisoner slid into demanding a deed). Tasks given before the war
+      ///   are still listed (AppendActiveQuests); trading prisoners is a verb, not a task, and stays.
+      /// </summary>
+      private static bool MayOfferTasks(EncounterContext? context)
+         => context?.SuppressQuests != true && context?.WarStatus != DiplomaticStatus.AtWar;
+
       private void AppendQuestInstructions(StringBuilder sb, EncounterContext? context = null)
       {
-         if (!EnableQuests || context?.SuppressQuests == true) return;
+         if (!EnableQuests || !MayOfferTasks(context)) return;
 
          sb.AppendLine("OFFERING TASKS (quests):");
          sb.AppendLine("When the conversation naturally calls for it and you have reason to trust or");

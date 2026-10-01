@@ -212,5 +212,45 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("an alliance between our houses would be glorious");
          prompt.Should().Contain("lands await those who serve Battania well");
       }
+   
+      // ── At war (fkasad, Nexus, 29/09/2026) ─────────────────────────────────────────────────────────
+
+      // fkasad: an enemy lord offering to buy back a prisoner slid into "prove yourself with a deed" and then into
+      // invalid-quest messages. "When at war the whole text/rules about quests should simply not be part of the
+      // prompt. Vanilla lords don't give quest to enemies."
+      [Test]
+      public void GIVEN_a_lord_at_war_with_the_player_WHEN_building_the_prompt_THEN_he_is_taught_no_task_to_offer()
+      {
+         string prompt = new PromptBuilder {EnableQuests = true}.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10},
+            new EncounterContext {WarStatus = DiplomaticStatus.AtWar});
+
+         prompt.Should().NotContain("OFFERING TASKS");
+         prompt.Should().NotContain("IF YOU WANT AN ENEMY CAPTIVE");
+      }
+
+      // The control: at peace the same lord is still taught to offer tasks.
+      [Test]
+      public void GIVEN_a_lord_at_peace_with_the_player_WHEN_building_the_prompt_THEN_he_may_still_offer_tasks()
+      {
+         new PromptBuilder {EnableQuests = true}.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10},
+            new EncounterContext {WarStatus = DiplomaticStatus.AtPeace})
+            .Should().Contain("OFFERING TASKS");
+      }
+
+      // A task he gave before the war is still his to speak of: withholding new offers never erases old ones.
+      [Test]
+      public void GIVEN_a_task_given_before_the_war_WHEN_building_the_prompt_at_war_THEN_he_still_knows_it()
+      {
+         var npc = new NpcProfile {
+            Id = "npc_test", Name = "Test Lord", Faction = "Vlandia", Clan = "dey Meroc",
+            ActiveQuests = new List<InformalQuest> {
+               new() {Type = QuestType.BanditHideout, Description = "Clear the lair troubling my lands.", DirectionHint = "north of Pravend", Status = QuestStatus.Active}
+            }
+         };
+
+         new PromptBuilder {EnableQuests = true}.BuildSystemPrompt(npc, new WorldState {CurrentDay = 10},
+            new EncounterContext {WarStatus = DiplomaticStatus.AtWar})
+            .Should().Contain("north of Pravend");
+      }
    }
 }
