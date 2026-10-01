@@ -252,5 +252,25 @@ namespace NpcMemoryServiceTests
             new EncounterContext {WarStatus = DiplomaticStatus.AtWar})
             .Should().Contain("north of Pravend");
       }
+   
+      // fkasad (01/10/2026): the player beat the lord he was sent to capture and the lord escaped. The giver must
+      // learn it as a recorded fact, and be told what he may do: take the victory for half, a lord of the realm, or wait.
+      [Test]
+      public void GIVEN_a_capture_task_whose_target_the_player_beat_WHEN_the_giver_is_prompted_THEN_he_learns_it_and_his_choices()
+      {
+         var npc = new NpcProfile {
+            Id = "npc_test", Name = "Test Lord", Faction = "Vlandia", Clan = "dey Meroc",
+            ActiveQuests = new List<InformalQuest> {
+               new() {Type = QuestType.CapturePrisoner, Description = "Bring me Lucon in chains.", TargetHeroName = "Lucon",
+                      TargetFactionName = "the Northern Empire", TargetBeatenOnDay = 40, Status = QuestStatus.Active}
+            }
+         };
+
+         string prompt = new PromptBuilder {EnableQuests = true, PlayerName = "Aldric"}.BuildSystemPrompt(npc, new WorldState {CurrentDay = 45}, new EncounterContext());
+
+         prompt.Should().Contain("BEATEN, NOT TAKEN: Aldric defeated Lucon in battle on day 40");
+         prompt.Should().Contain("HALF the reward");
+         prompt.Should().Contain("another lord of");
+      }
    }
 }

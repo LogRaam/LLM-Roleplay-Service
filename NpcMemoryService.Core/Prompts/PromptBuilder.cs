@@ -5709,7 +5709,21 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine($"- OUTSTANDING: {q.Description}{RewardSuffix(q)}{DeadlineSuffix(q)}");
             if (!string.IsNullOrWhiteSpace(q.DirectionHint))
                sb.AppendLine($"  The lair lies to the {q.DirectionHint}; tell them so if they ask where to look.");
-            sb.AppendLine("  Not yet done: you may ask how it fares, but you have no proof it is finished.");
+
+            // fkasad (01/10/2026): the player beat the man you wanted, and he escaped, as defeated lords do. A
+            // recorded victory, not a story: you may take it in his place, or another lord of his realm.
+            if (q.TargetBeatenOnDay is int beaten
+                && (q.Type == QuestType.CapturePrisoner || q.Type == QuestType.DeliverPrisoner))
+            {
+               string who = string.IsNullOrWhiteSpace(PlayerName) ? "The player" : PlayerName;
+               string realm = string.IsNullOrWhiteSpace(q.TargetFactionName) ? "his realm" : q.TargetFactionName!;
+               sb.AppendLine($"  BEATEN, NOT TAKEN: {who} defeated {q.TargetHeroName ?? "him"} in battle on day {beaten}, and he escaped,");
+               sb.AppendLine("  as beaten lords often do. This is recorded. You may accept that victory in place of the task (emit");
+               sb.AppendLine($"  [QUEST_COMPLETE] type: {QuestTypeToken(q.Type)}; you then pay HALF the reward), or accept another lord of");
+               sb.AppendLine($"  {realm} handed over in his place (the delivery), or hold out for the man himself. Your choice, in character.");
+            }
+            else
+               sb.AppendLine("  Not yet done: you may ask how it fares, but you have no proof it is finished.");
          }
 
          foreach (InformalQuest q in ready)

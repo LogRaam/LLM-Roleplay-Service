@@ -178,6 +178,13 @@ namespace NpcMemoryService.Core.Models
         /// </summary>
         public string? Evidence { get; set; }
 
+        /// <summary>
+        ///   The day the player beat this task's target in battle without taking him (he escaped), for a capture or
+        ///   delivery task (fkasad, 01/10/2026). The giver may then accept the victory, or a lord of the same realm, in
+        ///   his place; a deadline lapsing after it costs the player nothing. Null = not beaten. Additive.
+        /// </summary>
+        public int? TargetBeatenOnDay { get; set; }
+
         /// <summary>True while the quest is live and its deed not yet verified.</summary>
         public bool IsOutstanding => Status == QuestStatus.Active && SatisfiedOnDay == null;
 
