@@ -123,6 +123,14 @@ namespace NpcMemoryService.Core.Models
         ///   (<see cref="InformalQuest.RegardBaseline" />, <see cref="InformalQuest.RegardGoal" />), never by the
         ///   LLM's word. Appended last to preserve the integer ordinals above in old saves.
         /// </summary>
-        EarnRegard
+        EarnRegard,
+
+        /// <summary>
+        ///   Plead the giver's case before a named person (their liege, the head of their house, a lord of another
+        ///   realm): Lordfadooboo and fkasad, Nexus, 01/10/2026. Done when that person, in their own conversation
+        ///   with the player, is truly won over TOWARD the giver (the sway_opinion verb, stance "for", about the
+        ///   giver), never by the LLM's word. Appended last to preserve the integer ordinals above in old saves.
+        /// </summary>
+        PleadCase
     }
 }

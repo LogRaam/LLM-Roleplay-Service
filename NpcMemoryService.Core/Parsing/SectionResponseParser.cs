@@ -791,6 +791,11 @@ namespace NpcMemoryService.Core.Parsing
                or "win_favor"
                or "win_favour"
                or "win_good_graces" => QuestType.EarnRegard,
+            "plead_case"
+               or "plead_my_case"
+               or "argue_case"
+               or "speak_for_me"
+               or "intercede" => QuestType.PleadCase,
             _ => null
          };
       }

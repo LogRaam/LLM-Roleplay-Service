@@ -175,6 +175,9 @@ namespace NpcMemoryServiceTests
       [TestCase("earn_regard", QuestType.EarnRegard)]
       [TestCase("win_favour", QuestType.EarnRegard)]
       [TestCase("win_good_graces", QuestType.EarnRegard)]
+      // "Pleading their case? That's a good idea." (fkasad, 01/10/2026)
+      [TestCase("plead_case", QuestType.PleadCase)]
+      [TestCase("intercede", QuestType.PleadCase)]
       [TestCase("BanditClear", QuestType.BanditClear)] // direct enum-name match
       public void Quest_type_alias_resolves_to_expected_type(string rawType, QuestType expected)
       {
