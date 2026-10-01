@@ -131,6 +131,15 @@ namespace NpcMemoryService.Core.Models
         ///   with the player, is truly won over TOWARD the giver (the sway_opinion verb, stance "for", about the
         ///   giver), never by the LLM's word. Appended last to preserve the integer ordinals above in old saves.
         /// </summary>
-        PleadCase
+        PleadCase,
+
+        /// <summary>
+        ///   Bring men for the giver's thin garrison (fkasad, Nexus, 01/10/2026: "Works for garrison reinforcement
+        ///   too"): <see cref="InformalQuest.TargetSettlement" /> names the place, <see cref="InformalQuest.RequiredItemCount" />
+        ///   the number of soldiers. Verified by a real hand-over in that place (the reinforce_garrison verb moves the
+        ///   player's own soldiers onto its walls), never by the LLM's word. Appended last to preserve the integer
+        ///   ordinals above in old saves.
+        /// </summary>
+        ReinforceGarrison
     }
 }

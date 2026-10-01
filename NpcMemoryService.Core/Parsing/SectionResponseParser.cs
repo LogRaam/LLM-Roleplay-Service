@@ -796,6 +796,10 @@ namespace NpcMemoryService.Core.Parsing
                or "argue_case"
                or "speak_for_me"
                or "intercede" => QuestType.PleadCase,
+            "reinforce_garrison"
+               or "garrison_troops"
+               or "bring_troops"
+               or "man_the_walls" => QuestType.ReinforceGarrison,
             _ => null
          };
       }

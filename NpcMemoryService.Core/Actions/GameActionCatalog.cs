@@ -828,6 +828,18 @@ namespace NpcMemoryService.Core.Actions
                   "the NPC GIVING soldiers to the player instead, which is the mirror verb lend_troops",
                   "an NPC whose party is not under-strength accepting reinforcement it does not need"
                }),
+            // fkasad (Nexus, 01/10/2026): "Works for garrison reinforcement too." Taught only while the NPC's own
+            // garrison task is outstanding and the player stands in that place.
+            Spec("reinforce_garrison",
+               "The NPC accepts the soldiers they asked the player to bring for the garrison of the place they govern or hold, here and now.",
+               tells: new[] {
+                  "the NPC actually takes the men the player hands over onto the walls in this reply, the soldiers changing hands now"
+               },
+               antiPatterns: new[] {
+                  "the men merely being promised or discussed for later, without the hand-over happening this turn",
+                  "soldiers joining the NPC's own field party rather than the garrison, which is give_troops",
+                  "the NPC giving soldiers to the player, which is lend_troops"
+               }),
             Spec("spend_influence",
                "The NPC accepts influence the player spends from their own clan to back the NPC's clan at court.",
                tells: new[] {

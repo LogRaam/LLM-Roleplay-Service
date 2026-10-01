@@ -178,6 +178,9 @@ namespace NpcMemoryServiceTests
       // "Pleading their case? That's a good idea." (fkasad, 01/10/2026)
       [TestCase("plead_case", QuestType.PleadCase)]
       [TestCase("intercede", QuestType.PleadCase)]
+      // "Works for garrison reinforcement too." (fkasad, 01/10/2026)
+      [TestCase("reinforce_garrison", QuestType.ReinforceGarrison)]
+      [TestCase("bring_troops", QuestType.ReinforceGarrison)]
       [TestCase("BanditClear", QuestType.BanditClear)] // direct enum-name match
       public void Quest_type_alias_resolves_to_expected_type(string rawType, QuestType expected)
       {

@@ -959,6 +959,22 @@ namespace NpcMemoryService.Core.Actions
                prose: "*Vsevolod simply waves the reinforcements you brought into his own ranks without further ceremony, already assigning them positions among his thinned lines.* My company breathes easier for this.",
                expectedType: "give_troops"),
 
+            // fkasad (01/10/2026): the men a governor asked for, handed over in his own town.
+            ActionBenchCase.Expect("reinforce_garrison", "reinforce_garrison",
+               contextFacts: "NPC: Lord Ansen, governor of Galend, who asked the player for twenty soldiers for its thin garrison. The player stands in Galend and has just handed the men over.",
+               prose: "*Ansen watches the twenty file through the gate toward the walls.* Twenty good men on my battlements. I take them gladly; Galend will sleep easier tonight.",
+               expectedType: "reinforce_garrison"),
+
+            ActionBenchCase.Expect("reinforce_garrison_v2", "reinforce_garrison",
+               contextFacts: "NPC: Boyar Vsevolod, who asked the player for thirty soldiers for the garrison of his castle. The player stands in the castle with the men.",
+               prose: "*Vsevolod nods to his sergeant, who leads your thirty men up to the towers.* They are mine now, and the walls are better for them. You kept your word.",
+               expectedType: "reinforce_garrison"),
+
+            ActionBenchCase.Expect("reinforce_garrison_v3", "reinforce_garrison",
+               contextFacts: "NPC: Lady Ira, holder of Ortysia, who asked the player for fifteen soldiers for its garrison. The player has brought them into the town.",
+               prose: "*Ira counts the fifteen as they take their posts on the walls.* Done, then. Ortysia's garrison stands a little taller, and I owe you for it.",
+               expectedType: "reinforce_garrison"),
+
             ActionBenchCase.Expect("spend_influence", "spend_influence",
                contextFacts: "NPC: Lord Ansen. The player has just spent their own influence at court to back Ansen's clan.",
                prose: "*Ansen inclines his head.* Word reached me of the weight you spent at court on my behalf. I accept it gladly, my house is stronger at the table for your backing.",

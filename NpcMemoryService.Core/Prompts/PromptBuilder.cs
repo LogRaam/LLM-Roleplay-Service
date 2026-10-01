@@ -5418,6 +5418,7 @@ namespace NpcMemoryService.Core.Prompts
          QuestType.ProvideGoods => "provide_goods",
          QuestType.EarnRegard => "earn_regard",
          QuestType.PleadCase => "plead_case",
+         QuestType.ReinforceGarrison => "reinforce_garrison",
          _ => t.ToString().ToLowerInvariant()
       };
 
@@ -7917,6 +7918,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("- provide_goods (no target; set 'category' and 'required_count'): the player brings you a supply of goods, horses for your cavalry, or livestock or grain to feed your people and host. Verified by a real hand-over in conversation (the game tallies the count). Ask only for a category you truly need.");
             sb.AppendLine("- earn_regard (target_hero): the player must win the good graces of someone whose favour serves you (your liege, the head of your house, a lord whose friendship you need), raising that person's own regard for the player. Verified by that person's real regard, never by anyone's word; it takes several meetings, so give it time.");
             sb.AppendLine("- plead_case (target_hero): the player argues YOUR case before someone who matters to you (your liege, the head of your house, a lord of another realm). Verified only when that person is truly won over toward you, in their own conversation with the player.");
+            sb.AppendLine("- reinforce_garrison (target_settlement; set 'required_count'): the player brings soldiers for the thin garrison of a place you govern or hold. Verified by a real hand-over of the men in that place.");
          }
 
          sb.AppendLine();
