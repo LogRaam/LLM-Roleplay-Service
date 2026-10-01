@@ -805,6 +805,11 @@ namespace NpcMemoryService.Core.Parsing
                or "buy_back_prisoner"
                or "ransom_captive"
                or "negotiate_release" => QuestType.RansomEnvoy,
+            "scout_town"
+               or "scout_city"
+               or "spy_town"
+               or "spy_on_town"
+               or "gather_intel" => QuestType.ScoutTown,
             _ => null
          };
       }

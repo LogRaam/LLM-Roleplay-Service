@@ -149,6 +149,15 @@ namespace NpcMemoryService.Core.Models
         ///   the man he bought, or hands him home, or breaks him out. If the man goes free some other way first,
         ///   the task is voided and the advance returned. Appended last to preserve the integer ordinals above.
         /// </summary>
-        RansomEnvoy
+        RansomEnvoy,
+
+        /// <summary>
+        ///   Scout an enemy town from INSIDE, through its gang leader (fkasad, Nexus, 01/10/2026: "actually entering the
+        ///   city not like the vanilla where you just have to spend some time nearby. Make contact with local gang
+        ///   leader, negotiate with him for intel"). <see cref="InformalQuest.TargetSettlement" /> names the town. Done
+        ///   when its gang leader, in his own conversation, agrees to tell (the share_intel verb); the town's true state
+        ///   is recorded as the evidence. Appended last to preserve the integer ordinals above.
+        /// </summary>
+        ScoutTown
     }
 }

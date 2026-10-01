@@ -828,6 +828,18 @@ namespace NpcMemoryService.Core.Actions
                   "the NPC GIVING soldiers to the player instead, which is the mirror verb lend_troops",
                   "an NPC whose party is not under-strength accepting reinforcement it does not need"
                }),
+            // fkasad (Nexus, 01/10/2026): a town's gang leader telling a scout what he knows. Taught only to a gang leader
+            // in a town some lord has sent the player to scout.
+            Spec("share_intel",
+               "The town's gang leader actually tells the player what he knows of his town: its garrison, stores, people and streets.",
+               tells: new[] {
+                  "the gang leader, in this reply, actually lays out what he knows of the town's defences, stores or mood for the player"
+               },
+               antiPatterns: new[] {
+                  "the gang leader merely haggling over a price, or promising to talk later, without telling anything yet",
+                  "the gang leader refusing, or talking only of his own trade",
+                  "gossip about people rather than the state of the town"
+               }),
             // fkasad (Nexus, 01/10/2026): "Works for garrison reinforcement too." Taught only while the NPC's own
             // garrison task is outstanding and the player stands in that place.
             Spec("reinforce_garrison",

@@ -184,6 +184,9 @@ namespace NpcMemoryServiceTests
       // "Here is 5000 denars. Bring my lad alive." (fkasad, 01/10/2026)
       [TestCase("ransom_envoy", QuestType.RansomEnvoy)]
       [TestCase("buy_back", QuestType.RansomEnvoy)]
+      // "Make contact with local gang leader, negotiate with him for intel." (fkasad, 01/10/2026)
+      [TestCase("scout_town", QuestType.ScoutTown)]
+      [TestCase("gather_intel", QuestType.ScoutTown)]
       [TestCase("BanditClear", QuestType.BanditClear)] // direct enum-name match
       public void Quest_type_alias_resolves_to_expected_type(string rawType, QuestType expected)
       {

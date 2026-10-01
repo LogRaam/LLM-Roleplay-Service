@@ -975,6 +975,22 @@ namespace NpcMemoryService.Core.Actions
                prose: "*Ira counts the fifteen as they take their posts on the walls.* Done, then. Ortysia's garrison stands a little taller, and I owe you for it.",
                expectedType: "reinforce_garrison"),
 
+            // fkasad (01/10/2026): a gang leader paid for what he knows of his town.
+            ActionBenchCase.Expect("share_intel", "share_intel",
+               contextFacts: "NPC: Ingrith the Knife, gang leader of Pravend. A lord at war with Pravend sent the player to learn its state. The player has paid her.",
+               prose: "*Ingrith pockets the coin and leans in.* Half the garrison rode out with the count last week. What is left would not hold a gate for an hour, and the granary is thinner than the priests let on.",
+               expectedType: "share_intel"),
+
+            ActionBenchCase.Expect("share_intel_v2", "share_intel",
+               contextFacts: "NPC: Rolf the Bent, gang leader of Sargot. The player came for what he knows of the town.",
+               prose: "*Rolf glances at the door, then speaks low.* Walls are well manned, I will not lie to you. But the people grumble; the new taxes bit deep, and the watch looks the other way for a price.",
+               expectedType: "share_intel"),
+
+            ActionBenchCase.Expect("share_intel_v3", "share_intel",
+               contextFacts: "NPC: Baba Yara, gang leader of Omor. The player asked her about the town's defences.",
+               prose: "*She counts on her fingers.* Three hundred on the walls, give or take. Stores full since the harvest. And the boyar's people love him, so do not count on the gates opening from inside. There. That is what you came for.",
+               expectedType: "share_intel"),
+
             ActionBenchCase.Expect("spend_influence", "spend_influence",
                contextFacts: "NPC: Lord Ansen. The player has just spent their own influence at court to back Ansen's clan.",
                prose: "*Ansen inclines his head.* Word reached me of the weight you spent at court on my behalf. I accept it gladly, my house is stronger at the table for your backing.",
