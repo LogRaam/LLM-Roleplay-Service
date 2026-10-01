@@ -7908,7 +7908,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("- siege (target_settlement): help take an enemy town or castle by siege.");
             sb.AppendLine("- capture_prisoner (target_hero): take a specific enemy hero prisoner.");
             sb.AppendLine("- execute_enemy (target_hero): kill a specific enemy hero.");
-            sb.AppendLine("- rescue_prisoner (target_hero): free a specific ally held captive.");
+            sb.AppendLine("- rescue_prisoner (target_hero): free a specific ally held captive, by beating the party that holds them, or by breaking them out of a town or castle's prison.");
             sb.AppendLine("- deliver_letter (target_hero): carry your message to a recipient; put it in 'description'.");
             sb.AppendLine("- provide_gold (no target needed): the player owes you financial support: they must give you denars in conversation. This quest is issued by the game, not by you; only emit [QUEST_COMPLETE] once the player has actually paid (the deed is shown as done in YOUR QUESTS).");
             sb.AppendLine("- scout_army (target_faction or target_hero): get close to an enemy army, observe its strength, and report back. Use target_hero to name the army's leader, or target_faction to accept any army of that faction.");
