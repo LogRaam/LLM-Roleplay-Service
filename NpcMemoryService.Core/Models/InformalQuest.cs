@@ -185,6 +185,18 @@ namespace NpcMemoryService.Core.Models
         /// </summary>
         public int? TargetBeatenOnDay { get; set; }
 
+        /// <summary>
+        ///   For an <see cref="QuestType.EarnRegard" /> task: the target's regard for the player when the task was
+        ///   given. Null on every other kind. Additive.
+        /// </summary>
+        public int? RegardBaseline { get; set; }
+
+        /// <summary>
+        ///   For an <see cref="QuestType.EarnRegard" /> task: the regard the target must reach for the deed to
+        ///   count. Null on every other kind. Additive.
+        /// </summary>
+        public int? RegardGoal { get; set; }
+
         /// <summary>True while the quest is live and its deed not yet verified.</summary>
         public bool IsOutstanding => Status == QuestStatus.Active && SatisfiedOnDay == null;
 

@@ -113,6 +113,16 @@ namespace NpcMemoryService.Core.Models
         ///   <see cref="InformalQuest.RequiredItemCategory"/> + <see cref="InformalQuest.RequiredItemCount"/>.
         ///   Appended last to preserve the integer ordinals above in old saves.
         /// </summary>
-        ProvideGoods
+        ProvideGoods,
+
+        /// <summary>
+        ///   Win the good graces of ANOTHER character: the giver asks the player to raise a named third person's
+        ///   personal regard for them by a set amount (Lordfadooboo, Nexus, 01/10/2026: "a quest to earn the good
+        ///   graces of another lord, earn 10 regard with Mesui of the Khuzaits, but issued by a different lord").
+        ///   Verified on the mod's own regard ledger against the baseline taken when the task was given
+        ///   (<see cref="InformalQuest.RegardBaseline" />, <see cref="InformalQuest.RegardGoal" />), never by the
+        ///   LLM's word. Appended last to preserve the integer ordinals above in old saves.
+        /// </summary>
+        EarnRegard
     }
 }

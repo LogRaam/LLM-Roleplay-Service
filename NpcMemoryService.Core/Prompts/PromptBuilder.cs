@@ -5415,6 +5415,8 @@ namespace NpcMemoryService.Core.Prompts
          QuestType.DeliverPrisoner => "deliver_prisoner",
          QuestType.DeclareWar => "declare_war",
          QuestType.NemesisBounty => "nemesis_bounty",
+         QuestType.ProvideGoods => "provide_goods",
+         QuestType.EarnRegard => "earn_regard",
          _ => t.ToString().ToLowerInvariant()
       };
 
@@ -7912,6 +7914,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("- deliver_prisoner (target_hero or target_faction): the player hands you an enemy captive: a named lord, or any lord of an enemy faction. If they already hold a match it is handed over now; otherwise it is a capture-and-deliver task. Verified by a real prisoner transfer.");
             sb.AppendLine("- declare_war (target_faction): the player declares war, as their OWN faction, on a faction you name, one you have cause to want struck, and that the player is not already at war with. A heavy ask; offer only for a great reward (often your own service). Verified ONLY when the PLAYER's faction is the one that declares, never when they are merely attacked.");
             sb.AppendLine("- provide_goods (no target; set 'category' and 'required_count'): the player brings you a supply of goods, horses for your cavalry, or livestock or grain to feed your people and host. Verified by a real hand-over in conversation (the game tallies the count). Ask only for a category you truly need.");
+            sb.AppendLine("- earn_regard (target_hero): the player must win the good graces of someone whose favour serves you (your liege, the head of your house, a lord whose friendship you need), raising that person's own regard for the player. Verified by that person's real regard, never by anyone's word; it takes several meetings, so give it time.");
          }
 
          sb.AppendLine();

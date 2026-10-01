@@ -171,6 +171,10 @@ namespace NpcMemoryServiceTests
       [TestCase("hand_over_prisoner", QuestType.DeliverPrisoner)]
       [TestCase("declare_war", QuestType.DeclareWar)]
       [TestCase("go_to_war", QuestType.DeclareWar)]
+      // Lordfadooboo (01/10/2026): "earn the good graces of another lord". The token and the words a model reaches for.
+      [TestCase("earn_regard", QuestType.EarnRegard)]
+      [TestCase("win_favour", QuestType.EarnRegard)]
+      [TestCase("win_good_graces", QuestType.EarnRegard)]
       [TestCase("BanditClear", QuestType.BanditClear)] // direct enum-name match
       public void Quest_type_alias_resolves_to_expected_type(string rawType, QuestType expected)
       {

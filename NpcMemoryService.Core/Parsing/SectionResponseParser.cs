@@ -784,6 +784,13 @@ namespace NpcMemoryService.Core.Parsing
                or "supplies"
                or "bring_goods"
                or "bring_supplies" => QuestType.ProvideGoods,
+            "earn_regard"
+               or "win_regard"
+               or "earn_favor"
+               or "earn_favour"
+               or "win_favor"
+               or "win_favour"
+               or "win_good_graces" => QuestType.EarnRegard,
             _ => null
          };
       }
