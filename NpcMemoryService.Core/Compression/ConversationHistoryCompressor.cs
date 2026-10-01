@@ -78,7 +78,10 @@ namespace NpcMemoryService.Core.Compression
               + "Keep it a compact third-person summary: WHO said, asked, agreed to, or refused WHAT, and any "
               + "promise, grievance, or decision, naming each speaker so no one is confused with another. Keep "
               + "concrete commitments and turning points; drop small talk and repetition. Do not invent anything "
-              + "not in the lines. Reply with the updated recap ONLY, no preamble, no commentary.\n"
+              + "not in the lines. End the recap with a line beginning 'Settled:' that lists every matter already "
+              + "asked AND answered (a request granted or refused, a question closed, a name or term agreed), so "
+              + "it is not raised again; carry forward the settled matters of the recap so far. "
+              + "Reply with the updated recap ONLY, no preamble, no commentary.\n"
               + MemoryLanguagePolicy.Directive(_replyLanguage, "lines");
       }
 

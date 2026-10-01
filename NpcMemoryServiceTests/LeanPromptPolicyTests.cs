@@ -104,7 +104,10 @@ namespace NpcMemoryServiceTests
       ///   boundary was made to run BOTH ways (Gabriel: a character invents a blight, the player repeats it
       ///   elsewhere, and the second character DENIES it - she cannot know it is false either), adding one
       ///   compact line of ~66 chars. Kept in Lean for the same reason the rest of the boundary is: a weaker
-      ///   model is the likeliest both to invent and to contradict flatly. 7320.
+      ///   model is the likeliest both to invent and to contradict flatly. 7320. 2026-10-01: one line that a matter
+      ///   asked and answered in the conversation stays settled (Lordfadooboo: a character kept asking to be called by a
+      ///   name long after it was agreed), ~110 chars. Kept in Lean because a weaker model is the likeliest to circle
+      ///   back to what it already raised. 7400.
       /// </summary>
       [Test]
       public void GIVEN_a_lean_prompt_for_a_minimal_profile_WHEN_built_THEN_it_stays_under_the_token_budget()
@@ -114,7 +117,7 @@ namespace NpcMemoryServiceTests
 
          string prompt = builder.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
 
-         prompt.Length.Should().BeLessThan(7320);
+         prompt.Length.Should().BeLessThan(7400);
       }
    }
 }

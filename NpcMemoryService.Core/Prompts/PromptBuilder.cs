@@ -6938,6 +6938,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
          sb.AppendLine("VARY YOUR OPENINGS: never begin two of your replies the same way, and do not retell the");
          sb.AppendLine("player something you already told them earlier this conversation.");
+         // Lordfadooboo (30/09/2026): a settled matter re-raised; the rule above was about wording only.
+         sb.AppendLine("What was asked and answered in this conversation stays settled: do not raise it again unless the player does.");
          sb.AppendLine();
          // The narrative-voice teachings are Full-prompt only: Lean is a hard token budget for small
          // local models (pinned by LeanPromptPolicyTests), and ~2k chars of style guidance would bust it.
