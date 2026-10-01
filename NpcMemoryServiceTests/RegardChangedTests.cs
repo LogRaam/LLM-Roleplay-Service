@@ -83,5 +83,21 @@ namespace NpcMemoryServiceTests
          p.ReputationWithPlayer.Should().Be(-3);
          heard.Should().ContainSingle();
       }
+   
+      // tashmetu (30/09/2026), testing his mirror: cr.testall moves regard on real characters and restores it behind the
+      // listener's back, so a mod mirroring regard into the game's relation keeps what the test left (+3 then -1 from
+      // the letter test alone). While a self-test runs, every change is reported as self_test, whatever its own cause.
+      [Test]
+      public void GIVEN_a_self_test_running_WHEN_a_change_is_reported_THEN_its_cause_is_self_test()
+      {
+         RegardCause.AsReported(RegardCause.Letter, selfTestRunning: true).Should().Be(RegardCause.SelfTest);
+      }
+
+      // Outside a self-test the real cause goes through untouched.
+      [Test]
+      public void GIVEN_no_self_test_WHEN_a_change_is_reported_THEN_its_own_cause_goes_through()
+      {
+         RegardCause.AsReported(RegardCause.Letter, selfTestRunning: false).Should().Be(RegardCause.Letter);
+      }
    }
 }

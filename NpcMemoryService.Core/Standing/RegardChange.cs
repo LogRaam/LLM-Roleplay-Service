@@ -53,6 +53,16 @@ namespace NpcMemoryService.Core.Standing
 
       /// <summary>No cause was given (an older caller).</summary>
       public const string Unspecified = "unspecified";
+
+      /// <summary>
+      ///   A self-test (cr.testall) moved regard on a real character and will put it back without a notice. Every change
+      ///   made while a self-test runs is reported with this cause, whatever its own (tashmetu, 30/09/2026): a mod
+      ///   mirroring regard should ignore it, or keep what the test left behind.
+      /// </summary>
+      public const string SelfTest = "self_test";
+
+      /// <summary>The cause a listener is told: <see cref="SelfTest" /> while a self-test runs, the change's own otherwise.</summary>
+      public static string AsReported(string cause, bool selfTestRunning) => selfTestRunning ? SelfTest : cause;
    }
 
    /// <summary>One change of a character's regard for the player.</summary>
