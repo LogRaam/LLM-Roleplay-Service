@@ -190,6 +190,9 @@ namespace NpcMemoryServiceTests
       // "recruitment quests" (Lordfadooboo, 01/10/2026)
       [TestCase("recruit_troops", QuestType.RecruitTroops)]
       [TestCase("bring_recruits", QuestType.RecruitTroops)]
+      // "a blacksmithing quest" (Lordfadooboo, 01/10/2026)
+      [TestCase("craft_weapon", QuestType.CraftWeapon)]
+      [TestCase("forge_weapon", QuestType.CraftWeapon)]
       [TestCase("BanditClear", QuestType.BanditClear)] // direct enum-name match
       public void Quest_type_alias_resolves_to_expected_type(string rawType, QuestType expected)
       {

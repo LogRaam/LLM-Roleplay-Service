@@ -814,6 +814,11 @@ namespace NpcMemoryService.Core.Parsing
                or "bring_recruits"
                or "recruits"
                or "recruitment" => QuestType.RecruitTroops,
+            "craft_weapon"
+               or "forge_weapon"
+               or "forge"
+               or "smith_weapon"
+               or "blacksmithing" => QuestType.CraftWeapon,
             _ => null
          };
       }

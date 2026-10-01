@@ -166,6 +166,14 @@ namespace NpcMemoryService.Core.Models
         ///   first two tiers. Verified by a real hand-over into his party (the deliver_recruits verb). Appended last to
         ///   preserve the integer ordinals above.
         /// </summary>
-        RecruitTroops
+        RecruitTroops,
+
+        /// <summary>
+        ///   Forge the giver a weapon of a kind he names (Lordfadooboo, Nexus, 01/10/2026: "a blacksmithing quest"; the
+        ///   kind is part of the deal, Gabriel). <see cref="InformalQuest.RequiredItemCategory" /> holds the forge key.
+        ///   Verified by a hand-over of a weapon the PLAYER forged, of that kind (the game marks player-forged
+        ///   weapons), never by the LLM's word. Appended last to preserve the integer ordinals above.
+        /// </summary>
+        CraftWeapon
     }
 }
