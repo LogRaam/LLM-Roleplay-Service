@@ -174,6 +174,14 @@ namespace NpcMemoryService.Core.Models
         ///   Verified by a hand-over of a weapon the PLAYER forged, of that kind (the game marks player-forged
         ///   weapons), never by the LLM's word. Appended last to preserve the integer ordinals above.
         /// </summary>
-        CraftWeapon
+        CraftWeapon,
+
+        /// <summary>
+        ///   Win a lady for the giver (fkasad, Nexus, 01/10/2026: "Playing wingman for a guy trying hard to get a girl
+        ///   married?"). <see cref="InformalQuest.TargetHeroId" /> is the bride, the giver the suitor. Gabriel: a REAL
+        ///   marriage, in two steps, her heart (a real sway toward him) then her family's consent (the arrange_match
+        ///   verb). Done when the two are wed, however it comes about. Appended last to preserve the ordinals above.
+        /// </summary>
+        ArrangeMatch
     }
 }

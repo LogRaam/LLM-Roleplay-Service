@@ -828,6 +828,17 @@ namespace NpcMemoryService.Core.Actions
                   "the NPC GIVING soldiers to the player instead, which is the mirror verb lend_troops",
                   "an NPC whose party is not under-strength accepting reinforcement it does not need"
                }),
+            // fkasad (Nexus, 01/10/2026): a matchmaker's errand. Taught only to someone with authority over the lady.
+            Spec("arrange_match",
+               "The head of a lady's house (or she herself) consents, in this reply, to give her hand to the suitor who sent the player.",
+               tells: new[] {
+                  "the NPC actually gives their consent to the marriage the player asks for on the suitor's behalf, now"
+               },
+               antiPatterns: new[] {
+                  "consent merely hinted at, deferred, or made conditional on something not yet done",
+                  "a marriage for the player or his own kin, which is arrange_marriage",
+                  "the NPC agreeing only to think it over or to meet the suitor"
+               }),
             // Lordfadooboo (Nexus, 01/10/2026): "recruitment quests". Taught only while the lord's recruit task is outstanding.
             Spec("deliver_recruits",
                "The lord takes into his own party the fresh recruits of his people he asked the player to bring, here and now.",

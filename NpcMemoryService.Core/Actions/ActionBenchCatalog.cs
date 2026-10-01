@@ -975,6 +975,22 @@ namespace NpcMemoryService.Core.Actions
                prose: "*Ira counts the fifteen as they take their posts on the walls.* Done, then. Ortysia's garrison stands a little taller, and I owe you for it.",
                expectedType: "reinforce_garrison"),
 
+            // fkasad (01/10/2026): a family consenting to a match the player brokers.
+            ActionBenchCase.Expect("arrange_match", "arrange_match",
+               contextFacts: "NPC: Lord Pethros, head of his house. The player asks, on Lord Garios's behalf, for the hand of Pethros's daughter Ira.",
+               prose: "*Pethros strokes his beard, then nods.* Garios is a good match, and Ira speaks well of him. Tell him he has my blessing. They may wed.",
+               expectedType: "arrange_match"),
+
+            ActionBenchCase.Expect("arrange_match_v2", "arrange_match",
+               contextFacts: "NPC: Boyar Vsevolod. The player speaks for a suitor who would wed Vsevolod's niece Svana.",
+               prose: "*Vsevolod laughs and claps your shoulder.* You argue well for him. Very well: Svana is his, with my consent and my house's.",
+               expectedType: "arrange_match"),
+
+            ActionBenchCase.Expect("arrange_match_v3", "arrange_match",
+               contextFacts: "NPC: Lady Ira, who answers for her own hand. The player has come on behalf of Lord Garios.",
+               prose: "*Ira smiles despite herself.* Tell Garios yes. I will marry him, and gladly.",
+               expectedType: "arrange_match"),
+
             // Lordfadooboo (01/10/2026): the recruits a lord asked for, handed over.
             ActionBenchCase.Expect("deliver_recruits", "deliver_recruits",
                contextFacts: "NPC: Lord Caladog, who asked the player for twenty fresh Battanian recruits. The player has brought them.",

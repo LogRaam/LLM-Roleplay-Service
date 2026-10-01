@@ -193,6 +193,9 @@ namespace NpcMemoryServiceTests
       // "a blacksmithing quest" (Lordfadooboo, 01/10/2026)
       [TestCase("craft_weapon", QuestType.CraftWeapon)]
       [TestCase("forge_weapon", QuestType.CraftWeapon)]
+      // "Playing wingman for a guy trying hard to get a girl married?" (fkasad, 01/10/2026)
+      [TestCase("arrange_match", QuestType.ArrangeMatch)]
+      [TestCase("wingman", QuestType.ArrangeMatch)]
       [TestCase("BanditClear", QuestType.BanditClear)] // direct enum-name match
       public void Quest_type_alias_resolves_to_expected_type(string rawType, QuestType expected)
       {

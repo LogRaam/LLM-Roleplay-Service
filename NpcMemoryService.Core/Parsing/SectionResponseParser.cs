@@ -819,6 +819,11 @@ namespace NpcMemoryService.Core.Parsing
                or "forge"
                or "smith_weapon"
                or "blacksmithing" => QuestType.CraftWeapon,
+            "arrange_match"
+               or "matchmaker"
+               or "wingman"
+               or "win_her_hand"
+               or "broker_marriage" => QuestType.ArrangeMatch,
             _ => null
          };
       }

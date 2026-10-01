@@ -5423,6 +5423,7 @@ namespace NpcMemoryService.Core.Prompts
          QuestType.ScoutTown => "scout_town",
          QuestType.RecruitTroops => "recruit_troops",
          QuestType.CraftWeapon => "craft_weapon",
+         QuestType.ArrangeMatch => "arrange_match",
          _ => t.ToString().ToLowerInvariant()
       };
 
@@ -7927,6 +7928,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("- scout_town (target_settlement): the player goes INTO an enemy town and gets what its gang leader knows of its walls, stores and people. Verified when the gang leader actually tells them; you then read what he said.");
             sb.AppendLine("- recruit_troops (set 'required_count'): the player brings you fresh recruits of your own people for your party. Verified by a real hand-over of the men in conversation.");
             sb.AppendLine("- craft_weapon (set 'category' to the weapon: sword, two-handed sword, axe, two-handed axe, mace, two-handed mace, spear, dagger, javelin, throwing axe or throwing knife): the player forges you that weapon at a smithy and hands it to you. Verified only by a weapon the player forged himself, of that kind; a bought one does not count.");
+            sb.AppendLine("- arrange_match (target_hero: the one you would wed): the player wins that person over for you, then wins her family's consent, and you are wed. Verified only by the marriage itself.");
          }
 
          sb.AppendLine();
