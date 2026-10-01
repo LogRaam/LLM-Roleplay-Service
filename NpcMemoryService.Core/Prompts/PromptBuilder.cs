@@ -5419,6 +5419,7 @@ namespace NpcMemoryService.Core.Prompts
          QuestType.EarnRegard => "earn_regard",
          QuestType.PleadCase => "plead_case",
          QuestType.ReinforceGarrison => "reinforce_garrison",
+         QuestType.RansomEnvoy => "ransom_envoy",
          _ => t.ToString().ToLowerInvariant()
       };
 
@@ -7919,6 +7920,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("- earn_regard (target_hero): the player must win the good graces of someone whose favour serves you (your liege, the head of your house, a lord whose friendship you need), raising that person's own regard for the player. Verified by that person's real regard, never by anyone's word; it takes several meetings, so give it time.");
             sb.AppendLine("- plead_case (target_hero): the player argues YOUR case before someone who matters to you (your liege, the head of your house, a lord of another realm). Verified only when that person is truly won over toward you, in their own conversation with the player.");
             sb.AppendLine("- reinforce_garrison (target_settlement; set 'required_count'): the player brings soldiers for the thin garrison of a place you govern or hold. Verified by a real hand-over of the men in that place.");
+            sb.AppendLine("- ransom_envoy (target_hero): one of your own men is held by a realm the player is NOT at war with; send the player as your envoy to buy him back. The game hands the player your purse when the task is given, and what they do not spend is theirs. Verified when the player frees the man he bought, or brings him home to you.");
          }
 
          sb.AppendLine();

@@ -181,6 +181,9 @@ namespace NpcMemoryServiceTests
       // "Works for garrison reinforcement too." (fkasad, 01/10/2026)
       [TestCase("reinforce_garrison", QuestType.ReinforceGarrison)]
       [TestCase("bring_troops", QuestType.ReinforceGarrison)]
+      // "Here is 5000 denars. Bring my lad alive." (fkasad, 01/10/2026)
+      [TestCase("ransom_envoy", QuestType.RansomEnvoy)]
+      [TestCase("buy_back", QuestType.RansomEnvoy)]
       [TestCase("BanditClear", QuestType.BanditClear)] // direct enum-name match
       public void Quest_type_alias_resolves_to_expected_type(string rawType, QuestType expected)
       {

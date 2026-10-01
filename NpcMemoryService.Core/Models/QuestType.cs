@@ -140,6 +140,15 @@ namespace NpcMemoryService.Core.Models
         ///   player's own soldiers onto its walls), never by the LLM's word. Appended last to preserve the integer
         ///   ordinals above in old saves.
         /// </summary>
-        ReinforceGarrison
+        ReinforceGarrison,
+
+        /// <summary>
+        ///   Go as the giver's envoy and buy back one of his own men from a realm the player is not at war with
+        ///   (fkasad, Nexus, 01/10/2026: "Here is 5000 denars. Bring my lad alive. You can keep the change.").
+        ///   The game advances the purse (<see cref="InformalQuest.AdvanceGold" />); done when the player frees
+        ///   the man he bought, or hands him home, or breaks him out. If the man goes free some other way first,
+        ///   the task is voided and the advance returned. Appended last to preserve the integer ordinals above.
+        /// </summary>
+        RansomEnvoy
     }
 }

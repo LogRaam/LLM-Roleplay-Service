@@ -800,6 +800,11 @@ namespace NpcMemoryService.Core.Parsing
                or "garrison_troops"
                or "bring_troops"
                or "man_the_walls" => QuestType.ReinforceGarrison,
+            "ransom_envoy"
+               or "buy_back"
+               or "buy_back_prisoner"
+               or "ransom_captive"
+               or "negotiate_release" => QuestType.RansomEnvoy,
             _ => null
          };
       }

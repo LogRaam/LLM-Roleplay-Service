@@ -197,6 +197,13 @@ namespace NpcMemoryService.Core.Models
         /// </summary>
         public int? RegardGoal { get; set; }
 
+        /// <summary>
+        ///   For a <see cref="QuestType.RansomEnvoy" /> task: the purse the giver advanced when the task was given,
+        ///   handed back (as far as the player's own purse holds) if the task is voided through no one's fault.
+        ///   0 on every other kind. Additive.
+        /// </summary>
+        public int AdvanceGold { get; set; }
+
         /// <summary>True while the quest is live and its deed not yet verified.</summary>
         public bool IsOutstanding => Status == QuestStatus.Active && SatisfiedOnDay == null;
 
