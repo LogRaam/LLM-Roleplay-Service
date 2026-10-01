@@ -810,6 +810,10 @@ namespace NpcMemoryService.Core.Parsing
                or "spy_town"
                or "spy_on_town"
                or "gather_intel" => QuestType.ScoutTown,
+            "recruit_troops"
+               or "bring_recruits"
+               or "recruits"
+               or "recruitment" => QuestType.RecruitTroops,
             _ => null
          };
       }

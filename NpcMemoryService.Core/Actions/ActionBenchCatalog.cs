@@ -975,6 +975,22 @@ namespace NpcMemoryService.Core.Actions
                prose: "*Ira counts the fifteen as they take their posts on the walls.* Done, then. Ortysia's garrison stands a little taller, and I owe you for it.",
                expectedType: "reinforce_garrison"),
 
+            // Lordfadooboo (01/10/2026): the recruits a lord asked for, handed over.
+            ActionBenchCase.Expect("deliver_recruits", "deliver_recruits",
+               contextFacts: "NPC: Lord Caladog, who asked the player for twenty fresh Battanian recruits. The player has brought them.",
+               prose: "*Caladog walks along the line of young faces and nods.* Twenty sons of the glens. My sergeants will make soldiers of them. They are mine now; well done.",
+               expectedType: "deliver_recruits"),
+
+            ActionBenchCase.Expect("deliver_recruits_v2", "deliver_recruits",
+               contextFacts: "NPC: Boyar Vsevolod, who asked for fifteen fresh Sturgian levies. The player hands them over.",
+               prose: "*Vsevolod waves the fifteen toward his camp.* Take them to the quartermaster. Fresh men, as I asked. You have my thanks.",
+               expectedType: "deliver_recruits"),
+
+            ActionBenchCase.Expect("deliver_recruits_v3", "deliver_recruits",
+               contextFacts: "NPC: Lady Ira, who asked the player for ten raw Imperial recruits for her company.",
+               prose: "*Ira counts them off.* Ten. Good. They march with me from today. I will not forget who filled my ranks.",
+               expectedType: "deliver_recruits"),
+
             // fkasad (01/10/2026): a gang leader paid for what he knows of his town.
             ActionBenchCase.Expect("share_intel", "share_intel",
                contextFacts: "NPC: Ingrith the Knife, gang leader of Pravend. A lord at war with Pravend sent the player to learn its state. The player has paid her.",

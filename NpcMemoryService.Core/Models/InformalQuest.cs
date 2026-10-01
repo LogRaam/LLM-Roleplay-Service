@@ -204,6 +204,12 @@ namespace NpcMemoryService.Core.Models
         /// </summary>
         public int AdvanceGold { get; set; }
 
+        /// <summary>For a <see cref="QuestType.RecruitTroops" /> task: the culture id of the recruits asked for. Additive.</summary>
+        public string? RequiredCultureId { get; set; }
+
+        /// <summary>For a <see cref="QuestType.RecruitTroops" /> task: that culture's name, for the prompt and the player. Additive.</summary>
+        public string? RequiredCultureName { get; set; }
+
         /// <summary>True while the quest is live and its deed not yet verified.</summary>
         public bool IsOutstanding => Status == QuestStatus.Active && SatisfiedOnDay == null;
 

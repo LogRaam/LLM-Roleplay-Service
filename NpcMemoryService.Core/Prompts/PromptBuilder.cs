@@ -5421,6 +5421,7 @@ namespace NpcMemoryService.Core.Prompts
          QuestType.ReinforceGarrison => "reinforce_garrison",
          QuestType.RansomEnvoy => "ransom_envoy",
          QuestType.ScoutTown => "scout_town",
+         QuestType.RecruitTroops => "recruit_troops",
          _ => t.ToString().ToLowerInvariant()
       };
 
@@ -7923,6 +7924,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("- reinforce_garrison (target_settlement; set 'required_count'): the player brings soldiers for the thin garrison of a place you govern or hold. Verified by a real hand-over of the men in that place.");
             sb.AppendLine("- ransom_envoy (target_hero): one of your own men is held by a realm the player is NOT at war with; send the player as your envoy to buy him back. The game hands the player your purse when the task is given, and what they do not spend is theirs. Verified when the player frees the man he bought, or brings him home to you.");
             sb.AppendLine("- scout_town (target_settlement): the player goes INTO an enemy town and gets what its gang leader knows of its walls, stores and people. Verified when the gang leader actually tells them; you then read what he said.");
+            sb.AppendLine("- recruit_troops (set 'required_count'): the player brings you fresh recruits of your own people for your party. Verified by a real hand-over of the men in conversation.");
          }
 
          sb.AppendLine();

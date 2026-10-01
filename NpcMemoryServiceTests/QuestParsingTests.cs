@@ -187,6 +187,9 @@ namespace NpcMemoryServiceTests
       // "Make contact with local gang leader, negotiate with him for intel." (fkasad, 01/10/2026)
       [TestCase("scout_town", QuestType.ScoutTown)]
       [TestCase("gather_intel", QuestType.ScoutTown)]
+      // "recruitment quests" (Lordfadooboo, 01/10/2026)
+      [TestCase("recruit_troops", QuestType.RecruitTroops)]
+      [TestCase("bring_recruits", QuestType.RecruitTroops)]
       [TestCase("BanditClear", QuestType.BanditClear)] // direct enum-name match
       public void Quest_type_alias_resolves_to_expected_type(string rawType, QuestType expected)
       {

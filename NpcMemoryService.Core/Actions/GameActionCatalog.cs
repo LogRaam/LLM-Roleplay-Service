@@ -828,6 +828,17 @@ namespace NpcMemoryService.Core.Actions
                   "the NPC GIVING soldiers to the player instead, which is the mirror verb lend_troops",
                   "an NPC whose party is not under-strength accepting reinforcement it does not need"
                }),
+            // Lordfadooboo (Nexus, 01/10/2026): "recruitment quests". Taught only while the lord's recruit task is outstanding.
+            Spec("deliver_recruits",
+               "The lord takes into his own party the fresh recruits of his people he asked the player to bring, here and now.",
+               tells: new[] {
+                  "the lord actually takes the recruits the player hands over into his ranks in this reply"
+               },
+               antiPatterns: new[] {
+                  "the recruits merely promised or discussed for later",
+                  "veterans or soldiers offered for a thin party in general, which is give_troops",
+                  "men for a garrison's walls, which is reinforce_garrison"
+               }),
             // fkasad (Nexus, 01/10/2026): a town's gang leader telling a scout what he knows. Taught only to a gang leader
             // in a town some lord has sent the player to scout.
             Spec("share_intel",

@@ -158,6 +158,14 @@ namespace NpcMemoryService.Core.Models
         ///   when its gang leader, in his own conversation, agrees to tell (the share_intel verb); the town's true state
         ///   is recorded as the evidence. Appended last to preserve the integer ordinals above.
         /// </summary>
-        ScoutTown
+        ScoutTown,
+
+        /// <summary>
+        ///   Bring the giver fresh recruits of his own people (Lordfadooboo, Nexus, 01/10/2026: "recruitment quests"):
+        ///   <see cref="InformalQuest.RequiredItemCount" /> men of <see cref="InformalQuest.RequiredCultureId" />, the
+        ///   first two tiers. Verified by a real hand-over into his party (the deliver_recruits verb). Appended last to
+        ///   preserve the integer ordinals above.
+        /// </summary>
+        RecruitTroops
     }
 }
