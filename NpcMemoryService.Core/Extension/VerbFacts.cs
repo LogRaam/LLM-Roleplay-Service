@@ -36,6 +36,12 @@ namespace NpcMemoryService.Core.Extension
       public bool IsPrisoner { get; set; }
 
       /// <summary>
+      ///   True when the partner is a woman: lets per-turn teaching say "her" or "his" without resolving the hero on
+      ///   the mod's own side (tashmetu, 02/10/2026).
+      /// </summary>
+      public bool IsFemale { get; set; }
+
+      /// <summary>
       ///   Free-form extra facts an external verb may need that the base shape doesn't name, keyed by the
       ///   verb's own convention (mirrors how <c>ExternalWorldEvent</c> leaves category/source free-form).
       /// </summary>
