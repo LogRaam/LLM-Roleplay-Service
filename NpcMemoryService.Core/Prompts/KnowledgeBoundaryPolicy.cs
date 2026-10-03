@@ -49,7 +49,7 @@ namespace NpcMemoryService.Core.Prompts
         ///   model is the likeliest to invent, so cutting this to save its budget would remove the guard exactly
         ///   where it is needed most, which is the mistake the intimacy bar made in July.
         /// </summary>
-        public static string Text(LeanPromptLevel lean, string? heldFor = null)
+        public static string Text(LeanPromptLevel lean, string? heldFor = null, string? notoriety = null)
         {
             string boundary = lean == LeanPromptLevel.Lean ? Compact() : Full();
 
@@ -59,6 +59,15 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
             sb.AppendLine();
             sb.Append(InACell(heldFor!, lean));
+
+            // The cut-off runs one way only (Lordfadooboo, 03/10/2026: an empress in a foreign cell said few would
+            // trouble themselves with her). Without this the model turns "I hear nothing" into "nobody hears of me".
+            if (!string.IsNullOrWhiteSpace(notoriety))
+            {
+                sb.AppendLine();
+                sb.Append($"Your own capture runs the other way: {notoriety} taken and held is talked of in every hall "
+                          + "and market of Calradia. You hear nothing in here, but the world has heard of you.");
+            }
 
             return sb.ToString();
         }

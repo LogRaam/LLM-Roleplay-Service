@@ -1395,6 +1395,13 @@ namespace NpcMemoryService.Core.Models
       public string? HeldFor { get; init; }
 
       /// <summary>
+      ///   What the world knows this captive as ("a ruler"), when her capture is talked of; null otherwise. Lordfadooboo
+      ///   (03/10/2026): Rhagaea, empress in an Aserai cell, said few would trouble themselves with her, because the
+      ///   cut-off above told her she hears nothing and nothing told her the world hears of her.
+      /// </summary>
+      public string? CaptiveNotoriety { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map
       ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
       ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).

@@ -5572,7 +5572,7 @@ namespace NpcMemoryService.Core.Prompts
       /// </summary>
       private static void AppendKnowledgeBoundary(StringBuilder sb, LeanPromptLevel lean, EncounterContext? context)
       {
-         sb.AppendLine(KnowledgeBoundaryPolicy.Text(lean, context?.HeldFor));
+         sb.AppendLine(KnowledgeBoundaryPolicy.Text(lean, context?.HeldFor, context?.CaptiveNotoriety));
          sb.AppendLine();
       }
 
