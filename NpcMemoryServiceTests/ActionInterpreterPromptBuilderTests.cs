@@ -108,6 +108,18 @@ namespace NpcMemoryServiceTests
          prefix.Should().NotContain("whenever the prose brings THIS exchange to a close");
       }
 
+      // fkasad (Nexus, 03/10/2026): a merchant answered "show me what you've got, or move along so a real customer can
+      // trade!" and the chat closed. An either/or still waits for the player's choice; read as a dismissal it cut him
+      // off. Only an unconditional sending-away closes.
+      [Test]
+      public void GIVEN_the_stable_prefix_WHEN_inspected_THEN_an_ultimatum_that_waits_for_an_answer_is_not_a_close()
+      {
+         string prefix = ActionInterpreterPromptBuilder.StablePrefix;
+
+         prefix.Should().Contain("An either/or ultimatum is NOT a dismissal");
+         prefix.Should().Contain("or move along");
+      }
+
       // Gabriel's design call (2026-08-16): a player who is a CNC victim must FEEL the gravity - a forced sexual
       // assault is a violent bodily violation, not a mere "sexual act" to be waved past. The interpreter used to
       // EXCLUDE sexual acts from harm_prisoner; it must now treat a rape/forced penetration as real harm (HP loss),

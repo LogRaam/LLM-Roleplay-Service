@@ -418,6 +418,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("reply is NOT a close, the exchange continues. When in doubt, do NOT end: an open conversation costs");
          sb.AppendLine("nothing, but a wrongly closed one cuts the player off mid-thought (player report: NPCs ending on a");
          sb.AppendLine("mere pleasantry). A close needs the NPC to have GONE, or the player to have left, not a mood.");
+         // fkasad (03/10/2026): "show me what you've got, or move along" closed the chat.
+         sb.AppendLine("An either/or ultimatum is NOT a dismissal: \"show me what you've got, or move along\", \"speak plainly or");
+         sb.AppendLine("leave\" still waits for the player's choice, so the exchange continues. Only an unconditional sending-away closes.");
          sb.AppendLine("A CAPTIVE scene often closes with NO spoken goodbye: the captor is DONE and has the prisoner");
          sb.AppendLine("REMOVED FROM THE SCENE - hauled back to the cell, cage, wagon, or the line of captives, chained or");
          sb.AppendLine("staked for the night, dragged off out of sight. That removal, the encounter OVER, ENDS the meeting:");
