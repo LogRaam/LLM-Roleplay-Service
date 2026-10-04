@@ -1402,6 +1402,12 @@ namespace NpcMemoryService.Core.Models
       public string? CaptiveNotoriety { get; init; }
 
       /// <summary>
+      ///   The block for an authored quest this character is part of now (their knowledge at this stage; for the giver,
+      ///   the stage's canvas and facts). Written by the mod; null when they have no part in one.
+      /// </summary>
+      public string? AuthoredQuestBlock { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map
       ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
       ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).

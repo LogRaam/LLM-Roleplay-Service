@@ -1421,6 +1421,14 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         // An authored quest this character is part of (docs/design/AUTHORED_QUESTS.md, 03/10/2026): below the marker,
+         // because it changes at each stage, sometimes as the conversation opens.
+         if (!string.IsNullOrWhiteSpace(context.AuthoredQuestBlock))
+         {
+            sb.AppendLine(context.AuthoredQuestBlock);
+            sb.AppendLine();
+         }
+
          // Time apart, surfaced only for a genuinely long absence (host-gated) and with restraint — short gaps
          // are unremarkable when the player travels the map fast, and NPCs were opening every chat on the count.
          if (!string.IsNullOrWhiteSpace(context.MeetingGapNote))
