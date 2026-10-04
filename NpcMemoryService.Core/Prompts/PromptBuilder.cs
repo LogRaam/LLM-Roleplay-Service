@@ -1245,6 +1245,10 @@ namespace NpcMemoryService.Core.Prompts
          // They may diverge — a noble can privately favor someone their clan resents.
          sb.AppendLine("CURRENT STANCE:");
          sb.AppendLine($"Your clan's standing toward this player ({npc.ClanRelationWithPlayer.Value:+#;-#;0}): " + DescribeClanStanding(npc.ClanRelationWithPlayer.Value));
+         // Only under a per-hero relation mod (tashmetu, 04/10/2026): the house's standing is the leader's, and this
+         // character's own is said apart, so the leader's warmth is never read as theirs.
+         if (npc.OwnGameRelationWithPlayer is int own)
+            sb.AppendLine($"Your own relation with this player, from what you have seen of them ({own:+#;-#;0}): " + DescribeOwnRelation(own));
          sb.AppendLine($"Your own personal regard for this player ({npc.ReputationWithPlayer:+#;-#;0}): " + DescribePersonalRegard(npc.ReputationWithPlayer));
          sb.AppendLine("These may differ. Let your personal regard color your warmth and candor; " + "let your clan's standing shape what you can openly promise or commit to.");
          sb.AppendLine();
@@ -5289,6 +5293,14 @@ namespace NpcMemoryService.Core.Prompts
 
          return "Repulsed to the point of disgust.";
       }
+
+      private static string DescribeOwnRelation(int value) => value switch {
+         >= 30 => "You yourself count this player a trusted friend.",
+         >= 10 => "You yourself regard this player favorably.",
+         >= -9 => "You yourself have no strong feeling toward this player.",
+         >= -29 => "You yourself distrust this player.",
+         _ => "You yourself consider this player an enemy."
+      };
 
       private static string DescribeClanStanding(int value) => value switch {
          >= 30 => "Your clan counts this player a trusted friend.",

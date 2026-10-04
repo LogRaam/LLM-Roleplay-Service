@@ -77,6 +77,14 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public int? ClanRelationWithPlayer { get; set; }
 
+      /// <summary>
+      ///   This NPC's OWN relation with the player in the host game, when it differs from the clan's standing: only under
+      ///   a mod that gives each noble a relation of their own (tashmetu's Personal Relations, 04/10/2026). Null in the
+      ///   base game, where a clan shares its leader's relation. Transient, mirrored like <see cref="ClanRelationWithPlayer" />;
+      ///   distinct from <see cref="ReputationWithPlayer" />, which moves only through what passes in person.
+      /// </summary>
+      public int? OwnGameRelationWithPlayer { get; set; }
+
       private readonly Dictionary<string, int> _courtActionCooldowns = new();
 
       /// <summary>
