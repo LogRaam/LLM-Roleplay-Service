@@ -5002,23 +5002,20 @@ namespace NpcMemoryService.Core.Prompts
 
          // Taught whenever witnesses are present — a free-text request ("might we
          // speak alone?") must work exactly like the Request Private button.
+         // Going apart counts as asking (IdentityCrysys, 05/10/2026): a player who led the character to a quiet
+         // corner found the witnesses still listed, and the next turns written as if they still stood in the hall.
+         // Written tight so the case fits the full-room Lean budget (LeanWitnessRecallTests) it would otherwise break.
          sb.AppendLine("PRIVATE AUDIENCE:");
-         sb.AppendLine("If the player asks to speak with you alone — in any wording — decide whether to");
-         sb.AppendLine("clear the room based on your character, your relation to the player, and the");
-         sb.AppendLine("nature of the witnesses. A liege, a rival, or a crowded hall changes things.");
-         sb.AppendLine("Signal your decision in an [ACTION] block:");
+         sb.AppendLine("If the player asks to speak with you alone (any wording), or takes you aside or leads you away from");
+         sb.AppendLine("the others (a quiet corner, outside, another room), decide by your character, your relation to the");
+         sb.AppendLine("player and who the witnesses are (a liege, a rival, a crowded hall change things), and record it:");
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: request_privacy");
          sb.AppendLine("result: accepted");
          sb.AppendLine("[/ACTION]");
-         sb.AppendLine("   — or —");
-         sb.AppendLine("[ACTION]");
-         sb.AppendLine("type: request_privacy");
-         sb.AppendLine("result: refused");
-         sb.AppendLine("[/ACTION]");
-         sb.AppendLine("Explain your decision naturally in [DIALOGUE]. The action block carries the game effect;");
-         sb.AppendLine("your words carry the character. Emit it ONLY when the player has actually asked for");
-         sb.AppendLine("privacy this turn — never on your own initiative.");
+         sb.AppendLine("(result: refused when you will not.) Accepted when you agree, or when you go along with them. Your");
+         sb.AppendLine("words carry the character, the block the effect. Emit it ONLY when the player asked or led you");
+         sb.AppendLine("apart this turn, never on your own initiative.");
          sb.AppendLine();
       }
 

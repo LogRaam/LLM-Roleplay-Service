@@ -1047,14 +1047,15 @@ namespace NpcMemoryService.Core.Actions
                },
                new GameActionParam("name", "the departing companion's name, matched tolerantly against the present witnesses")),
             Spec("request_privacy",
-               "The NPC accepts or refuses the player's request (button or free text) for a private audience; accepting clears every witness present. A prisoner-player's own request is always honoured regardless of the emitted result.",
+               "The NPC accepts or refuses the player's request (button or free text) for a private audience, or goes apart with the player at their leading; accepting clears every witness present. A prisoner-player's own request is always honoured regardless of the emitted result.",
                tells: new[] {
-                  "the NPC explicitly accepts or refuses the player's request for a private audience in this reply"
+                  "the NPC explicitly accepts or refuses the player's request for a private audience in this reply",
+                  "the player takes the NPC aside or leads them away from the witnesses (a quiet corner, outside, another room) and the NPC goes apart with the player in this reply (accepted), or will not go (refused)"
                },
                antiPatterns: new[] {
                   "the request merely being made, without the NPC actually responding to it one way or the other",
                   "the player dismissing one of their OWN named companion witnesses instead, which is the distinct verb witness_leaves",
-                  "privacy being assumed or implied rather than the NPC's accept or refuse actually being recorded"
+                  "privacy merely hoped for or implied, with the reply showing neither the NPC answering the request nor going apart with the player"
                },
                new GameActionParam("result", "accepted or refused")),
             Spec("retire",
