@@ -462,7 +462,10 @@ namespace NpcMemoryService.Core.Actions
                   "the handover merely being discussed or promised, without the captive actually changing hands",
                   "a captive sold to them for a NEW price rather than fulfilling an already-struck deliver-prisoner bargain, which is buy_prisoner (they buy it from the player)",
                   "releasing the captive to freedom rather than into custody, which are free_prisoner or release_prisoner"
-               }),
+               },
+               // Found by the action-parameter contract test (05/10/2026): the bridge reads "target" to prefer a captive
+               // when several held could meet the bargain, and the model was never told it could name one.
+               new GameActionParam("target", "the captive's name, when the player names which one they hand over; omit it otherwise")),
             Spec("free_prisoner",
                "The player releases a captive they hold, honouring a struck bargain for their freedom (Fear/Respect may mark the release as fear-coerced rather than a mercy).",
                tells: new[] {
