@@ -1408,6 +1408,15 @@ namespace NpcMemoryService.Core.Models
       public string? AuthoredQuestBlock { get; init; }
 
       /// <summary>
+      ///   The choices a written tale lets the player take BY WORDS in this very conversation (branching tales,
+      ///   04/10/2026), as the mod writes them for the ACTION INTERPRETER only: each declared id with what the player's
+      ///   words must mean, and how to report one. Read by <see cref="Prompts.ActionInterpreterContextBuilder" /> into
+      ///   the interpreter's per-turn facts, never into the character's own prompt: the character is not told the
+      ///   ways ahead. Null when no such choice is open with this character.
+      /// </summary>
+      public string? StoryChoicesForInterpreter { get; init; }
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map
       ///   right now (host fact: leads their own mobile party, not at war with the player, not bound to an
       ///   army or a siege, not already escorting; see the mod's own <c>EscortEligibilityPolicy.CanEscort</c>).
