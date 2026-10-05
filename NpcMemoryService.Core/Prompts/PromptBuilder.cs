@@ -2641,9 +2641,12 @@ namespace NpcMemoryService.Core.Prompts
          // and nothing marked the switch. reminensce (Nexus, 19/09/2026) watched Chief Rolan take the PLAYER's
          // defeat at Vladiv for his own and throw the player's taunt back at them. New memories name the player
          // outright, but every save already written is full of the old wording, so the convention is stated here.
+         // fkasad (05/10/2026): "Who is YOU?" Name the character, and bound the convention to the memory lines: "the
+         // lines below" ran on, unmarked, over half the prompt.
+         string self = string.IsNullOrWhiteSpace(npc.Name) ? "you" : $"you, {npc.Name}";
          sb.AppendLine(string.IsNullOrWhiteSpace(playerName)
-            ? "In the lines below, \"you\" and \"your\" mean the PLAYER, and \"I\", \"me\" and \"my\" mean you."
-            : $"In the lines below, \"you\" and \"your\" mean the player, {playerName}, and \"I\", \"me\" and \"my\" mean you.");
+            ? $"In the memory lines just below (each begins \"- Day\"), \"you\" and \"your\" mean the PLAYER, and \"I\", \"me\" and \"my\" mean {self}."
+            : $"In the memory lines just below (each begins \"- Day\"), \"you\" and \"your\" mean the player, {playerName}, and \"I\", \"me\" and \"my\" mean {self}.");
 
          // Spell the elapsed time out so it never has to.
          for (int i = start; i < end; i++)

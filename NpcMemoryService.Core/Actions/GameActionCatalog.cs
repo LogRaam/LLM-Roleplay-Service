@@ -440,7 +440,7 @@ namespace NpcMemoryService.Core.Actions
                   "revoking open-relationship terms rather than ending a secret affair outright, which is close_relationship"
                }),
             Spec("give_item",
-               "The player gives one item from their own party inventory to the NPC, who may equip it on the spot if it fits and suits them.",
+               "The player gives an item, or several of the same item, from their own party inventory to the NPC, who may equip a single item on the spot if it fits and suits them.",
                tells: new[] {
                   "the player actually hands over a named item from their own inventory to the NPC, the transfer completed here in this reply"
                },
@@ -450,7 +450,9 @@ namespace NpcMemoryService.Core.Actions
                   "a future promise to give the item later rather than the handover happening now",
                   "gold or a prisoner changing hands instead of a physical item, which are give_gold or give_prisoner/sell_prisoner"
                },
-               new GameActionParam("item", "the item's name, matched case-insensitively against the player's roster")),
+               new GameActionParam("item", "the item's name, matched case-insensitively against the player's roster"),
+               // fkasad (05/10/2026): "ten ingots of Gromril" moved one; the bridge reads "count", the model was never told.
+               new GameActionParam("count", "how many of that item change hands, as a number (\"ten ingots\" is 10); omit it for a single item")),
             Spec("give_prisoner",
                "The player hands over the exact captive an outstanding deliver-prisoner bargain named; the bridge resolves which held prisoner satisfies it and settles the bargain's reward.",
                tells: new[] {

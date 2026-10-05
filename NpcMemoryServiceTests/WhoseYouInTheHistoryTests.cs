@@ -36,7 +36,7 @@ namespace NpcMemoryServiceTests
       {
          string prompt = Build("Adam of Vlandia", OldStyleMemory);
 
-         prompt.Should().Contain("In the lines below, \"you\" and \"your\" mean the player, Adam of Vlandia");
+         prompt.Should().Contain("\"you\" and \"your\" mean the player, Adam of Vlandia");
          prompt.Should().Contain("\"I\", \"me\" and \"my\" mean you");
          prompt.Should().Contain(OldStyleMemory, "the memory itself is left exactly as it was written");
       }
@@ -52,7 +52,20 @@ namespace NpcMemoryServiceTests
       [Test]
       public void GIVEN_a_character_with_no_memories_WHEN_the_prompt_is_built_THEN_no_convention_line_is_spent()
       {
-         Build("Adam of Vlandia").Should().NotContain("In the lines below");
+         Build("Adam of Vlandia").Should().NotContain("mean the player, Adam of Vlandia");
+      }
+
+      // fkasad (Nexus, 05/10/2026): "Who is YOU? Who's on first?" The line said "I" means "you" without saying who
+      // that is, and "the lines below" ran on, unbounded, over half the prompt. The character is named, and the reach
+      // of the convention is the memory lines themselves.
+      [Test]
+      public void GIVEN_memories_WHEN_the_convention_is_stated_THEN_it_names_the_character_and_says_which_lines_it_covers()
+      {
+         string prompt = Build("Adam of Vlandia", OldStyleMemory);
+
+         prompt.Should().Contain("mean you, Chief Rolan");
+         prompt.Should().Contain("In the memory lines just below (each begins \"- Day\")");
+         prompt.Should().NotContain("In the lines below");
       }
 
       #region what the model writes back

@@ -465,6 +465,14 @@ namespace NpcMemoryService.Core.Actions
                expectedType: "give_item",
                expectedParams: new Dictionary<string, string> {{"item", "Steppe Cataphract Lance"}}),
 
+            // fkasad (05/10/2026): ten ingots offered and thanked for, one moved. The count must reach the bridge.
+            ActionBenchCase.Expect("give_item_count", "give_item",
+               contextFacts: "The player's inventory holds 10 Gromril ingots.",
+               prose: "*I weigh the ingots you set before me, all ten of them.* Gromril, and ten bars of it. You do not offer mere iron, Bardin. The debt is repaid.",
+               expectedType: "give_item",
+               expectedParams: new Dictionary<string, string> {{"item", "Gromril"}, {"count", "10"}})
+               .WithConversation("Player: My Lord Dorin, a debt must be repaid. Take those ten ingots of Gromril."),
+
             ActionBenchCase.Expect("give_prisoner", "give_prisoner",
                contextFacts: "An outstanding bargain requires the player to deliver the captive Sanjar to Yerengul.",
                prose: "*Yerengul inspects the bound man you have brought and grins.* Sanjar himself, delivered as promised. Our bargain is settled, you have my thanks and the reward we agreed on.",
