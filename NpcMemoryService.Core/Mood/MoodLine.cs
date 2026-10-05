@@ -72,7 +72,8 @@ namespace NpcMemoryService.Core.Mood
             sb.AppendLine(feeling);
 
          if (feeling != null || current != start.Value)
-            sb.AppendLine("This is how you FEEL, not what you decide: it colours how you speak, never what you will agree to. "
+            sb.AppendLine("This is how you FEEL, not what you decide: it colours how you speak, never what you will agree to, and "
+                          + "never why this conversation is happening (come to thank, you still thank; come to ask, you still ask). "
                           + "Let your own temperament shape how it shows.");
 
          if (witPermitted && current == DayMood.HighSpirits)

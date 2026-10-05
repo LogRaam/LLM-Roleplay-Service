@@ -183,5 +183,14 @@ namespace NpcMemoryServiceTests
       {
          new SectionResponseParser().Parse("[DIALOGUE]Leave me.[/DIALOGUE]\n[STANCE]\nmood: lowered\n[/STANCE]").StanceShift!.Mood.Should().Be(-1);
       }
+
+      // fkasad (Nexus, 05/10/2026): Dorin sought Bardin out to thank him, and his short-tempered day made him curt
+      // instead. The day decides the manner, never why the conversation is happening: a man come to thank still thanks.
+      [Test]
+      public void GIVEN_a_bad_day_WHEN_the_mood_is_written_THEN_it_never_overrides_why_the_character_is_here()
+      {
+         MoodLine.Compose(DayMood.ShortTempered, DayMood.ShortTempered, false)
+                 .Should().Contain("never why this conversation is happening");
+      }
    }
 }
