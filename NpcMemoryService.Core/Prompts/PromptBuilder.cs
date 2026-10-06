@@ -8451,7 +8451,9 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("FORMAT REMINDER: put speech in [DIALOGUE] ... [/DIALOGUE]. When a concrete change happens this");
             sb.AppendLine("turn (coin, a deal, a status change, a shift in regard, a parting), you MUST emit its block");
             sb.AppendLine("([ACTION]/[EVENT]) as taught, or the game cannot see it and it will not take effect.");
-            sb.AppendLine("Never think out loud — only the character's words and the taught blocks.");
+            // Felido (05/10/2026): a small model echoed the instructions' "the player" into its gestures. Folded into
+            // this line rather than a new one: the Lean budget (LeanPromptPolicyTests) has no room for a line.
+            sb.AppendLine("Never think aloud. Never write \"the player\"; only the character's words and taught blocks.");
 
             return;
          }
@@ -8465,6 +8467,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("effect. Never answer as one run of plain prose with no tags.");
          sb.AppendLine("Never think out loud: no analysis of the situation, no weighing of options, no mention of");
          sb.AppendLine("the player as 'the player' — only the character's words and the taught blocks.");
+         sb.AppendLine("Never write \"the player\" anywhere in your reply, gestures included: it is a word of these");
+         sb.AppendLine("instructions, not of the story. Say \"you\", or their name.");
          sb.AppendLine("e.g.  [DIALOGUE]your spoken words[/DIALOGUE]   then, only on a real change:   [ACTION] type: change_relation  delta: 1 [/ACTION]");
          if (styleActive)
          {
