@@ -164,6 +164,11 @@ namespace NpcMemoryService.Core.Prompts
          AppendCommonerRules(sb);
          AppendProseCraft(sb);
          AppendCommonerRumors(sb, knowledge);
+         if (!string.IsNullOrWhiteSpace(knowledge?.AuthoredQuestBlock))
+         {
+            sb.AppendLine(knowledge!.AuthoredQuestBlock);
+            sb.AppendLine();
+         }
          AppendCommonerTakeGold(sb);
          // The SHORT form on this deliberately slim, transient path, which keeps the "a stage direction settles
          // their body, not the world" boundary at a couple of lines. The full CLAIM rule is not added here: a

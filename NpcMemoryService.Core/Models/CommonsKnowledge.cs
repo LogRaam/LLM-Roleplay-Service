@@ -57,5 +57,11 @@ namespace NpcMemoryService.Core.Models
       ///   commoner prompt under "WHAT PEOPLE ARE TALKING ABOUT".
       /// </summary>
       public string? RumorsBlock { get; init; }
+
+      /// <summary>
+      ///   A written tale's lines for the people of this place (the host composes them as for a notable of it), or null.
+      ///   fkasad (06/10/2026): ordinary villagers knew nothing of the beast the whole village spoke of.
+      /// </summary>
+      public string? AuthoredQuestBlock { get; init; }
    }
 }
