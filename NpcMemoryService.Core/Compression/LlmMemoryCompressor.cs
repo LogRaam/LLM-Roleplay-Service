@@ -165,7 +165,8 @@ namespace NpcMemoryService.Core.Compression
          sb.AppendLine();
          sb.AppendLine("HARD RULES (always honor):");
          sb.AppendLine("- ALWAYS keep the FirstMeeting event if present.");
-         sb.AppendLine($"- ALWAYS keep the {RecentEventsAlwaysKept} most recent events.");
+         sb.AppendLine($"- ALWAYS keep the {RecentEventsAlwaysKept} most recent events that are not Hearsay.");
+         sb.AppendLine("- Hearsay events are only word that reached this character: fold them into the summary first.");
          sb.AppendLine("- ALWAYS keep every Betrayal, Intimacy, Confrontation, Agreement, Farewell, Captivity, and Jealousy event.");
          sb.AppendLine();
          sb.AppendLine("SOFT GUIDANCE:");
@@ -207,8 +208,9 @@ namespace NpcMemoryService.Core.Compression
                break;
             }
 
-         // Most recent N
-         for (int i = Math.Max(0, events.Count - RecentEventsAlwaysKept); i < events.Count; i++)
+         // Most recent N LIVED memories: fresh hearsay never shields itself at the cost of a lived memory
+         // (tashmetu, 06/10/2026).
+         foreach (int i in HistoryWindowPolicy.LatestLived(events, RecentEventsAlwaysKept))
             protected_.Add(i);
 
          // PRIVATE MEMORIES ARE SINGLETONS, and that is the whole argument (audit, 13/09/2026). Every other

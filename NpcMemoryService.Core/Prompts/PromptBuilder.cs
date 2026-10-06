@@ -2610,8 +2610,16 @@ namespace NpcMemoryService.Core.Prompts
          // why this is nullable rather than sentinelled.
          int end = knownThrough is int cut && cut >= 0 && cut <= npc.Events.Count ? cut : npc.Events.Count;
 
+         // Lean prompt: keep only the most RECENT maxEvents so the memory fits a short context. Measured
+         // against the cut, not the whole list, or Compact would spend its allowance on the turns the model is
+         // already reading verbatim. Lived memories and hearsay are counted apart (tashmetu, 06/10/2026), so
+         // news a character heard never pushes what they lived with the player out of the window.
+         IReadOnlyList<int> lived = HistoryWindowPolicy.LatestLived(npc.Events, maxEvents, end);
+         IReadOnlyList<int> heard = HistoryWindowPolicy.LatestHeard(npc.Events,
+            maxEvents == int.MaxValue ? int.MaxValue : HistoryWindowPolicy.LeanHearsayLimit, end);
+
          sb.AppendLine("YOUR HISTORY WITH THIS PLAYER:");
-         if (end == 0)
+         if (lived.Count == 0)
          {
             // No shared moments are recorded yet. Normally that means a genuine first meeting, but when the mod
             // was added to a campaign already under way, an established spouse or close relative would also start
@@ -2630,14 +2638,10 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("You have never met this player before. This is your first encounter.");
 
             sb.AppendLine();
+            AppendHeard(sb, npc, heard, currentDay);
 
             return;
          }
-
-         // Lean prompt: keep only the most RECENT maxEvents so the memory fits a short context. Measured
-         // against the cut, not the whole list, or Compact would spend its allowance on the turns the model is
-         // already reading verbatim.
-         int start = maxEvents < end ? end - maxEvents : 0;
 
          // Day numbers are absolute calendar days (5-digit); the model is bad at
          // subtracting them and invents recency ("three winters ago" for last week).
@@ -2654,7 +2658,7 @@ namespace NpcMemoryService.Core.Prompts
             : $"In the memory lines just below (each begins \"- Day\"), \"you\" and \"your\" mean the player, {playerName}, and \"I\", \"me\" and \"my\" mean {self}.");
 
          // Spell the elapsed time out so it never has to.
-         for (int i = start; i < end; i++)
+         foreach (int i in lived)
          {
             NotableEvent ev = npc.Events[i];
 
@@ -2677,6 +2681,23 @@ namespace NpcMemoryService.Core.Prompts
          // standing note, so it was the fresher voice: tashmetu (19/09/2026), expelled from his kingdom, was still
          // spoken to as a member. The standing note is built live every turn; the memories are not.
          sb.AppendLine("Allegiances in these memories are as they stood then; where the player's standing has changed since, the present one stated above is true now.");
+         sb.AppendLine();
+         AppendHeard(sb, npc, heard, currentDay);
+      }
+
+      /// <summary>Word that reached the character, apart from what they lived with the player (tashmetu, 06/10/2026).</summary>
+      private static void AppendHeard(StringBuilder sb, NpcProfile npc, IReadOnlyList<int> heard, int currentDay)
+      {
+         if (heard.Count == 0) return;
+
+         sb.AppendLine(HistoryWindowPolicy.HeardHeader);
+         foreach (int i in heard)
+         {
+            NotableEvent ev = npc.Events[i];
+            string confided = ev.IsPrivate ? " [told to you in confidence - do not repeat it in front of others]" : "";
+            sb.AppendLine($"- Day {ev.gameDay}{RecencySuffix(ev.gameDay, currentDay)}: {ev.summary}{confided}");
+         }
+         sb.AppendLine("Speak of these as things you heard, not as things you saw or did.");
          sb.AppendLine();
       }
 

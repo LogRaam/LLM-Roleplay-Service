@@ -32,6 +32,14 @@ namespace NpcMemoryService.Core.Models
         ///   not emitted by the LLM — so the NPC stays cold and can reference it later.
         ///   Added last to preserve the serialized ordinal values of existing saves.
         /// </summary>
-        Jealousy
+        Jealousy,
+
+        /// <summary>
+        ///   Word that reached this NPC, not something they lived with the player (tashmetu, 06/10/2026: a mod
+        ///   writing a memory for each piece of news a noble hears). Shown apart from their history, never counted
+        ///   against the lived memories a short prompt keeps, and never shielded from compression by being recent.
+        ///   Added last to preserve the serialized ordinal values of existing saves.
+        /// </summary>
+        Hearsay
     }
 }

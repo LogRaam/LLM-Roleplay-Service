@@ -41,6 +41,7 @@ namespace NpcMemoryServiceTests
       [TestCase(NotableEventType.Other, 9)]
       [TestCase(NotableEventType.Captivity, 10)]
       [TestCase(NotableEventType.Jealousy, 11)]
+      [TestCase(NotableEventType.Hearsay, 12)]
       public void GIVEN_a_persisted_NotableEventType_WHEN_cast_to_int_THEN_ordinal_matches_the_frozen_map(
          NotableEventType value, int expectedOrdinal)
       {
@@ -56,7 +57,7 @@ namespace NpcMemoryServiceTests
       {
          // If this fails, a new value was appended (or removed) — add (or remove) the
          // matching [TestCase] above with its ordinal, appended LAST, to keep this frozen.
-         System.Enum.GetValues(typeof(NotableEventType)).Length.Should().Be(12);
+         System.Enum.GetValues(typeof(NotableEventType)).Length.Should().Be(13);
       }
    }
 }
