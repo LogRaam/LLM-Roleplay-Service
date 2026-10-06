@@ -50,6 +50,16 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
       {
          LlmResponse response = await SendOnceAsync(request, ct).ConfigureAwait(false);
 
+         // A model whose reasoning cannot be turned off refuses a request that turns it off (Thoragoros1, 06/10/2026,
+         // Gemini 3.7 Flash: HTTP 400 "Reasoning is mandatory for this endpoint and cannot be disabled", so no deed was
+         // ever recorded). The interpreter and the housekeeping calls send it off on purpose; on that refusal, ask once
+         // more with the model's own default, and carry on from that answer (the truncation retry below included).
+         if (!response.IsSuccess && IsReasoningMandatoryRefusal(response.ErrorMessage))
+         {
+            request = RebuildWithModelDefaultReasoning(request);
+            response = await SendOnceAsync(request, ct).ConfigureAwait(false);
+         }
+
          // One retry when the provider cut the reply off by output length, by its CONTENT FILTER, or
          // returned an empty reply outright. Some models (notably certain DeepSeek deployments) truncate
          // a reply mid-sentence; a moderated host can stop generation partway with finish_reason
@@ -402,11 +412,22 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
       ///   With a name it has a test (TruncationRetryCarriesSettingsTests), and the next field added to
       ///   LlmParameters has somewhere to be noticed.
       /// </summary>
+      /// <summary>True when the provider refused a request because the model's reasoning cannot be disabled.</summary>
+      internal static bool IsReasoningMandatoryRefusal(string? error)
+         => error != null && error.IndexOf("reasoning is mandatory", StringComparison.OrdinalIgnoreCase) >= 0;
+
       private static LlmRequest RebuildForBiggerBudget(LlmRequest request)
+         => Rebuild(request, request.Parameters.MaxTokens * 2, request.Parameters.ReasoningOverride);
+
+      /// <summary>The same request, leaving reasoning to the model ("default" sends no reasoning field at all).</summary>
+      private static LlmRequest RebuildWithModelDefaultReasoning(LlmRequest request)
+         => Rebuild(request, request.Parameters.MaxTokens, "default");
+
+      private static LlmRequest Rebuild(LlmRequest request, int maxTokens, string? reasoningOverride)
          => new LlmRequest {
                   Messages = request.Messages,
                   Parameters = new LlmParameters {
-                     MaxTokens = request.Parameters.MaxTokens * 2,
+                     MaxTokens = maxTokens,
                      Creativity = request.Parameters.Creativity,
                      // Carry every OTHER generation setting across untouched: only the budget is being
                      // changed here. Rebuilding the object silently dropped the anti-repetition penalty on
@@ -422,7 +443,7 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
                      // switched back on: double the budget AND reasoning tokens eating it, on a call whose
                      // whole point was to be cheap and mechanical. The exact failure the override exists to
                      // prevent, reached through the door marked "carried across untouched".
-                     ReasoningOverride = request.Parameters.ReasoningOverride,
+                     ReasoningOverride = reasoningOverride,
 
                      // Likewise the truncation flag. A caller that asked to fail FAST on an incomplete reply
                      // (the Prose+Interpreter prose call, which has its own fallback) must not have that
