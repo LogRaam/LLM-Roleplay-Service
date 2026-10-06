@@ -92,6 +92,14 @@ namespace NpcMemoryService.Core.Prompts
                       + ", sends them away, releases them, or otherwise ends the meeting, emit end_conversation.");
          }
 
+         // A written tale's choices by words, open in THIS conversation only: per turn, below the cached head, so a
+         // conversation with no such choice teaches nothing and the head stays the same for every call.
+         if (!string.IsNullOrWhiteSpace(context?.StoryChoicesForInterpreter))
+         {
+            sb.AppendLine();
+            sb.Append(context!.StoryChoicesForInterpreter!.Trim());
+         }
+
          return sb.ToString();
       }
 
