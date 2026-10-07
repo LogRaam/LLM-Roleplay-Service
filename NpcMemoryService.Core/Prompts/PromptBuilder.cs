@@ -7917,7 +7917,7 @@ namespace NpcMemoryService.Core.Prompts
       ///   are still listed (AppendActiveQuests); trading prisoners is a verb, not a task, and stays.
       /// </summary>
       private static bool MayOfferTasks(EncounterContext? context)
-         => context?.SuppressQuests != true && context?.WarStatus != DiplomaticStatus.AtWar;
+         => context?.SuppressQuests != true && context?.WarStatus != DiplomaticStatus.AtWar && context?.InActiveWrittenTale != true;
 
       private void AppendQuestInstructions(StringBuilder sb, EncounterContext? context = null)
       {

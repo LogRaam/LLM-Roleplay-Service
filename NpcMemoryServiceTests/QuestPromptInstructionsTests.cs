@@ -229,6 +229,18 @@ namespace NpcMemoryServiceTests
       }
 
       // The control: at peace the same lord is still taught to offer tasks.
+      // fkasad (Nexus, 07/10/2026): at the Wolf of the Wood's "tell the lord" stage, the lord also handed him a task to
+      // clear a hideout, and the journal showed two targets at once (the tale's band and the hideout); he went back and
+      // forth with the giver to sort them out. A character bound to a tale under way has that tale as their errand.
+      [Test]
+      public void GIVEN_a_character_bound_to_a_tale_under_way_WHEN_building_the_prompt_THEN_no_other_task_is_offered()
+      {
+         string prompt = new PromptBuilder {EnableQuests = true}.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10},
+            new EncounterContext {InActiveWrittenTale = true});
+
+         prompt.Should().NotContain("OFFERING TASKS");
+      }
+
       [Test]
       public void GIVEN_a_lord_at_peace_with_the_player_WHEN_building_the_prompt_THEN_he_may_still_offer_tasks()
       {

@@ -148,6 +148,13 @@ namespace NpcMemoryService.Core.Models
       public bool SuppressQuests { get; init; }
 
       /// <summary>
+      ///   The character holds a role in a written tale under way (fkasad, 07/10/2026: the tale's lord also handed out a
+      ///   hideout task, and the journal showed two targets at once). The tale is their errand: no other task is taught.
+      ///   Tasks already given are still listed.
+      /// </summary>
+      public bool InActiveWrittenTale { get; init; }
+
+      /// <summary>
       ///   COUNCIL_ACTIONS.md Partie 5 (the "Caladog" case): true only when the host's own MCM opt-in
       ///   (mod: <c>ModSettings.AllowFiefAndMarriageQuestRewards</c>) is ON. Default FALSE preserves today's
       ///   behavior byte for byte: <c>PromptBuilder.AppendQuestInstructions</c> renders the existing
