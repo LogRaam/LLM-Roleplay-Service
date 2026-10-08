@@ -123,6 +123,9 @@ namespace NpcMemoryService.Core.Parsing
          // instead of the taught [NARRATION]...[/NARRATION] block (mimo, 2026-08-16) - so the bracket parser above
          // misses it and the literal label leaks into the spoken line. Lift that prose into the narration channel.
          dialogueClean = RecoverStrayNarration(dialogueClean, ref narration);
+         // tashmetu (08/10/2026): a gesture written twice in one breath ("*A dry, bitter laugh escapes me.*" before and
+         // inside the quotes) is shown once.
+         dialogueClean = StageDirectionDedupe.Apply(dialogueClean);
 
          return new ParsedResponse {
             Dialogue = dialogueClean,

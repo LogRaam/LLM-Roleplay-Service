@@ -165,8 +165,8 @@ namespace NpcMemoryService.Core.Compression
          sb.AppendLine();
          sb.AppendLine("HARD RULES (always honor):");
          sb.AppendLine("- ALWAYS keep the FirstMeeting event if present.");
-         sb.AppendLine($"- ALWAYS keep the {RecentEventsAlwaysKept} most recent events that are not Hearsay.");
-         sb.AppendLine("- Hearsay events are only word that reached this character: fold them into the summary first.");
+         sb.AppendLine($"- ALWAYS keep the {RecentEventsAlwaysKept} most recent events that are not Hearsay or OwnLife.");
+         sb.AppendLine("- Hearsay events are only word that reached this character, and OwnLife events their own affairs apart from the player: fold them into the summary first.");
          sb.AppendLine("- ALWAYS keep every Betrayal, Intimacy, Confrontation, Agreement, Farewell, Captivity, and Jealousy event.");
          sb.AppendLine();
          sb.AppendLine("SOFT GUIDANCE:");

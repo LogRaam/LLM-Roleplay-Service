@@ -40,6 +40,14 @@ namespace NpcMemoryService.Core.Models
         ///   against the lived memories a short prompt keeps, and never shielded from compression by being recent.
         ///   Added last to preserve the serialized ordinal values of existing saves.
         /// </summary>
-        Hearsay
+        Hearsay,
+
+        /// <summary>
+        ///   The NPC's own life, apart from the player: their attachments, grudges, feuds and affairs with others
+        ///   (tashmetu, 08/10/2026: Regard and Standing writes them). Shown apart from their history with the player,
+        ///   never counted against its lived memories, never framed as a predecessor's history on a succession.
+        ///   Added last to preserve the serialized ordinal values of existing saves.
+        /// </summary>
+        OwnLife
     }
 }

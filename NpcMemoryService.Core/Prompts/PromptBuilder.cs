@@ -2617,6 +2617,9 @@ namespace NpcMemoryService.Core.Prompts
          IReadOnlyList<int> lived = HistoryWindowPolicy.LatestLived(npc.Events, maxEvents, end);
          IReadOnlyList<int> heard = HistoryWindowPolicy.LatestHeard(npc.Events,
             maxEvents == int.MaxValue ? int.MaxValue : HistoryWindowPolicy.LeanHearsayLimit, end);
+         // tashmetu (08/10/2026): the character's own life apart from the player, counted apart the same way.
+         IReadOnlyList<int> own = HistoryWindowPolicy.LatestOwnLife(npc.Events,
+            maxEvents == int.MaxValue ? int.MaxValue : HistoryWindowPolicy.LeanOwnLifeLimit, end);
 
          sb.AppendLine("YOUR HISTORY WITH THIS PLAYER:");
          if (lived.Count == 0)
@@ -2639,6 +2642,7 @@ namespace NpcMemoryService.Core.Prompts
 
             sb.AppendLine();
             AppendHeard(sb, npc, heard, currentDay);
+            AppendOwnLife(sb, npc, own, currentDay);
 
             return;
          }
@@ -2683,6 +2687,23 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Allegiances in these memories are as they stood then; where the player's standing has changed since, the present one stated above is true now.");
          sb.AppendLine();
          AppendHeard(sb, npc, heard, currentDay);
+         AppendOwnLife(sb, npc, own, currentDay);
+      }
+
+      /// <summary>The character's own life apart from the player (tashmetu, 08/10/2026), apart from their history with them.</summary>
+      private static void AppendOwnLife(StringBuilder sb, NpcProfile npc, IReadOnlyList<int> own, int currentDay)
+      {
+         if (own.Count == 0) return;
+
+         sb.AppendLine(HistoryWindowPolicy.OwnLifeHeader);
+         foreach (int i in own)
+         {
+            NotableEvent ev = npc.Events[i];
+            string confided = ev.IsPrivate ? " [yours alone - do not repeat it in front of others]" : "";
+            sb.AppendLine($"- Day {ev.gameDay}{RecencySuffix(ev.gameDay, currentDay)}: {ev.summary}{confided}");
+         }
+         sb.AppendLine("These are your own affairs: the player had no part in them unless a line says so.");
+         sb.AppendLine();
       }
 
       /// <summary>Word that reached the character, apart from what they lived with the player (tashmetu, 06/10/2026).</summary>
@@ -2843,7 +2864,10 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("A NEW GENERATION — IMPORTANT:");
          sb.AppendLine($"The person before you now is the HEIR of {npc.InheritedFromName}, their {kin}, "
                        + (npc.InheritedPredecessorRetired ? "who has stepped down and still lives." : "who has died."));
-         sb.AppendLine($"Everything recorded below was your history with {npc.InheritedFromName} — NOT with the heir.");
+         // tashmetu (08/10/2026): this line once said "Everything recorded below", which also took in what the character
+         // only heard and their own life apart from the player.
+         sb.AppendLine($"What is recorded under YOUR HISTORY WITH THIS PLAYER below was your history with {npc.InheritedFromName}, NOT with the heir. "
+                       + "What has reached your ears and your own life apart from the player are your own, not that history.");
          sb.AppendLine("You inherit the standing, debts, alliances, and grudges of that history toward their HOUSE:");
          sb.AppendLine($"refer to what their {kin} did ('your {kin} once helped me at…', 'your {kin}'s broken word still");
          sb.AppendLine("stings'), and let it colour how you receive the heir. But speak to them as the new person they");
