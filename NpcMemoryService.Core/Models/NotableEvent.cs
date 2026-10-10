@@ -70,6 +70,14 @@ namespace NpcMemoryService.Core.Models
         public string? Id { get; set; }
 
         /// <summary>
+        ///   The mod that put this memory here through CrNpcMemory.AddMemory (its SourceMod), or null for every memory CR
+        ///   wrote itself and every injected one stored before 10/10/2026. Lets that mod take back what it added
+        ///   (philip0105, Vivid World: rumors it later forgets or corrects). Additive and optional, as above. A memory the
+        ///   compressor folds into a summary loses it, as it loses its own wording.
+        /// </summary>
+        public string? SourceMod { get; set; }
+
+        /// <summary>
         ///   A copy of this memory carrying a fresh identity. Used where something is written now and meant
         ///   to be found again later; everything else may stay anonymous.
         /// </summary>

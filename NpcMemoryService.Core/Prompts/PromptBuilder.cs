@@ -124,6 +124,13 @@ namespace NpcMemoryService.Core.Prompts
       public string PostHistoryInstructions { get; init; } = "";
 
       /// <summary>
+      ///   heard_now.txt (10/10/2026, philip0105 for Vivid World): live knowledge another mod hands in through a
+      ///   {{variable}} (what this character has heard right now), written in the uncached tail before the output rules,
+      ///   so it has presence without pushing them up. CR ships it empty; mods fill it through cr_patch.
+      /// </summary>
+      public string HeardNowInstructions { get; init; } = "";
+
+      /// <summary>
       ///   Player's real in-game name. Injected so NPCs can address them by name.
       ///   Empty string omits the name line.
       /// </summary>
@@ -371,6 +378,7 @@ namespace NpcMemoryService.Core.Prompts
          // which stay the final word. Below the cache marker, so it is re-sent uncached every turn: a priced choice
          // (quality outranks cost); it also lets the cross-NPC shared prefix run past the world block unbroken.
          AppendPlayerDescription(sb, encounterContext, vars, lean);
+         AppendHeardNow(sb, vars);
          // A short, forceful restatement of the machine-read contract, placed at the very end (highest recency)
          // because the full format teaching sits ~10k tokens up in the cached prefix: a weaker model that follows
          // instructions loosely (dialogue only, no [ACTION]/[EVENT]) is far more likely to emit the blocks when
@@ -8449,6 +8457,16 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("realm is called, the current name is the true one and the background reading is an old book:");
          sb.AppendLine("use the current name, and never correct someone who uses it.");
          sb.AppendLine();
+      }
+
+      /// <summary>heard_now.txt, expanded with this build's variables; nothing when it is empty or expands to nothing.</summary>
+      private void AppendHeardNow(StringBuilder sb, IReadOnlyDictionary<string, string> vars)
+      {
+         if (string.IsNullOrWhiteSpace(HeardNowInstructions)) return;
+         string text = PromptVariableExpander.Expand(HeardNowInstructions, vars);
+         if (string.IsNullOrWhiteSpace(text)) return;
+         sb.AppendLine();
+         sb.AppendLine(text.Trim());
       }
 
       /// <summary>
