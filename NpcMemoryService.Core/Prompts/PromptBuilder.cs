@@ -826,6 +826,10 @@ namespace NpcMemoryService.Core.Prompts
          if (reason == CompanionAudienceReason.None) return;
 
          sb.AppendLine("YOU ASKED THE PLAYER FOR THIS PRIVATE AUDIENCE:");
+         // HakiTakiUmba (09/10/2026): family travelling with the player asks too, and is no hired help.
+         bool kin = context!.AudienceFromKin;
+         if (kin)
+            sb.AppendLine("You are of the player's own family (your bond is under RELATIONSHIPS), not a hired companion: speak as kin, never as one who serves them.");
 
          if (reason == CompanionAudienceReason.Grievance)
          {
@@ -854,7 +858,9 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("You sought this private word for a reason of the heart: a specific kindness the player showed");
             sb.AppendLine("you, already named in your opening line above, that you have carried with you since. OPEN the");
             sb.AppendLine("conversation by thanking them for it yourself, plainly and warmly, in your own voice, and let it");
-            sb.AppendLine("lead you to reaffirm the loyalty the shared service between you has built. This is PURELY a");
+            sb.AppendLine(kin
+               ? "lead you to reaffirm the bond between you. This is PURELY a"
+               : "lead you to reaffirm the loyalty the shared service between you has built. This is PURELY a");
             sb.AppendLine("thank-you: NEVER a request, a bargain, or a demand of any kind. Ask for nothing and expect");
             sb.AppendLine("nothing in return.");
             sb.AppendLine();
@@ -877,9 +883,13 @@ namespace NpcMemoryService.Core.Prompts
 
          if (reason == CompanionAudienceReason.Ambition)
          {
-            sb.AppendLine("You sought this private word because you are content in their service, and it has stirred a");
+            sb.AppendLine(kin
+               ? "You sought this private word because you are content at their side, and it has stirred a"
+               : "You sought this private word because you are content in their service, and it has stirred a");
             sb.AppendLine("genuine ambition of your own, already named in your opening line above. OPEN the conversation by");
-            sb.AppendLine("voicing it yourself, respectfully and in your own voice, as one who has served and hopes to");
+            sb.AppendLine(kin
+               ? "voicing it yourself, in your own voice, as family who hopes to do more for the house and"
+               : "voicing it yourself, respectfully and in your own voice, as one who has served and hopes to");
             sb.AppendLine("rise. This is an EARNEST ASK the player is free to grant or refuse: NEVER a threat, an");
             sb.AppendLine("ultimatum, or a grievance about your lot (that is a different matter entirely). Take a refusal");
             sb.AppendLine("with grace, true to who you are. If the player GRANTS it plainly in this conversation, let the");
@@ -896,9 +906,15 @@ namespace NpcMemoryService.Core.Prompts
          if (reason != CompanionAudienceReason.Retirement)
          {
             sb.AppendLine("You sought this word to speak of a SPECIFIC matter, already voiced in your opening line above.");
-            sb.AppendLine("Stay on it. This is an ordinary private word between comrades: you are NOT resigning, you are");
-            sb.AppendLine("NOT threatening to leave, and you are NOT war-weary. Do not claim otherwise, and never ask to");
-            sb.AppendLine("quit their service or to lay down the sword unless that is truly the subject named above.");
+            sb.AppendLine(kin
+               ? "Stay on it. This is an ordinary private word between kin: you are NOT threatening to leave them,"
+               : "Stay on it. This is an ordinary private word between comrades: you are NOT resigning, you are");
+            sb.AppendLine(kin
+               ? "and you are NOT war-weary. Do not claim otherwise, and never ask to part from them or to lay"
+               : "NOT threatening to leave, and you are NOT war-weary. Do not claim otherwise, and never ask to");
+            sb.AppendLine(kin
+               ? "down the sword unless that is truly the subject named above."
+               : "quit their service or to lay down the sword unless that is truly the subject named above.");
             sb.AppendLine();
 
             return;

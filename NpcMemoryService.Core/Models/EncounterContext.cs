@@ -418,6 +418,13 @@ namespace NpcMemoryService.Core.Models
       public bool AudienceRetirementIsLanded { get; init; }
 
       /// <summary>
+      ///   With <see cref="CompanionAudience" />: the one who asked is of the player's own family travelling with them (a
+      ///   wife, a brother), not a hired companion (HakiTakiUmba, 09/10/2026), so the audience speaks as kin, never as
+      ///   one in the player's service.
+      /// </summary>
+      public bool AudienceFromKin { get; init; }
+
+      /// <summary>
       ///   Set on the first conversation after this companion has RETURNED from a news errand: a ready
       ///   directive + the news they gathered, for them to deliver in their own voice. Consumed once (the
       ///   host clears it after this build), so it colours only the homecoming exchange. Null otherwise.
