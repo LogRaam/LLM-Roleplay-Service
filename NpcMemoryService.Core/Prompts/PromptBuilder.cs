@@ -3085,7 +3085,8 @@ namespace NpcMemoryService.Core.Prompts
                ? "Reply in the SAME language as the player's last message; English if there is none yet."
                : $"Always write your reply in {ReplyLanguage.Trim()}, whatever language anything else here uses.");
             sb.AppendLine("Keep section labels and action keywords in English; translate only prose and speech.");
-            sb.AppendLine("Proper names stay exactly as given. This rule overrides everything else.");
+            // elpyf0 (09/10/2026): an accent is that same language; merged into this line, the Lean budget is tight.
+            sb.AppendLine("Proper names stay exactly as given, accents too. It overrides all else.");
 
             return;
          }
@@ -3112,6 +3113,10 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Translate ONLY the prose and speech. Proper names stay exactly as given.");
          sb.AppendLine("This rule overrides everything else: even though your persona, memory, and all");
          sb.AppendLine("context are written in English, your spoken words follow it.");
+         // elpyf0 (Nexus, 09/10/2026): Vlandians asked for a French cadence came back in clean English; "this rule
+         // overrides everything else" read an accent as a breach of the reply's language.
+         sb.AppendLine("An accent, dialect or turn of speech that is part of who the character is (a cadence, foreign");
+         sb.AppendLine("words, dropped letters) is still that same language, and is kept.");
       }
 
       /// <summary>
