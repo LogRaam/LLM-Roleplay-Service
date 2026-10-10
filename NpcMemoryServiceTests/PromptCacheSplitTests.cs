@@ -115,12 +115,12 @@ namespace NpcMemoryServiceTests
 
       // Cross-NPC prefix reuse: the BEHAVIOR GUIDELINES block is station-matched (a lord, a notable, a
       // wanderer and a gang leader each get a different register), so it is the first thing that DIFFERS
-      // between two NPCs of one session. The world description and the player block are identical for every
-      // NPC, so they must sit BEFORE the station block, or a large custom world.txt is stranded past the
-      // divergence point and cannot be shared across characters' caches (the TOR modder's report). All three
-      // stay in the cacheable prefix, before the marker.
+      // between two NPCs of one session. The world description is identical for every NPC, so it must sit
+      // BEFORE the station block, or a large custom world.txt is stranded past the divergence point and cannot
+      // be shared across characters' caches (the TOR modder's report). The player block left the prefix on
+      // 10/10/2026 (fkasad: read last, not lost in the middle); see the test below.
       [Test]
-      public void GIVEN_a_prompt_with_a_world_WHEN_built_THEN_the_static_world_and_player_precede_the_station_guidelines()
+      public void GIVEN_a_prompt_with_a_world_WHEN_built_THEN_the_static_world_precedes_the_station_guidelines()
       {
          var builder = new PromptBuilder {WorldDescription = "This is the world of Calradia, torn by endless war."};
          var context = new EncounterContext {Scene = SceneType.Settlement};
@@ -129,15 +129,35 @@ namespace NpcMemoryServiceTests
 
          int markerIndex = prompt.IndexOf(PromptBuilder.EncounterSectionHeading, System.StringComparison.Ordinal);
          int worldIndex = prompt.IndexOf("WORLD:", System.StringComparison.Ordinal);
-         int playerIndex = prompt.IndexOf("THE PLAYER:", System.StringComparison.Ordinal);
          int guidelinesIndex = prompt.IndexOf("BEHAVIOR GUIDELINES", System.StringComparison.Ordinal);
 
          worldIndex.Should().BeGreaterThan(0);
          guidelinesIndex.Should().BeGreaterThan(0);
          worldIndex.Should().BeLessThan(guidelinesIndex);
-         playerIndex.Should().BeLessThan(guidelinesIndex);
          // The station block is per-NPC, but still stable for the whole conversation, so it stays cacheable.
          guidelinesIndex.Should().BeLessThan(markerIndex);
+      }
+
+      // fkasad (Nexus, 10/10/2026): the player's own description sat in the middle of the prompt, "the very first thing
+      // any average/small llm will forget after a few turns". It now reads near the end, the character the NPC is facing,
+      // with only the output contract (WHO IS WHO and the format reminder) and the modder's post-history after it.
+      [Test]
+      public void GIVEN_a_player_description_WHEN_the_prompt_is_built_THEN_it_reads_near_the_end_before_the_output_contract()
+      {
+         var builder = new PromptBuilder {PlayerName = "Arwa", PlayerDescription = "A scarred sellsword who lost an eye at Pravend.", PostHistoryInstructions = "POST HISTORY LINE"};
+         var context = new EncounterContext {Scene = SceneType.Settlement};
+
+         string prompt = builder.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         int markerIndex = prompt.IndexOf(PromptBuilder.EncounterSectionHeading, System.StringComparison.Ordinal);
+         int descriptionIndex = prompt.IndexOf("A scarred sellsword", System.StringComparison.Ordinal);
+         int whoIsWhoIndex = prompt.IndexOf("WHO IS WHO:", System.StringComparison.Ordinal);
+         int postHistoryIndex = prompt.IndexOf("POST HISTORY LINE", System.StringComparison.Ordinal);
+
+         descriptionIndex.Should().BeGreaterThan(markerIndex);
+         descriptionIndex.Should().BeLessThan(whoIsWhoIndex);
+         whoIsWhoIndex.Should().BeLessThan(postHistoryIndex);
+         prompt.IndexOf("A scarred sellsword", descriptionIndex + 1, System.StringComparison.Ordinal).Should().Be(-1, "the description is written once");
       }
 
       // CurrentDay (and the rest of world state) moves as the campaign advances, so it can never be part of

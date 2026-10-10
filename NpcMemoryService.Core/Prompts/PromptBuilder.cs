@@ -206,7 +206,7 @@ namespace NpcMemoryService.Core.Prompts
          if (LeanPromptPolicy.Include(PromptSection.ProseCraftBlocklist, lean)) AppendProseCraft(sb);
          else AppendLeanProseCraft(sb);
          if (LeanPromptPolicy.Include(PromptSection.WorldNarrative, lean)) AppendWorldDescription(sb, vars);
-         AppendPlayerDescription(sb, encounterContext, vars, lean);
+         // THE PLAYER moved to the end of the prompt (fkasad, 10/10/2026): see AppendPlayerDescription's call below.
          // Behavior guidelines are station-matched (lord, notable, wanderer, gang leader), so this is the
          // FIRST block that differs between two NPCs of the same session. It sits AFTER the world and player
          // blocks, which are identical for every NPC, so the cross-NPC shared prefix runs as long as possible
@@ -365,6 +365,12 @@ namespace NpcMemoryService.Core.Prompts
          // can settle, and this one what the NPC is willing to believe.
          AppendClaimsAreNotProof(sb, lean);
          AppendLanguageMirror(sb, lean);
+         // THE PLAYER, near the end (fkasad, Nexus 10/10/2026: the player's description "is landing in the middle of
+         // the prompt... the very first thing any average/small llm will forget after a few turns"). Gabriel: move it.
+         // The character the NPC is facing reads last but for the output contract and the modder's post-history,
+         // which stay the final word. Below the cache marker, so it is re-sent uncached every turn: a priced choice
+         // (quality outranks cost); it also lets the cross-NPC shared prefix run past the world block unbroken.
+         AppendPlayerDescription(sb, encounterContext, vars, lean);
          // A short, forceful restatement of the machine-read contract, placed at the very end (highest recency)
          // because the full format teaching sits ~10k tokens up in the cached prefix: a weaker model that follows
          // instructions loosely (dialogue only, no [ACTION]/[EVENT]) is far more likely to emit the blocks when
