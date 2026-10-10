@@ -1,0 +1,8 @@
+#!/bin/sh
+# No em dash in the commit message either (the house rule covers the message, which the staged-lines check never sees).
+DASH=$(printf '\342\200\224')
+if grep -v '^#' "$1" | grep -qF "$DASH"; then
+  echo "commit-msg: the message holds an em dash; use a comma, parentheses or a colon instead." >&2
+  exit 1
+fi
+exit 0

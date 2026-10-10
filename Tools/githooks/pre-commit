@@ -1,0 +1,12 @@
+#!/bin/sh
+# No em dash in an added line (Gabriel's house rule: commas, parentheses or colons instead). Counts only the lines this
+# commit ADDS, so a file that already holds one is not blocked for an unrelated edit. The character is built at run
+# time so this file never holds it itself. Enabled per clone: git config core.hooksPath Tools/githooks
+DASH=$(printf '\342\200\224')
+HITS=$(git diff --cached --no-color -U0 | grep '^+' | grep -v '^+++' | grep -F "$DASH")
+if [ -n "$HITS" ]; then
+  echo "pre-commit: an added line holds an em dash; use a comma, parentheses or a colon instead:" >&2
+  echo "$HITS" | head -10 >&2
+  exit 1
+fi
+exit 0
