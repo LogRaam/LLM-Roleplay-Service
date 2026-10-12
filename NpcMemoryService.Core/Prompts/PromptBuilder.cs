@@ -209,7 +209,20 @@ namespace NpcMemoryService.Core.Prompts
          // the layout the host chose for this character (increment 2: PromptLayoutResolver keeps the locks). Each writes
          // exactly what this method wrote at that place before; the golden prompts hold the stock order to the character.
          var state = new PromptBuildState {Npc = npc, World = world, Context = encounterContext, Lean = lean, Vars = vars};
-         foreach (PromptSectionSpec section in PromptLayoutResolver.Order(CharacterSections, encounterContext?.PromptLayout)) section.Render(this, sb, state);
+         IReadOnlyDictionary<string, PromptSectionText>? texts = encounterContext?.PromptTexts;
+         foreach (PromptSectionSpec section in PromptLayoutResolver.Order(CharacterSections, encounterContext?.PromptLayout))
+         {
+            // Increment 3: a profile's rewording meets the section's OWN rendering, so its gate decides first.
+            if (texts == null || section.Zone == PromptZone.Marker || !texts.TryGetValue(section.Key, out PromptSectionText? text))
+            {
+               section.Render(this, sb, state);
+               continue;
+            }
+
+            var own = new StringBuilder();
+            section.Render(this, own, state);
+            sb.Append(PromptSectionTextApplier.Apply(section.Key, own.ToString(), text, section.Lock, vars));
+         }
 
          // The verb catalogue is the LAST thing written even though it sits near the top of the prompt:
          // it lists what this prompt TAUGHT, and until this line that was not known. See VerbCatalogPolicy.

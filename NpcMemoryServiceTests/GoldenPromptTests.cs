@@ -281,7 +281,7 @@ namespace NpcMemoryServiceTests
             Type t = p.PropertyType;
             // A golden prompt is the STOCK order: a filled layout would reorder it (the Prompt Composer's own tests,
             // PromptLayoutResolverTests, cover layouts).
-            if (t == typeof(PromptLayout)) continue;
+            if (t == typeof(PromptLayout) || p.Name == nameof(EncounterContext.PromptTexts)) continue;
             bool canSet = p.CanWrite && p.GetSetMethod() != null;
             object? value = p.GetValue(target);
             if (canSet && (t == typeof(bool) || t == typeof(bool?))) p.SetValue(target, true);

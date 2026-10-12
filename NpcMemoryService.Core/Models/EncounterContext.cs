@@ -1830,6 +1830,12 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public PromptLayout? PromptLayout { get; init; }
 
+      /// <summary>
+      ///   The sections the player's prompt profile rewords, by key (the Prompt Composer, increment 3); null for none. Read
+      ///   once per session by the host. Each meets its section's own rendering, so a shut gate stays shut.
+      /// </summary>
+      public IReadOnlyDictionary<string, PromptSectionText>? PromptTexts { get; init; }
+
       public DiplomaticStatus WarStatus { get; init; } = DiplomaticStatus.Unknown;
 
       /// <summary>
