@@ -25,6 +25,22 @@ namespace NpcMemoryServiceTests
             RansomCeiling = 1800, ExchangeCaptiveName = exchange, ExchangeGoldToPlayer = gold, OpeningOffer = opening
          };
 
+      // fkasad (Nexus, 12/10/2026): a lord who wants his man back should raise his price after a refusal. The second
+      // envoy comes with more, and says so, without naming his ceiling.
+      [Test]
+      public void GIVEN_an_envoy_sent_after_one_was_turned_away_WHEN_his_prompt_is_built_THEN_he_knows_he_brings_a_better_offer()
+      {
+         EnvoyPromptInput again = Input();
+         string prompt = EnvoyPromptBuilder.Build(new EnvoyPromptInput {
+            EnvoyName = again.EnvoyName, LordName = again.LordName, LordRealm = again.LordRealm, PlayerName = again.PlayerName,
+            WantedCaptiveName = again.WantedCaptiveName, WantedCaptiveStake = again.WantedCaptiveStake, RansomCeiling = again.RansomCeiling,
+            ComesAgainWithMore = true
+         });
+
+         prompt.Should().Contain("first envoy").And.Contain("sent away").And.Contain("better offer");
+         EnvoyPromptBuilder.Build(Input()).Should().NotContain("sent away");
+      }
+
       // Gabriel's ruling: never the lord in person. The model must not play Derthert, or the anonymous envoy is the
       // lord himself under another name.
       [Test]

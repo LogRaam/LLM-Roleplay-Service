@@ -55,6 +55,12 @@ namespace NpcMemoryService.Core.Prompts
       /// </summary>
       public int OpeningOffer { get; init; }
 
+      /// <summary>
+      ///   True when an envoy about this captive was already sent away and the lord sends this one with a better offer
+      ///   (fkasad, 12/10/2026: "if they really want their guy back, they could at least raise the price a bit").
+      /// </summary>
+      public bool ComesAgainWithMore { get; init; }
+
       /// <summary>The captive the lord would give in exchange, or null when he holds nobody to offer.</summary>
       public string? ExchangeCaptiveName { get; init; }
 
@@ -104,6 +110,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine(input.WantsCaptiveBack
             ? $"{lord} wants {captive} back."
             : $"{lord} wants {captive} delivered into {lord}'s own hands, a prisoner still. {captive} is not {lord}'s to free, and you do not pretend otherwise.");
+         if (input.ComesAgainWithMore)
+            sb.AppendLine($"{lord}'s first envoy about {captive} was sent away. {lord} sends you with a better offer than that one, and you may say so;"
+                          + " you still never name how high you may go.");
          sb.AppendLine();
 
          sb.AppendLine("WHAT YOUR LORD AUTHORISED, AND NOTHING MORE:");
