@@ -205,10 +205,11 @@ namespace NpcMemoryService.Core.Prompts
          // heavy, always-on sections are trimmed; identity, persona, format, stance and the encounter always stay.
          LeanPromptLevel lean = encounterContext?.LeanLevel ?? LeanPromptLevel.Full;
 
-         // The sections, keyed, in the stock order (PromptBuilder.Sections.cs: increment 1 of the Prompt Composer). Each
-         // writes exactly what this method wrote at that place before; the golden prompts hold it to the character.
+         // The sections, keyed (PromptBuilder.Sections.cs: increment 1 of the Prompt Composer), in the stock order or in
+         // the layout the host chose for this character (increment 2: PromptLayoutResolver keeps the locks). Each writes
+         // exactly what this method wrote at that place before; the golden prompts hold the stock order to the character.
          var state = new PromptBuildState {Npc = npc, World = world, Context = encounterContext, Lean = lean, Vars = vars};
-         foreach (PromptSectionSpec section in CharacterSections) section.Render(this, sb, state);
+         foreach (PromptSectionSpec section in PromptLayoutResolver.Order(CharacterSections, encounterContext?.PromptLayout)) section.Render(this, sb, state);
 
          // The verb catalogue is the LAST thing written even though it sits near the top of the prompt:
          // it lists what this prompt TAUGHT, and until this line that was not known. See VerbCatalogPolicy.

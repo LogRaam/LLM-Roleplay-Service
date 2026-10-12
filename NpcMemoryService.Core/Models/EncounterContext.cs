@@ -1823,6 +1823,13 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public string? StationGuidelinesOverride { get; init; }
 
+      /// <summary>
+      ///   The order of this character's prompt sections, chosen by the host from the player's prompt profile and the
+      ///   character's kind (the Prompt Composer, increment 2); null for the stock order. Stable for a conversation, so
+      ///   the cacheable prefix stays one.
+      /// </summary>
+      public PromptLayout? PromptLayout { get; init; }
+
       public DiplomaticStatus WarStatus { get; init; } = DiplomaticStatus.Unknown;
 
       /// <summary>

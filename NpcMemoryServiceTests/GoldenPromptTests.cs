@@ -279,6 +279,9 @@ namespace NpcMemoryServiceTests
          foreach (PropertyInfo p in target.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(p => p.GetIndexParameters().Length == 0).OrderBy(p => p.Name, StringComparer.Ordinal))
          {
             Type t = p.PropertyType;
+            // A golden prompt is the STOCK order: a filled layout would reorder it (the Prompt Composer's own tests,
+            // PromptLayoutResolverTests, cover layouts).
+            if (t == typeof(PromptLayout)) continue;
             bool canSet = p.CanWrite && p.GetSetMethod() != null;
             object? value = p.GetValue(target);
             if (canSet && (t == typeof(bool) || t == typeof(bool?))) p.SetValue(target, true);
