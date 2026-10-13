@@ -41,7 +41,25 @@ namespace NpcMemoryService.Core.Models
       ///   option). <see cref="LeanPromptLevel.Full" /> (default) sends everything; <see cref="LeanPromptLevel.Lean" />
       ///   drops the heavy flavour/context sections so the prompt fits a ~4k–8k context and the model still replies.
       /// </summary>
-      public LeanPromptLevel LeanLevel { get; init; }
+      public LeanPromptLevel LeanLevel
+      {
+         get => _leanLevel;
+         init => _leanLevel = value;
+      }
+
+      private LeanPromptLevel _leanLevel;
+
+      /// <summary>
+      ///   This same encounter at another prompt level: the compact prompt CR turns to when the full one does not fit a
+      ///   local model's declared context window (ContextFitPolicy). A shallow copy; nothing else changes.
+      /// </summary>
+      public EncounterContext WithLeanLevel(LeanPromptLevel level)
+      {
+         var copy = (EncounterContext) MemberwiseClone();
+         copy._leanLevel = level;
+
+         return copy;
+      }
 
       /// <summary>An empty context (all fields Unknown). Use when no game state is available.</summary>
       public static EncounterContext Empty { get; } = new();

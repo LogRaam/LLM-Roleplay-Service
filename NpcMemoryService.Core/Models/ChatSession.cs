@@ -21,6 +21,25 @@ namespace NpcMemoryService.Core.Models
 
       public IReadOnlyList<LlmMessage> Messages => _messages;
 
+      /// <summary>
+      ///   Leading messages a context fit never leaves out: the running recap of the older conversation (fkasad,
+      ///   13/10/2026: a request trimmed to fit a local model's window keeps its recap and drops the oldest raw lines).
+      /// </summary>
+      public int PinnedLeading { get; private set; }
+
+      /// <summary>
+      ///   The running recap of what was said before the raw lines, as a labelled statement at the head of the history.
+      ///   Pinned while it leads the history, so trimming for a small context window never drops it.
+      /// </summary>
+      public void AddRunningSummary(string label, string content)
+      {
+         if (string.IsNullOrWhiteSpace(content)) return;
+
+         bool leads = _messages.Count == PinnedLeading;
+         AddWitnessStatement(label, content);
+         if (leads) PinnedLeading++;
+      }
+
       /// <summary>Records an NPC response and appends it to the history.</summary>
       public void AddNpcMessage(string content) =>
          _messages.Add(new LlmMessage(MessageRole.Assistant, content));
@@ -87,6 +106,7 @@ namespace NpcMemoryService.Core.Models
       {
          if (_messages.Count > 0)
             _messages.RemoveAt(_messages.Count - 1);
+         PinnedLeading = Math.Min(PinnedLeading, _messages.Count);
       }
 
       // Purpose: lets the caller seed the conversation with the NPC's opening line

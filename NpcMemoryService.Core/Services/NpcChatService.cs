@@ -3,6 +3,8 @@
 #region
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NpcMemoryService.Core.LlmClient;
@@ -46,6 +48,19 @@ namespace NpcMemoryService.Core.Services
       };
 
       public IPromptBuilder PromptBuilder { get; }
+
+      /// <summary>
+      ///   The context window of the model this service talks to, in tokens, read on every turn; 0 (or no provider) when
+      ///   none is declared. When set, each request is fitted to it by CR (ContextFitPolicy) instead of being cut by the
+      ///   server (fkasad, 13/10/2026: LM Studio's "truncate middle" cut the action rules out of CR's prompt).
+      /// </summary>
+      public Func<int>? ContextWindowProvider { get; init; }
+
+      /// <summary>Raised after every fitted request, so the host can log it and tell the player.</summary>
+      public static event Action<ContextFitReport>? ContextFitted;
+
+      // Characters per token on this endpoint, measured on the last reply the server counted.
+      private double _charsPerToken = ContextFitPolicy.DefaultCharsPerToken;
 
       /// <summary>
       ///   Sends the player's message to the NPC and returns a structured response.
@@ -92,6 +107,18 @@ namespace NpcMemoryService.Core.Services
             ? Math.Min(ChatParameters.MaxTokens, LeanReplyBudget.Tokens)
             : ChatParameters.MaxTokens;
 
+         IReadOnlyList<LlmMessage> messages = session.Messages;
+         int window = DeclaredWindow();
+         if (window > 0)
+         {
+            FittedRequest fitted = FitToWindow(window, npc, world, encounterContext, systemPrompt, session, maxTokens);
+            systemPrompt = fitted.SystemPrompt;
+            stablePrefix = PromptCacheSplit.StablePrefixOf(systemPrompt);
+            messages = fitted.Messages;
+            maxTokens = fitted.MaxTokens;
+            allowTruncationRetry = allowTruncationRetry && fitted.RetryFits;
+         }
+
          LlmParameters parameters = allowTruncationRetry && maxTokens == ChatParameters.MaxTokens
             ? ChatParameters
             : new LlmParameters {
@@ -107,7 +134,7 @@ namespace NpcMemoryService.Core.Services
             // Diagnostic only (see LlmRequest.Subject): lets a wire observer compare this character's prefix
             // against HIS OWN previous one. A room of witnesses interleaves several speakers on one model.
             Subject = npc?.Id,
-            Messages = session.Messages,
+            Messages = messages,
             Parameters = parameters,
             // Null by default, exactly as before this parameter existed (the client resolves its own model).
             // Non-null lets a single call (the mod's Prose Fallback: redo this turn on a reliable explicit
@@ -126,10 +153,81 @@ namespace NpcMemoryService.Core.Services
             return NpcChatResult.Failure(llmResponse.ErrorMessage ?? "Unknown LLM error.");
          }
 
+         if (window > 0)
+         {
+            double? measured = ContextFitPolicy.Measured(systemPrompt.Length + messages.Sum(m => m.Content?.Length ?? 0), llmResponse.Usage?.PromptTokens ?? 0);
+            if (measured.HasValue) _charsPerToken = measured.Value;
+         }
+
          ParsedResponse parsed = _parser.Parse(llmResponse.Content);
          session.AddNpcMessage(parsed.Dialogue);
 
          return NpcChatResult.Success(parsed, llmResponse.Usage, llmResponse.FinishReason, llmResponse.WasRetried);
+      }
+
+      /// <summary>
+      ///   Fits one request to the declared window (ContextFitPolicy): the oldest raw lines go first, the running recap
+      ///   and the latest lines stay; if the full prompt still does not fit with them, the compact prompt (and its
+      ///   smaller reply budget) takes its place. The prompt itself is never cut: whole or compact.
+      /// </summary>
+      private FittedRequest FitToWindow(int window, NpcProfile npc, WorldState world, EncounterContext? context, string systemPrompt, ChatSession session, int maxTokens)
+      {
+         bool alreadyCompact = context?.LeanLevel == LeanPromptLevel.Lean;
+         ContextFit fit = FitOf(window, systemPrompt, maxTokens, session, alreadyCompact ? 1 : ContextFitPolicy.KeepWithFullPrompt);
+         bool switched = false;
+
+         if (!fit.Fits && !alreadyCompact && context != null)
+         {
+            systemPrompt = PromptBuilder.BuildSystemPrompt(npc, world, context.WithLeanLevel(LeanPromptLevel.Lean));
+            maxTokens = Math.Min(maxTokens, LeanReplyBudget.Tokens);
+            fit = FitOf(window, systemPrompt, maxTokens, session, 1);
+            switched = true;
+         }
+         else if (!fit.Fits)
+            fit = FitOf(window, systemPrompt, maxTokens, session, 1);
+
+         IReadOnlyList<LlmMessage> all = session.Messages;
+         int pinned = Math.Min(session.PinnedLeading, all.Count);
+         var kept = all.Take(pinned).Concat(all.Skip(pinned + fit.Drop)).ToList();
+
+         ContextFitted?.Invoke(new ContextFitReport {
+            Subject = npc?.Id, WindowTokens = window, EstimatedTokens = fit.EstimatedTokens, UsableTokens = fit.UsableTokens,
+            DroppedMessages = fit.Drop, SwitchedToCompact = switched, Fits = fit.Fits, CharsPerToken = _charsPerToken
+         });
+
+         return new FittedRequest(systemPrompt, kept, maxTokens, ContextFitPolicy.RetryFits(fit, maxTokens));
+      }
+
+      private ContextFit FitOf(int window, string systemPrompt, int maxTokens, ChatSession session, int keepAtLeast)
+         => ContextFitPolicy.Fit(new ContextFitFacts {
+            WindowTokens = window, CharsPerToken = _charsPerToken, PromptChars = systemPrompt?.Length ?? 0, ReplyTokens = maxTokens,
+            Messages = session.Messages.Select(m => new ContextFitMessage {IsUser = m.Role == MessageRole.User, Chars = m.Content?.Length ?? 0}).ToList(),
+            PinnedLeading = session.PinnedLeading, KeepAtLeast = keepAtLeast
+         });
+
+      private int DeclaredWindow()
+      {
+         try { return Math.Max(0, ContextWindowProvider?.Invoke() ?? 0); }
+         catch
+         {
+            return 0; // a provider that fails declares nothing: the request goes as built
+         }
+      }
+
+      private sealed class FittedRequest
+      {
+         public FittedRequest(string systemPrompt, IReadOnlyList<LlmMessage> messages, int maxTokens, bool retryFits)
+         {
+            SystemPrompt = systemPrompt;
+            Messages = messages;
+            MaxTokens = maxTokens;
+            RetryFits = retryFits;
+         }
+
+         public string SystemPrompt { get; }
+         public IReadOnlyList<LlmMessage> Messages { get; }
+         public int MaxTokens { get; }
+         public bool RetryFits { get; }
       }
 
       /// <summary>

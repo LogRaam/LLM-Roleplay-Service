@@ -57,7 +57,7 @@ namespace NpcMemoryServiceTests
       ///   Memories are capped in Compact (MemoryEventLimit), so six is the ceiling; discovered traits are NOT
       ///   capped and only ever accumulate, so a long campaign carries more than this.
       /// </summary>
-      private static NpcProfile Npc()
+      internal static NpcProfile Npc()
       {
          var npc = new NpcProfile {
             Id = "npc_test", Name = "Test Lord", Faction = "Vlandia", Clan = "dey Meroc",
@@ -110,6 +110,10 @@ namespace NpcMemoryServiceTests
                                .ToString().Substring(0, chars);
 
       private static string Build(LeanPromptLevel lean)
+         => RealBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, Encounter(lean));
+
+      /// <summary>The builder as the host builds it (shared with ContextFitRequestTests, which sends through it).</summary>
+      internal static PromptBuilder RealBuilder()
          => new PromptBuilder {
                ActionVocabulary = RealVocabulary(),
                WorldDescription = Filler(WorldTxtChars),
@@ -122,8 +126,7 @@ namespace NpcMemoryServiceTests
                // sections AND the discovered-traits list, so measuring at Off measured a configuration almost
                // nobody runs - the same mistake as the missing narrative files, one field along.
                AdultLevel = AdultContentLevel.Mature
-            }
-            .BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, Encounter(lean));
+            };
 
       /// <summary>
       ///   The most expensive character the game can actually produce: a landed lord of the player's own house
@@ -136,7 +139,7 @@ namespace NpcMemoryServiceTests
       ///     from production measures its own construction.
       ///   </para>
       /// </summary>
-      private static EncounterContext Encounter(LeanPromptLevel lean)
+      internal static EncounterContext Encounter(LeanPromptLevel lean)
          => new() {
             LeanLevel = lean,
             // What a LORD actually receives: the base guidelines narrowed to his own culture
