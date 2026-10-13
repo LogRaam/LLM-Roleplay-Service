@@ -126,6 +126,27 @@ namespace NpcMemoryServiceTests
          reports.Should().ContainSingle(x => x.WindowTokens == 8192 && x.SwitchedToCompact);
       }
 
+      // A townsman's conversation on a local model is fitted too: its prompt has no compact form, so only old lines go,
+      // and the player's new line always stays.
+      [Test]
+      public async Task GIVEN_a_long_commoner_conversation_and_a_small_window_WHEN_sent_THEN_old_lines_go_and_the_new_line_stays()
+      {
+         var client = new CapturingClient();
+         var service = new NpcChatService(client, new SectionResponseParser(), LeanRealPromptBudgetTests.RealBuilder()) {
+            ContextWindowProvider = () => 4096
+         };
+         var session = new ChatSession();
+         for (var i = 0; i < 20; i++)
+            if (i % 2 == 0) session.AddPlayerMessage(Line(700));
+            else session.AddNpcMessage(Line(700));
+
+         await service.ChatCommonerAsync(new NpcProfile {Id = "townsman", Name = "A townsman", Faction = "Vlandia", Clan = ""}, new CommonsKnowledge {SettlementName = "Pravend", SettlementType = "town"}, session, NewLine);
+
+         client.Last.Messages.Count.Should().BeLessThan(session.Messages.Count);
+         client.Last.Messages.First().Role.Should().Be(MessageRole.User);
+         client.Last.Messages.Last().Content.Should().Be(NewLine);
+      }
+
       #region stubs
 
       private sealed class CapturingClient : ILlmClient

@@ -186,17 +186,25 @@ namespace NpcMemoryService.Core.Services
          else if (!fit.Fits)
             fit = FitOf(window, systemPrompt, maxTokens, session, 1);
 
+         Report(npc?.Id, window, fit, switched);
+
+         return new FittedRequest(systemPrompt, Kept(session, fit), maxTokens, ContextFitPolicy.RetryFits(fit, maxTokens));
+      }
+
+      // The session's messages with the fit's oldest raw lines left out (the pinned recap stays).
+      private static IReadOnlyList<LlmMessage> Kept(ChatSession session, ContextFit fit)
+      {
          IReadOnlyList<LlmMessage> all = session.Messages;
          int pinned = Math.Min(session.PinnedLeading, all.Count);
-         var kept = all.Take(pinned).Concat(all.Skip(pinned + fit.Drop)).ToList();
 
-         ContextFitted?.Invoke(new ContextFitReport {
-            Subject = npc?.Id, WindowTokens = window, EstimatedTokens = fit.EstimatedTokens, UsableTokens = fit.UsableTokens,
+         return all.Take(pinned).Concat(all.Skip(pinned + fit.Drop)).ToList();
+      }
+
+      private void Report(string? subject, int window, ContextFit fit, bool switched)
+         => ContextFitted?.Invoke(new ContextFitReport {
+            Subject = subject, WindowTokens = window, EstimatedTokens = fit.EstimatedTokens, UsableTokens = fit.UsableTokens,
             DroppedMessages = fit.Drop, SwitchedToCompact = switched, Fits = fit.Fits, CharsPerToken = _charsPerToken
          });
-
-         return new FittedRequest(systemPrompt, kept, maxTokens, ContextFitPolicy.RetryFits(fit, maxTokens));
-      }
 
       private ContextFit FitOf(int window, string systemPrompt, int maxTokens, ChatSession session, int keepAtLeast)
          => ContextFitPolicy.Fit(new ContextFitFacts {
@@ -249,10 +257,27 @@ namespace NpcMemoryService.Core.Services
 
          string systemPrompt = PromptBuilder.BuildCommonerSystemPrompt(profile, knowledge, narrativeStyle);
 
+         // A commoner's prompt is small and has no compact form: only the conversation is fitted to a declared
+         // window (fkasad, 13/10/2026), the oldest lines first.
+         IReadOnlyList<LlmMessage> messages = session.Messages;
+         LlmParameters parameters = ChatParameters;
+         int window = DeclaredWindow();
+         if (window > 0)
+         {
+            ContextFit fit = FitOf(window, systemPrompt, ChatParameters.MaxTokens, session, 1);
+            messages = Kept(session, fit);
+            Report(profile?.Id, window, fit, switched: false);
+            if (ChatParameters.AllowTruncationRetry && !ContextFitPolicy.RetryFits(fit, ChatParameters.MaxTokens))
+               parameters = new LlmParameters {
+                  MaxTokens = ChatParameters.MaxTokens, Creativity = ChatParameters.Creativity,
+                  PresencePenalty = ChatParameters.PresencePenalty, AllowTruncationRetry = false
+               };
+         }
+
          var request = new LlmRequest {
             SystemPrompt = systemPrompt,
-            Messages = session.Messages,
-            Parameters = ChatParameters
+            Messages = messages,
+            Parameters = parameters
          };
 
          LlmResponse llmResponse = await _llmClient
