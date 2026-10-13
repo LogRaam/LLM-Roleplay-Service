@@ -906,6 +906,21 @@ namespace NpcMemoryService.Core.Models
       public string? NemesisRecaptureNote { get; init; }
 
       /// <summary>
+      ///   The item the player held out with the bag this turn, by name, or null (3chmidt, 13/10/2026: a sale's price
+      ///   was the model's free invention, with no idea what the item was worth or what the buyer could pay).
+      /// </summary>
+      public string? ItemOnOffer { get; init; }
+
+      /// <summary>The offered item's market value in denars (with <see cref="ItemOnOffer" />).</summary>
+      public int ItemOnOfferValue { get; init; }
+
+      /// <summary>
+      ///   What this character's purse holds, given with an offer so a price is never promised beyond it (Gabriel's
+      ///   rule: gate before the character declares, never refute after). Null when unknown.
+      /// </summary>
+      public int? Purse { get; init; }
+
+      /// <summary>
       ///   True on the final beat of a captive scene continuation (mirrors
       ///   <see cref="IsLastWitnessExchange" /> for the 15C loop). When set, the prompt
       ///   instructs the NPC to bring the scene to a definitive conclusion this turn —

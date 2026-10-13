@@ -109,3 +109,4 @@ heard_now
 role_anchor
 format_reminder
 post_history_instructions
+item_on_offer

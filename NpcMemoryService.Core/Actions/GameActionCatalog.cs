@@ -453,6 +453,21 @@ namespace NpcMemoryService.Core.Actions
                new GameActionParam("item", "the item's name, matched case-insensitively against the player's roster"),
                // fkasad (05/10/2026): "ten ingots of Gromril" moved one; the bridge reads "count", the model was never told.
                new GameActionParam("count", "how many of that item change hands, as a number (\"ten ingots\" is 10); omit it for a single item")),
+            // 3chmidt (13/10/2026): a sale read as give_item plus a guessed-direction gold move made the player pay
+            // for their own sword. One deal, one verb; the player confirms the item and the price.
+            Spec("sell_item",
+               "The player sells an item from their own party inventory to the NPC, who pays the agreed price from their own purse in the same deal (clamped to what they hold).",
+               tells: new[] {
+                  "the player's item goes to the NPC AND the NPC's coin goes to the player for it, the deal completed here in this reply ('the coin is yours')"
+               },
+               antiPatterns: new[] {
+                  "a price merely asked, offered or haggled over, with no deal struck in this reply",
+                  "the item handed over only to be looked at, weighed or tested before any deal, which moves nothing",
+                  "the item given for nothing, which is give_item",
+                  "the PLAYER buying from the NPC, which this verb never covers"
+               },
+               new GameActionParam("item", "the item's name, matched case-insensitively against the player's roster"),
+               new GameActionParam("price", "the agreed denars the NPC pays")),
             Spec("give_prisoner",
                "The player hands over the exact captive an outstanding deliver-prisoner bargain named; the bridge resolves which held prisoner satisfies it and settles the bargain's reward.",
                tells: new[] {

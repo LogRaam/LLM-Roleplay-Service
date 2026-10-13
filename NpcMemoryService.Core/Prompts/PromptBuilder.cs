@@ -2402,6 +2402,23 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   The item the player holds out this turn (picked with the bag), what it is worth, and what this character can
+      ///   pay. 3chmidt (13/10/2026): a buyer named "nine thousand" with no idea of the sword's worth or of its own purse,
+      ///   and the game could not pay it. The character knows both BEFORE naming a price, so a price is never refuted after.
+      /// </summary>
+      private static void AppendItemOnOffer(StringBuilder sb, EncounterContext? context)
+      {
+         if (string.IsNullOrWhiteSpace(context?.ItemOnOffer)) return;
+
+         sb.AppendLine($"THE ITEM HELD OUT TO YOU: {context!.ItemOnOffer.Trim()}, worth about {context.ItemOnOfferValue:N0} denars at market.");
+         if (context.Purse.HasValue)
+            sb.AppendLine($"Your purse holds {Math.Max(0, context.Purse.Value):N0} denars: never offer or agree to pay more than that.");
+         sb.AppendLine("You may buy it at a price you both agree (sell_item), haggle, decline, accept it as a gift if it is one");
+         sb.AppendLine("(give_item), or only look it over and hand it back.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
       ///   Teaches the give_item action. Shown whenever the player is not the captive
       ///   (a prisoner cannot hand items from their inventory). The player uses the
       ///   in-chat item picker to pre-fill the offer text; the LLM then decides to
@@ -2434,6 +2451,13 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("For a stackable good the player gives several of (ingots, trade goods, arrows), add a count line");
             sb.AppendLine("to the block, 'count: <whole number>'; a single item needs none (one is assumed), and the game");
             sb.AppendLine("never gives more than the player holds.");
+            sb.AppendLine("If the player SELLS it to you, a price struck and paid now, emit instead:");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: sell_item");
+            sb.AppendLine("item: <the item name>");
+            sb.AppendLine("price: <the denars you pay>");
+            sb.AppendLine("[/ACTION]");
+            sb.AppendLine("One deal: you pay the player. Never give_item beside it, and no gold action for the same coin.");
          }
          sb.AppendLine();
       }

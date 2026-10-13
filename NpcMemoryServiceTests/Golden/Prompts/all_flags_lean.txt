@@ -58,6 +58,7 @@ Available actions:
 - close_relationship: The player's committed partner revokes previously-agreed open terms; she will take no new...
 - end_affair: The NPC's current secret affair ends at the player's asking, when the NPC agrees; the...
 - give_item: The player gives an item, or several of the same item, from their own party inventory to...
+- sell_item: The player sells an item from their own party inventory to the NPC, who pays the agreed...
 - give_prisoner: The player hands over the exact captive an outstanding deliver-prisoner bargain named; the...
 - free_prisoner: The player releases a captive they hold, honouring a struck bargain for their freedom...
 - execute_prisoner: The player kills, at their own hand, a hero prisoner they currently hold.
@@ -824,6 +825,11 @@ If you still mean it, state it plainly again in a correctly formatted block; oth
 
 THE PLAYER holds these lord captives, not you:
 [HeldLordPrisoners]
+
+THE ITEM HELD OUT TO YOU: [ItemOnOffer], worth about 3 denars at market.
+Your purse holds 3 denars: never offer or agree to pay more than that.
+You may buy it at a price you both agree (sell_item), haggle, decline, accept it as a gift if it is one
+(give_item), or only look it over and hand it back.
 
 It is a winter night, and a blizzard is blowing.
 Near Ocs Hall, in Vlandia.

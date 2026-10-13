@@ -154,7 +154,10 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("   the reply or the facts: when the facts name an outstanding deliver-prisoner bargain and no price is");
          sb.AppendLine("   stated, the purse is the bargain's reward, so emit give_prisoner, never buy_prisoner. Naming a price");
          sb.AppendLine("   is never enough: whatever the verb, coin AND chain must actually change hands in this reply, or");
-         sb.AppendLine("   nothing happened.");
+         sb.AppendLine("   nothing happened. An ITEM sold is one deal: the player's item goes to the NPC and the NPC's coin to");
+         sb.AppendLine("   the player ('the coin is yours' means the buyer pays the PLAYER). Emit sell_item ALONE for it,");
+         sb.AppendLine("   never give_item, give_gold or take_gold beside it. An item held out only to be looked at, weighed");
+         sb.AppendLine("   or tested has not changed hands: emit nothing.");
          sb.AppendLine("5. BEFORE emitting change_relation or end_conversation ALONE, scan once more for a concrete named deed:");
          sb.AppendLine("   a warm reaction to the player's apology for a KNOWN grievance is make_amends (with change_relation,");
          sb.AppendLine("   never it alone); a companion accepting a named duty (scout/engineer/quartermaster/surgeon) is");
@@ -276,6 +279,16 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("(passive voice changes nothing: the NPC's coin reached the PLAYER and the chain left the PLAYER's");
          sb.AppendLine("hands for the NPC's men, so this is buy_prisoner, never sell_prisoner)");
+         sb.AppendLine();
+         sb.AppendLine("Facts: PLAYER: Ulfric, offering a sword for sale. YOU: Menja, a merchant.");
+         sb.AppendLine("Reply: *I take the long two handed sword from your hands, testing a few swings.* The grip sits well enough. Nine thousand is what it is worth now. The coin is yours.");
+         sb.AppendLine("CHECK sell_item: \"I take the long two handed sword from your hands\" and \"Nine thousand ... The coin is yours\"");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: sell_item");
+         sb.AppendLine("item: long two handed sword");
+         sb.AppendLine("price: 9000");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("(the buyer pays the player: one sell_item, never give_item plus a gold move, and never take_gold)");
          sb.AppendLine();
          sb.AppendLine("Facts: PLAYER: Rhobart, your prisoner. YOU: Ganak, a raider chief. Hardcore.");
          sb.AppendLine("Reply: *My dagger flashes once across your throat before you can speak another word.* No more talk. This is where your road ends.");

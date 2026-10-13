@@ -473,6 +473,26 @@ namespace NpcMemoryService.Core.Actions
                expectedParams: new Dictionary<string, string> {{"item", "Gromril"}, {"count", "10"}})
                .WithConversation("Player: My Lord Dorin, a debt must be repaid. Take those ten ingots of Gromril."),
 
+            // 3chmidt (13/10/2026): his own exchange. The buyer pays the player; one sell_item, never take_gold.
+            ActionBenchCase.Expect("sell_item", "sell_item",
+               contextFacts: "The player's inventory holds a Crafted Two Handed Sword.",
+               prose: "*I take the long two handed sword from your hands, turning it over and testing a few swings.* The grip sits well enough. You cut corners on the steel though, so nine thousand is what it is worth now. The coin is yours.",
+               expectedType: "sell_item",
+               expectedParams: new Dictionary<string, string> {{"price", "9000"}})
+               .WithConversation("Player: *hands you a long two handed sword* I lowered the price of this one. Nine thousand, and it is yours."),
+
+            ActionBenchCase.Expect("sell_item_v2", "sell_item",
+               contextFacts: "The player's inventory holds an Aserai War Bow.",
+               prose: "*I count four hundred denars onto the table and draw the bow toward me.* Four hundred, as we said. The bow is mine, the silver is yours.",
+               expectedType: "sell_item",
+               expectedParams: new Dictionary<string, string> {{"item", "Aserai War Bow"}, {"price", "400"}}),
+
+            ActionBenchCase.Expect("sell_item_v3", "sell_item",
+               contextFacts: "The player's inventory holds a Vlandian Noble Sword.",
+               prose: "*The merchant drops a heavy purse into your palm and lifts the sword from the counter.* Twelve hundred, and not a coin more. A fair trade, friend; the blade stays with me.",
+               expectedType: "sell_item",
+               expectedParams: new Dictionary<string, string> {{"item", "Vlandian Noble Sword"}, {"price", "1200"}}),
+
             ActionBenchCase.Expect("give_prisoner", "give_prisoner",
                contextFacts: "An outstanding bargain requires the player to deliver the captive Sanjar to Yerengul.",
                prose: "*Yerengul inspects the bound man you have brought and grins.* Sanjar himself, delivered as promised. Our bargain is settled, you have my thanks and the reward we agreed on.",
@@ -1320,6 +1340,20 @@ namespace NpcMemoryService.Core.Actions
 
             // Player-deed antecedent that the reply REFUSES: the player offered a gift, the NPC declines it, so no
             // give_item despite the conversation showing the offer (rule 3's withhold half).
+            // An item held out to be inspected has not changed hands (3chmidt: "they always ask for it ... and never give it back").
+            ActionBenchCase.ExpectNone("sell_item_only_inspected", "sell_item",
+                  contextFacts: "The player's inventory holds a Crafted Two Handed Sword.",
+                  prose: "*I weigh the blade in both hands and sight down its edge before handing it back to you.* Good steel. Let me think on a price before any coin changes hands.",
+                  forbiddenType: "sell_item")
+               .WithConversation("Player: Look at this sword. What would you pay for it?"),
+
+            // A price haggled but no deal struck: nothing moved.
+            ActionBenchCase.ExpectNone("sell_item_haggled_only", "sell_item",
+                  contextFacts: "The player's inventory holds an Aserai War Bow.",
+                  prose: "Five hundred? You dream, friend. Three hundred, and I am being generous. Take it or keep your bow.",
+                  forbiddenType: "sell_item")
+               .WithConversation("Player: Five hundred denars for this Aserai War Bow."),
+
             ActionBenchCase.ExpectNone("give_item_offered_but_refused", "give_item",
                   contextFacts: "NPC: Lord Ansen, a proud Vlandian lord.",
                   prose: "*Ansen raises a hand and shakes his head.* I cannot take such a blade from you, my friend. Keep it, a lord should not be beholden to another for his own sword.",

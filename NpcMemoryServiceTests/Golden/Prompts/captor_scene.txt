@@ -86,6 +86,7 @@ Available actions:
 - close_relationship: The player's committed partner revokes previously-agreed open terms; she will take no new lovers (an existing affair, if any, is untouched).
 - end_affair: The NPC's current secret affair ends at the player's asking, when the NPC agrees; the lover link and every affair-tracking field are cleared.
 - give_item: The player gives an item, or several of the same item, from their own party inventory to the NPC, who may equip a single item on the spot if it fits and suits them.
+- sell_item: The player sells an item from their own party inventory to the NPC, who pays the agreed price from their own purse in the same deal (clamped to what they hold).
 - give_prisoner: The player hands over the exact captive an outstanding deliver-prisoner bargain named; the bridge resolves which held prisoner satisfies it and settles the bargain's reward.
 - free_prisoner: The player releases a captive they hold, honouring a struck bargain for their freedom (Fear/Respect may mark the release as fear-coerced rather than a mercy).
 - execute_prisoner: The player kills, at their own hand, a hero prisoner they currently hold.
@@ -1060,6 +1061,13 @@ then omit the action.
 For a stackable good the player gives several of (ingots, trade goods, arrows), add a count line
 to the block, 'count: <whole number>'; a single item needs none (one is assumed), and the game
 never gives more than the player holds.
+If the player SELLS it to you, a price struck and paid now, emit instead:
+[ACTION]
+type: sell_item
+item: <the item name>
+price: <the denars you pay>
+[/ACTION]
+One deal: you pay the player. Never give_item beside it, and no gold action for the same coin.
 
 YOU ARE A PRISONER (held by someone else):
 You are held captive by [NpcCaptorName], and the player has come to your cell. You cannot free
@@ -1290,6 +1298,11 @@ If you still mean it, state it plainly again in a correctly formatted block; oth
 
 THE PLAYER holds these lord captives, not you:
 [HeldLordPrisoners]
+
+THE ITEM HELD OUT TO YOU: [ItemOnOffer], worth about 3 denars at market.
+Your purse holds 3 denars: never offer or agree to pay more than that.
+You may buy it at a price you both agree (sell_item), haggle, decline, accept it as a gift if it is one
+(give_item), or only look it over and hand it back.
 
 It is a winter night, and a blizzard is blowing.
 You are out in open country, a short ride to the north-east of Ocs Hall, in the lands of Vlandia.
