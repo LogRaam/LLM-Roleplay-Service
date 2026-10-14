@@ -3858,8 +3858,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("you may BARGAIN for it — in character, weighing your pride against your plight. Offer something");
          sb.AppendLine("worth more than the ransom they could already claim for you: your lasting goodwill, a sum of");
          sb.AppendLine("gold once you are free, or — only if your house is broken or your cause truly lost and you");
-         sb.AppendLine("would genuinely change sides — your SERVICE in their clan. Stay true to who you are: a proud");
-         sb.AppendLine("lord may refuse to grovel and would sooner wait for ransom; a desperate or pragmatic one bargains.");
+         sb.AppendLine("would genuinely change sides: your SERVICE in their clan. When a list of what you can offer and");
+         sb.AppendLine("of how readily you bargain is given to you below, follow it: it is who you are in this cell.");
          sb.AppendLine("When you and the player AGREE on terms and they consent to free you, emit the action alongside");
          sb.AppendLine("the reward you promised:");
          sb.AppendLine("[ACTION]");
@@ -3877,6 +3877,38 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("some composure, but inwardly you resent being cowed rather than persuaded.");
          }
 
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   What a captive of the player may offer for her freedom, and how readily (the host's CaptiveOfferPolicy).
+      ///   Maifailun (Nexus, 14/10/2026): Adrichea, with no honor, mercy or generosity, answered a bargain with "kill me
+      ///   if you must"; Gabriel (14/10/2026): the captive proposes terms herself, and in Mature content and above a
+      ///   manipulative, honorless one uses her body without scruple. Only terms the game can carry out are listed.
+      /// </summary>
+      private static void AppendCaptiveTerms(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.PlayerStatus != PlayerStatusVsNpc.NpcIsCaptive || string.IsNullOrWhiteSpace(context.CaptiveDisposition)) return;
+
+         IReadOnlyList<string> terms = context.CaptiveTerms ?? Array.Empty<string>();
+         bool Has(string term) => terms.Any(t => string.Equals(t, term, StringComparison.OrdinalIgnoreCase));
+
+         sb.AppendLine("WHAT YOU CAN OFFER FOR YOUR FREEDOM (and nothing beyond it, since nothing else would hold):");
+         if (Has("ransom")) sb.AppendLine($"- coin: up to {context.CaptiveRansomCeiling:N0} denars, what you and your house can actually pay.");
+         if (Has("fealty")) sb.AppendLine($"- fealty: you may swear your house to {context.CaptiveFealtyRealm}, the realm the player serves.");
+         if (Has("service")) sb.AppendLine("- service: you may take service in the player's clan.");
+         if (Has("intimacy"))
+            sb.AppendLine(context.CaptiveDisposition == "offers_first"
+               ? "- yourself: your bed, offered plainly or by suggestion, as the price of your freedom. You would strike that bargain without scruple if it gives you the advantage."
+               : "- yourself: if nothing else would buy your freedom, you would not refuse to offer the player your bed.");
+         sb.AppendLine("- your lasting goodwill, which costs you nothing to promise and is worth what your word is worth.");
+
+         sb.AppendLine("HOW YOU BARGAIN:");
+         sb.AppendLine(context.CaptiveDisposition switch {
+            "offers_first" => "You have no honor to die for and no taste for martyrdom. Freedom and your life are worth more to you than pride: you make the first offer, and you play the strongest card you hold. Defiance for its own sake is not in you.",
+            "stands_on_pride" => "Your honor is real: you may refuse to bargain and wait for a proper ransom, and you would never sell yourself. If you bargain at all, it is in honorable coin.",
+            _ => "When it comes to it you bargain: you weigh your pride against your plight, and you would rather strike terms than rot in a cell or die."
+         });
          sb.AppendLine();
       }
 

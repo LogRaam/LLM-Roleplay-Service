@@ -153,6 +153,8 @@ namespace NpcMemoryService.Core.Prompts
          Section("interception", PromptZone.Tail, (b, sb, s) => AppendInterception(sb, s.Context)),
          Section("format_feedback", PromptZone.Tail, (b, sb, s) => AppendFormatFeedback(sb, s.Context)),
          Section("held_prisoners_brief", PromptZone.Tail, (b, sb, s) => AppendHeldPrisonersBrief(sb, s.Context, s.Lean)),
+         // A captive's terms and how readily she bargains: her fear can move within the conversation, so per turn.
+         Section("captive_terms", PromptZone.Tail, (b, sb, s) => AppendCaptiveTerms(sb, s.Context)),
          // An item held out THIS turn, with its worth and the character's purse: a per-turn fact (3chmidt, 13/10/2026).
          Section("item_on_offer", PromptZone.Tail, (b, sb, s) => AppendItemOnOffer(sb, s.Context)),
          // The knowledge that changes under the character (the hour, the sky, where they stand) belongs here

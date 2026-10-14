@@ -1018,6 +1018,25 @@ namespace NpcMemoryService.Core.Models
       public bool CanRecruitPrisoner { get; init; }
 
       /// <summary>
+      ///   A captive of the player: the terms she may offer for her freedom, decided by the host before she speaks
+      ///   ("ransom", "fealty", "service", "intimacy"; Maifailun and Gabriel, 14/10/2026). Empty when she is no captive
+      ///   of the player.
+      /// </summary>
+      public IReadOnlyList<string> CaptiveTerms { get; init; } = new List<string>();
+
+      /// <summary>The most she can pay as ransom (with "ransom" in <see cref="CaptiveTerms" />).</summary>
+      public int CaptiveRansomCeiling { get; init; }
+
+      /// <summary>The realm the player serves, which she may swear her house to (with "fealty").</summary>
+      public string? CaptiveFealtyRealm { get; init; }
+
+      /// <summary>
+      ///   How readily she bargains: "offers_first" (no honor to die for), "bargains", or "stands_on_pride"; null when she
+      ///   is no captive of the player.
+      /// </summary>
+      public string? CaptiveDisposition { get; init; }
+
+      /// <summary>
       ///   True when this NPC is a LORD the player currently holds prisoner, and recruit_prisoner is NOT
       ///   (yet) taught to them, either because their personal regard has not reached
       ///   <c>PrisonerRecruitmentPolicy.RegardFloor</c> or because they lead their own clan (never
