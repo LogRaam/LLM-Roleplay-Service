@@ -107,9 +107,10 @@ namespace NpcMemoryServiceTests
       public async Task GIVEN_no_window_declared_WHEN_sent_THEN_the_whole_conversation_goes_as_built()
       {
          ChatSession session = LongConversation();
+         int asBuilt = session.Messages.Count + 1; // the conversation and the player's new line
          LlmRequest r = await Send(0, session);
 
-         r.Messages.Count.Should().Be(session.Messages.Count);
+         r.Messages.Count.Should().Be(asBuilt);
          r.Parameters.MaxTokens.Should().Be(3000);
       }
 
@@ -155,7 +156,8 @@ namespace NpcMemoryServiceTests
 
          public Task<LlmResponse> CompleteAsync(LlmRequest request, CancellationToken ct = default)
          {
-            Last = request;
+            // A copy: with no window the request carries the live session list, which the reply then grows.
+            Last = new LlmRequest {SystemPrompt = request.SystemPrompt, Messages = request.Messages.ToList(), Parameters = request.Parameters};
 
             return Task.FromResult(new LlmResponse {Content = "[DIALOGUE]\nAye.", IsSuccess = true});
          }
