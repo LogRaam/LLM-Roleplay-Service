@@ -491,6 +491,22 @@ namespace NpcMemoryService.Core.Actions
                   "the NPC's OWN side freeing a third-party captive rather than the player releasing one they hold, which is release_prisoner",
                   "handing the captive into someone else's custody rather than setting them fully at liberty, which are give_prisoner or sell_prisoner"
                }),
+            // Maifailun (Nexus, 14/10/2026): Adrichea, held captive, answered a bargain with "kill me if you must";
+            // Gabriel: the captive proposes terms herself, and intimacy is a bargaining term in Mature content and
+            // above. The game decides what she can truthfully offer (CaptiveOfferPolicy) before she ever speaks.
+            Spec("counter_offer",
+               "A captive the player holds proposes terms for her own freedom, or agrees to terms the player named, settling the bargain in this reply.",
+               tells: new[] {
+                  "the captive makes or accepts a concrete offer for her freedom (coin, her house's fealty, her service, or herself) and the player is asked to accept it, here in this reply"
+               },
+               antiPatterns: new[] {
+                  "a demand only refused ('kill me if you must'), which settles nothing",
+                  "terms only haggled over, named, or weighed, with nothing actually agreed in this reply",
+                  "the player simply freeing her for nothing she offered in return, which is free_prisoner",
+                  "anyone who is not the PLAYER's own prisoner right now"
+               },
+               new GameActionParam("terms", "comma list: ransom/fealty/service/intimacy/goodwill, naming only what was struck"),
+               new GameActionParam("amount", "the ransom in denars, when ransom is named")),
             Spec("execute_prisoner",
                "The player kills, at their own hand, a hero prisoner they currently hold.",
                tells: new[] {

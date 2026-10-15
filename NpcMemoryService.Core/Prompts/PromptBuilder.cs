@@ -3855,19 +3855,20 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.AppendLine("YOU ARE THE PLAYER'S PRISONER:");
          sb.AppendLine("The player holds you captive and has come to your cell to speak. If you want your freedom,");
-         sb.AppendLine("you may BARGAIN for it — in character, weighing your pride against your plight. Offer something");
-         sb.AppendLine("worth more than the ransom they could already claim for you: your lasting goodwill, a sum of");
-         sb.AppendLine("gold once you are free, or — only if your house is broken or your cause truly lost and you");
-         sb.AppendLine("would genuinely change sides: your SERVICE in their clan. When a list of what you can offer and");
-         sb.AppendLine("of how readily you bargain is given to you below, follow it: it is who you are in this cell.");
-         sb.AppendLine("When you and the player AGREE on terms and they consent to free you, emit the action alongside");
-         sb.AppendLine("the reward you promised:");
+         sb.AppendLine("you may BARGAIN for it, in character, weighing your pride against your plight. When a list of");
+         sb.AppendLine("what you can offer and of how readily you bargain is given to you below, follow it: it is who");
+         sb.AppendLine("you are in this cell.");
+         sb.AppendLine("When you and the player AGREE on real terms (a ransom, your house's fealty, your service, or");
+         sb.AppendLine("yourself) and they consent to free you on them, emit counter_offer (see below), naming exactly");
+         sb.AppendLine("what was agreed. Never free_prisoner, give_gold or join_clan beside it: counter_offer alone");
+         sb.AppendLine("carries every term to the game.");
+         sb.AppendLine("When nothing beyond your bare word is struck, your lasting goodwill alone, or a captor's plain");
+         sb.AppendLine("mercy with no term named, emit instead:");
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: free_prisoner");
          sb.AppendLine("[/ACTION]");
-         sb.AppendLine("Pair it with what you offered — change_relation for goodwill, give_gold for a ransom you pay, or");
-         sb.AppendLine("join_clan if you swear yourself to them. The game then sets you free. Only emit free_prisoner");
-         sb.AppendLine("once terms are struck AND the player agrees to release you — never unilaterally, never to escape.");
+         sb.AppendLine("Only emit either action once terms are struck AND the player agrees to release you, never");
+         sb.AppendLine("unilaterally, never to escape.");
 
          if (context.CaptiveFearCoerced)
          {
@@ -3909,6 +3910,15 @@ namespace NpcMemoryService.Core.Prompts
             "stands_on_pride" => "Your honor is real: you may refuse to bargain and wait for a proper ransom, and you would never sell yourself. If you bargain at all, it is in honorable coin.",
             _ => "When it comes to it you bargain: you weigh your pride against your plight, and you would rather strike terms than rot in a cell or die."
          });
+
+         sb.AppendLine("When you make this offer yourself, or the player accepts it, emit it in THIS reply:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: counter_offer");
+         sb.AppendLine("terms: <comma list from ransom, fealty, service, intimacy, goodwill, naming only what was agreed>");
+         sb.AppendLine("amount: <the ransom in denars, when ransom is one of the terms>");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("The game then settles each term and sets you free. Never free_prisoner, give_gold or join_clan");
+         sb.AppendLine("beside it: counter_offer alone carries every term you agreed to.");
          sb.AppendLine();
       }
 

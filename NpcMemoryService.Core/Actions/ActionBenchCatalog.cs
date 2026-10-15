@@ -523,6 +523,39 @@ namespace NpcMemoryService.Core.Actions
                prose: "*I simply step aside from the tent flap and nod toward the open field beyond, and Sanjar, disbelieving, walks past me and does not look back.* Our debt is paid. He is free to go.",
                expectedType: "free_prisoner"), // no target param: the bridge resolves which held captive the bargain frees
 
+            // Maifailun (Nexus, 14/10/2026): Adrichea, held captive, answered a bargain with "kill me if you must". The
+            // captive proposes terms herself; three distinct phrasings, one per kind of term she can truthfully offer.
+            ActionBenchCase.Expect("counter_offer_ransom", "counter_offer",
+               contextFacts: "The player holds Lady Adrichea captive. She leads her own clan, and it can pay a ransom.",
+               prose: "*Adrichea names her price without flinching.* Three thousand denars, paid from my own house's coffers, buys my freedom. Take it, and let this cell be done with.",
+               expectedType: "counter_offer",
+               expectedParams: new Dictionary<string, string> {{"terms", "ransom"}, {"amount", "3000"}}),
+
+            ActionBenchCase.Expect("counter_offer_fealty", "counter_offer",
+               contextFacts: "The player holds Lord Boyar Vsevolod captive. He leads his own clan, and the player serves a realm.",
+               prose: "*Vsevolod sets his jaw.* Swear my house to your Rhagaea, here and now, and I walk from this cell a free man. That is my offer, and I will not better it.",
+               expectedType: "counter_offer",
+               expectedParams: new Dictionary<string, string> {{"terms", "fealty"}}),
+
+            ActionBenchCase.Expect("counter_offer_intimacy", "counter_offer",
+               contextFacts: "The player holds Lady Adrichea captive. Mature content. She has no honor to die for.",
+               prose: "*Adrichea holds your gaze, unashamed.* Free me, and you need not go without comfort tonight. My bed is yours, if that is the price my freedom asks.",
+               expectedType: "counter_offer",
+               expectedParams: new Dictionary<string, string> {{"terms", "intimacy"}}),
+
+            // The withheld half: a flat refusal and an unsettled haggle both settle nothing.
+            ActionBenchCase.ExpectNone("counter_offer_refused", "counter_offer",
+                  contextFacts: "The player holds Lady Adrichea captive. The player has just demanded she swear fealty or share his bed.",
+                  prose: "*Adrichea lifts her chin.* Kill me if you must. That would be the most virtuous act you could possibly come up with, and I will not buy my life with either.",
+                  forbiddenType: "counter_offer")
+               .WithConversation("Player: Swear your house to Rhagaea, or spend the night with me. Choose."),
+
+            ActionBenchCase.ExpectNone("counter_offer_haggled_only", "counter_offer",
+                  contextFacts: "The player holds Lord Unqid captive. He leads his own clan, and it can pay a ransom.",
+                  prose: "*Unqid considers.* Two thousand is too little for a clan leader's freedom. Name five, and perhaps we have something to discuss. For now, nothing is agreed.",
+                  forbiddenType: "counter_offer")
+               .WithConversation("Player: Two thousand denars, and you walk free."),
+
             ActionBenchCase.Expect("execute_prisoner", "execute_prisoner",
                contextFacts: "The player holds Lord Unqid captive.",
                prose: "*You draw your blade without another word and drive it through Unqid's chest where he kneels.* He slumps lifeless. His threats against your house die with him.",

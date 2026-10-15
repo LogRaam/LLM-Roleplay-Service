@@ -157,7 +157,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("   nothing happened. An ITEM sold is one deal: the player's item goes to the NPC and the NPC's coin to");
          sb.AppendLine("   the player ('the coin is yours' means the buyer pays the PLAYER). Emit sell_item ALONE for it,");
          sb.AppendLine("   never give_item, give_gold or take_gold beside it. An item held out only to be looked at, weighed");
-         sb.AppendLine("   or tested has not changed hands: emit nothing.");
+         sb.AppendLine("   or tested has not changed hands: emit nothing. A captive offering or accepting terms for her own");
+         sb.AppendLine("   freedom is counter_offer alone, never free_prisoner/give_gold/join_clan beside it; a refusal or an");
+         sb.AppendLine("   unsettled haggle is nothing.");
          sb.AppendLine("5. BEFORE emitting change_relation or end_conversation ALONE, scan once more for a concrete named deed:");
          sb.AppendLine("   a warm reaction to the player's apology for a KNOWN grievance is make_amends (with change_relation,");
          sb.AppendLine("   never it alone); a companion accepting a named duty (scout/engineer/quartermaster/surgeon) is");
@@ -377,6 +379,19 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("(direction is what the CHECK must pin: the chain went TO the player and the coin TO the NPC, so");
          sb.AppendLine("sell_prisoner, never buy_prisoner)");
+         sb.AppendLine();
+         sb.AppendLine("Facts: PLAYER: Rhobart, your captor. YOU: Adrichea, his prisoner, no honor to die for.");
+         sb.AppendLine("Reply: *Adrichea meets your eyes, unflinching.* Swear my house to your Rhagaea, or take me to your");
+         sb.AppendLine("bed tonight. Either buys my freedom. Choose, and I will not pretend to have chosen it myself.");
+         sb.AppendLine("CHECK counter_offer: \"Swear my house to your Rhagaea, or take me to your bed tonight. Either buys");
+         sb.AppendLine("my freedom\"");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: counter_offer");
+         sb.AppendLine("terms: fealty,intimacy");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("(she NAMES two terms she would accept for her freedom in this reply; emit counter_offer alone,");
+         sb.AppendLine("never free_prisoner, give_gold or join_clan beside it, and never when she only refuses a demand");
+         sb.AppendLine("outright, as in 'kill me if you must')");
          sb.AppendLine();
       }
 

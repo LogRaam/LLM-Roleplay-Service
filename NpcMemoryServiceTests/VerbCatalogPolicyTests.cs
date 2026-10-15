@@ -49,7 +49,15 @@ namespace NpcMemoryServiceTests
       private static EncounterContext Permissive(LeanPromptLevel lean = LeanPromptLevel.Full)
          => new() {
             LeanLevel = lean,
-            PlayerStatus = PlayerStatusVsNpc.ClanMember,
+            // counter_offer (14/10/2026) is taught only where the captive-terms section renders, which needs
+            // PlayerStatus == NpcIsCaptive; none of the other Gated teachings key off PlayerStatus == ClanMember
+            // specifically (they only ever exclude PlayerStatus == Captive, a different value), so this does not
+            // suppress anything else on this list.
+            PlayerStatus = PlayerStatusVsNpc.NpcIsCaptive,
+            CaptiveDisposition = "offers_first",
+            CaptiveTerms = new List<string> {"ransom", "fealty", "service", "intimacy"},
+            CaptiveRansomCeiling = 5000,
+            CaptiveFealtyRealm = "the Northern Empire",
 
             NpcCanBeAppointedGovernor = true, NpcCanBeAssignedPartyRole = true, NpcCanRejoinParty = true,
             NpcCanBeDispatchedOnMission = true, PlayerCanMediatePeace = true, NpcCanBeGrantedFief = true,
