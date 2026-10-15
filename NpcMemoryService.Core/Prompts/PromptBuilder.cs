@@ -5898,6 +5898,36 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   Lords with aims of their own (tashmetu, 14/10/2026): what this character wants for themselves, how they go
+      ///   about it, and whether they may bring it up unbidden in this conversation (decided once by the host).
+      /// </summary>
+      private static void AppendOwnAim(StringBuilder sb, EncounterContext? context)
+      {
+         string? want = context?.OwnAimWant?.Trim();
+         if (string.IsNullOrEmpty(want)) return;
+
+         string? part = context!.OwnAimPlayerPart?.Trim();
+         string? how = context.OwnAimApproach?.Trim();
+
+         if (context.LeanLevel == LeanPromptLevel.Lean)
+         {
+            string leave = context.OwnAimMayRaise ? "You may bring it up once, when it fits." : "Do not bring it up yourself.";
+            sb.AppendLine($"YOUR OWN AIM: {want}{(string.IsNullOrEmpty(part) ? "" : " " + part)} {leave}");
+            sb.AppendLine();
+            return;
+         }
+
+         sb.AppendLine("WHAT YOU WANT (your own aim, not a duty):");
+         sb.AppendLine(want);
+         if (!string.IsNullOrEmpty(part)) sb.AppendLine(part);
+         if (!string.IsNullOrEmpty(how)) sb.AppendLine(how);
+         sb.AppendLine(context.OwnAimMayRaise
+            ? "You need not wait to be asked: once in this conversation, when it fits, you may bring it up yourself. Never force it into a moment it does not fit, and drop it if they turn it aside."
+            : "You have already spoken of it with them, or this is not the moment. Do not bring it up yourself; if they raise it, it is still what you want.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
       ///   Bastards: when this NPC is the mother of a still-hidden child of the player's, teach her to raise it
       ///   in conversation in her own register — extort (mercenary), long (fond), reproach (resentful), or ask
       ///   for the child's keep (pragmatic). Adult-gated; the mechanic (silence bought with gold) runs through

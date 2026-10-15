@@ -80,6 +80,7 @@ companion_camp_note
 companion_briefing_scene
 intimacy_bargain
 bastard_mother
+own_aim
 marriage
 matchmaker
 narrative_style

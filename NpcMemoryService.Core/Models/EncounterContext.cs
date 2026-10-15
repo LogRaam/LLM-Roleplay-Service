@@ -789,6 +789,24 @@ namespace NpcMemoryService.Core.Models
       public int BastardBlackmailDemand { get; init; }
 
       /// <summary>
+      ///   Lords with aims of their own (tashmetu, 14/10/2026): the aim this character holds, in their own terms, as
+      ///   another mod registered it and the host bounded it. Null when they hold none, and then nothing is written.
+      /// </summary>
+      public string? OwnAimWant { get; init; }
+
+      /// <summary>One line on what the player has to do with the aim. Null when the registering mod gave none.</summary>
+      public string? OwnAimPlayerPart { get; init; }
+
+      /// <summary>How this character goes after the aim, from their traits, composed by the host (never a lie, never an unmade promise).</summary>
+      public string? OwnAimApproach { get; init; }
+
+      /// <summary>
+      ///   True when the host gave leave, for this whole conversation, to bring the aim up unbidden. The host decides it
+      ///   once at the opening, so it never flips between two replies. False: the aim stands, but they wait to be asked.
+      /// </summary>
+      public bool OwnAimMayRaise { get; init; }
+
+      /// <summary>
       ///   True when the player is the NPC's captive AND the witnesses present are
       ///   active participants rather than bystanders (Sprint 17 collective captive scene).
       ///   Causes the prompt to instruct the NPC to involve the witnesses explicitly.

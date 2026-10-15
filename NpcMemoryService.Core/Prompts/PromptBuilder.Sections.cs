@@ -135,6 +135,9 @@ namespace NpcMemoryService.Core.Prompts
          Section("companion_briefing_scene", PromptZone.Prefix, (b, sb, s) => AppendCompanionBriefingScene(sb, s.Context)),
          Section("intimacy_bargain", PromptZone.Prefix, (b, sb, s) => b.AppendIntimacyBargain(sb, s.Context)),
          Section("bastard_mother", PromptZone.Prefix, (b, sb, s) => b.AppendBastardMother(sb, s.Context)),
+         // Prefix, not tail: the aim and the leave are both fixed for the whole conversation (the host decides the
+         // leave once at the opening), so the section never changes between two replies.
+         Section("own_aim", PromptZone.Prefix, (b, sb, s) => AppendOwnAim(sb, s.Context)),
          Section("marriage", PromptZone.Prefix, (b, sb, s) => AppendMarriage(sb, s.Context)),
          Section("matchmaker", PromptZone.Prefix, (b, sb, s) => AppendMatchmaker(sb, s.Context)),
          // The player's chosen writing voice. Last of the cacheable prefix: it is stable for the whole
