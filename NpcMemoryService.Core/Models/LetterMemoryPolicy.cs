@@ -91,6 +91,8 @@ namespace NpcMemoryService.Core.Models
             case LetterReason.LeakedCorrespondence: return "having come into possession of an intercepted letter";
             case LetterReason.ServiceOffer: return "to offer them a place in my own service";
             case LetterReason.PrisonerOffer: return "to offer a price for a prisoner they held";
+            case LetterReason.WarSummons: return "to summon them to answer for sitting out the war";
+            case LetterReason.WarLevyDemand: return "to demand a levy for their absence from the war";
             // A future LetterReason with no mapping yet still gets a plain, truthful fallback rather than
             // an exception thrown deep in a letter-delivery tick.
             default: return "in correspondence";

@@ -207,6 +207,20 @@ namespace NpcMemoryService.Core.Models
       ///   fact (who bested whom, in which round) and the spirit to write in. Distinct from <see cref="TournamentVictory" />
       ///   (bystanders acclaiming a player who WON). Added last to preserve old-save ordinals.
       /// </summary>
-      TournamentResult
+      TournamentResult,
+
+      /// <summary>
+      ///   The player's liege summons them, a sworn vassal who has sat out the realm's war, to come before them in
+      ///   person and answer for it (Maifailun and Gabriel, 15/10/2026). The Context carries the war, how long, the
+      ///   days given to come, and what follows if they do not. Added last to preserve old-save ordinals.
+      /// </summary>
+      WarSummons,
+
+      /// <summary>
+      ///   The summoned vassal never came: the liege demands, by letter, a levy in coin (or troops, horses or arms to its
+      ///   value) to stand for their absence from the front, by a deadline, and says what follows if nothing is given.
+      ///   The Context carries the sum, the deadline and the consequence. Added last to preserve old-save ordinals.
+      /// </summary>
+      WarLevyDemand
    }
 }
