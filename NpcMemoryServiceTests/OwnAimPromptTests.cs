@@ -58,6 +58,17 @@ namespace NpcMemoryServiceTests
          p.Should().NotContain("you may bring it up yourself");
       }
 
+      // The leave is refused for reasons with no history behind them too (an enemy, a captivity, a letters-only aim).
+      // Telling the lord he "already spoke of it" would have him invent a conversation that never took place.
+      [Test]
+      public void GIVEN_the_leave_refused_WHEN_built_THEN_the_lord_is_told_of_no_earlier_conversation()
+      {
+         string p = Prompt(Lord(mayRaise: false));
+
+         p.Should().NotContain("already spoken of it");
+         p.Should().NotContain("spoke of it");
+      }
+
       // tashmetu: "In compact mode it would be one line." A small model's context has no room for the full block.
       [Test]
       public void GIVEN_compact_mode_WHEN_built_THEN_the_aim_is_one_line()
@@ -65,6 +76,9 @@ namespace NpcMemoryServiceTests
          string p = Prompt(Lord(mayRaise: true, LeanPromptLevel.Lean));
 
          p.Should().Contain($"YOUR OWN AIM: {Want} {Part} You may bring it up once, when it fits.");
+         // The full block's approach sentence is dropped here, so its two guards travel in a few words: NPCs never lie
+         // (Gabriel, 20/09/2026) and gating before declaration (09/09/2026). A small model needs them more, not less.
+         p.Should().Contain("Never a falsehood, never a promise the world has not made true.");
          p.Should().NotContain("WHAT YOU WANT (your own aim, not a duty):");
       }
 

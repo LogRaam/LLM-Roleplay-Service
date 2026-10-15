@@ -5912,7 +5912,7 @@ namespace NpcMemoryService.Core.Prompts
          if (context.LeanLevel == LeanPromptLevel.Lean)
          {
             string leave = context.OwnAimMayRaise ? "You may bring it up once, when it fits." : "Do not bring it up yourself.";
-            sb.AppendLine($"YOUR OWN AIM: {want}{(string.IsNullOrEmpty(part) ? "" : " " + part)} {leave}");
+            sb.AppendLine($"YOUR OWN AIM: {want}{(string.IsNullOrEmpty(part) ? "" : " " + part)} {leave} Never a falsehood, never a promise the world has not made true.");
             sb.AppendLine();
             return;
          }
@@ -5923,7 +5923,7 @@ namespace NpcMemoryService.Core.Prompts
          if (!string.IsNullOrEmpty(how)) sb.AppendLine(how);
          sb.AppendLine(context.OwnAimMayRaise
             ? "You need not wait to be asked: once in this conversation, when it fits, you may bring it up yourself. Never force it into a moment it does not fit, and drop it if they turn it aside."
-            : "You have already spoken of it with them, or this is not the moment. Do not bring it up yourself; if they raise it, it is still what you want.");
+            : "Do not bring it up yourself in this conversation; if they raise it, it is still what you want.");
          sb.AppendLine();
       }
 
