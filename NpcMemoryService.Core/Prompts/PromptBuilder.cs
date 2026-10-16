@@ -3882,6 +3882,24 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   The player, a vassal who sat out the war, stands before this liege to answer for it (Maifailun and Gabriel,
+      ///   15/10/2026: a summons, then a levy in coin, else troops, horses or arms, else a fief). The host words the terms
+      ///   from the reckoning as it stands; this section frames them and holds the character to them, so he names only
+      ///   what the game will carry out (gating before declaration) and never calls the levy paid before the game does.
+      /// </summary>
+      private static void AppendWarDutyTerms(StringBuilder sb, EncounterContext? context)
+      {
+         if (string.IsNullOrWhiteSpace(context?.WarDutyTerms)) return;
+
+         sb.AppendLine("THE PLAYER'S RECKONING BEFORE YOU, THEIR LIEGE:");
+         sb.AppendLine(context!.WarDutyTerms.Trim());
+         sb.AppendLine("Hold them to it as your character would: sternly, graciously, or with open contempt. Name only the consequence");
+         sb.AppendLine("given here and threaten nothing it does not. Never call the levy paid or settled until the game confirms a");
+         sb.AppendLine("hand-over; a promise to pay later is not payment.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
       ///   What a captive of the player may offer for her freedom, and how readily (the host's CaptiveOfferPolicy).
       ///   Maifailun (Nexus, 14/10/2026): Adrichea, with no honor, mercy or generosity, answered a bargain with "kill me
       ///   if you must"; Gabriel (14/10/2026): the captive proposes terms herself, and in Mature content and above a

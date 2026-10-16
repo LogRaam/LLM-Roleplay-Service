@@ -1055,6 +1055,13 @@ namespace NpcMemoryService.Core.Models
       public string? CaptiveDisposition { get; init; }
 
       /// <summary>
+      ///   The vassal war duty (Maifailun and Gabriel, 15/10/2026): this character is the player's liege and holds them to
+      ///   account for sitting out his war. The host words what is owed, by when, how it may be paid here, and the one
+      ///   consequence the game will carry out. Null when the player owes this character nothing.
+      /// </summary>
+      public string? WarDutyTerms { get; init; }
+
+      /// <summary>
       ///   True when this NPC is a LORD the player currently holds prisoner, and recruit_prisoner is NOT
       ///   (yet) taught to them, either because their personal regard has not reached
       ///   <c>PrisonerRecruitmentPolicy.RegardFloor</c> or because they lead their own clan (never

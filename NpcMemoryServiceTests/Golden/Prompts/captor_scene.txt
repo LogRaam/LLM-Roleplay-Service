@@ -1305,6 +1305,12 @@ If you still mean it, state it plainly again in a correctly formatted block; oth
 THE PLAYER holds these lord captives, not you:
 [HeldLordPrisoners]
 
+THE PLAYER'S RECKONING BEFORE YOU, THEIR LIEGE:
+[WarDutyTerms]
+Hold them to it as your character would: sternly, graciously, or with open contempt. Name only the consequence
+given here and threaten nothing it does not. Never call the levy paid or settled until the game confirms a
+hand-over; a promise to pay later is not payment.
+
 THE ITEM HELD OUT TO YOU: [ItemOnOffer], worth about 3 denars at market.
 Your purse holds 3 denars: never offer or agree to pay more than that.
 You may buy it at a price you both agree (sell_item), haggle, decline, accept it as a gift if it is one
