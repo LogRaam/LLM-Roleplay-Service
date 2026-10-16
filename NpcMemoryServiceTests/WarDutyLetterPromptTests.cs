@@ -49,7 +49,7 @@ namespace NpcMemoryServiceTests
          string prompt = LetterPromptBuilder.BuildInitialLetterMessage(Liege(), LetterReason.WarLevyDemand, "3000 denars.", "Gabriel");
 
          prompt.Should().Contain("with the sum exactly as the Context gives it");
-         prompt.Should().Contain("troops, horses or arms to its value will serve as well");
+         prompt.Should().Contain("what else may serve in its place");
       }
 
       // STAKE: a LetterReason is saved as its ordinal; inserting the new ones anywhere but the end would turn every
