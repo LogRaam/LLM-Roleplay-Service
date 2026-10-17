@@ -836,6 +836,13 @@ namespace NpcMemoryService.Core.Models
       public bool CaptiveVictimIsFemale { get; init; }
 
       /// <summary>
+      ///   The player's character is a woman (true) or a man (false); null when the host does not say. The action
+      ///   interpreter writes the NPC's memory of the turn and knew the player only by name, so it guessed "he" for a
+      ///   woman (Gabriel, 17/10/2026: "I pledged my eyes and ears to Fercread against the threat he described").
+      /// </summary>
+      public bool? PlayerIsFemale { get; init; }
+
+      /// <summary>
       ///   True when the PLAYER is the captor and the NPC is their prisoner in a deliberate captor scene (the
       ///   inverse of the captive scene). The player directs; the NPC reacts as a captive of their own nature.
       ///   Drives <c>AppendPlayerCaptorSceneRules</c>; the player's intent is carried by <see cref="CaptiveIntent" />.

@@ -96,6 +96,19 @@ namespace NpcMemoryServiceTests
          capturingClient.LastRequest!.SystemPrompt.Should().Contain("written in YOUR name, at your dictation, by the chancellery of Her Majesty Rhagaea");
       }
 
+      // Gabriel (17/10/2026): a memory written about a female player said "he". A letter's memory names her in the
+      // third person too, so the model is told her pronouns.
+      [Test]
+      public async Task GIVEN_the_player_is_a_woman_WHEN_the_letter_memory_prompt_is_built_THEN_it_gives_her_pronouns()
+      {
+         var capturingClient = new CapturingLlmClient();
+         var summarizer = new LetterMemorySummarizer(capturingClient);
+
+         await summarizer.SummarizeAsync(Npc(), "Will you accept my terms?", false, "Fercread", playerIsFemale: true);
+
+         capturingClient.LastRequest!.SystemPrompt.Should().Contain("Fercread is a woman: refer to her as she/her.");
+      }
+
       #region private
 
       private static NpcProfile Npc() => new() {

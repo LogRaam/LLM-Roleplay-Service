@@ -46,12 +46,13 @@ namespace NpcMemoryService.Core.Services
          string conversationTranscript,
          string playerName,
          string? replyLanguage = null,
-         CancellationToken ct = default)
+         CancellationToken ct = default,
+         bool? playerIsFemale = null)
       {
          if (npc == null || string.IsNullOrWhiteSpace(conversationTranscript)) return null;
 
          var request = new LlmRequest {
-            SystemPrompt = BuildSystemPrompt(npc, playerName, replyLanguage),
+            SystemPrompt = BuildSystemPrompt(npc, playerName, replyLanguage, playerIsFemale),
             Messages = [new LlmMessage(MessageRole.User, conversationTranscript)],
             Parameters = Parameters
          };
@@ -72,13 +73,15 @@ namespace NpcMemoryService.Core.Services
 
       #region private
 
-      private static string BuildSystemPrompt(NpcProfile npc, string playerName, string? replyLanguage)
+      private static string BuildSystemPrompt(NpcProfile npc, string playerName, string? replyLanguage, bool? playerIsFemale)
       {
          string who = string.IsNullOrWhiteSpace(playerName)
             ? "a visitor"
             : playerName;
          var sb = new StringBuilder();
          sb.AppendLine($"You are {npc.Name}. You just spoke with {who}; the conversation has ended.");
+         string pronouns = PlayerPronounLine.For(who, playerIsFemale);
+         if (pronouns.Length > 0) sb.AppendLine(pronouns);
          sb.AppendLine("Below is the transcript of the exchange.");
          sb.AppendLine();
          sb.AppendLine("Write ONE or TWO sentences, in the FIRST PERSON and PAST TENSE, capturing what YOU");

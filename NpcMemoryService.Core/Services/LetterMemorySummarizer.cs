@@ -49,12 +49,13 @@ namespace NpcMemoryService.Core.Services
          string playerName,
          string? replyLanguage = null,
          CancellationToken ct = default,
-         string? writtenBy = null)
+         string? writtenBy = null,
+         bool? playerIsFemale = null)
       {
          if (npc == null || string.IsNullOrWhiteSpace(letterContent)) return null;
 
          var request = new LlmRequest {
-            SystemPrompt = BuildSystemPrompt(npc, npcIsSender, playerName, replyLanguage, writtenBy),
+            SystemPrompt = BuildSystemPrompt(npc, npcIsSender, playerName, replyLanguage, writtenBy, playerIsFemale),
             Messages = [new LlmMessage(MessageRole.User, letterContent)],
             Parameters = Parameters
          };
@@ -75,7 +76,7 @@ namespace NpcMemoryService.Core.Services
 
       #region private
 
-      private static string BuildSystemPrompt(NpcProfile npc, bool npcIsSender, string playerName, string? replyLanguage, string? writtenBy = null)
+      private static string BuildSystemPrompt(NpcProfile npc, bool npcIsSender, string playerName, string? replyLanguage, string? writtenBy = null, bool? playerIsFemale = null)
       {
          string who = string.IsNullOrWhiteSpace(playerName)
             ? "the player"
@@ -89,6 +90,8 @@ namespace NpcMemoryService.Core.Services
             : npcIsSender
                ? $"You are {npc.Name}. Below is a letter YOU wrote and sent to {who}."
                : $"You are {npc.Name}. Below is a letter {who} sent to you.");
+         string pronouns = PlayerPronounLine.For(who, playerIsFemale);
+         if (pronouns.Length > 0) sb.AppendLine(pronouns);
          sb.AppendLine();
          sb.AppendLine("Write ONE or TWO sentences, in the FIRST PERSON and PAST TENSE, capturing what YOU");
          sb.AppendLine("remember of this letter, for your own private memory: what it proposed, asked, agreed,");

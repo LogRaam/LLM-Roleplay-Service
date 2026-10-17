@@ -43,6 +43,19 @@ namespace NpcMemoryServiceTests
          capturingClient.LastRequest!.SystemPrompt.Should().Contain("what was agreed should happen next");
       }
 
+      // Gabriel (17/10/2026): a companion remembered "the threat he described" of Fercread, a woman. The summary
+      // is written in the third person about the player, so the model must be told her pronouns, never left to guess.
+      [Test]
+      public async Task GIVEN_the_player_is_a_woman_WHEN_the_summary_prompt_is_built_THEN_it_gives_her_pronouns()
+      {
+         var capturingClient = new CapturingLlmClient();
+         var summarizer = new ConversationSummarizer(capturingClient);
+
+         await summarizer.SummarizeAsync(Npc(), "You: be watchful. Mesui: I will.", "Fercread", playerIsFemale: true);
+
+         capturingClient.LastRequest!.SystemPrompt.Should().Contain("Fercread is a woman: refer to her as she/her.");
+      }
+
       #region private
 
       private static NpcProfile Npc() => new() {

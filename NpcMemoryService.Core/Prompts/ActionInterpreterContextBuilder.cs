@@ -189,7 +189,16 @@ namespace NpcMemoryService.Core.Prompts
          string? war = DescribeWar(context);
          if (!string.IsNullOrEmpty(war)) clauses.Add(war!);
 
-         return clauses.Count == 0 ? player : player + ", " + string.Join("; ", clauses);
+         // The memory this digest feeds names the player in the third person; without the sex the model guessed
+         // "he" for a woman (Gabriel, 17/10/2026).
+         string named = context?.PlayerIsFemale switch
+         {
+            true => player + " (a woman: she/her)",
+            false => player + " (a man: he/him)",
+            _ => player
+         };
+
+         return clauses.Count == 0 ? named : named + ", " + string.Join("; ", clauses);
       }
 
       /// <summary>A short standing phrase from the player's status toward this NPC; null for the ordinary free/unknown case.</summary>

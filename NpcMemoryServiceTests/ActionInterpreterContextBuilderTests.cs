@@ -116,6 +116,21 @@ namespace NpcMemoryServiceTests
          digest.Should().Contain("the player");
       }
 
+      // Gabriel (17/10/2026): the interpreter wrote "the threat he described" of Fercread, a woman, because the digest
+      // named her and never said she was one. The memory it writes must carry the player's right pronouns; when the
+      // host does not say, nothing is claimed either way.
+      [Test]
+      public void GIVEN_the_player_is_a_woman_WHEN_projected_THEN_the_player_line_gives_her_pronouns()
+      {
+         string woman = ActionInterpreterContextBuilder.Project(new EncounterContext {PlayerIsFemale = true}, null, "Fercread");
+         string man = ActionInterpreterContextBuilder.Project(new EncounterContext {PlayerIsFemale = false}, null, "Fercread");
+         string unsaid = ActionInterpreterContextBuilder.Project(new EncounterContext(), null, "Fercread");
+
+         woman.Should().Contain("PLAYER: Fercread (a woman: she/her)");
+         man.Should().Contain("PLAYER: Fercread (a man: he/him)");
+         unsaid.Should().NotContain("she/her").And.NotContain("he/him");
+      }
+
       // Captive and captor are mirror images, and confusing them would invert who holds whom in the recorded memory
       // (a captured player remembered as the captor, or vice versa). Each PlayerStatus must yield its own sensible
       // standing phrase, and the ordinary free case must add none, so the interpreter grounds the power relation the
