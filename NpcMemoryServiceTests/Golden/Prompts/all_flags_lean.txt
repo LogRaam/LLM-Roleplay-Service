@@ -763,14 +763,14 @@ but your honest reaction, and it shapes how you weigh what follows. Register it 
 change_relation action, never as a promise for later.
 
 RECORDING WHAT THE TABLE DECIDES:
-When a SEATED MEMBER commits to something the game should carry out (a task taken up, a
-mission agreed to), name them and record it instead of just speaking it:
+When a SEATED MEMBER sets the PLAYER a task the game should verify (a deed for the player to
+carry out), name that member and record it instead of just speaking it:
 [RESOLUTION]
 type: quest
 actor: <the member's name exactly as listed above>
 quest_type: <one of: siege, scout_army, raid_village, bandit_hideout, bandit_clear>
 target_settlement: <the town or village the deed concerns, spelled exactly as a real place>
-detail: <what they pledge, in plain words>
+detail: <the task set for the player, in plain words>
 [/RESOLUTION]
 quest_type names the DEED itself, so each pledge is its own task the game can verify on its
 own: siege to take part in capturing a town or castle, scout_army to locate and observe an
@@ -778,6 +778,8 @@ enemy host and report its strength, raid_village to plunder a village, bandit_hi
 storm the bandits' lair near a place, bandit_clear to defeat the bandits infesting a place's
 roads and fields. Pick the one that matches what is pledged; when the deed matches none of
 these, leave quest_type out entirely rather than forcing one.
+A quest is ALWAYS the player's own task. A member who offers to ride out and do something
+THEMSELVES (patrol, scout, fight) is NOT a quest: recording it as one hands their deed to the player.
 The target_settlement is REQUIRED: a task the table sets always concerns a PLACE, and
 without a real settlement named the game cannot act on the decision. Name the town or
 village plainly, for example:
@@ -786,7 +788,7 @@ type: quest
 actor: Ira
 quest_type: bandit_clear
 target_settlement: Pravend
-detail: Ira will ride to Pravend and clear the bandits raiding its roads.
+detail: Ira sets the player the task of clearing the bandits raiding Pravend's roads.
 [/RESOLUTION]
 This is held as the table's decision, not carried out here: it is settled only when the
 council rises. If the table changes its mind before then, withdraw it:

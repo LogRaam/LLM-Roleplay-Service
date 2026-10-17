@@ -178,13 +178,24 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("type: quest");
          prompt.Should().Contain("actor: <the member's name exactly as listed below>");
          prompt.Should().Contain("target_settlement: <the town or village the deed concerns, spelled exactly as a real place>");
-         prompt.Should().Contain("detail: <what they pledge, in plain words>");
+         prompt.Should().Contain("detail: <the task set for the player, in plain words>");
          prompt.Should().Contain("[/RESOLUTION]");
       }
 
       // The regard-is-real channel: without this the model has no positive way to register a genuine, immediate
       // shift in one member's feeling, and (per the ratified 2026-07-24 design) would either invent its own tag
       // or wrongly treat every reaction as a deferred [RESOLUTION].
+      // jaserms1 (Nexus, 16/10/2026): a member's own offer to patrol villages was recorded as a quest and became the
+      // player's task. The quest kind must be taught as a task set FOR the player, never a member's own deed.
+      [Test]
+      public void GIVEN_any_input_WHEN_building_the_prompt_THEN_a_quest_is_taught_as_the_players_task_never_a_members_own_deed()
+      {
+         string prompt = CouncilPromptBuilder.Build(MinimalInput("Ajin"));
+
+         prompt.Should().Contain("sets the PLAYER a task");
+         prompt.Should().Contain("is NOT a quest");
+      }
+
       [Test]
       public void GIVEN_any_input_WHEN_building_the_prompt_THEN_actor_attributed_change_relation_is_taught()
       {
