@@ -221,6 +221,13 @@ namespace NpcMemoryService.Core.Models
       ///   value) to stand for their absence from the front, by a deadline, and says what follows if nothing is given.
       ///   The Context carries the sum, the deadline and the consequence. Added last to preserve old-save ordinals.
       /// </summary>
-      WarLevyDemand
+      WarLevyDemand,
+
+      /// <summary>
+      ///   A companion patrolling a place for the player writes each month with the patrol's real record and asks whether
+      ///   to keep on (Gabriel, 16/10/2026). The Context carries the place, the days out, the battles and the men fit.
+      ///   Added last to preserve old-save ordinals.
+      /// </summary>
+      PatrolReport
    }
 }

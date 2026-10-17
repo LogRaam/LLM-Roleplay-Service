@@ -117,7 +117,7 @@ namespace NpcMemoryService.Core.Prompts
       /// </summary>
       public static string BuildPlayerLetterReplyDecisionMessage(
          NpcProfile npc, string playerLetterContent, string playerName, string? whereabouts = null, string? playerSituation = null,
-         string? writtenBy = null, Mood.DayMood? mood = null)
+         string? writtenBy = null, Mood.DayMood? mood = null, bool onPatrol = false)
       {
          var sb = new StringBuilder();
          sb.AppendLine("[PLAYER LETTER RECEIVED — INTERNAL INSTRUCTION, DO NOT INCLUDE IN YOUR RESPONSE]");
@@ -158,6 +158,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("thing; never invent one. It is metadata for the courier system, never part of the letter.");
          sb.AppendLine();
          AppendToneLine(sb, playerName);
+         if (onPatrol) AppendPatrolOrderLine(sb, playerName);
          sb.AppendLine("Even when you PASS, add that line after the PASS line.");
          sb.AppendLine();
          sb.AppendLine("Example output:");
@@ -174,7 +175,7 @@ namespace NpcMemoryService.Core.Prompts
       /// </summary>
       public static string BuildReplyLetterMessage(
          NpcProfile npc, string playerReply, LetterReason originalReason, string playerName, string? whereabouts = null, string? playerSituation = null,
-         string? writtenBy = null, Mood.DayMood? mood = null)
+         string? writtenBy = null, Mood.DayMood? mood = null, bool onPatrol = false)
       {
          var sb = new StringBuilder();
          sb.AppendLine("[LETTER REPLY GENERATION — INTERNAL INSTRUCTION, DO NOT INCLUDE IN YOUR RESPONSE]");
@@ -209,10 +210,23 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Write ONLY the letter body in [DIALOGUE]. Do not emit [EVENT], [ACTION], [STANCE], or any");
          sb.AppendLine("section other than the letter text, with the one control line below. No section headers.");
          AppendToneLine(sb, playerName);
+         if (onPatrol) AppendPatrolOrderLine(sb, playerName);
          return sb.ToString();
       }
 
       // ── Helpers ─────────────────────────────────────────────────────────────
+
+      // Gabriel (16/10/2026): a patrolling companion keeps on until the player says stop, in chat or by letter. A letter
+      // may emit no [ACTION], so the order rides a control line the host reads; no line means keep patrolling.
+      private static void AppendPatrolOrderLine(StringBuilder sb, string playerName)
+      {
+         sb.AppendLine();
+         sb.AppendLine($"You lead a patrol at {playerName}'s order. If this letter clearly orders you to end it and come");
+         sb.AppendLine("back, add, on a line of its own after everything else:");
+         sb.AppendLine("  [PATROL] stop");
+         sb.AppendLine("If it tells you to keep on, or does not say, add nothing: you keep patrolling. Never add it on");
+         sb.AppendLine("your own wish; it is the player's order. It is metadata for the game, never part of the letter.");
+      }
 
       // Lordfadooboo (Nexus, 28/09/2026): a dozen letters and the reader's regard had not moved, because a letter may
       // emit no [ACTION]. The reader judges the letter here; the mod alone decides what that is worth (a small, paced
@@ -280,6 +294,7 @@ namespace NpcMemoryService.Core.Prompts
          LetterReason.TournamentResult      => "A tournament has just concluded in which both you and the player competed. The Context below tells you exactly how it went BETWEEN you (who bested whom, and in which round) and the spirit in which you write now: to crow over besting them, to congratulate them graciously, or to acknowledge a hard-fought bout. Write in that spirit, naming the bout as the Context gives it, in your own character. Draw ONLY on what the Context states; invent no other detail of the fighting.",
          LetterReason.WarSummons            => "You are the player's liege, and they are your sworn vassal. Your realm is at war and they have not ridden in it. You summon them to come before you in person and answer for their absence. The Context below names the war, how long they have been absent, how many days they have to come, and what follows if they do not. State the summons plainly in your own voice and your own temper (cold, wounded, stern or measured, as your nature and your regard for them dictate). Name only the consequence the Context gives; threaten nothing it does not.",
          LetterReason.WarLevyDemand         => "You are the player's liege. You summoned them, your sworn vassal, to answer in person for sitting out your war, and they did not come. You now demand a levy to stand for their absence from the front. The Context below gives the exact sum, what else may serve in its place, the days they have, and what follows if they give nothing. State the demand plainly, in your own voice, with the sum exactly as the Context gives it. Name only the consequence the Context gives; threaten nothing it does not.",
+         LetterReason.PatrolReport          => "You are the player's companion, patrolling a place at their order with men of their party. Write your report for the month. The Context below is the patrol's real record: where, how long, the fights won and lost, the men fit now. Report ONLY what the Context gives; invent no fight, no foe, no name and no number. Then ask plainly whether you should keep patrolling or come back.",
          _                                  => "You have a matter of personal importance to communicate."
       };
    }
