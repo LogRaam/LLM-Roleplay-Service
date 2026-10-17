@@ -667,7 +667,7 @@ namespace NpcMemoryService.Core.Actions
                   "a companion leaving to take up a post rather than stepping down from one to return"
                }),
             Spec("dispatch_mission",
-               "The player sends the NPC, a companion in their own party, out on an errand; the game itself picks the destination, never the model.",
+               "The player sends the NPC, a companion in their own party, on an errand or a patrol; only a patrol's place is named, by the player.",
                tells: new[] {
                   "the player actually sends the NPC companion out on an errand in this reply"
                },
@@ -676,8 +676,9 @@ namespace NpcMemoryService.Core.Actions
                   "assigning the companion an in-party duty rather than sending them out on an external errand, which is assign_party_role",
                   "the deprecated gather_news alias vocabulary; prefer recognising this deed under the current verb dispatch_mission"
                },
-               new GameActionParam("target_mission", "one of: gathernews, spy, steal, barter, envoy"),
-               new GameActionParam("about", "optional: the realm, town, or lord the errand concerns; omitted when left open")),
+               new GameActionParam("target_mission", "one of: gathernews, spy, steal, barter, envoy, patrol"),
+               new GameActionParam("about", "optional: realm, town or lord concerned"),
+               new GameActionParam("target_settlement", "patrol's place")),
             Spec("grant_fief",
                "The player, as sovereign, grants one of their own crown fiefs to the NPC's house (a vassal of a separate clan in the player's kingdom).",
                tells: new[] {

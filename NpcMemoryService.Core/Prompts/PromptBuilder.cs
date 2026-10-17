@@ -1549,7 +1549,8 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("A seated member who rides in your own party may also be sent out on an ERRAND: they");
                sb.AppendLine("leave and return later on their own, you do not choose where they go, only what they");
                sb.AppendLine("do. Name the errand plainly in target_mission, exactly one of: GatherNews, Spy, Steal,");
-               sb.AppendLine("Barter, or Envoy:");
+               sb.AppendLine("Barter, or Envoy. Or Patrol, to guard a place with men of the party until called back: then");
+               sb.AppendLine("add target_settlement with the place the table named (a patrol is never a quest):");
                sb.AppendLine("[RESOLUTION]");
                sb.AppendLine("type: dispatch_mission");
                sb.AppendLine("actor: Ira");
@@ -3452,6 +3453,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("  - steal     : lift coin from a place");
          sb.AppendLine("  - barter    : turn a profit at market");
          sb.AppendLine("  - envoy     : take the measure of a faction's mood");
+         // jaserms1 (Nexus, 16/10/2026): a patrol order had no verb; Gabriel's ruling: the player names the place.
+         sb.AppendLine("  - patrol    : guard a place THE PLAYER NAMES, with men of the party, until called back");
          sb.AppendLine();
          sb.AppendLine("When you clearly agree to go, and only then, emit:");
          sb.AppendLine("[ACTION]");
@@ -3461,6 +3464,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("The game sends you off; you leave the party, ride there, and return after some days with the");
          sb.AppendLine("result. Do NOT invent the result now, and do not name a destination; the game chooses where.");
+         sb.AppendLine("A patrol is the one exception: add target_settlement with the place the player named, as they");
+         sb.AppendLine("spelled it. Never pick the place yourself; the player then chooses the men who ride with you.");
          sb.AppendLine("The optional 'about' names only WHAT the player wants word of (a realm, a town, a lord); it is");
          sb.AppendLine("never a destination, and you omit the line entirely when they simply want word of the world.");
          sb.AppendLine();

@@ -100,7 +100,7 @@ Available actions:
 - appoint_governor: The player names the NPC, who is of the player's own clan, to govern one of the clan's fiefs that currently has no governor.
 - assign_party_role: The player sets the NPC, a companion riding in their own party, to a duty within it.
 - rejoin_party: An away companion agrees to come back to the player's party, stepping down first from any post (e.g. a governorship) they hold elsewhere.
-- dispatch_mission: The player sends the NPC, a companion in their own party, out on an errand; the game itself picks the destination, never the model.
+- dispatch_mission: The player sends the NPC, a companion in their own party, on an errand or a patrol; only a patrol's place is named, by the player.
 - grant_fief: The player, as sovereign, grants one of their own crown fiefs to the NPC's house (a vassal of a separate clan in the player's kingdom).
 - revoke_fief: The player, as sovereign, strips a fief back from the NPC's (separate) vassal house, returning it to the crown; plants a grave grudge.
 - expel_from_clan: The player casts the NPC, a companion of their own clan, out of it entirely; the NPC becomes a Fugitive.
@@ -693,6 +693,7 @@ and you agree, name exactly one of these words, plainly:
   - steal     : lift coin from a place
   - barter    : turn a profit at market
   - envoy     : take the measure of a faction's mood
+  - patrol    : guard a place THE PLAYER NAMES, with men of the party, until called back
 
 When you clearly agree to go, and only then, emit:
 [ACTION]
@@ -702,6 +703,8 @@ about: a faction, culture, town, or lord the player named (omit this line if the
 [/ACTION]
 The game sends you off; you leave the party, ride there, and return after some days with the
 result. Do NOT invent the result now, and do not name a destination; the game chooses where.
+A patrol is the one exception: add target_settlement with the place the player named, as they
+spelled it. Never pick the place yourself; the player then chooses the men who ride with you.
 The optional 'about' names only WHAT the player wants word of (a realm, a town, a lord); it is
 never a destination, and you omit the line entirely when they simply want word of the world.
 
