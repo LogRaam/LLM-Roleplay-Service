@@ -26,6 +26,9 @@ namespace NpcMemoryService.Core.Standing
    /// </summary>
    public readonly struct VanillaRelation
    {
+      /// <summary>The scale's bound: a relation runs from minus this to this (an authored history's starting relation is clamped to it).</summary>
+      public const int Bound = 100;
+
       /// <summary>Warm enough to be called a friend, the tier the prompt uses when it names a third party (`ThirdPartyDescriptor`).</summary>
       public const int FriendTier = 10;
 
