@@ -111,6 +111,32 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("word for word");
       }
 
+      // STAKE: Gabriel 17/10/2026, the long-term memory serves conversations about the past. A past event the player
+      // named reaches the model under its own heading, which tells him it is old and not this season's rumour.
+      [Test]
+      public void GIVEN_a_past_on_mention_block_WHEN_building_the_prompt_THEN_it_renders_under_its_own_heading_as_the_past()
+      {
+         var builder = new PromptBuilder();
+         const string pastLine = "- (you were part of it) Lord Garios betrayed Lord Caladog (9 years ago). PAST_MARKER.";
+         var context = new EncounterContext {LeanLevel = LeanPromptLevel.Full, PastOnMentionBlock = pastLine};
+
+         string prompt = builder.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain("WHAT YOU REMEMBER OF THE PAST THAT TOUCHES ON THIS");
+         prompt.Should().Contain(pastLine);
+         prompt.Should().Contain("never as fresh news");
+         prompt.IndexOf(pastLine).Should().BeGreaterThan(prompt.IndexOf(PromptBuilder.EncounterSectionHeading));
+      }
+
+      // Nothing named in the speaker's past: the prompt is as before.
+      [Test]
+      public void GIVEN_no_past_on_mention_block_WHEN_building_the_prompt_THEN_its_heading_is_absent()
+      {
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, new EncounterContext {LeanLevel = LeanPromptLevel.Full});
+
+         prompt.Should().NotContain("WHAT YOU REMEMBER OF THE PAST");
+      }
+
       // STAKE (Part A, commoner path): the same weak-model regurgitation risk exists on the slim commoner
       // prompt (BuildCommonerSystemPrompt), which injects CommonsKnowledge.RumorsBlock raw the same way.
       [Test]

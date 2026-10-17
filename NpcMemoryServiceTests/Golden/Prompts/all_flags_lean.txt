@@ -697,6 +697,14 @@ as a list. The same hedging applies: '(heard secondhand)' you hold loosely, '(a 
 unverified rumour)' you repeat with real doubt.
 [QueryRelevantFactsBlock]
 
+WHAT YOU REMEMBER OF THE PAST THAT TOUCHES ON THIS (older things than the news, bearing on what they just named):
+These happened long ago, as each line says; speak of them as the past, never as fresh news. One marked
+'(you were part of it)' you lived yourself and remember as your own deed or loss; one marked '(before you
+were born: you know it as it was told)' you know only from the telling of your elders; the rest is what
+your house and realm remember. Put them in your own words, never word for word and never as a list, and
+add no detail they do not give.
+[PastOnMentionBlock]
+
 WHAT IS SAID OF THE ONE BEFORE YOU (deeds word lays at their feet):
 These are NOT rumours of strangers — they are deeds reputed of the very person you are
 speaking with now. You did not witness them; word reached you. Let them colour how you

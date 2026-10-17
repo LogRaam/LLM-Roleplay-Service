@@ -1349,6 +1349,21 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         // The long-term past the player just named (Gabriel, 17/10/2026: the long-term memory serves "des conversations
+         // entre joueur et NPC sur le passe"). Its own heading: these are not this season's rumours but old things,
+         // some the speaker lived himself.
+         if (!string.IsNullOrWhiteSpace(context.PastOnMentionBlock))
+         {
+            sb.AppendLine("WHAT YOU REMEMBER OF THE PAST THAT TOUCHES ON THIS (older things than the news, bearing on what they just named):");
+            sb.AppendLine("These happened long ago, as each line says; speak of them as the past, never as fresh news. One marked");
+            sb.AppendLine("'(you were part of it)' you lived yourself and remember as your own deed or loss; one marked '(before you");
+            sb.AppendLine("were born: you know it as it was told)' you know only from the telling of your elders; the rest is what");
+            sb.AppendLine("your house and realm remember. Put them in your own words, never word for word and never as a list, and");
+            sb.AppendLine("add no detail they do not give.");
+            sb.AppendLine(context.PastOnMentionBlock);
+            sb.AppendLine();
+         }
+
          if (!string.IsNullOrWhiteSpace(context.PlayerDeedsHeard))
          {
             sb.AppendLine("WHAT IS SAID OF THE ONE BEFORE YOU (deeds word lays at their feet):");

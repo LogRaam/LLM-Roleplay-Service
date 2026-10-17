@@ -1951,6 +1951,15 @@ namespace NpcMemoryService.Core.Models
       public string? QueryRelevantFactsBlock { get; init; }
 
       /// <summary>
+      ///   Pre-formatted "what you remember of the past that touches on this" block: long-term events (older than the
+      ///   news, authored history included) that name a person, a place or a realm the player named in this message,
+      ///   already cleared by the long-term knowledge gate (the speaker is in it, its kin, clan, place or realm, or was
+      ///   told). Each line says how long ago, and whether the speaker lived it or knows it only as told. Null when the
+      ///   player named nothing in the speaker's past (the common case): nothing renders.
+      /// </summary>
+      public string? PastOnMentionBlock { get; init; }
+
+      /// <summary>
       ///   Produces a natural-language description of this encounter, suitable
       ///   for injection into the LLM system prompt. Returns an empty string
       ///   when all fields are Unknown.
