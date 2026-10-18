@@ -73,5 +73,28 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().Contain("Always write your reply in Spanish");
       }
+
+      // STAKE: RaveN017Mod (17/10/2026): every council opened in English though his setting said French. The council
+      // builds its own prompt (CouncilPromptBuilder), a third call site that never carried the language; it now does,
+      // last in the prompt, from the first line.
+      [Test]
+      public void GIVEN_a_reply_language_set_WHEN_a_council_prompt_is_built_THEN_every_seat_speaks_it_from_the_first_line()
+      {
+         string prompt = CouncilPromptBuilder.Build(new CouncilPromptInput {
+            Roster = new[] {new CouncilMemberInput {Name = "Ira"}}, ReplyLanguage = "French", OpeningCue = "The war council convenes."
+         });
+
+         prompt.Should().Contain("in French, from the very first line");
+         prompt.TrimEnd().Should().EndWith("proper names stay exactly as given.");
+      }
+
+      // With no language, the table still follows the player's own language, as the 1:1 chat does.
+      [Test]
+      public void GIVEN_no_reply_language_WHEN_a_council_prompt_is_built_THEN_the_table_mirrors_the_player()
+      {
+         string prompt = CouncilPromptBuilder.Build(new CouncilPromptInput {Roster = new[] {new CouncilMemberInput {Name = "Ira"}}});
+
+         prompt.Should().Contain("Every seat speaks the language of the player's last line");
+      }
    }
 }

@@ -115,6 +115,12 @@ namespace NpcMemoryService.Core.Prompts
       public string? PlayerName { get; init; }
 
       /// <summary>
+      ///   The language every seat speaks in (the player's Reply Language, else the game's). Null or blank: the table
+      ///   follows the language the player writes in, as before. RaveN017Mod (17/10/2026): councils opened in English.
+      /// </summary>
+      public string? ReplyLanguage { get; init; }
+
+      /// <summary>
       ///   A one-time scene-setting stage direction for the sitting's OPENING turn only: who has gathered and
       ///   why, and the mood (e.g. a wary enemy envoy at a parley). Null on every later turn, where
       ///   <see cref="PlayerLine" /> and <see cref="TranscriptSoFar" /> carry the scene instead. Rendered as a

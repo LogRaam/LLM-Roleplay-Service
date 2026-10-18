@@ -62,8 +62,31 @@ namespace NpcMemoryService.Core.Prompts
          AppendTranscript(sb, input.TranscriptSoFar);
          AppendOfferedKinds(sb, input.OfferedResolutionKinds);
          AppendPlayerLine(sb, input);
+         AppendLanguage(sb, input.ReplyLanguage);
 
          return sb.ToString();
+      }
+
+      // The council never carried the player's Reply Language, so every sitting opened in English (RaveN017Mod,
+      // 17/10/2026). Last in the prompt, after the variable tail, so the stable head stays the cacheable prefix and the
+      // rule is the last thing read.
+      private static void AppendLanguage(StringBuilder sb, string? language)
+      {
+         sb.AppendLine();
+         sb.AppendLine("LANGUAGE OF THE SCENE:");
+
+         if (string.IsNullOrWhiteSpace(language))
+         {
+            sb.AppendLine("Every seat speaks the language of the player's last line; English when there is none yet.");
+         }
+         else
+         {
+            sb.AppendLine($"Every seat speaks, and every [SCENE] beat is written, in {language!.Trim()}, from the very first line,");
+            sb.AppendLine("whatever language the player or anything above is written in.");
+         }
+
+         sb.AppendLine("Keep the block labels ([SCENE], [SPEAKER: Name], [RESOLUTION] ...) and every keyword in English;");
+         sb.AppendLine("proper names stay exactly as given.");
       }
 
       #region private
