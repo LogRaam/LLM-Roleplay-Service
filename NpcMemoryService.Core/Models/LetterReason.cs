@@ -228,6 +228,14 @@ namespace NpcMemoryService.Core.Models
       ///   to keep on (Gabriel, 16/10/2026). The Context carries the place, the days out, the battles and the men fit.
       ///   Added last to preserve old-save ordinals.
       /// </summary>
-      PatrolReport
+      PatrolReport,
+
+      /// <summary>
+      ///   A letter another mod wrote in full for one of its heroes and handed to Calradia Remembers to deliver
+      ///   (CrLetters.Deliver; tashmetu, 18/10/2026: a lord's tournament invitation from Regard and Standing, shown in
+      ///   the courier window rather than the game's plain popup). Its body is never generated. Added last to
+      ///   preserve old-save ordinals.
+      /// </summary>
+      FromAnotherMod
    }
 }
