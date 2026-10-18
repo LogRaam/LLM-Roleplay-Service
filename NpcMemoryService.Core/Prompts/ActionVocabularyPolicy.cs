@@ -35,9 +35,11 @@ namespace NpcMemoryService.Core.Prompts
         /// <summary>
         ///   What one action's description is cut to in Lean. Chosen so all 69 fit in roughly a third of what
         ///   they cost unabridged, while still leaving room for the clause that distinguishes an action from its
-        ///   nearest neighbour, which is what these descriptions are mostly for.
+        ///   nearest neighbour, which is what these descriptions are mostly for. 90 until 18/10/2026, when
+        ///   press_for_war took the Compact interpreter head 123 characters past its 28,000 budget
+        ///   (CompactPromptFitTests); two characters off each long description brought it back under.
         /// </summary>
-        public const int LeanDescriptionChars = 90;
+        public const int LeanDescriptionChars = 88;
 
         /// <summary>
         ///   The description as this prompt should carry it. Full prompts get every word. Lean gets the first

@@ -1237,6 +1237,24 @@ namespace NpcMemoryService.Core.Actions
                expectedType: "pledge_against",
                expectedParams: new Dictionary<string, string> {{"target", "Doran"}}),
 
+            ActionBenchCase.Expect("press_for_war", "press_for_war",
+               contextFacts: "NPC: Count Aldric of Vlandia, whose house could press Vlandia toward war on the Sturgians.",
+               prose: "*Aldric sets down his cup.* You make the case well. The Sturgians have grown bold on our northern marches. I will carry it to the king's court myself, and my house will put the war to the vote.",
+               expectedType: "press_for_war",
+               expectedParams: new Dictionary<string, string> {{"target", "Sturgia"}}),
+
+            ActionBenchCase.Expect("press_for_war_v2", "press_for_war",
+               contextFacts: "NPC: Lady Ira of the Northern Empire, whose house could press her realm toward war on Battania.",
+               prose: "*Ira studies the map for a long moment, then nods once.* Very well. When I reach the court I shall speak for war on Battania, and let the houses weigh it. You have persuaded me; I will not pretend otherwise.",
+               expectedType: "press_for_war",
+               expectedParams: new Dictionary<string, string> {{"target", "Battania"}}),
+
+            ActionBenchCase.Expect("press_for_war_v3", "press_for_war",
+               contextFacts: "NPC: Bey Kaya of the Khuzaits, whose house could press the Khanate toward war on Aserai.",
+               prose: "*Kaya calls for his scribe and dictates a short letter to the Khan's council, naming the Aserai and asking that the question of war be put to the houses.* There. It is done; the rest is theirs to decide.",
+               expectedType: "press_for_war",
+               expectedParams: new Dictionary<string, string> {{"target", "Aserai"}}),
+
             ActionBenchCase.Expect("accept_divorce", "accept_divorce",
                contextFacts: "NPC: Sonja, the player's own spouse, has demanded a divorce, and the player has just agreed to it.",
                prose: "*Sonja's shoulders sag with something between relief and sorrow.* So you will let me go without a fight. Thank you for that mercy, at least. We will part as strangers, then, not enemies.",

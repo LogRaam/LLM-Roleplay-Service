@@ -1042,6 +1042,16 @@ namespace NpcMemoryService.Core.Actions
                   "the PLAYER joining the NPC's OWN existing scheme instead of the NPC vowing their own, which is scheme_assist"
                },
                new GameActionParam("target", "the rival's name, never the NPC's own close kin")),
+            Spec("press_for_war",
+               "A persuaded lord resolves to put war on a named realm to his realm's vote.",
+               tells: new[] {
+                  "the lord resolves in this reply to carry the case for war on a named realm to his court"
+               },
+               antiPatterns: new[] {
+                  "merely agreeing a realm is an enemy, or wishing for war, without resolving to press it",
+                  "a vow against one rival lord, which is pledge_against"
+               },
+               new GameActionParam("target", "the realm, by name")),
             Spec("accept_divorce",
                "The player consents to their own spouse's pending divorce demand (or ongoing estrangement); the marriage is dissolved by mutual accord, with a soft relation settling.",
                tells: new[] {
