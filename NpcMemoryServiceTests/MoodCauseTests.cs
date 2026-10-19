@@ -90,6 +90,14 @@ namespace NpcMemoryServiceTests
          MoodCause.Of(DayMood.HighSpirits, facts, 7)!.Text.Should().Be("the tournament you won at Lageta");
       }
 
+      // STAKE: a weary man in the small hours is weary over the hour, a wounded one over his wounds.
+      [Test]
+      public void GIVEN_a_weary_day_WHEN_its_cause_is_asked_THEN_the_hour_or_the_wound_is_named()
+      {
+         MoodCause.Of(DayMood.Weary, new MoodFacts {IsDeepNight = true, IsHurt = true}, 7)!.Text.Should().Be("the late hour");
+         MoodCause.Of(DayMood.Weary, new MoodFacts {IsHurt = true}, 7)!.Text.Should().Be("your wounds");
+      }
+
       // STAKE: asked twice the same day he tells the same small story; another day may bring another.
       [Test]
       public void GIVEN_a_day_no_fact_explains_WHEN_asked_twice_THEN_the_same_trifle_and_other_days_vary()
@@ -105,7 +113,7 @@ namespace NpcMemoryServiceTests
       [Test]
       public void GIVEN_the_table_WHEN_read_THEN_every_coloured_mood_has_trifles_of_its_own_colour()
       {
-         foreach (DayMood m in new[] {DayMood.Grim, DayMood.ShortTempered, DayMood.Guarded, DayMood.Restless, DayMood.Expansive, DayMood.HighSpirits})
+         foreach (DayMood m in new[] {DayMood.Grim, DayMood.ShortTempered, DayMood.Guarded, DayMood.Restless, DayMood.Expansive, DayMood.HighSpirits, DayMood.Weary})
             MoodCause.Trifles[m].Should().NotBeEmpty();
 
          MoodCause.Trifles[DayMood.Grim].Should().NotIntersectWith(MoodCause.Trifles[DayMood.HighSpirits]);

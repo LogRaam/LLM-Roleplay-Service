@@ -95,6 +95,10 @@ namespace NpcMemoryService.Core.Mood
                If(f.PersonalGladness, 5, gladness);
                If(f.RealmHasLatelyWon, 3, "your realm's war going well");
                break;
+            case DayMood.Weary:
+               If(f.IsDeepNight, 3, "the late hour");
+               If(f.IsHurt, 2, "your wounds");
+               break;
          }
 
          (int By, string Why)? best = null;
@@ -119,6 +123,10 @@ namespace NpcMemoryService.Core.Mood
             [DayMood.Restless] = new[] {
                "too long in one place", "a short night that left you wide awake", "a dream that left you uneasy",
                "a small matter you want settled that will not hurry", "more vigour this morning than the day has use for"
+            },
+            [DayMood.Weary] = new[] {
+               "a short night's sleep", "a long day begun before dawn", "an old ache that kept you up",
+               "too many small matters since morning", "a restless night with little rest in it"
             },
             [DayMood.Expansive] = new[] {
                "a good night's sleep", "a fine meal last evening", "an evening in good company", "no ache anywhere this morning",

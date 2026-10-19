@@ -38,14 +38,19 @@ namespace NpcMemoryService.Core.Mood
 
       /// <summary>
       ///   Where a man who began the conversation in <paramref name="start" /> stands after <paramref name="steps" />
-      ///   (clamped to the conversation's limit). Restless sits level with an ordinary day.
+      ///   (clamped to the conversation's limit). Restless sits level with an ordinary day; Weary one below it, level
+      ///   with guarded (lifted he is at ordinary ease, lowered he runs short of patience).
       /// </summary>
       public static DayMood Shift(DayMood start, int steps)
       {
          int clamped = Math.Max(-MaxStepsPerConversation, Math.Min(MaxStepsPerConversation, steps));
          if (clamped == 0) return start;
 
-         int at = start == DayMood.Restless ? Array.IndexOf(Rungs, DayMood.Even) : Array.IndexOf(Rungs, start);
+         int at = start switch {
+            DayMood.Restless => Array.IndexOf(Rungs, DayMood.Even),
+            DayMood.Weary => Array.IndexOf(Rungs, DayMood.Guarded),
+            _ => Array.IndexOf(Rungs, start)
+         };
          int to = Math.Max(0, Math.Min(Rungs.Length - 1, at + clamped));
 
          return Rungs[to];
@@ -115,6 +120,7 @@ namespace NpcMemoryService.Core.Mood
          DayMood.Restless => "You are restless today, energy with nowhere to put it: you get ahead of things and change the subject.",
          DayMood.Expansive => "You are in an open-handed humour today, and say a little more than you strictly meant to.",
          DayMood.HighSpirits => "You are in genuinely good spirits today.",
+         DayMood.Weary => "You are weary today: worn down, not unkind. Your answers come slower and shorter, and you have little appetite for anything that asks effort.",
          _ => null
       };
 
@@ -125,6 +131,7 @@ namespace NpcMemoryService.Core.Mood
          DayMood.Restless => "restless",
          DayMood.Expansive => "in an open-handed humour",
          DayMood.HighSpirits => "in good spirits",
+         DayMood.Weary => "weary",
          _ => "at an ordinary ease"
       };
    }

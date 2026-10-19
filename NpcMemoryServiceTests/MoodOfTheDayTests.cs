@@ -25,7 +25,7 @@ namespace NpcMemoryServiceTests
       [Test]
       public void GIVEN_a_day_with_nothing_pressing_WHEN_asked_THEN_every_mood_is_open_to_him()
       {
-         MoodOfTheDay.Permitted(Ordinary()).Should().HaveCount(7);
+         MoodOfTheDay.Permitted(Ordinary()).Should().HaveCount(8);
       }
 
       // THE HALF THE FIRST DRAFT WAS MISSING (Gabriel, 14/09/2026). Forbidding alone made every influence
@@ -81,7 +81,7 @@ namespace NpcMemoryServiceTests
       [Test]
       public void GIVEN_no_facts_at_all_WHEN_asked_THEN_it_constrains_nothing_rather_than_returning_nothing()
       {
-         MoodOfTheDay.Permitted(null).Should().HaveCount(7);
+         MoodOfTheDay.Permitted(null).Should().HaveCount(8);
       }
 
       // ── what a hard day forbids ──

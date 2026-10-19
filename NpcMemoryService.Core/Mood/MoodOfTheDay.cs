@@ -63,7 +63,14 @@ namespace NpcMemoryService.Core.Mood
       ///   In genuinely good spirits. The ONLY mood that can permit wit, and even then only rarely - see
       ///   <see cref="MoodOfTheDay.WitIsPermitted" />.
       /// </summary>
-      HighSpirits
+      HighSpirits,
+
+      /// <summary>
+      ///   Worn down, not unkind: slower and shorter, little appetite for effort (Lordfadooboo, 18/10/2026: "tired";
+      ///   Gabriel kept it, and not "drunk", since a drunk man says what a mood must never decide). Added last, so the
+      ///   values before it keep their numbers.
+      /// </summary>
+      Weary
    }
 
    /// <summary>How the day is pressing. The host reads these off the live game; every one is optional.</summary>
@@ -145,7 +152,8 @@ namespace NpcMemoryService.Core.Mood
             [DayMood.Guarded] = 3,
             [DayMood.Restless] = 3,
             [DayMood.Expansive] = 2,
-            [DayMood.HighSpirits] = 2
+            [DayMood.HighSpirits] = 2,
+            [DayMood.Weary] = 2
          };
 
          if (facts == null) return w;
@@ -174,8 +182,11 @@ namespace NpcMemoryService.Core.Mood
          if (facts.IsMaimed) Lean(w, DayMood.Guarded, 2);
          if (facts.CoffersAreEmpty) { Lean(w, DayMood.Guarded, 3); Lean(w, DayMood.ShortTempered, 2); }
          if (facts.IsCaptive) { Lean(w, DayMood.Grim, 6); Lean(w, DayMood.Guarded, 4); }
-         if (facts.IsDeepNight) { Lean(w, DayMood.Guarded, 2); Lean(w, DayMood.Restless, 2); }
-         if (!facts.AtEase) Lean(w, DayMood.Restless, 2);
+         if (facts.IsDeepNight) { Lean(w, DayMood.Guarded, 2); Lean(w, DayMood.Restless, 2); Lean(w, DayMood.Weary, 3); }
+         if (!facts.AtEase) { Lean(w, DayMood.Restless, 2); Lean(w, DayMood.Weary, 1); }
+         // Weariness: the small hours, a wound, a captivity wear a man down (Lordfadooboo, 18/10/2026).
+         if (facts.IsHurt) Lean(w, DayMood.Weary, 2);
+         if (facts.IsCaptive) Lean(w, DayMood.Weary, 2);
 
          if (facts.RealmHasLatelyWon) { Lean(w, DayMood.Expansive, 4); Lean(w, DayMood.HighSpirits, 3); Dampen(w, DayMood.Grim); }
          if (facts.PersonalGladness) { Lean(w, DayMood.HighSpirits, 5); Lean(w, DayMood.Expansive, 3); Dampen(w, DayMood.Grim); }

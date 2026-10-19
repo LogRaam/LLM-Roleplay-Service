@@ -44,6 +44,22 @@ namespace NpcMemoryServiceTests
          MoodLadder.Shift(DayMood.Restless, -1).Should().Be(DayMood.Guarded);
       }
 
+      // STAKE (Lordfadooboo, 18/10/2026): a weary man warmed comes to ordinary ease; pressed, he runs short of patience.
+      [Test]
+      public void GIVEN_a_weary_man_WHEN_moved_THEN_he_rests_easy_or_runs_short()
+      {
+         MoodLadder.Shift(DayMood.Weary, 1).Should().Be(DayMood.Even);
+         MoodLadder.Shift(DayMood.Weary, -1).Should().Be(DayMood.ShortTempered);
+      }
+
+      // STAKE: weariness reaches the model as weariness, not as hostility, and still decides nothing.
+      [Test]
+      public void GIVEN_a_weary_day_WHEN_composed_THEN_it_is_worn_down_not_unkind()
+      {
+         MoodLine.Compose(DayMood.Weary, DayMood.Weary, false).Should().Contain("weary today").And.Contain("not unkind").And.Contain("not what you decide");
+         MoodLine.ForLetter(DayMood.Weary).Should().Contain("weary");
+      }
+
       // A turn moves one band at most, whatever the model claims; the conversation two at most.
       [Test]
       public void GIVEN_a_turn_s_judgement_WHEN_added_THEN_a_turn_is_one_band_and_a_conversation_two()
