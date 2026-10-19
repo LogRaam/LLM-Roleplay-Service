@@ -103,6 +103,13 @@ namespace NpcMemoryService.Core.Mood
       /// <summary>What the gladness was, from his side ("the tournament you won at Lageta"); null when unknown.</summary>
       public string? PersonalGladnessWhat { get; init; }
 
+      /// <summary>
+      ///   His realm's war as it stands, from his side, when it is going badly or well ("your realm's war against Battania
+      ///   going badly: its hosts are much stronger than your realm's"); null when unknown. fkasad (19/10/2026): a bare
+      ///   "the war is going badly" gives the player nothing true to answer.
+      /// </summary>
+      public string? RealmWarWhat { get; init; }
+
       /// <summary>Standing somewhere that permits ease - a feast, a hall at leisure - not a camp at war.</summary>
       public bool AtEase { get; init; }
 

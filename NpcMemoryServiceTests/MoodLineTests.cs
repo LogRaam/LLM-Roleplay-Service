@@ -229,6 +229,24 @@ namespace NpcMemoryServiceTests
                  .Should().Contain("a bad night's sleep, nothing more").And.Contain("name no one");
       }
 
+      // STAKE (fkasad, 19/10/2026): a lord grim over the war can be talked round by a sound argument against what troubles
+      // him; nothing told the model so, and flattery must not do the same.
+      [Test]
+      public void GIVEN_a_low_day_with_a_real_cause_WHEN_composed_THEN_a_sound_answer_to_it_may_lift_him_and_flattery_does_not()
+      {
+         MoodLine.Compose(DayMood.Grim, DayMood.Grim, false, new DayCause {Text = "your realm's war going badly", IsReal = true})
+                 .Should().Contain("answers that trouble with something true and sound").And.Contain("Flattery and empty cheer do not");
+      }
+
+      // STAKE: there is nothing to argue in a good day, nor in a stubbed toe.
+      [Test]
+      public void GIVEN_a_good_day_or_a_trifle_WHEN_composed_THEN_no_argument_is_invited()
+      {
+         MoodLine.Compose(DayMood.HighSpirits, DayMood.HighSpirits, false, new DayCause {Text = "your realm's war going well", IsReal = true})
+                 .Should().NotContain("answers that trouble");
+         MoodLine.Compose(DayMood.Grim, DayMood.Grim, false, new DayCause {Text = "a bad night's sleep"}).Should().NotContain("answers that trouble");
+      }
+
       // STAKE: when the player has moved his mood, the cause still explains how the day BEGAN, and is still given.
       [Test]
       public void GIVEN_a_mood_the_player_moved_WHEN_composed_THEN_the_cause_of_the_day_is_still_there()

@@ -69,17 +69,21 @@ namespace NpcMemoryService.Core.Mood
 
          string blow = string.IsNullOrWhiteSpace(f.PersonalBlowWhat) ? "a blow of your own these last days" : f.PersonalBlowWhat!.Trim();
          string gladness = string.IsNullOrWhiteSpace(f.PersonalGladnessWhat) ? "a gladness of your own these last days" : f.PersonalGladnessWhat!.Trim();
+         // The host's own words for the war when it has them (fkasad, 19/10/2026: who against, how far behind or ahead).
+         bool warNamed = !string.IsNullOrWhiteSpace(f.RealmWarWhat);
+         string warBad = warNamed && f.RealmHasLatelyLost ? f.RealmWarWhat!.Trim() : "your realm's war going badly";
+         string warGood = warNamed && f.RealmHasLatelyWon ? f.RealmWarWhat!.Trim() : "your realm's war going well";
 
          switch (mood)
          {
             case DayMood.Grim:
                If(f.PersonalBlow, 6, blow);
-               If(f.RealmHasLatelyLost, 4, "your realm's war going badly");
+               If(f.RealmHasLatelyLost, 4, warBad);
                If(f.IsHurt, 2, "your wounds");
                break;
             case DayMood.ShortTempered:
                If(f.IsHurt, 4, "your wounds");
-               If(f.RealmHasLatelyLost, 2, "your realm's war going badly");
+               If(f.RealmHasLatelyLost, 2, warBad);
                If(f.CoffersAreEmpty, 2, "coin running short");
                break;
             case DayMood.Guarded:
@@ -88,12 +92,12 @@ namespace NpcMemoryService.Core.Mood
                If(f.IsMaimed, 2, "the maiming you carry");
                break;
             case DayMood.Expansive:
-               If(f.RealmHasLatelyWon, 4, "your realm's war going well");
+               If(f.RealmHasLatelyWon, 4, warGood);
                If(f.PersonalGladness, 3, gladness);
                break;
             case DayMood.HighSpirits:
                If(f.PersonalGladness, 5, gladness);
-               If(f.RealmHasLatelyWon, 3, "your realm's war going well");
+               If(f.RealmHasLatelyWon, 3, warGood);
                break;
             case DayMood.Weary:
                If(f.IsDeepNight, 3, "the late hour");

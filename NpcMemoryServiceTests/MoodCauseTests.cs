@@ -90,6 +90,17 @@ namespace NpcMemoryServiceTests
          MoodCause.Of(DayMood.HighSpirits, facts, 7)!.Text.Should().Be("the tournament you won at Lageta");
       }
 
+      // STAKE (fkasad, 19/10/2026): "the war is going badly" gives the player nothing to answer; the host's words name
+      // who against and how far behind, and they are never used for the other direction.
+      [Test]
+      public void GIVEN_the_war_in_the_host_s_words_WHEN_it_is_the_cause_THEN_those_words_are_given()
+      {
+         const string bad = "your realm's war against Battania going badly: its hosts are much stronger than your realm's";
+
+         MoodCause.Of(DayMood.Grim, new MoodFacts {RealmHasLatelyLost = true, RealmWarWhat = bad}, 7)!.Text.Should().Be(bad);
+         MoodCause.Of(DayMood.Expansive, new MoodFacts {RealmHasLatelyWon = true}, 7)!.Text.Should().Be("your realm's war going well");
+      }
+
       // STAKE: a weary man in the small hours is weary over the hour, a wounded one over his wounds.
       [Test]
       public void GIVEN_a_weary_day_WHEN_its_cause_is_asked_THEN_the_hour_or_the_wound_is_named()
