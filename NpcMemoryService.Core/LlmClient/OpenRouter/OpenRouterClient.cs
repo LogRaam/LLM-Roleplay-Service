@@ -30,6 +30,10 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
       private readonly OpenRouterConfig _config;
       private readonly HttpClient _httpClient;
 
+      // Set once this endpoint has refused a request that turned reasoning off (LapitaPolata, 19/10/2026): from then
+      // on a call that asks for it off is sent with the player's own dial at once, instead of failing first every time.
+      private volatile bool _reasoningOffRefused;
+
       public OpenRouterClient(HttpClient httpClient, OpenRouterConfig config)
       {
          _httpClient = httpClient;
@@ -48,15 +52,27 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
 
       public async Task<LlmResponse> CompleteAsync(LlmRequest request, CancellationToken ct = default)
       {
+         bool asksReasoningOff = IsOff(EffectiveReasoning(request));
+         if (asksReasoningOff && _reasoningOffRefused)
+         {
+            request = RebuildWithPlayersReasoning(request);
+            asksReasoningOff = false;
+         }
+
          LlmResponse response = await SendOnceAsync(request, ct).ConfigureAwait(false);
 
          // A model whose reasoning cannot be turned off refuses a request that turns it off (Thoragoros1, 06/10/2026,
          // Gemini 3.7 Flash: HTTP 400 "Reasoning is mandatory for this endpoint and cannot be disabled", so no deed was
          // ever recorded). The interpreter and the housekeeping calls send it off on purpose; on that refusal, ask once
-         // more with the model's own default, and carry on from that answer (the truncation retry below included).
-         if (!response.IsSuccess && IsReasoningMandatoryRefusal(response.ErrorMessage))
+         // more with the player's own dial (or the model's default when the dial is off too), and carry on from that
+         // answer (the truncation retry below included). LapitaPolata (19/10/2026, glm-5.3-flash, OpenAI-Compatible,
+         // effort "low"): the refusal came in Chinese (code 1210, "this model always thinks, use low, high or max"), so
+         // the English match missed it and every memory compression and summary failed. A refusal is now any HTTP 400
+         // answering a request that turned reasoning off, whatever its language.
+         if (!response.IsSuccess && asksReasoningOff && IsReasoningOffRefusal(response.ErrorMessage))
          {
-            request = RebuildWithModelDefaultReasoning(request);
+            _reasoningOffRefused = true;
+            request = RebuildWithPlayersReasoning(request);
             response = await SendOnceAsync(request, ct).ConfigureAwait(false);
          }
 
@@ -412,16 +428,36 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
       ///   With a name it has a test (TruncationRetryCarriesSettingsTests), and the next field added to
       ///   LlmParameters has somewhere to be noticed.
       /// </summary>
-      /// <summary>True when the provider refused a request because the model's reasoning cannot be disabled.</summary>
-      internal static bool IsReasoningMandatoryRefusal(string? error)
-         => error != null && error.IndexOf("reasoning is mandatory", StringComparison.OrdinalIgnoreCase) >= 0;
+      /// <summary>
+      ///   True when a request that turned reasoning off was refused: the English "reasoning is mandatory", or any
+      ///   HTTP 400, since providers word it in their own language (GLM answers in Chinese, code 1210). A 400 for
+      ///   another cause costs one quick extra refusal, never a wrong answer.
+      /// </summary>
+      internal static bool IsReasoningOffRefusal(string? error)
+         => error != null && (error.IndexOf("reasoning is mandatory", StringComparison.OrdinalIgnoreCase) >= 0
+                              || error.StartsWith("HTTP 400", StringComparison.Ordinal));
+
+      /// <summary>The reasoning keyword this request goes out with: its own override, else the player's dial.</summary>
+      private string? EffectiveReasoning(LlmRequest request)
+         => !string.IsNullOrWhiteSpace(request.Parameters?.ReasoningOverride) ? request.Parameters!.ReasoningOverride : _config.ResolveReasoning();
+
+      private static bool IsOff(string? keyword)
+         => keyword != null && (BuildReasoningEffort(keyword) == "none");
+
+      /// <summary>
+      ///   The same request with the player's own reasoning dial (LapitaPolata: "the reasoning effort setting does not
+      ///   take effect"), or the model's default when that dial is off or unset as well.
+      /// </summary>
+      private LlmRequest RebuildWithPlayersReasoning(LlmRequest request)
+      {
+         string? players = _config.ResolveReasoning();
+         bool usable = !string.IsNullOrWhiteSpace(players) && !IsOff(players) && BuildReasoningEffort(players) != null;
+
+         return Rebuild(request, request.Parameters.MaxTokens, usable ? players : "default");
+      }
 
       private static LlmRequest RebuildForBiggerBudget(LlmRequest request)
          => Rebuild(request, request.Parameters.MaxTokens * 2, request.Parameters.ReasoningOverride);
-
-      /// <summary>The same request, leaving reasoning to the model ("default" sends no reasoning field at all).</summary>
-      private static LlmRequest RebuildWithModelDefaultReasoning(LlmRequest request)
-         => Rebuild(request, request.Parameters.MaxTokens, "default");
 
       private static LlmRequest Rebuild(LlmRequest request, int maxTokens, string? reasoningOverride)
          => new LlmRequest {

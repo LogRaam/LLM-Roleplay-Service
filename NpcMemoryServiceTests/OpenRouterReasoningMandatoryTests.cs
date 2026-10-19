@@ -42,9 +42,64 @@ namespace NpcMemoryServiceTests
       }
    }
 
+   /// <summary>GLM on an OpenAI-compatible endpoint: refuses reasoning_effort "none" in Chinese, accepts low/high/max.</summary>
+   internal sealed class AlwaysThinksHandler : HttpMessageHandler
+   {
+      public List<string> Bodies { get; } = new();
+
+      protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+      {
+         string body = await request.Content!.ReadAsStringAsync().ConfigureAwait(false);
+         Bodies.Add(body);
+         if (!body.Contains("\"reasoning_effort\":\"low\""))
+            return new HttpResponseMessage(HttpStatusCode.BadRequest) {
+               Content = new StringContent("{\"error\":{\"code\":\"1210\",\"message\":\"\u8be5\u6a21\u578b\u59cb\u7ec8\u601d\u8003\"}}")
+            };
+
+         return new HttpResponseMessage(HttpStatusCode.OK) {
+            Content = new StringContent("{\"choices\":[{\"message\":{\"role\":\"assistant\",\"content\":\"a summary\"},\"finish_reason\":\"stop\"}]}")
+         };
+      }
+   }
+
    [TestFixture]
    public class OpenRouterReasoningMandatoryTests
    {
+      private static OpenRouterClient GlmClient(AlwaysThinksHandler handler)
+         => new(new HttpClient(handler), new OpenRouterConfig {
+            Model = "glm-5.3-flash", ReasoningProvider = () => "low", ReasoningAsEffortStringProvider = () => true
+         });
+
+      // STAKE (LapitaPolata, 19/10/2026, glm-5.3-flash with effort "low"): the refusal came in Chinese, the English match
+      // missed it, and every memory compression and summary failed. Refused, the call goes again with the player's own
+      // "low", and lands.
+      [Test]
+      public async Task GIVEN_a_model_that_refuses_reasoning_off_in_its_own_language_WHEN_a_housekeeping_call_asks_for_it_off_THEN_it_goes_again_with_the_players_dial()
+      {
+         var handler = new AlwaysThinksHandler();
+
+         LlmResponse response = await GlmClient(handler).CompleteAsync(Interpreter());
+
+         response.IsSuccess.Should().BeTrue();
+         handler.Bodies.Should().HaveCount(2);
+         handler.Bodies[1].Should().Contain("\"reasoning_effort\":\"low\"");
+      }
+
+      // STAKE: once refused, the endpoint is not asked to turn reasoning off again: every later background call would
+      // otherwise pay a failed round trip first.
+      [Test]
+      public async Task GIVEN_an_endpoint_that_refused_once_WHEN_the_next_housekeeping_call_goes_THEN_it_carries_the_players_dial_at_once()
+      {
+         var handler = new AlwaysThinksHandler();
+         OpenRouterClient client = GlmClient(handler);
+
+         await client.CompleteAsync(Interpreter());
+         await client.CompleteAsync(Interpreter());
+
+         handler.Bodies.Should().HaveCount(3);
+         handler.Bodies[2].Should().Contain("\"reasoning_effort\":\"low\"");
+      }
+
       private static LlmRequest Interpreter() => new() {
          SystemPrompt = "system",
          Messages = new[] {new LlmMessage(MessageRole.User, "read this reply")},
