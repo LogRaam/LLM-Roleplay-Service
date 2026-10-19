@@ -192,5 +192,33 @@ namespace NpcMemoryServiceTests
          MoodLine.Compose(DayMood.ShortTempered, DayMood.ShortTempered, false)
                  .Should().Contain("never why this conversation is happening");
       }
+
+      // ── Why (Lordfadooboo, 18/10/2026) ───────────────────────────────────────────────────────────
+
+      // STAKE: asked what troubles him, he has a true answer: a fact is given as true, and he may still keep it to himself.
+      [Test]
+      public void GIVEN_a_real_cause_WHEN_composed_THEN_it_is_said_as_true_and_his_to_keep()
+      {
+         string line = MoodLine.Compose(DayMood.Grim, DayMood.Grim, false, new DayCause {Text = "the loss of Pravend", IsReal = true});
+
+         line.Should().Contain("What set your day this way: the loss of Pravend. That is true");
+         line.Should().Contain("keep it to yourself");
+      }
+
+      // STAKE: a trifle stays a trifle: it names no one and is not blown up into a matter the player could check.
+      [Test]
+      public void GIVEN_a_trifle_WHEN_composed_THEN_it_is_a_small_private_matter()
+      {
+         MoodLine.Compose(DayMood.Guarded, DayMood.Guarded, false, new DayCause {Text = "a bad night's sleep"})
+                 .Should().Contain("a bad night's sleep, nothing more").And.Contain("name no one");
+      }
+
+      // STAKE: when the player has moved his mood, the cause still explains how the day BEGAN, and is still given.
+      [Test]
+      public void GIVEN_a_mood_the_player_moved_WHEN_composed_THEN_the_cause_of_the_day_is_still_there()
+      {
+         MoodLine.Compose(DayMood.Grim, DayMood.Guarded, false, new DayCause {Text = "your wounds", IsReal = true})
+                 .Should().Contain("You began this conversation grim").And.Contain("your wounds");
+      }
    }
 }

@@ -2667,7 +2667,7 @@ namespace NpcMemoryService.Core.Prompts
       {
          // Self-esteem first: the ground the day stands on (SELF-ESTEEM, 30/09/2026).
          sb.Append(Mood.SelfEsteemLine.Compose(context?.SelfEsteem));
-         sb.Append(Mood.MoodLine.Compose(context?.DayMood, context?.DayMoodNow, context?.WitPermitted ?? false));
+         sb.Append(Mood.MoodLine.Compose(context?.DayMood, context?.DayMoodNow, context?.WitPermitted ?? false, context?.DayMoodCause));
       }
 
       /// <summary>

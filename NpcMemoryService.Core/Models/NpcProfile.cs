@@ -319,6 +319,18 @@ namespace NpcMemoryService.Core.Models
       /// <summary>The day of this character's last personal gladness (a fief gained, a tournament won), for the mood of the day. Additive.</summary>
       public int? LastPersonalGladnessDay { get; set; }
 
+      /// <summary>What that blow was (the host's event name, e.g. "FiefLost"), so the day can name its cause. Additive.</summary>
+      public string? LastPersonalBlowKind { get; set; }
+
+      /// <summary>Whom or what it concerned ("Pravend", "your brother Olek"); null when none. Additive.</summary>
+      public string? LastPersonalBlowSubject { get; set; }
+
+      /// <summary>What that gladness was (the host's event name, e.g. "TournamentWon"). Additive.</summary>
+      public string? LastPersonalGladnessKind { get; set; }
+
+      /// <summary>Whom or what it concerned ("Lageta"); null when none. Additive.</summary>
+      public string? LastPersonalGladnessSubject { get; set; }
+
       /// <summary>
       ///   Progressive-regard model: how many routine warm moments this NPC now demands for the NEXT +1 of personal
       ///   regard, minus one (tier 0 = 1 moment, tier 1 = 2 moments, tier 2 = 3, ...). Rises by one each time a +1

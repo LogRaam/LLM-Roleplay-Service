@@ -55,8 +55,11 @@ namespace NpcMemoryService.Core.Mood
    /// <summary>Composes the character's mood block for the prompt's per-turn tail. Pure.</summary>
    public static class MoodLine
    {
-      /// <summary>The block, or empty when no day was drawn.</summary>
-      public static string Compose(DayMood? start, DayMood? now, bool witPermitted)
+      /// <summary>
+      ///   The block, or empty when no day was drawn. <paramref name="cause" /> is why the day began as it did
+      ///   (<see cref="MoodCause.Of" />): a fact is said as true, a trifle as a small private matter.
+      /// </summary>
+      public static string Compose(DayMood? start, DayMood? now, bool witPermitted, DayCause? cause = null)
       {
          if (start == null) return string.Empty;
 
@@ -70,6 +73,12 @@ namespace NpcMemoryService.Core.Mood
                           + (feeling ?? "You are now at an ordinary ease."));
          else if (feeling != null)
             sb.AppendLine(feeling);
+
+         if (cause != null && !string.IsNullOrWhiteSpace(cause.Text) && start.Value != DayMood.Even)
+            sb.AppendLine(cause.IsReal
+                             ? $"What set your day this way: {cause.Text}. That is true; speak of it if asked or if it fits, or keep it to yourself."
+                             : $"What set your day this way: {cause.Text}, nothing more. A small private matter: name no one over it and make "
+                               + "it no bigger than it is; speak of it if asked or if it fits, or keep it to yourself.");
 
          if (feeling != null || current != start.Value)
             sb.AppendLine("This is how you FEEL, not what you decide: it colours how you speak, never what you will agree to, and "

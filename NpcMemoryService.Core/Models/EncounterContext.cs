@@ -1350,6 +1350,9 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public Mood.DayMood? DayMood { get; init; }
 
+      /// <summary>Why the day began as it did (Lordfadooboo, 18/10/2026): a fact of the game when one leaned it, else a trifle. Null on an ordinary day.</summary>
+      public Mood.DayCause? DayMoodCause { get; init; }
+
       /// <summary>Whether a dry remark may surface in this conversation (rare by design, see MoodOfTheDay.WitIsPermitted).</summary>
       public bool WitPermitted { get; init; }
 

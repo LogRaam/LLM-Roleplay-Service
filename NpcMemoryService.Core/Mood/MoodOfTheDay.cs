@@ -90,6 +90,12 @@ namespace NpcMemoryService.Core.Mood
       /// <summary>A gladness of their own lately: a wedding, a birth, an honour.</summary>
       public bool PersonalGladness { get; init; }
 
+      /// <summary>What the blow was, from his side ("the loss of Pravend"), for the day's cause; null when unknown.</summary>
+      public string? PersonalBlowWhat { get; init; }
+
+      /// <summary>What the gladness was, from his side ("the tournament you won at Lageta"); null when unknown.</summary>
+      public string? PersonalGladnessWhat { get; init; }
+
       /// <summary>Standing somewhere that permits ease - a feast, a hall at leisure - not a camp at war.</summary>
       public bool AtEase { get; init; }
 
@@ -275,7 +281,7 @@ namespace NpcMemoryService.Core.Mood
       ///   given seed, well spread, and identical on every machine - which rules out
       ///   <c>string.GetHashCode</c>, randomised per process since .NET Core.
       /// </summary>
-      private static int Index(int seed, int count)
+      internal static int Index(int seed, int count)
       {
          if (count <= 1) return 0;
 
