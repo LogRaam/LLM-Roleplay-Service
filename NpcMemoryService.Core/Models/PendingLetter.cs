@@ -15,6 +15,18 @@ namespace NpcMemoryService.Core.Models
    /// </summary>
    public sealed class PendingLetter
    {
+      /// <summary>
+      ///   The id another mod's letter carries (CrLetters.DeliverWithId, since 2.7.19), so that mod can ask about it later
+      ///   (tashmetu, 20/10/2026). Null on CR's own letters and on every letter stored before. Additive; absent on old saves.
+      /// </summary>
+      public string? Id { get; set; }
+
+      /// <summary>
+      ///   The player read it and set it aside without replying (the window's Acknowledge), as against not having read it
+      ///   yet (tashmetu, 20/10/2026). Set on another mod's letters. Additive; false on old saves.
+      /// </summary>
+      public bool SetAside { get; set; }
+
       /// <summary>Hero StringId of the NPC who wrote the letter.</summary>
       public string? SenderId { get; set; }
 
