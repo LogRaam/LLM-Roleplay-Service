@@ -182,6 +182,68 @@ namespace NpcMemoryService.Core.Models
 
       public RomanticStatus Status { get; set; } = RomanticStatus.None;
 
+      /// <summary>
+      ///   The in-game day <see cref="Status" /> last CHANGED, stamped by <see cref="MoveTo" /> and
+      ///   <see cref="NoteChangeFrom" />. The encyclopedia's Heart section dates the bond with it ("your secret lover
+      ///   since spring 1091", Gabriel, 20/10/2026). An event that leaves the status as it was never restamps it, or the
+      ///   date would drift to the last conversation. Additive: null on older saves, and the page then gives no date.
+      /// </summary>
+      public int? StatusSinceDay { get; set; }
+
+      /// <summary>
+      ///   The in-game day the bond FIRST became intimate (<see cref="RomanticStatus.Intimate" /> or
+      ///   <see cref="RomanticStatus.SecretLover" />). Set once and kept through every later change, so a bond that
+      ///   became a marriage, or was broken, still remembers when it began. Additive: null on older saves.
+      /// </summary>
+      public int? LoversSinceDay { get; set; }
+
+      /// <summary>Moves the bond to <paramref name="status" /> on <paramref name="day" />, dating it only when it changes.</summary>
+      public void MoveTo(RomanticStatus status, int day)
+      {
+         RomanticStatus before = Status;
+         Status = status;
+         NoteChangeFrom(before, day);
+      }
+
+      /// <summary>
+      ///   Dates a change already made to <see cref="Status" /> (it was <paramref name="before" />) on
+      ///   <paramref name="day" />. Nothing is stamped when the status did not move.
+      /// </summary>
+      public void NoteChangeFrom(RomanticStatus before, int day)
+      {
+         if (Status == before) return;
+
+         StatusSinceDay = day;
+         if (LoversSinceDay == null && (Status == RomanticStatus.Intimate || Status == RomanticStatus.SecretLover)) LoversSinceDay = day;
+      }
+
+      /// <summary>
+      ///   Carries everything the player and this character have LIVED onto a freshly rebuilt profile: a rebuild (an
+      ///   orientation fix, a missing profile built) remakes only what is derived from traits. Every settable property
+      ///   but <see cref="Orientation" /> is carried, since fixing the orientation is why a rebuild fires
+      ///   (RomanticProfileCarryTests holds the list complete; until 20/10/2026 the secret lover's day and her own
+      ///   lover were silently dropped).
+      /// </summary>
+      public void CarryRelationshipFrom(RomanticProfile? previous)
+      {
+         if (previous == null) return;
+
+         Status = previous.Status;
+         StatusSinceDay = previous.StatusSinceDay;
+         LoversSinceDay = previous.LoversSinceDay;
+         AttractionToPlayer = previous.AttractionToPlayer;
+         IsConsort = previous.IsConsort;
+         IsSecretLover = previous.IsSecretLover;
+         SecretLoverSinceDay = previous.SecretLoverSinceDay;
+         IsOpenArrangement = previous.IsOpenArrangement;
+         AcceptsPlayersOtherPartners = previous.AcceptsPlayersOtherPartners;
+         TakenLoverId = previous.TakenLoverId;
+         LoverIsSecret = previous.LoverIsSecret;
+         LoverTrystCount = previous.LoverTrystCount;
+         LoverKnownToPlayer = previous.LoverKnownToPlayer;
+         AffairDiscovered = previous.AffairDiscovered;
+      }
+
       // ── Compatibility ─────────────────────────────────────────────────────
 
       /// <summary>

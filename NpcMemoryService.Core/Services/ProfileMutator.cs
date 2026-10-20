@@ -116,7 +116,9 @@ namespace NpcMemoryService.Core.Services
                 && !string.IsNullOrWhiteSpace(response.NewEventData.Summary)
                 && !eventIsMeta)
             {
+                RomanticStatus before = profile.Romantic?.Status ?? RomanticStatus.None;
                 AdvanceRomanticStatus(profile, response.NewEventData.Type, profile.ReputationWithPlayer, orientationCompatible, intimacyPermitted);
+                profile.Romantic?.NoteChangeFrom(before, gameDay);
                 AdvanceAttraction(profile, response.NewEventData.Type, orientationCompatible);
             }
 
