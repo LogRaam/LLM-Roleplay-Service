@@ -5114,12 +5114,15 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("expressed — with a statement, a gesture, a sharp glance, a wry remark — as your");
             sb.AppendLine("character demands. The player is present but has not spoken this turn.");
             sb.AppendLine("Skip [EVENT]/[MEMORY] unless truly warranted; this is a brief in-scene beat.");
+            // Lordfadooboo (20/10/2026): the character answered the bystander, then asked the player the question it
+            // had already asked, sometimes a third time, before the player could answer.
+            sb.AppendLine("Anything you already asked the player is still waiting for their answer: do NOT");
+            sb.AppendLine("ask it again, in the same words or in others.");
 
             if (context.IsLastWitnessExchange)
             {
                sb.AppendLine("CLOSING THIS EXCHANGE: do NOT ask the witness a question they cannot answer");
-               sb.AppendLine("right now. Make a statement that closes the beat, or turn the question to the");
-               sb.AppendLine("player — they are about to speak.");
+               sb.AppendLine("right now. Make a statement that closes the beat; the player is about to speak.");
             }
             else
             {
