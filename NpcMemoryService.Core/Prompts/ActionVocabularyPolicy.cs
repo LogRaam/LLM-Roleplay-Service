@@ -37,9 +37,11 @@ namespace NpcMemoryService.Core.Prompts
         ///   they cost unabridged, while still leaving room for the clause that distinguishes an action from its
         ///   nearest neighbour, which is what these descriptions are mostly for. 90 until 18/10/2026, when
         ///   press_for_war took the Compact interpreter head 123 characters past its 28,000 budget
-        ///   (CompactPromptFitTests); two characters off each long description brought it back under.
+        ///   (CompactPromptFitTests); two characters off each long description brought it back under. 88 until
+        ///   22/10/2026, when enact_edict (edicts, Gabriel 21/10/2026) took it 99 past even with its own entry cut
+        ///   to the bone (a verb's line alone could not give back that much); two more characters brought it under.
         /// </summary>
-        public const int LeanDescriptionChars = 88;
+        public const int LeanDescriptionChars = 86;
 
         /// <summary>
         ///   The description as this prompt should carry it. Full prompts get every word. Lean gets the first

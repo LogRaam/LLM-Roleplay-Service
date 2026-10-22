@@ -1255,6 +1255,24 @@ namespace NpcMemoryService.Core.Actions
                expectedType: "press_for_war",
                expectedParams: new Dictionary<string, string> {{"target", "Aserai"}}),
 
+            ActionBenchCase.Expect("enact_edict", "enact_edict",
+               contextFacts: "NPC: Erwin, governor of the player's town of Pravend. The player holds Pravend.",
+               prose: "*Erwin inclines his head and reaches for his seal.* A requisition of grain, sixty days, for Pravend. The farmers will curse it, but the granaries will fill. I will have it read in the square at dawn, my lord.",
+               expectedType: "enact_edict",
+               expectedParams: new Dictionary<string, string> {{"kind", "grain_requisition"}, {"town", "Pravend"}}),
+
+            ActionBenchCase.Expect("enact_edict_v2", "enact_edict",
+               contextFacts: "NPC: Lady Ira, of the player's own house. The player holds Epicrotea and Zeonica.",
+               prose: "*Ira writes as you speak.* Lighter taxes for Zeonica, then, for thirty days, and you would call it the Widow's Mercy. The treasury will feel it; the people will remember it. It shall be done as you say.",
+               expectedType: "enact_edict",
+               expectedParams: new Dictionary<string, string> {{"kind", "tax_relief"}, {"town", "Zeonica"}}),
+
+            ActionBenchCase.Expect("enact_edict_v3", "enact_edict",
+               contextFacts: "NPC: Count Aldric, a lord of the realm the player rules (Vlandia).",
+               prose: "*Aldric bows.* A muster of the militia in every town of the realm, my king. I will see your decree carried to each castellan; the spears will be on the walls before the month is out.",
+               expectedType: "enact_edict",
+               expectedParams: new Dictionary<string, string> {{"kind", "militia_muster"}, {"town", "realm"}}),
+
             ActionBenchCase.Expect("accept_divorce", "accept_divorce",
                contextFacts: "NPC: Sonja, the player's own spouse, has demanded a divorce, and the player has just agreed to it.",
                prose: "*Sonja's shoulders sag with something between relief and sorrow.* So you will let me go without a fight. Thank you for that mercy, at least. We will part as strangers, then, not enemies.",
