@@ -914,6 +914,9 @@ WHERE YOU ARE:
 [CurrentLocationNote]
 Do not call a hall or holding yours unless it truly is — speak as a guest where you are one.
 
+EDICTS WHERE YOU LIVE (fact; you know them as everyone there does, and may speak for or against them):
+[EdictsNote]
+
 THE LAY OF THE LAND (real geography, treat as fact):
 [GeographyNote]
 Never contradict these locations or invent where a place sits or which lands border it; if you are unsure of a place you were not told about, say so rather than guess.

@@ -1640,6 +1640,12 @@ namespace NpcMemoryService.Core.Models
       public string? PlayerFameLine { get; init; }
 
       /// <summary>
+      ///   The edicts where this character lives (Gabriel, 22/10/2026): the one holding on their town, their realm's, one
+      ///   their town forced off, one line each, worded game-side by EdictNote. Null when no edict touches them.
+      /// </summary>
+      public string? EdictsNote { get; init; }
+
+      /// <summary>
       ///   Name of the player's father, or null if unknown. Injected so an NPC that
       ///   refers to the player's parentage uses the real name instead of inventing one.
       ///   A "(the late …)" form is built game-side when the parent is deceased.

@@ -1413,6 +1413,13 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         if (!string.IsNullOrWhiteSpace(context.EdictsNote))
+         {
+            sb.AppendLine("EDICTS WHERE YOU LIVE (fact; you know them as everyone there does, and may speak for or against them):");
+            sb.AppendLine(context.EdictsNote);
+            sb.AppendLine();
+         }
+
          if (!string.IsNullOrWhiteSpace(context.GeographyNote))
          {
             sb.AppendLine("THE LAY OF THE LAND (real geography, treat as fact):");
