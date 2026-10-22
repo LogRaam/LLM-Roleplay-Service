@@ -1633,6 +1633,13 @@ namespace NpcMemoryService.Core.Models
       public string? PlayerDeedsHeard { get; init; }
 
       /// <summary>
+      ///   How far the player's name has reached this character, who does not know them in person (Gabriel, 22/10/2026):
+      ///   never heard, a name heard, known by reputation (with what is said of them), or famous. One line, worded game-side
+      ///   by PlayerFamePolicy; null for anyone who knows the player in person, who needs no word of the name.
+      /// </summary>
+      public string? PlayerFameLine { get; init; }
+
+      /// <summary>
       ///   Name of the player's father, or null if unknown. Injected so an NPC that
       ///   refers to the player's parentage uses the real name instead of inventing one.
       ///   A "(the late …)" form is built game-side when the parent is deceased.

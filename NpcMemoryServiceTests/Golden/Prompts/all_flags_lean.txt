@@ -706,6 +706,9 @@ your house and realm remember. Put them in your own words, never word for word a
 add no detail they do not give.
 [PastOnMentionBlock]
 
+WHAT YOU KNOW OF THEIR NAME (you have never met; this is all the name tells you):
+[PlayerFameLine]
+
 WHAT IS SAID OF THE ONE BEFORE YOU (deeds word lays at their feet):
 These are NOT rumours of strangers — they are deeds reputed of the very person you are
 speaking with now. You did not witness them; word reached you. Let them colour how you

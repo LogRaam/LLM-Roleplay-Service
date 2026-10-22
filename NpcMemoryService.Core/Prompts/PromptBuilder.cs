@@ -1364,6 +1364,13 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         if (!string.IsNullOrWhiteSpace(context.PlayerFameLine))
+         {
+            sb.AppendLine("WHAT YOU KNOW OF THEIR NAME (you have never met; this is all the name tells you):");
+            sb.AppendLine(context.PlayerFameLine);
+            sb.AppendLine();
+         }
+
          if (!string.IsNullOrWhiteSpace(context.PlayerDeedsHeard))
          {
             sb.AppendLine("WHAT IS SAID OF THE ONE BEFORE YOU (deeds word lays at their feet):");
