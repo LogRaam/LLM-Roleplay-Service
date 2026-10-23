@@ -158,10 +158,11 @@ namespace NpcMemoryService.Core.Knowledge
             if (seat.IsBeingRaided) clauses.Add("raiders are burning its lands right now");
             if (seat.IsStarving) clauses.Add("its people are going hungry");
             if (seat.IsLooted) clauses.Add("it was sacked and has not recovered");
-            // chmidt (23/10/2026): who sits in its dungeon is a fact of the place, not news, in Lean too.
-            List<string> prisoners = (seat.PrisonersOfNote ?? new List<string>()).Where(p => !string.IsNullOrWhiteSpace(p))
-                                                                              .Take(SeatFacts.MaxPrisonersNamed).Select(p => p.Trim()).ToList();
-            if (prisoners.Count > 0) clauses.Add($"its dungeon holds {Joined(prisoners)}");
+            // chmidt (23/10/2026): who sits in its dungeon is a fact of the place, not news. Lean names the first only, and none
+            // when the place is already on fire (a siege, a revolt), so a besieged seat keeps its line under the budget.
+            List<string> all = (seat.PrisonersOfNote ?? new List<string>()).Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p.Trim()).ToList();
+            List<string> prisoners = all.Take(lean ? (clauses.Count > 0 ? 0 : 1) : SeatFacts.MaxPrisonersNamed).ToList();
+            if (prisoners.Count > 0) clauses.Add($"its dungeon holds {Joined(prisoners)}{(all.Count > prisoners.Count ? " among others" : "")}");
 
             // Lean stops at what is on fire. The bands are the difference between colour and crisis, and the
             // Compact prompt was cut from 22,500 to 15,150 chars on 2026-09-11 for reasons that still hold.

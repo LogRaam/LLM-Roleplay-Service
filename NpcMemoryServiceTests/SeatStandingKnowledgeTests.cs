@@ -211,18 +211,44 @@ namespace NpcMemoryServiceTests
          said.Should().Contain("Derthert of the dey Meroc lays siege to it as you speak");
       }
 
-      // chmidt: lords "should also know who I put in their dungeons". The prisoners of rank are a fact of the place, said
-      // in Lean too, at most three, with who left them there.
+      // chmidt: lords "should also know who I put in their dungeons". The prisoners of rank are a fact of the place, at
+      // most three, with who left them there; in Compact, the first, when nothing is on fire.
       [Test]
-      public void GIVEN_prisoners_of_rank_in_his_dungeon_WHEN_he_speaks_of_his_seat_THEN_they_are_named_three_at_most_even_in_lean()
+      public void GIVEN_prisoners_of_rank_in_his_dungeon_WHEN_he_speaks_of_his_seat_THEN_three_at_most_are_named()
       {
-         string said = Render(true, new SeatFacts {
+         string said = Render(false, new SeatFacts {
             PlaceName = "Hargendorf", Role = SeatRole.Owner, Kind = SettlementKind.Town,
             PrisonersOfNote = new List<string> {"Lucon of the dey Meroc, left there by Arwa", "Ira", "Phenoria", "Monchug"}
          });
 
-         said.Should().Contain("dungeon holds Lucon of the dey Meroc, left there by Arwa, Ira and Phenoria");
+         said.Should().Contain("dungeon holds Lucon of the dey Meroc, left there by Arwa, Ira and Phenoria among others");
          said.Should().NotContain("Monchug");
+      }
+
+      // In Compact, a quiet seat still names who sits in its dungeon: the first, with "among others".
+      [Test]
+      public void GIVEN_a_quiet_seat_with_prisoners_WHEN_he_speaks_in_lean_THEN_the_first_is_named()
+      {
+         string said = Render(true, new SeatFacts {
+            PlaceName = "Hargendorf", Role = SeatRole.Owner, Kind = SettlementKind.Town,
+            PrisonersOfNote = new List<string> {"Lucon of the dey Meroc, left there by Arwa", "Ira"}
+         });
+
+         said.Should().Contain("dungeon holds Lucon of the dey Meroc, left there by Arwa among others");
+      }
+
+      // Compact names the first prisoner only, and none while the place is on fire: the golden Compact prompt lost its whole
+      // seat line under the budget when a besieged seat also listed its dungeon, and the siege is the line that matters.
+      [Test]
+      public void GIVEN_a_besieged_seat_with_a_full_dungeon_WHEN_he_speaks_in_lean_THEN_the_siege_is_said_and_the_dungeon_waits()
+      {
+         string said = Render(true, new SeatFacts {
+            PlaceName = "Hargendorf", Role = SeatRole.Owner, Kind = SettlementKind.Town, IsUnderSiege = true, BesiegerName = "Derthert of the dey Meroc",
+            PrisonersOfNote = new List<string> {"Lucon of the dey Meroc, left there by Arwa", "Ira of the fen Uvain", "Phenoria of the Comnos"}
+         });
+
+         said.Should().Contain("Derthert of the dey Meroc lays siege to it as you speak");
+         said.Should().NotContain("dungeon");
       }
 
       // A sacked village that has not recovered is the state the escort quest's village is in, so it has to be
