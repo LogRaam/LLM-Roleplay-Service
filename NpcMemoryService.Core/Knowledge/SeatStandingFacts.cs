@@ -169,6 +169,22 @@ namespace NpcMemoryService.Core.Knowledge
         /// <summary>People are going hungry, on the engine's own flag rather than a threshold guessed here.</summary>
         public bool IsStarving { get; init; }
 
+        /// <summary>
+        ///   Who lays the siege, already labelled, when <see cref="IsUnderSiege" />; null when unknown. chmidt (Nexus,
+        ///   23/10/2026): a lord knew his town was besieged but not by whom.
+        /// </summary>
+        public string? BesiegerName { get; init; }
+
+        /// <summary>
+        ///   The prisoners of rank in its dungeon, already labelled, at most <see cref="MaxPrisonersNamed" />, each with
+        ///   who left them there when it was the player ("Lucon of the dey Meroc, left there by Arwa"). chmidt (Nexus,
+        ///   23/10/2026): lords "should also know who I put in their dungeons".
+        /// </summary>
+        public IReadOnlyList<string> PrisonersOfNote { get; init; } = new List<string>();
+
+        /// <summary>At most this many prisoners are named for one place, so a crowded dungeon does not fill the prompt.</summary>
+        public const int MaxPrisonersNamed = 3;
+
         /// <summary>True when anything at all is known about this place beyond its name.</summary>
         public bool HasAnyReading
             => Prosperity != ProsperityBand.Unknown
@@ -176,7 +192,8 @@ namespace NpcMemoryService.Core.Knowledge
                || Garrison != GarrisonBand.Unknown
                || Loyalty != LoyaltyBand.Unknown
                || Security != SecurityBand.Unknown
-               || IsUnderSiege || IsBeingRaided || IsLooted || IsInRebellion || IsStarving;
+               || IsUnderSiege || IsBeingRaided || IsLooted || IsInRebellion || IsStarving
+               || (PrisonersOfNote != null && PrisonersOfNote.Count > 0);
     }
 
     /// <summary>

@@ -123,6 +123,10 @@ namespace NpcMemoryService.Core.Knowledge
             return sentence.ToString();
         }
 
+        /// <summary>"A", "A and B", "A, B and C".</summary>
+        private static string Joined(IReadOnlyList<string> items)
+            => items.Count == 1 ? items[0] : string.Join(", ", items.Take(items.Count - 1)) + " and " + items[items.Count - 1];
+
         /// <summary>"You govern Pravend, a town of the player's own house."</summary>
         private static string Holding(SeatFacts seat, string place)
         {
@@ -146,11 +150,18 @@ namespace NpcMemoryService.Core.Knowledge
         {
             var clauses = new List<string>();
 
-            if (seat.IsUnderSiege) clauses.Add("it is under siege as you speak");
+            if (seat.IsUnderSiege)
+                clauses.Add(string.IsNullOrWhiteSpace(seat.BesiegerName)
+                    ? "it is under siege as you speak"
+                    : $"{seat.BesiegerName!.Trim()} lays siege to it as you speak");
             if (seat.IsInRebellion) clauses.Add("its people have risen against you");
             if (seat.IsBeingRaided) clauses.Add("raiders are burning its lands right now");
             if (seat.IsStarving) clauses.Add("its people are going hungry");
             if (seat.IsLooted) clauses.Add("it was sacked and has not recovered");
+            // chmidt (23/10/2026): who sits in its dungeon is a fact of the place, not news, in Lean too.
+            List<string> prisoners = (seat.PrisonersOfNote ?? new List<string>()).Where(p => !string.IsNullOrWhiteSpace(p))
+                                                                              .Take(SeatFacts.MaxPrisonersNamed).Select(p => p.Trim()).ToList();
+            if (prisoners.Count > 0) clauses.Add($"its dungeon holds {Joined(prisoners)}");
 
             // Lean stops at what is on fire. The bands are the difference between colour and crisis, and the
             // Compact prompt was cut from 22,500 to 15,150 chars on 2026-09-11 for reasons that still hold.

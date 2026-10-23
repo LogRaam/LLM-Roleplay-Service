@@ -200,6 +200,31 @@ namespace NpcMemoryServiceTests
          said.IndexOf("under siege").Should().BeLessThan(said.IndexOf("granaries"));
       }
 
+      // chmidt (Nexus, 23/10/2026): a lord knew his town was besieged but not by whom; the besieger is named.
+      [Test]
+      public void GIVEN_a_siege_with_a_known_besieger_WHEN_he_speaks_of_his_seat_THEN_the_besieger_is_named()
+      {
+         string said = Render(true, new SeatFacts {
+            PlaceName = "Hargendorf", Role = SeatRole.Owner, Kind = SettlementKind.Town, IsUnderSiege = true, BesiegerName = "Derthert of the dey Meroc"
+         });
+
+         said.Should().Contain("Derthert of the dey Meroc lays siege to it as you speak");
+      }
+
+      // chmidt: lords "should also know who I put in their dungeons". The prisoners of rank are a fact of the place, said
+      // in Lean too, at most three, with who left them there.
+      [Test]
+      public void GIVEN_prisoners_of_rank_in_his_dungeon_WHEN_he_speaks_of_his_seat_THEN_they_are_named_three_at_most_even_in_lean()
+      {
+         string said = Render(true, new SeatFacts {
+            PlaceName = "Hargendorf", Role = SeatRole.Owner, Kind = SettlementKind.Town,
+            PrisonersOfNote = new List<string> {"Lucon of the dey Meroc, left there by Arwa", "Ira", "Phenoria", "Monchug"}
+         });
+
+         said.Should().Contain("dungeon holds Lucon of the dey Meroc, left there by Arwa, Ira and Phenoria");
+         said.Should().NotContain("Monchug");
+      }
+
       // A sacked village that has not recovered is the state the escort quest's village is in, so it has to be
       // sayable by the headman who lives there.
       [Test]
