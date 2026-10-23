@@ -1052,6 +1052,14 @@ namespace NpcMemoryService.Core.Actions
                   "a vow against one rival lord, which is pledge_against"
                },
                new GameActionParam("target", "the realm, by name")),
+            Spec("enact_edict",
+               "The player decrees a listed edict through this character.",
+               tells: new[] {"the player plainly decrees a listed edict and the character takes it to carry out"},
+               antiPatterns: new[] {"talk of an edict the player does not decree"},
+               new GameActionParam("kind", "listed key"),
+               new GameActionParam("town", "town or realm"),
+               new GameActionParam("days", "30-90"),
+               new GameActionParam("name", "if given")),
             Spec("accept_divorce",
                "The player consents to their own spouse's pending divorce demand (or ongoing estrangement); the marriage is dissolved by mutual accord, with a soft relation settling.",
                tells: new[] {

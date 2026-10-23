@@ -1364,6 +1364,13 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         if (!string.IsNullOrWhiteSpace(context.PlayerFameLine))
+         {
+            sb.AppendLine("WHAT YOU KNOW OF THEIR NAME (you have never met; this is all the name tells you):");
+            sb.AppendLine(context.PlayerFameLine);
+            sb.AppendLine();
+         }
+
          if (!string.IsNullOrWhiteSpace(context.PlayerDeedsHeard))
          {
             sb.AppendLine("WHAT IS SAID OF THE ONE BEFORE YOU (deeds word lays at their feet):");
@@ -1403,6 +1410,13 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("WHERE YOU ARE:");
             sb.AppendLine(context.CurrentLocationNote);
             sb.AppendLine("Do not call a hall or holding yours unless it truly is — speak as a guest where you are one.");
+            sb.AppendLine();
+         }
+
+         if (!string.IsNullOrWhiteSpace(context.EdictsNote))
+         {
+            sb.AppendLine("EDICTS WHERE YOU LIVE (fact; you know them as everyone there does, and may speak for or against them):");
+            sb.AppendLine(context.EdictsNote);
             sb.AppendLine();
          }
 

@@ -134,6 +134,7 @@ Available actions:
 - hear_account: The player gives their account of, or justification for, a grievance the NPC knowingly holds against them, and the NPC records having heard it. Hearing is not forgiving: the grievance keeps its full weight.
 - pledge_against: A lord, moved by genuine standing enmity, vows to move against a named rival: launches a real scheme (slander or sabotage) and records a tracked commitment. A political act only, never a declaration of war.
 - press_for_war: A persuaded lord resolves to put war on a named realm to his realm's vote.
+- enact_edict: The player decrees a listed edict through this character.
 - accept_divorce: The player consents to their own spouse's pending divorce demand (or ongoing estrangement); the marriage is dissolved by mutual accord, with a soft relation settling.
 - decline_divorce: The player firmly and explicitly refuses their own spouse's divorce demand in this very exchange, deepening the wound between them.
 - end_own_marriage: The player, in free text, chooses to end their OWN marriage immediately; mutual or repudiated is decided live from the spouse's own pending demand and relation, driving soft or harsh consequences.
@@ -1254,6 +1255,9 @@ your house and realm remember. Put them in your own words, never word for word a
 add no detail they do not give.
 [PastOnMentionBlock]
 
+WHAT YOU KNOW OF THEIR NAME (you have never met; this is all the name tells you):
+[PlayerFameLine]
+
 WHAT IS SAID OF THE ONE BEFORE YOU (deeds word lays at their feet):
 These are NOT rumours of strangers — they are deeds reputed of the very person you are
 speaking with now. You did not witness them; word reached you. Let them colour how you
@@ -1274,6 +1278,9 @@ You command only a handful of men. These are your own men: you know your strengt
 WHERE YOU ARE:
 [CurrentLocationNote]
 Do not call a hall or holding yours unless it truly is — speak as a guest where you are one.
+
+EDICTS WHERE YOU LIVE (fact; you know them as everyone there does, and may speak for or against them):
+[EdictsNote]
 
 THE LAY OF THE LAND (real geography, treat as fact):
 [GeographyNote]
