@@ -51,6 +51,13 @@ namespace NpcMemoryService.Core.Standing
       /// </summary>
       public const string ClanStanding = "clan_standing";
 
+      /// <summary>
+      ///   A deed of the player outside conversation that the character feels, as victim, beneficiary or kin: a spouse
+      ///   taken, a captive handed to his enemies, a kinsman executed, a gift, a prisoner freed (Gabriel, 23/10/2026: every
+      ///   action moves regard). Its numbers are the mod's DeedRegardPolicy.
+      /// </summary>
+      public const string Deed = "deed";
+
       /// <summary>No cause was given (an older caller).</summary>
       public const string Unspecified = "unspecified";
 
