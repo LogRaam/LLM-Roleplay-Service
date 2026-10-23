@@ -1060,6 +1060,10 @@ namespace NpcMemoryService.Core.Actions
                new GameActionParam("town", "town or realm"),
                new GameActionParam("days", "30-90"),
                new GameActionParam("name", "if given")),
+            Spec("pay_bounty",
+               "The player pays this lord to lift his realm's bounty.",
+               tells: new[] {"the player plainly offers the bounty's price and the lord accepts it"},
+               antiPatterns: new[] {"talk of the bounty with no payment offered"}),
             Spec("accept_divorce",
                "The player consents to their own spouse's pending divorce demand (or ongoing estrangement); the marriage is dissolved by mutual accord, with a soft relation settling.",
                tells: new[] {

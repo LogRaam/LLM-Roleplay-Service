@@ -39,9 +39,11 @@ namespace NpcMemoryService.Core.Prompts
         ///   press_for_war took the Compact interpreter head 123 characters past its 28,000 budget
         ///   (CompactPromptFitTests); two characters off each long description brought it back under. 88 until
         ///   22/10/2026, when enact_edict (edicts, Gabriel 21/10/2026) took it 99 past even with its own entry cut
-        ///   to the bone (a verb's line alone could not give back that much); two more characters brought it under.
+        ///   to the bone (a verb's line alone could not give back that much); two more characters brought it under. 86
+        ///   until 23/10/2026, when pay_bounty (froggyluv and Gabriel: pay the bounty to a lord) took it 35 past with its
+        ///   own line already cut to one short sentence; two more characters again.
         /// </summary>
-        public const int LeanDescriptionChars = 86;
+        public const int LeanDescriptionChars = 84;
 
         /// <summary>
         ///   The description as this prompt should carry it. Full prompts get every word. Lean gets the first

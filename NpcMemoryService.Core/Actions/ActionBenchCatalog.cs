@@ -1273,6 +1273,21 @@ namespace NpcMemoryService.Core.Actions
                expectedType: "enact_edict",
                expectedParams: new Dictionary<string, string> {{"kind", "militia_muster"}, {"town", "realm"}}),
 
+            ActionBenchCase.Expect("pay_bounty", "pay_bounty",
+               contextFacts: "NPC: Count Aldric, a lord of Vlandia. Vlandia has a price of 3000 denars on the player's head for brigandage.",
+               prose: "*Aldric weighs the purse you set on the table.* Three thousand, as the crown asks. Very well. I will see the king's clerks strike your name from the list, and his hunters called home.",
+               expectedType: "pay_bounty"),
+
+            ActionBenchCase.Expect("pay_bounty_v2", "pay_bounty",
+               contextFacts: "NPC: Lady Ira, of a Southern Empire house. The Southern Empire has a price of 6000 denars on the player's head for fleeing its law.",
+               prose: "*Ira counts the coin twice before she nods.* Six thousand buys a great deal of forgetting. Consider the matter of your flight closed; I will carry it to the empress myself.",
+               expectedType: "pay_bounty"),
+
+            ActionBenchCase.Expect("pay_bounty_v3", "pay_bounty",
+               contextFacts: "NPC: Count Orthes, a lord of the Northern Empire. The Northern Empire has a price of 3000 denars on the player's head for brigandage.",
+               prose: "*Orthes takes the pouch without looking at you.* You pay what the law asks, so the law forgets. Go; no hunter of ours will trouble your road again.",
+               expectedType: "pay_bounty"),
+
             ActionBenchCase.Expect("accept_divorce", "accept_divorce",
                contextFacts: "NPC: Sonja, the player's own spouse, has demanded a divorce, and the player has just agreed to it.",
                prose: "*Sonja's shoulders sag with something between relief and sorrow.* So you will let me go without a fight. Thank you for that mercy, at least. We will part as strangers, then, not enemies.",
