@@ -70,6 +70,12 @@ namespace NpcMemoryService.Core.LlmClient
       /// <summary>The serialized body, for an observer that wants the literal bytes.</summary>
       public string? Json { get; init; }
 
+      /// <summary>
+      ///   The request itself, with what never reaches the wire (whether a cut reply may be retried, a reasoning override):
+      ///   the cost bench captures it so a conversation can be replayed outside the game exactly as the game sent it.
+      /// </summary>
+      public LlmRequest? Request { get; init; }
+
       public DateTime AtUtc { get; init; } = DateTime.UtcNow;
 
       /// <summary>Total system prompt size, prefix and tail together.</summary>

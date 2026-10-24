@@ -393,7 +393,8 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
                   : request.SystemPrompt.Substring(stable.Length),
                MessageChars = MessageChars(request),
                MessageCount = request.Messages?.Count ?? 0,
-               Json = json
+               Json = json,
+               Request = request
             });
          }
          catch
