@@ -357,7 +357,12 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          if (_config.ResolveIsOpenRouter())
          {
             if (!string.IsNullOrWhiteSpace(_config.AppUrl)) httpRequest.Headers.TryAddWithoutValidation("HTTP-Referer", _config.AppUrl);
-            if (!string.IsNullOrWhiteSpace(_config.AppTitle)) httpRequest.Headers.TryAddWithoutValidation("X-Title", _config.AppTitle);
+            if (!string.IsNullOrWhiteSpace(_config.AppTitle))
+            {
+               // X-OpenRouter-Title is the current name of the header; X-Title is still read, for compatibility.
+               httpRequest.Headers.TryAddWithoutValidation("X-OpenRouter-Title", _config.AppTitle);
+               httpRequest.Headers.TryAddWithoutValidation("X-Title", _config.AppTitle);
+            }
          }
 
          return httpRequest;
