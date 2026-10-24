@@ -96,14 +96,14 @@ namespace NpcMemoryServiceTests
       ///   drift apart in silence.
       /// </summary>
       private const int WorldTxtChars = 2432;
-      private const int BehaviorGuidelinesChars = 6629;
+      private const int BehaviorGuidelinesChars = 7101;
 
       /// <summary>
       ///   behavior_guidelines.txt after FactionGuidelinesPolicy keeps only the speaker's own culture: the
       ///   FACTION BEHAVIOR section holds eight cultures and ~2,144 characters of it belong to somebody else.
       ///   Pinned on the mod side by FactionGuidelinesPolicyTests.
       /// </summary>
-      private const int NarrowedGuidelinesChars = 6629 - 2144;
+      private const int NarrowedGuidelinesChars = 7101 - 2144;
 
       private static string Filler(int chars)
          => new StringBuilder().Insert(0, "Calradia is a hard country and its lords are harder. ", chars / 53 + 1)

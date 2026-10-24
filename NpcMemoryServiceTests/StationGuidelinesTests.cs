@@ -119,6 +119,23 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("guarded, not cruel");
       }
 
+      // fearente (Nexus, 24/10/2026): on Gemini and Gemma, characters met ordinary plans with warnings and kept
+      // lecturing on pride after the player had answered; his own wife did it over two ships. Without a rule that
+      // bounds a warning, a weak model reads every "judge by deeds" and "name the danger" as a licence to sermonize.
+      [Test]
+      public void GIVEN_the_builtin_noble_guidelines_WHEN_the_player_tells_of_an_ordinary_plan_THEN_a_concern_is_said_once_and_his_answer_taken()
+      {
+         var builder = new PromptBuilder();
+         var context = new EncounterContext {LeanLevel = LeanPromptLevel.Full};
+
+         string prompt = builder.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain("how a noble of");
+         prompt.Should().Contain("Counsel, not sermons");
+         prompt.Should().Contain("take their word and move on");
+         prompt.Should().Contain("you are on");
+      }
+
       // The Lean built-in fallback deliberately does NOT repeat the decency clause: the always-on Lean prompt
       // has a hard char budget (LeanPromptPolicyTests) and this no-override fallback only runs when no
       // behavior_guidelines file is loaded. In production the shipped files (and the full fallback) carry the

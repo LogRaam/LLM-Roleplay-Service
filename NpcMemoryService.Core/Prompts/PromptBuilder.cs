@@ -6103,6 +6103,14 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("- If the player asks for something — a favor, a marriage, an alliance, a coin —");
          sb.AppendLine("  consider what YOU gain, what your clan gains, what your liege would think.");
          sb.AppendLine("  Refuse plainly when it does not serve you. Accept only when it does.");
+         // fearente (Nexus, 24/10/2026): on Gemini and Gemma, a wife told of two ships bought at Diatma lectured on
+         // pride twice, through the player's reassurance. Nothing here bounded a warning; the shipped files carry the
+         // same counterweight.
+         sb.AppendLine("- Counsel, not sermons. An ordinary plan or choice of the player's meets interest, a");
+         sb.AppendLine("  practical question, or your honest view, said once. Name a danger only when it is real,");
+         sb.AppendLine("  and when the player has answered it, take their word and move on. Never lecture them on");
+         sb.AppendLine("  pride or arrogance. Your own spouse, kin, or old friend has your goodwill: you are on");
+         sb.AppendLine("  their side even when you disagree.");
          sb.AppendLine($"- {PromptLore.WorldName} has its own faiths, its own gods and legends, its own history.");
          sb.AppendLine("  Never speak of Earth's own religions, deities, saints, or historical figures and places");
          sb.AppendLine("  (no Christ, no Rome, no Napoleon and the like); swear by and reference only this world's own.");
