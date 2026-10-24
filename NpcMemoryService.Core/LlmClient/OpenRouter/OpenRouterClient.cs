@@ -47,6 +47,12 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
       /// </summary>
       public ILlmWireObserver? WireObserver { get; set; }
 
+      /// <summary>
+      ///   Optional seat that sees every attempt with what it cost, retries included. Null in normal play. See
+      ///   <see cref="ILlmUsageObserver" />.
+      /// </summary>
+      public ILlmUsageObserver? UsageObserver { get; set; }
+
       private string ChatCompletionsUrl =>
          _config.ResolveBaseUrl().TrimEnd(trimChars: '/') + "/chat/completions";
 
@@ -59,7 +65,7 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
             asksReasoningOff = false;
          }
 
-         LlmResponse response = await SendOnceAsync(request, ct).ConfigureAwait(false);
+         LlmResponse response = await SendAndReportAsync(request, ct).ConfigureAwait(false);
 
          // A model whose reasoning cannot be turned off refuses a request that turns it off (Thoragoros1, 06/10/2026,
          // Gemini 3.7 Flash: HTTP 400 "Reasoning is mandatory for this endpoint and cannot be disabled", so no deed was
@@ -73,7 +79,7 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          {
             _reasoningOffRefused = true;
             request = RebuildWithPlayersReasoning(request);
-            response = await SendOnceAsync(request, ct).ConfigureAwait(false);
+            response = await SendAndReportAsync(request, ct).ConfigureAwait(false);
          }
 
          // One retry when the provider cut the reply off by output length, by its CONTENT FILTER, or
@@ -99,7 +105,7 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
             bool budgetExhausted = string.IsNullOrWhiteSpace(response.Content) || IsLengthTruncated(response.FinishReason);
             LlmRequest retryRequest = budgetExhausted ? RebuildForBiggerBudget(request) : request;
 
-            LlmResponse retry = await SendOnceAsync(retryRequest, ct).ConfigureAwait(false);
+            LlmResponse retry = await SendAndReportAsync(retryRequest, ct).ConfigureAwait(false);
 
             if (retry.IsSuccess && !string.IsNullOrEmpty(retry.Content))
             {
@@ -114,7 +120,8 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
                return new LlmResponse {
                   Content = originalCarriedFurther ? response.Content! : retry.Content,
                   IsSuccess = true,
-                  Usage = retry.Usage,
+                  // Both rolls were billed: the usage is their sum, never the retry's alone (fearente, 24/10/2026).
+                  Usage = LlmUsage.Sum(response.Usage, retry.Usage),
                   FinishReason = originalCarriedFurther ? response.FinishReason : retry.FinishReason,
                   WasRetried = true
                };
@@ -122,7 +129,11 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
 
             // Retry failed: keep any text the ORIGINAL carried (a truncated beat still beats an error); only a
             // truly empty original falls through to the hard failure.
-            if (!string.IsNullOrWhiteSpace(response.Content)) return response;
+            if (!string.IsNullOrWhiteSpace(response.Content))
+               return new LlmResponse {
+                  Content = response.Content!, IsSuccess = true, Usage = LlmUsage.Sum(response.Usage, retry.Usage),
+                  FinishReason = response.FinishReason, WasRetried = response.WasRetried
+               };
 
             return Failure("The model spent its entire reply budget on internal reasoning twice and produced " +
                            "no text (reasoning models such as MiMo, GLM, or DeepSeek think at length before writing). " +
@@ -270,8 +281,13 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
                // OpenRouter normalizes these into the usage block.
                int? cachedRead = ReadIntOrNull(usageEl["cache_read_input_tokens"]) ?? ReadIntOrNull(usageEl["cached_tokens"]) ?? ReadIntOrNull(usageEl["prompt_tokens_details"]?["cached_tokens"]);
 
+               // What it cost and what it hid (OpenRouter, when asked with usage.include): the bill itself, the
+               // tokens spent thinking, and the prompt written to cache. Read when present, never required.
                usage = new LlmUsage(prompt, completion) {
-                  CachedPromptTokens = cachedRead
+                  CachedPromptTokens = cachedRead,
+                  Cost = ReadDoubleOrNull(usageEl["cost"]),
+                  ReasoningTokens = ReadIntOrNull(usageEl["completion_tokens_details"]?["reasoning_tokens"]),
+                  CacheWriteTokens = ReadIntOrNull(usageEl["prompt_tokens_details"]?["cache_write_tokens"])
                };
             }
 
@@ -294,6 +310,11 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          return oneLine.Length <= 160 ? oneLine : oneLine.Substring(0, 160) + "…";
       }
 
+      private static double? ReadDoubleOrNull(JToken? token)
+         => token != null && (token.Type == JTokenType.Integer || token.Type == JTokenType.Float)
+            ? token.Value<double>()
+            : null;
+
       private static int? ReadIntOrNull(JToken? token)
          => token != null && (token.Type == JTokenType.Integer || token.Type == JTokenType.Float)
             ? token.Value<int>()
@@ -311,6 +332,13 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          httpRequest.Headers.Authorization =
             new AuthenticationHeaderValue("Bearer", _config.ResolveApiKey());
          httpRequest.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+         // OpenRouter's app attribution: the player's activity page then names the mod beside each call.
+         if (_config.ResolveIsOpenRouter())
+         {
+            if (!string.IsNullOrWhiteSpace(_config.AppUrl)) httpRequest.Headers.TryAddWithoutValidation("HTTP-Referer", _config.AppUrl);
+            if (!string.IsNullOrWhiteSpace(_config.AppTitle)) httpRequest.Headers.TryAddWithoutValidation("X-Title", _config.AppTitle);
+         }
 
          return httpRequest;
       }
@@ -494,6 +522,25 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
                   ModelOverride = request.ModelOverride
          };
 
+      /// <summary>One attempt, handed to the usage observer (if any) once answered. The observer can never fail it.</summary>
+      private async Task<LlmResponse> SendAndReportAsync(LlmRequest request, CancellationToken ct)
+      {
+         LlmResponse response = await SendOnceAsync(request, ct).ConfigureAwait(false);
+         ILlmUsageObserver? observer = UsageObserver;
+         if (observer == null) return response;
+
+         try { observer.OnAttempt(ModelFor(request), response); }
+         catch
+         {
+            // a diagnostic must never fail a player's conversation
+         }
+
+         return response;
+      }
+
+      private string ModelFor(LlmRequest request)
+         => string.IsNullOrWhiteSpace(request.ModelOverride) ? _config.ResolveModel() ?? string.Empty : request.ModelOverride!.Trim();
+
       private async Task<LlmResponse> SendOnceAsync(LlmRequest request, CancellationToken ct)
       {
          // Enforce the timeout ourselves with a linked source, independent of HttpClient.Timeout (which the
@@ -561,9 +608,7 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
 
          // A non-blank per-request override wins for this one call; otherwise the client's normally-resolved
          // model. This is what lets a single extractor call target a cheaper model with no global state change.
-         string model = string.IsNullOrWhiteSpace(request.ModelOverride)
-            ? _config.ResolveModel() ?? string.Empty
-            : request.ModelOverride!.Trim();
+         string model = ModelFor(request);
 
          var payload = new Dictionary<string, object> {
             ["model"] = model,
@@ -572,6 +617,10 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
             // OpenAI-compatible providers (e.g. Chub) stream by default, which would arrive as unparseable text.
             ["stream"] = false
          };
+
+         // Ask OpenRouter for the bill with each answer (usage.cost), so a call can be priced as it happens. Only on
+         // OpenRouter itself: another OpenAI-compatible server may refuse a field it does not know.
+         if (_config.ResolveIsOpenRouter()) payload["usage"] = new Dictionary<string, object> {["include"] = true};
 
          // The OpenAI reasoning models (gpt-5*, o1/o3/o4*), reached directly, reject "max_tokens" (they want
          // "max_completion_tokens") and refuse a custom "temperature". The host's policy decides the shape;

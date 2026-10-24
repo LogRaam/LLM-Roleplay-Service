@@ -157,5 +157,23 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
         ///   Defaults to true (caching on) when no provider is set.
         /// </summary>
         public bool ResolveUseSystemPromptCaching() => UseSystemPromptCachingProvider?.Invoke() ?? true;
+
+        /// <summary>
+        ///   Live resolver: is this request going to OpenRouter itself? Only then does the client ask for the bill
+        ///   (<c>usage: {include: true}</c>, so each answer says what it cost) and name the application
+        ///   (<see cref="AppTitle" />, <see cref="AppUrl" />), so a player's OpenRouter activity page shows which calls
+        ///   were this mod's (fearente, 24/10/2026, could not tell). Null = false: every other endpoint keeps its
+        ///   exact payload, since a strict OpenAI-compatible server may refuse a field it does not know.
+        /// </summary>
+        public Func<bool>? IsOpenRouterProvider { get; init; }
+
+        /// <summary>The application's name sent as OpenRouter's <c>X-Title</c> header. Blank = not sent.</summary>
+        public string? AppTitle { get; init; }
+
+        /// <summary>The application's page sent as OpenRouter's <c>HTTP-Referer</c> header. Blank = not sent.</summary>
+        public string? AppUrl { get; init; }
+
+        /// <summary>Whether the request goes to OpenRouter itself. Defaults to false.</summary>
+        public bool ResolveIsOpenRouter() => IsOpenRouterProvider?.Invoke() ?? false;
     }
 }
