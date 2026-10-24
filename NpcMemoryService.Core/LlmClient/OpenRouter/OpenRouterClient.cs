@@ -31,8 +31,27 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
       private readonly HttpClient _httpClient;
 
       // Set once this endpoint has refused a request that turned reasoning off (LapitaPolata, 19/10/2026): from then
-      // on a call that asks for it off is sent with the player's own dial at once, instead of failing first every time.
+      // on a call that asks for it off is sent at the lowest effort at once, instead of failing first every time.
       private volatile bool _reasoningOffRefused;
+
+      /// <summary>
+      ///   The effort a call that wanted reasoning OFF is sent with when the model cannot turn it off. Low, not the
+      ///   model's default: cost bench 24/10/2026, Gemini 3.8 Flash as interpreter, left to its default, thought about
+      ///   1,000 tokens per reading, overran the interpreter's 900 and was asked twice (561 calls for 302 readings,
+      ///   20.5 s and $0.012 each); at "low" it thought about 40 and answered at once. Gabriel (24/10/2026): "sachant
+      ///   que Gemini refuse le off, on devrait de toute façon forcer à low avec ce modèle." Low is also the lowest
+      ///   effort GLM accepts ("use low, high or max", LapitaPolata).
+      /// </summary>
+      internal const string LowestAcceptedEffort = "low";
+
+      /// <summary>
+      ///   Models known to refuse reasoning off, sent at <see cref="LowestAcceptedEffort" /> from their first call:
+      ///   the Gemini 3 family and Gemini 2.5 Pro ("Reasoning is mandatory for this endpoint and cannot be disabled").
+      ///   Any other model that refuses is learned on its first refusal.
+      /// </summary>
+      internal static bool RefusesReasoningOff(string? model)
+         => model != null && (model.IndexOf("gemini-3", StringComparison.OrdinalIgnoreCase) >= 0
+                              || model.IndexOf("gemini-2.5-pro", StringComparison.OrdinalIgnoreCase) >= 0);
 
       public OpenRouterClient(HttpClient httpClient, OpenRouterConfig config)
       {
@@ -59,9 +78,9 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
       public async Task<LlmResponse> CompleteAsync(LlmRequest request, CancellationToken ct = default)
       {
          bool asksReasoningOff = IsOff(EffectiveReasoning(request));
-         if (asksReasoningOff && _reasoningOffRefused)
+         if (asksReasoningOff && (_reasoningOffRefused || RefusesReasoningOff(ModelFor(request))))
          {
-            request = RebuildWithPlayersReasoning(request);
+            request = RebuildAtLowestEffort(request);
             asksReasoningOff = false;
          }
 
@@ -70,15 +89,16 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          // A model whose reasoning cannot be turned off refuses a request that turns it off (Thoragoros1, 06/10/2026,
          // Gemini 3.7 Flash: HTTP 400 "Reasoning is mandatory for this endpoint and cannot be disabled", so no deed was
          // ever recorded). The interpreter and the housekeeping calls send it off on purpose; on that refusal, ask once
-         // more with the player's own dial (or the model's default when the dial is off too), and carry on from that
+         // more at the lowest effort the model accepts (see LowestAcceptedEffort), and carry on from that
          // answer (the truncation retry below included). LapitaPolata (19/10/2026, glm-5.3-flash, OpenAI-Compatible,
          // effort "low"): the refusal came in Chinese (code 1210, "this model always thinks, use low, high or max"), so
          // the English match missed it and every memory compression and summary failed. A refusal is now any HTTP 400
-         // answering a request that turned reasoning off, whatever its language.
+         // answering a request that turned reasoning off, whatever its language. The second ask goes at the lowest
+         // effort (see LowestAcceptedEffort), never the model's default, which thinks past a background call's budget.
          if (!response.IsSuccess && asksReasoningOff && IsReasoningOffRefusal(response.ErrorMessage))
          {
             _reasoningOffRefused = true;
-            request = RebuildWithPlayersReasoning(request);
+            request = RebuildAtLowestEffort(request);
             response = await SendAndReportAsync(request, ct).ConfigureAwait(false);
          }
 
@@ -383,6 +403,24 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
       }
 
       /// <summary>
+      ///   A short stable name for a cacheable prefix (the first 16 hex digits of its SHA-256), or null without one.
+      ///   It names the prompt, never its content.
+      /// </summary>
+      internal static string? PromptCacheKey(string? stablePrefix)
+      {
+         if (string.IsNullOrEmpty(stablePrefix)) return null;
+
+         using (var sha = System.Security.Cryptography.SHA256.Create())
+         {
+            byte[] hash = sha.ComputeHash(Encoding.UTF8.GetBytes(stablePrefix));
+            var sb = new StringBuilder("cr-", 19);
+            for (var i = 0; i < 8; i++) sb.Append(hash[i].ToString("x2"));
+
+            return sb.ToString();
+         }
+      }
+
+      /// <summary>
       ///   The prefix this request will actually be sent with — the same test BuildSystemMessage applies,
       ///   so the observer reports what goes on the wire rather than what was intended.
       /// </summary>
@@ -473,16 +511,11 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          => keyword != null && (BuildReasoningEffort(keyword) == "none");
 
       /// <summary>
-      ///   The same request with the player's own reasoning dial (LapitaPolata: "the reasoning effort setting does not
-      ///   take effect"), or the model's default when that dial is off or unset as well.
+      ///   The same request at <see cref="LowestAcceptedEffort" />: a call that wanted no reasoning at all gets as
+      ///   little as the model allows, whatever the player's dial for the prose.
       /// </summary>
-      private LlmRequest RebuildWithPlayersReasoning(LlmRequest request)
-      {
-         string? players = _config.ResolveReasoning();
-         bool usable = !string.IsNullOrWhiteSpace(players) && !IsOff(players) && BuildReasoningEffort(players) != null;
-
-         return Rebuild(request, request.Parameters.MaxTokens, usable ? players : "default");
-      }
+      private static LlmRequest RebuildAtLowestEffort(LlmRequest request)
+         => Rebuild(request, request.Parameters.MaxTokens, LowestAcceptedEffort);
 
       private static LlmRequest RebuildForBiggerBudget(LlmRequest request)
          => Rebuild(request, request.Parameters.MaxTokens * 2, request.Parameters.ReasoningOverride);
@@ -621,6 +654,14 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          // Ask OpenRouter for the bill with each answer (usage.cost), so a call can be priced as it happens. Only on
          // OpenRouter itself: another OpenAI-compatible server may refuse a field it does not know.
          if (_config.ResolveIsOpenRouter()) payload["usage"] = new Dictionary<string, object> {["include"] = true};
+
+         // Which server holds this prompt's cache. Grok keeps a prompt cached on one server and finds it again only when
+         // told where to look: probed 24/10/2026 on OpenRouter, the first reply after a scene opener (same 16,000-token
+         // prefix, a different message list) read 128 cached tokens in 3 tries out of 3 and paid $0.020; with this key,
+         // 16,256 in 3 out of 3, for $0.0035. Same prefix, same key: one per character's stable prompt, one for the
+         // interpreter. Only on OpenRouter, where every model the cost bench measured accepts it.
+         string? cacheKey = _config.ResolveIsOpenRouter() ? PromptCacheKey(SplitPrefix(request)) : null;
+         if (cacheKey != null) payload["prompt_cache_key"] = cacheKey;
 
          // The OpenAI reasoning models (gpt-5*, o1/o3/o4*), reached directly, reject "max_tokens" (they want
          // "max_completion_tokens") and refuse a custom "temperature". The host's policy decides the shape;
