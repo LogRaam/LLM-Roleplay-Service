@@ -1361,6 +1361,9 @@ CURRENT ENCOUNTER:
 
 [AuthoredQuestBlock]
 
+FOR YOUR [ACTION] BLOCK ONLY: these are what the game will recognise if the player's words take them. They are not yours to announce, offer, hint at or steer toward; play the scene as you would without them.
+[StoryChoicesForInterpreter]
+
 [MeetingGapNote]
 You are aware of the time apart, but remark on it only if it genuinely fits the moment —
 do not open with it or dwell on how many days, seasons, or years it has been.

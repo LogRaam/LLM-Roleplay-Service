@@ -1510,12 +1510,21 @@ namespace NpcMemoryService.Core.Models
 
       /// <summary>
       ///   The choices a written tale lets the player take BY WORDS in this very conversation (branching tales,
-      ///   04/10/2026), as the mod writes them for the ACTION INTERPRETER only: each declared id with what the player's
-      ///   words must mean, and how to report one. Read by <see cref="Prompts.ActionInterpreterContextBuilder" /> into
-      ///   the interpreter's per-turn facts, never into the character's own prompt: the character is not told the
-      ///   ways ahead. Null when no such choice is open with this character.
+      ///   04/10/2026): each declared id with what the player's words must mean, and how to report one. Taught to
+      ///   whoever reads this turn's actions: the interpreter (<see cref="Prompts.ActionInterpreterContextBuilder" />)
+      ///   on an interpreter turn, the character's own prompt below the marker when <see cref="ProseReadsItsOwnActions" />
+      ///   (Gabriel, 25/10/2026: Enhanced reproduces Standard, so a door open in one is open in the other). In Enhanced
+      ///   the character is still never told the ways ahead. Null when no such choice is open with this character.
       /// </summary>
       public string? StoryChoicesForInterpreter { get; init; }
+
+      /// <summary>
+      ///   True when this turn's [ACTION] tags are read from the character's own reply (Standard composition, or any
+      ///   path the interpreter does not read), false when a second call, the action interpreter, reads them. Set by
+      ///   the host from its action-reader decision. Gates the per-turn action blocks the prose prompt carries only
+      ///   when it is the reader (a tale's choices by words), so in Enhanced the character is not told them.
+      /// </summary>
+      public bool ProseReadsItsOwnActions { get; init; }
 
       /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map

@@ -1267,6 +1267,23 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
+      /// <summary>
+      ///   A written tale's choices by words open in this conversation, when THIS call reads its own actions (Gabriel,
+      ///   25/10/2026: "Enhanced a ete pense pour reproduire le comportement de Regulier"; then "je confirme" to teaching
+      ///   them in Standard like any other open deed). Below the marker: they change with the tale's stage. Never
+      ///   dropped in Compact, or a small model in Standard could not take a tale's choice at all. In Enhanced the
+      ///   interpreter is taught them instead and the character is not.
+      /// </summary>
+      private static void AppendStoryChoicesWhenProseReads(StringBuilder sb, EncounterContext context)
+      {
+         if (!context.ProseReadsItsOwnActions || string.IsNullOrWhiteSpace(context.StoryChoicesForInterpreter)) return;
+
+         sb.AppendLine("FOR YOUR [ACTION] BLOCK ONLY: these are what the game will recognise if the player's words take them. They are "
+                       + "not yours to announce, offer, hint at or steer toward; play the scene as you would without them.");
+         sb.AppendLine(context.StoryChoicesForInterpreter!.Trim());
+         sb.AppendLine();
+      }
+
       private static void AppendEncounterContext(StringBuilder sb, EncounterContext? context)
       {
          if (context == null) return;
@@ -1302,6 +1319,8 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine(context.AuthoredQuestBlock);
             sb.AppendLine();
          }
+
+         AppendStoryChoicesWhenProseReads(sb, context);
 
          // Time apart, surfaced only for a genuinely long absence (host-gated) and with restraint — short gaps
          // are unremarkable when the player travels the map fast, and NPCs were opening every chat on the count.

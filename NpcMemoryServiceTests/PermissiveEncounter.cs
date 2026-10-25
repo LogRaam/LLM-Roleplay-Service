@@ -23,9 +23,11 @@ namespace NpcMemoryServiceTests
       ///   governor-in-waiting, an escort, a consort and somebody else's prisoner - because the question it
       ///   answers is not "is this a plausible person" but "does every gated teaching still exist".
       ///   <paramref name="storyChoicesForInterpreter" /> is a written tale's open choices by words, as the host composes
-      ///   them; null when the caller has none.
+      ///   them; null when the caller has none. <paramref name="proseReadsItsOwnActions" /> is the host's action-reader
+      ///   decision for the turn (true in Standard composition), which gates the turn's own action blocks in the prose prompt.
       /// </summary>
-      public static EncounterContext Build(LeanPromptLevel lean = LeanPromptLevel.Full, string? storyChoicesForInterpreter = null)
+      public static EncounterContext Build(LeanPromptLevel lean = LeanPromptLevel.Full, string? storyChoicesForInterpreter = null,
+                                           bool proseReadsItsOwnActions = false)
          => new() {
             LeanLevel = lean,
             // counter_offer (14/10/2026) is taught only where the captive-terms section renders, which needs
@@ -74,7 +76,7 @@ namespace NpcMemoryServiceTests
             MercenaryOfferKingdom = "Vlandia", VassalOfferKingdom = "Vlandia", CompanionAskingPrice = 800,
             Witnesses = new List<WitnessEntry> {new() {Name = "Ira", RelationToNpc = "a stranger", IsPlayerCompanion = true}},
 
-            StoryChoicesForInterpreter = storyChoicesForInterpreter
+            StoryChoicesForInterpreter = storyChoicesForInterpreter, ProseReadsItsOwnActions = proseReadsItsOwnActions
          };
 
       /// <summary>
@@ -84,22 +86,24 @@ namespace NpcMemoryServiceTests
       ///   Hardcore (it is a property of the builder, not of the context).
       /// </summary>
       public static IReadOnlyList<(string Name, EncounterContext Context)> Scenarios(LeanPromptLevel lean = LeanPromptLevel.Full,
-                                                                                    string? storyChoicesForInterpreter = null)
+                                                                                    string? storyChoicesForInterpreter = null,
+                                                                                    bool proseReadsItsOwnActions = false)
          => new List<(string, EncounterContext)> {
-            ("everything open", Build(lean, storyChoicesForInterpreter)),
+            ("everything open", Build(lean, storyChoicesForInterpreter, proseReadsItsOwnActions)),
             ("the player held captive", new EncounterContext {
                LeanLevel = lean, PlayerStatus = PlayerStatusVsNpc.Captive, CaptiveIntent = CaptiveSceneIntent.Domination,
-               CaptorMayExecutePlayer = true, StoryChoicesForInterpreter = storyChoicesForInterpreter
+               CaptorMayExecutePlayer = true, StoryChoicesForInterpreter = storyChoicesForInterpreter,
+               ProseReadsItsOwnActions = proseReadsItsOwnActions
             }),
             ("the player's captor scene", new EncounterContext {
                LeanLevel = lean, PlayerStatus = PlayerStatusVsNpc.NpcIsCaptive, IsCaptorScene = true,
-               StoryChoicesForInterpreter = storyChoicesForInterpreter
+               StoryChoicesForInterpreter = storyChoicesForInterpreter, ProseReadsItsOwnActions = proseReadsItsOwnActions
             }),
             // A held secret is leverage only with a hostile realm or low regard (HeldSecretPolicy), and the free player's
             // context is at peace for the prisoner gift, so this one is its own.
             ("a hostile lord who holds the player's secret", new EncounterContext {
                LeanLevel = lean, WarStatus = DiplomaticStatus.AtWar, HeldSecretLoverSubject = "Liena",
-               StoryChoicesForInterpreter = storyChoicesForInterpreter
+               StoryChoicesForInterpreter = storyChoicesForInterpreter, ProseReadsItsOwnActions = proseReadsItsOwnActions
             })
          };
    }
