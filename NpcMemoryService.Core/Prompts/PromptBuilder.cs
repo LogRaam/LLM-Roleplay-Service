@@ -7058,7 +7058,12 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("  or expressing strong emotion. Take your time when the moment warrants it.");
          sb.AppendLine("- Brief one or two sentences only for trivial confirmations or quick questions.");
          sb.AppendLine();
-         sb.AppendLine("You may weave brief stage directions into your dialogue when they add color:");
+         // Eisendrache2 (25/10/2026, log): qwen3.5-9B narrated "*I lean against the post, my hand...*". The
+         // third-person rule lives in AppendNarrativeVoice, Full only, and the one person rule Lean keeps is the
+         // EVENT summary's "first person". Lean says it here, in fewer characters than the Full line (budget).
+         sb.AppendLine(context?.LeanLevel == LeanPromptLevel.Lean
+            ? "Brief third-person stage directions (never \"I\") may add color:"
+            : "You may weave brief stage directions into your dialogue when they add color:");
          // Eisendrache2 (25/10/2026, qwen3.5-9B): this is the only example the compact prompt keeps, and a small
          // model copies it. It was "*He leans back in his chair*" for everyone: a wife narrated as "he", leaning on
          // furniture. It now follows the character's own gender and touches nothing.

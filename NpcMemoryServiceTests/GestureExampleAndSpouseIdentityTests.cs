@@ -61,6 +61,26 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("*He ");
       }
 
+      // STAKE: Eisendrache2's log (25/10/2026): a 9B model on the compact prompt narrated its own gestures as "*I lean
+      // against the post*", because the only person rule the compact prompt kept was the EVENT summary's "first person".
+      [Test]
+      public void GIVEN_the_compact_prompt_WHEN_building_it_THEN_gestures_are_taught_in_the_third_person()
+      {
+         string prompt = Prompt(Npc(female: true, withMemory: false), new EncounterContext {LeanLevel = LeanPromptLevel.Lean}, AdultContentLevel.Mature);
+
+         prompt.Should().Contain("Brief third-person stage directions (never \"I\") may add color:");
+      }
+
+      // STAKE: the Full prompt already teaches the third person in its narrative voice; saying it twice wastes tokens.
+      [Test]
+      public void GIVEN_the_full_prompt_WHEN_building_it_THEN_the_compact_third_person_line_is_not_repeated()
+      {
+         string prompt = Prompt(Npc(female: true, withMemory: false), new EncounterContext {LeanLevel = LeanPromptLevel.Full}, AdultContentLevel.Mature);
+
+         prompt.Should().NotContain("third-person stage directions");
+         prompt.Should().Contain("Narrate in the third person");
+      }
+
       // STAKE: a wife with a shared past, at Adult Off, was never told she is speaking to her own husband.
       [TestCase(LeanPromptLevel.Lean)]
       [TestCase(LeanPromptLevel.Full)]
