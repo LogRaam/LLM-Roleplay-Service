@@ -41,52 +41,8 @@ namespace NpcMemoryServiceTests
                              .Select(s => new GameActionDefinition {Type = s.Type, Description = s.Description})
                              .ToList();
 
-      /// <summary>
-      ///   Everything a host can say yes to at once. Deliberately absurd as a character - nobody is at once a
-      ///   governor-in-waiting, an escort, a consort and somebody else's prisoner - because the question it
-      ///   answers is not "is this a plausible person" but "does every gated teaching still exist".
-      /// </summary>
-      private static EncounterContext Permissive(LeanPromptLevel lean = LeanPromptLevel.Full)
-         => new() {
-            LeanLevel = lean,
-            // counter_offer (14/10/2026) is taught only where the captive-terms section renders, which needs
-            // PlayerStatus == NpcIsCaptive; none of the other Gated teachings key off PlayerStatus == ClanMember
-            // specifically (they only ever exclude PlayerStatus == Captive, a different value), so this does not
-            // suppress anything else on this list.
-            PlayerStatus = PlayerStatusVsNpc.NpcIsCaptive,
-            CaptiveDisposition = "offers_first",
-            CaptiveTerms = new List<string> {"ransom", "fealty", "service", "intimacy"},
-            CaptiveRansomCeiling = 5000,
-            CaptiveFealtyRealm = "the Northern Empire",
-
-            NpcCanBeAppointedGovernor = true, NpcCanBeAssignedPartyRole = true, NpcCanRejoinParty = true,
-            NpcCanBeDispatchedOnMission = true, PlayerCanMediatePeace = true, NpcCanBeGrantedFief = true,
-            NpcCanHaveFiefRevoked = true, NpcCanBeExpelledFromClan = true, NpcCanBeGrantedStipend = true,
-            NpcCanSwearOath = true,
-
-            NpcCanEscortPlayer = true, NpcIsEscortingPlayer = true, NpcCanRideWithPlayer = true,
-            NpcIsRidingWithPlayer = true,
-
-            ConsortEligible = true, SecretLoverEligible = true, OpenRelationshipEligible = true,
-            PartnerLoverKnown = true, PartnerLoverName = "Liena",
-
-            CanRecruitPrisoner = true, CanRecruitNotable = true, NpcIsPrisonerOfAnother = true,
-            // take_into_service: the one verb that points OUTWARD, so the permissive subject has to be
-            // someone the player could give a companion TO, not just someone who could join them.
-            CompanionsOfferableToThisLord = "Nabb the Bloody Handed",
-            TeachableSkills = new List<string> {"Riding", "Bow"},
-
-            LordRecruitEligible = true, PlayerIsMercenary = true, CompanionOnErrand = true,
-            SchemeTargetsThisNpc = true,
-
-            // The second wave, each one a gate the first pass read past.
-            SchemeAgentTargetName = "Rhagaea",
-            CompanionMoodNote = "restless, and saying so",
-            CompanionAudience = CompanionAudienceReason.Retirement,
-            AudienceRetirementIsLanded = true,
-            BastardMotherTone = "cold",
-            BastardBlackmailDemand = 500
-         };
+      /// <summary>Everything a host can say yes to at once: see <see cref="PermissiveEncounter" />.</summary>
+      private static EncounterContext Permissive(LeanPromptLevel lean = LeanPromptLevel.Full) => PermissiveEncounter.Build(lean);
 
       private static string Build(EncounterContext context)
          => new PromptBuilder {ActionVocabulary = Vocabulary()}
