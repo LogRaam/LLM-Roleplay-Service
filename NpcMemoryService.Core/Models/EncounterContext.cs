@@ -1522,9 +1522,10 @@ namespace NpcMemoryService.Core.Models
       ///   True when this turn's [ACTION] tags are read from the character's own reply (Standard composition, or any
       ///   path the interpreter does not read), false when a second call, the action interpreter, reads them. Set by
       ///   the host from its action-reader decision. Gates the per-turn action blocks the prose prompt carries only
-      ///   when it is the reader (a tale's choices by words), so in Enhanced the character is not told them.
+      ///   when it is the reader (a tale's choices by words and its arc's signals), so in Enhanced the character is not told
+      ///   them. Settable: the host flips it when the reader changes inside a turn (the prose fallback reads its own tags).
       /// </summary>
-      public bool ProseReadsItsOwnActions { get; init; }
+      public bool ProseReadsItsOwnActions { get; set; }
 
       /// <summary>
       ///   True when the game confirms this lord could genuinely escort the player's party across the map

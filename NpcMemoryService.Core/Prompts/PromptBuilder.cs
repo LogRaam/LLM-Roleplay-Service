@@ -1278,8 +1278,9 @@ namespace NpcMemoryService.Core.Prompts
       {
          if (!context.ProseReadsItsOwnActions || string.IsNullOrWhiteSpace(context.StoryChoicesForInterpreter)) return;
 
-         sb.AppendLine("FOR YOUR [ACTION] BLOCK ONLY: these are what the game will recognise if the player's words take them. They are "
-                       + "not yours to announce, offer, hint at or steer toward; play the scene as you would without them.");
+         sb.AppendLine("FOR YOUR [ACTION] BLOCK ONLY: what the game will recognise in this exchange. None of it is yours to announce, "
+                       + "offer, hint at or steer toward, and never narrate something in order to report it; play the scene as you would "
+                       + "without them.");
          sb.AppendLine(context.StoryChoicesForInterpreter!.Trim());
          sb.AppendLine();
       }

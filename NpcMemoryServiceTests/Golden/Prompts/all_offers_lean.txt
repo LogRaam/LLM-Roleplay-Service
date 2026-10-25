@@ -1064,7 +1064,7 @@ CURRENT ENCOUNTER:
 
 [AuthoredQuestBlock]
 
-FOR YOUR [ACTION] BLOCK ONLY: these are what the game will recognise if the player's words take them. They are not yours to announce, offer, hint at or steer toward; play the scene as you would without them.
+FOR YOUR [ACTION] BLOCK ONLY: what the game will recognise in this exchange. None of it is yours to announce, offer, hint at or steer toward, and never narrate something in order to report it; play the scene as you would without them.
 [StoryChoicesForInterpreter]
 
 [MeetingGapNote]

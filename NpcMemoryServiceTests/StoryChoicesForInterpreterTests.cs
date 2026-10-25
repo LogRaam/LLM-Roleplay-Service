@@ -76,7 +76,7 @@ namespace NpcMemoryServiceTests
          string prompt = new PromptBuilder().BuildSystemPrompt(new NpcProfile {Id = "lord_varn", Name = "Varn", Clan = "", Faction = ""},
             new WorldState {CurrentDay = 10}, new EncounterContext {StoryChoicesForInterpreter = Choices, ProseReadsItsOwnActions = true});
 
-         prompt.Should().Contain("not yours to announce, offer, hint at or steer toward");
+         prompt.Should().Contain("None of it is yours to announce, offer, hint at or steer toward");
       }
 
       // STAKE: Compact is for small local models, which run Standard most; dropping the choices there would leave a
