@@ -2713,7 +2713,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
-      private static void AppendIdentity(StringBuilder sb, NpcProfile npc, EncounterContext? encounterContext)
+      private static void AppendIdentity(StringBuilder sb, NpcProfile npc, EncounterContext? encounterContext, bool playerIsFemale)
       {
          // A clanless NPC (a hunted notable, a landless wanderer) has no house to name. Older data stored the
          // literal "No clan" sentinel, which read as "of the No clan clan"; treat both an empty value and that
@@ -2728,6 +2728,11 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine(npc.IsFemale
             ? "You are female. Always speak of yourself as a woman, using she/her, whatever any older record might imply."
             : "You are male. Always speak of yourself as a man, using he/him, whatever any older record might imply.");
+         // Eisendrache2 (25/10/2026): the bond used to be named only on an empty ledger (AppendHistory) or in the
+         // intimacy rules, which Adult Off removes, so a wife with a shared past was never told who was speaking.
+         if (encounterContext?.NpcSpouseIsPlayer == true)
+            sb.AppendLine($"You are married to the player: the one speaking to you is your own {(playerIsFemale ? "wife" : "husband")}, "
+                        + "never a stranger.");
          if (npc.Age > 0)
          {
             string lifeStage = LifeStageDescriber.Describe(npc.Age);
@@ -7019,7 +7024,7 @@ namespace NpcMemoryService.Core.Prompts
 
       // ── Sprint 8.1: dialogue style ───────────────────────────────────────
 
-      private void AppendDialogueStyle(StringBuilder sb, EncounterContext? context)
+      private void AppendDialogueStyle(StringBuilder sb, NpcProfile npc, EncounterContext? context)
       {
          // A captive scene defines its own voice contract (AppendCaptiveVoiceAndPerspective /
          // AppendPlayerCaptorSceneRules / AppendCaptiveCompanionRules): [DIALOGUE] is speech and visible
@@ -7035,7 +7040,12 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("- Brief one or two sentences only for trivial confirmations or quick questions.");
          sb.AppendLine();
          sb.AppendLine("You may weave brief stage directions into your dialogue when they add color:");
-         sb.AppendLine("  *He leans back in his chair, eyes drifting to the hearth.*");
+         // Eisendrache2 (25/10/2026, qwen3.5-9B): this is the only example the compact prompt keeps, and a small
+         // model copies it. It was "*He leans back in his chair*" for everyone: a wife narrated as "he", leaning on
+         // furniture. It now follows the character's own gender and touches nothing.
+         sb.AppendLine(npc.IsFemale
+            ? "  *She glances away, toward the hearth.*"
+            : "  *He glances away, toward the hearth.*");
          sb.AppendLine("  My father said much the same, before he fell at Pendraic.");
          sb.AppendLine("Use them sparingly — they should serve the moment, not slow it down.");
          sb.AppendLine();
@@ -7047,7 +7057,7 @@ namespace NpcMemoryService.Core.Prompts
          // The narrative-voice teachings are Full-prompt only: Lean is a hard token budget for small
          // local models (pinned by LeanPromptPolicyTests), and ~2k chars of style guidance would bust it.
          if (context?.LeanLevel != LeanPromptLevel.Lean)
-            AppendNarrativeVoice(sb);
+            AppendNarrativeVoice(sb, npc.IsFemale);
          string discoverySuffix = AdultLevel != AdultContentLevel.Off
             ? ", [DISCOVERY]"
             : "";
@@ -7072,7 +7082,7 @@ namespace NpcMemoryService.Core.Prompts
       ///   the same *action*-speech-narration template every turn). Captive scenes are excluded upstream: they carry
       ///   their own voice contract.
       /// </summary>
-      private static void AppendNarrativeVoice(StringBuilder sb)
+      private static void AppendNarrativeVoice(StringBuilder sb, bool female)
       {
          sb.AppendLine("NARRATIVE VOICE (governs every reply):");
          sb.AppendLine("- Narrate in the third person: your character by name or \"he/she\", the world around");
@@ -7084,8 +7094,12 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("  for a glance or a movement, your spoken words right after, another *gesture* when");
          sb.AppendLine("  the beat turns. They follow the rhythm of the speech they punctuate, so they stay");
          sb.AppendLine("  woven through it:");
-         sb.AppendLine("    *She raises an eyebrow.* \"What do you mean by that, traveller?\"");
-         sb.AppendLine("    *She rises abruptly, worry crossing her face.* \"Speak. You are frightening me.\"");
+         sb.AppendLine(female
+            ? "    *She raises an eyebrow.* \"What do you mean by that, traveller?\""
+            : "    *He raises an eyebrow.* \"What do you mean by that, traveller?\"");
+         sb.AppendLine(female
+            ? "    *She rises abruptly, worry crossing her face.* \"Speak. You are frightening me.\""
+            : "    *He rises abruptly, worry crossing his face.* \"Speak. You are frightening me.\"");
          sb.AppendLine("- Show intent through the body, never state it (\"her hand rests on her sword, ready to");
          sb.AppendLine("  draw\", not \"she is suspicious of you\").");
          sb.AppendLine("- THE SCENE ITSELF IS NOT YOURS TO SPEAK: put it in [NARRATION], never in [DIALOGUE].");
@@ -7217,11 +7231,14 @@ namespace NpcMemoryService.Core.Prompts
       ///   Explicit examples land better than abstract rules alone, and this one is cheap (~120 tokens) and
       ///   stable, so it stays in the cacheable prefix. Shared by the Full and Lean format contracts.
       /// </summary>
-      private static void AppendFormatExample(StringBuilder sb)
+      private static void AppendFormatExample(StringBuilder sb, bool female)
       {
          sb.AppendLine("EXAMPLE OF A COMPLETE REPLY:");
          sb.AppendLine("[DIALOGUE]");
-         sb.AppendLine("*He sets down his cup and studies you a moment.*");
+         // Eisendrache2 (25/10/2026): a small model copies this example's pronoun, so it follows the character's.
+         sb.AppendLine(female
+            ? "*She sets down her cup and studies you a moment.*"
+            : "*He sets down his cup and studies you a moment.*");
          sb.AppendLine("\"You have my word. Bring the grain by week's end and we will speak of the rest.\"");
          sb.AppendLine("[/DIALOGUE]");
          sb.AppendLine("[EVENT]");
@@ -7243,7 +7260,7 @@ namespace NpcMemoryService.Core.Prompts
           || context.PlayerStatus == PlayerStatusVsNpc.Captive
           || !string.IsNullOrEmpty(context.CaptiveVictimName));
 
-      private void AppendFormatInstructions(StringBuilder sb, EncounterContext? context, LeanPromptLevel lean)
+      private void AppendFormatInstructions(StringBuilder sb, NpcProfile npc, EncounterContext? context, LeanPromptLevel lean)
       {
          // Lean mode (task 8): a small local model has no headroom for the full format contract below
          // ([MEMORY]/[STANCE]/[REPUTATION]/[DISCOVERY] teaching, the witness/quest machinery). Keep only the
@@ -7277,7 +7294,7 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine();
             }
 
-            AppendFormatExample(sb);
+            AppendFormatExample(sb, npc.IsFemale);
             AppendActionInstructions(sb, lean);
             // ExtraActionTeachings (the extended verb set) is deliberately NOT rendered in Lean mode:
             // a small / short-context model gets only the minimal action contract above.
@@ -7408,7 +7425,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
-         AppendFormatExample(sb);
+         AppendFormatExample(sb, npc.IsFemale);
          AppendActionInstructions(sb, lean);
          AppendExtraActionTeachings(sb, context);
          AppendUnavailableDeeds(sb, context);

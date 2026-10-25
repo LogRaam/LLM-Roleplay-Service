@@ -370,7 +370,7 @@ DIALOGUE STYLE:
 - Brief one or two sentences only for trivial confirmations or quick questions.
 
 You may weave brief stage directions into your dialogue when they add color:
-  *He leans back in his chair, eyes drifting to the hearth.*
+  *He glances away, toward the hearth.*
   My father said much the same, before he fell at Pendraic.
 Use them sparingly — they should serve the moment, not slow it down.
 
@@ -388,8 +388,8 @@ NARRATIVE VOICE (governs every reply):
   for a glance or a movement, your spoken words right after, another *gesture* when
   the beat turns. They follow the rhythm of the speech they punctuate, so they stay
   woven through it:
-    *She raises an eyebrow.* "What do you mean by that, traveller?"
-    *She rises abruptly, worry crossing her face.* "Speak. You are frightening me."
+    *He raises an eyebrow.* "What do you mean by that, traveller?"
+    *He rises abruptly, worry crossing his face.* "Speak. You are frightening me."
 - Show intent through the body, never state it ("her hand rests on her sword, ready to
   draw", not "she is suspicious of you").
 - THE SCENE ITSELF IS NOT YOURS TO SPEAK: put it in [NARRATION], never in [DIALOGUE].
@@ -1063,7 +1063,7 @@ DIALOGUE STYLE:
 - Brief one or two sentences only for trivial confirmations or quick questions.
 
 You may weave brief stage directions into your dialogue when they add color:
-  *He leans back in his chair, eyes drifting to the hearth.*
+  *He glances away, toward the hearth.*
   My father said much the same, before he fell at Pendraic.
 Use them sparingly — they should serve the moment, not slow it down.
 
@@ -1081,8 +1081,8 @@ NARRATIVE VOICE (governs every reply):
   for a glance or a movement, your spoken words right after, another *gesture* when
   the beat turns. They follow the rhythm of the speech they punctuate, so they stay
   woven through it:
-    *She raises an eyebrow.* "What do you mean by that, traveller?"
-    *She rises abruptly, worry crossing her face.* "Speak. You are frightening me."
+    *He raises an eyebrow.* "What do you mean by that, traveller?"
+    *He rises abruptly, worry crossing his face.* "Speak. You are frightening me."
 - Show intent through the body, never state it ("her hand rests on her sword, ready to
   draw", not "she is suspicious of you").
 - THE SCENE ITSELF IS NOT YOURS TO SPEAK: put it in [NARRATION], never in [DIALOGUE].
@@ -1758,7 +1758,7 @@ DIALOGUE STYLE:
 - Brief one or two sentences only for trivial confirmations or quick questions.
 
 You may weave brief stage directions into your dialogue when they add color:
-  *He leans back in his chair, eyes drifting to the hearth.*
+  *He glances away, toward the hearth.*
   My father said much the same, before he fell at Pendraic.
 Use them sparingly — they should serve the moment, not slow it down.
 
@@ -1776,8 +1776,8 @@ NARRATIVE VOICE (governs every reply):
   for a glance or a movement, your spoken words right after, another *gesture* when
   the beat turns. They follow the rhythm of the speech they punctuate, so they stay
   woven through it:
-    *She raises an eyebrow.* "What do you mean by that, traveller?"
-    *She rises abruptly, worry crossing her face.* "Speak. You are frightening me."
+    *He raises an eyebrow.* "What do you mean by that, traveller?"
+    *He rises abruptly, worry crossing his face.* "Speak. You are frightening me."
 - Show intent through the body, never state it ("her hand rests on her sword, ready to
   draw", not "she is suspicious of you").
 - THE SCENE ITSELF IS NOT YOURS TO SPEAK: put it in [NARRATION], never in [DIALOGUE].
@@ -2453,7 +2453,7 @@ DIALOGUE STYLE:
 - Brief one or two sentences only for trivial confirmations or quick questions.
 
 You may weave brief stage directions into your dialogue when they add color:
-  *He leans back in his chair, eyes drifting to the hearth.*
+  *He glances away, toward the hearth.*
   My father said much the same, before he fell at Pendraic.
 Use them sparingly — they should serve the moment, not slow it down.
 
@@ -2471,8 +2471,8 @@ NARRATIVE VOICE (governs every reply):
   for a glance or a movement, your spoken words right after, another *gesture* when
   the beat turns. They follow the rhythm of the speech they punctuate, so they stay
   woven through it:
-    *She raises an eyebrow.* "What do you mean by that, traveller?"
-    *She rises abruptly, worry crossing her face.* "Speak. You are frightening me."
+    *He raises an eyebrow.* "What do you mean by that, traveller?"
+    *He rises abruptly, worry crossing his face.* "Speak. You are frightening me."
 - Show intent through the body, never state it ("her hand rests on her sword, ready to
   draw", not "she is suspicious of you").
 - THE SCENE ITSELF IS NOT YOURS TO SPEAK: put it in [NARRATION], never in [DIALOGUE].
@@ -3148,7 +3148,7 @@ DIALOGUE STYLE:
 - Brief one or two sentences only for trivial confirmations or quick questions.
 
 You may weave brief stage directions into your dialogue when they add color:
-  *He leans back in his chair, eyes drifting to the hearth.*
+  *He glances away, toward the hearth.*
   My father said much the same, before he fell at Pendraic.
 Use them sparingly — they should serve the moment, not slow it down.
 
@@ -3166,8 +3166,8 @@ NARRATIVE VOICE (governs every reply):
   for a glance or a movement, your spoken words right after, another *gesture* when
   the beat turns. They follow the rhythm of the speech they punctuate, so they stay
   woven through it:
-    *She raises an eyebrow.* "What do you mean by that, traveller?"
-    *She rises abruptly, worry crossing her face.* "Speak. You are frightening me."
+    *He raises an eyebrow.* "What do you mean by that, traveller?"
+    *He rises abruptly, worry crossing his face.* "Speak. You are frightening me."
 - Show intent through the body, never state it ("her hand rests on her sword, ready to
   draw", not "she is suspicious of you").
 - THE SCENE ITSELF IS NOT YOURS TO SPEAK: put it in [NARRATION], never in [DIALOGUE].
@@ -3844,7 +3844,7 @@ DIALOGUE STYLE:
 - Brief one or two sentences only for trivial confirmations or quick questions.
 
 You may weave brief stage directions into your dialogue when they add color:
-  *He leans back in his chair, eyes drifting to the hearth.*
+  *He glances away, toward the hearth.*
   My father said much the same, before he fell at Pendraic.
 Use them sparingly — they should serve the moment, not slow it down.
 
@@ -3862,8 +3862,8 @@ NARRATIVE VOICE (governs every reply):
   for a glance or a movement, your spoken words right after, another *gesture* when
   the beat turns. They follow the rhythm of the speech they punctuate, so they stay
   woven through it:
-    *She raises an eyebrow.* "What do you mean by that, traveller?"
-    *She rises abruptly, worry crossing her face.* "Speak. You are frightening me."
+    *He raises an eyebrow.* "What do you mean by that, traveller?"
+    *He rises abruptly, worry crossing his face.* "Speak. You are frightening me."
 - Show intent through the body, never state it ("her hand rests on her sword, ready to
   draw", not "she is suspicious of you").
 - THE SCENE ITSELF IS NOT YOURS TO SPEAK: put it in [NARRATION], never in [DIALOGUE].
