@@ -715,6 +715,13 @@ namespace NpcMemoryService.Core.Models
       public MarriageBlockReason MarriageBlockedBecause { get; init; }
 
       /// <summary>
+      ///   When <see cref="MarriageBlockedBecause" /> is <see cref="MarriageBlockReason.LeadsTheirOwnHouse" />: why her one
+      ///   road (the player giving up the rule of their own house) is closed for a reason the player could mend, so she
+      ///   names it. <see cref="LeaveHouseObstacle.None" /> when the road is open or the question does not arise.
+      /// </summary>
+      public LeaveHouseObstacle LeaveHouseClosedBecause { get; init; }
+
+      /// <summary>
       ///   True when marriage is on offer ONLY through the family's blessing (ratified 2026-07-23): the match
       ///   is clear in law but this NPC's own regard for the player is still below the marriage bar. A
       ///   POLITICAL union: the NPC may accept out of duty to their house, coldly, and must never be made to

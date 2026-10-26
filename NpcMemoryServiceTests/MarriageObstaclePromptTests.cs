@@ -100,6 +100,35 @@ namespace NpcMemoryServiceTests
          prompt.Should().NotContain("It is YOU.");
       }
 
+      // The Ira report's lesson, on the ruler's road (26/10/2026): a player who resolves to leave their house for her while
+      // her heart is not won would be met by silence. She names what is missing, and the door that would open it.
+      [Test]
+      public void GIVEN_her_road_is_closed_because_her_heart_is_not_won_WHEN_built_THEN_she_says_deeds_would_move_her()
+      {
+         string prompt = Build(new EncounterContext {
+            MarriageBlockedBecause = MarriageBlockReason.LeadsTheirOwnHouse, LeaveHouseClosedBecause = LeaveHouseObstacle.HerHeartIsNotWon
+         });
+
+         prompt.Should().Contain("you do not hold them dear enough");
+         prompt.Should().Contain("deeds, not words");
+      }
+
+      // An army or a battle only delays the road: she says it must wait, not that it is closed for good.
+      [Test]
+      public void GIVEN_her_road_waits_on_a_campaign_WHEN_built_THEN_she_says_it_must_wait()
+      {
+         Build(new EncounterContext {MarriageBlockedBecause = MarriageBlockReason.LeadsTheirOwnHouse, LeaveHouseClosedBecause = LeaveHouseObstacle.ArmyOrBattle})
+            .Should().Contain("must wait until the campaign is done");
+      }
+
+      // An open road needs no excuse: no closing line may talk the player out of a road the game has just opened.
+      [Test]
+      public void GIVEN_her_road_is_open_WHEN_built_THEN_no_closing_line_appears()
+      {
+         Build(new EncounterContext {MarriageBlockedBecause = MarriageBlockReason.LeadsTheirOwnHouse})
+            .Should().NotContain("That road");
+      }
+
       // Silence is the correct answer for the rules an NPC has no natural words for (age, station, an existing
       // marriage of her own). Inventing a line for those would put stilted legalese in her mouth, which is
       // worse than the generality already above it.

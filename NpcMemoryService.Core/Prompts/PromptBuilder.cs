@@ -3104,7 +3104,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("in a single conversation. You may express affection, longing, or hope for such a future,");
          sb.AppendLine("but you must NOT declare a marriage done, agree to an immediate ceremony, or act as though");
          sb.AppendLine("you are already wed to the player.");
-         AppendMarriageObstacle(sb, context?.MarriageBlockedBecause ?? MarriageBlockReason.None);
+         AppendMarriageObstacle(sb, context?.MarriageBlockedBecause ?? MarriageBlockReason.None, context?.LeaveHouseClosedBecause ?? LeaveHouseObstacle.None);
          sb.AppendLine();
       }
 
@@ -3117,7 +3117,7 @@ namespace NpcMemoryService.Core.Prompts
       ///   Deliberately worded as WHAT TO CONVEY, never as a line to recite: a stated reason repeated verbatim
       ///   by every NPC would be worse than the generality it replaces.
       /// </summary>
-      private static void AppendMarriageObstacle(StringBuilder sb, MarriageBlockReason reason)
+      private static void AppendMarriageObstacle(StringBuilder sb, MarriageBlockReason reason, LeaveHouseObstacle roadClosed)
       {
          switch (reason)
          {
@@ -3168,11 +3168,38 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("both own openly without a wedding; or, if they would truly have you as a spouse, that they leave");
                sb.AppendLine("their own house to join yours, you remaining its head. That last is their choice to make, sealed");
                sb.AppendLine("only by its own action when one is taught to you: never act as though they have already made it.");
+               AppendLeaveHouseClosed(sb, roadClosed);
 
                break;
 
             // NotMarriageable and None say nothing extra: the first covers rules of age and station the NPC has
             // no natural words for, the second means the question does not arise at all.
+         }
+      }
+
+      /// <summary>
+      ///   Why the ruler's one road is closed now, when the player could mend it: said, or a player who resolves to leave
+      ///   their house for her is met by silence (26/10/2026, after the Ira report's lesson). Worded as what to convey.
+      /// </summary>
+      private static void AppendLeaveHouseClosed(StringBuilder sb, LeaveHouseObstacle roadClosed)
+      {
+         switch (roadClosed)
+         {
+            case LeaveHouseObstacle.HerHeartIsNotWon:
+               sb.AppendLine("That road is not open yet: you do not hold them dear enough to take them as your spouse on any");
+               sb.AppendLine("terms. If they speak of it, say so in your own way, and that deeds, not words, would move you.");
+
+               break;
+            case LeaveHouseObstacle.WarOrCaptivity:
+               sb.AppendLine("That road is not open now: no such union is sealed while your peoples are at war or one of you is a");
+               sb.AppendLine("captive. If they speak of it, name that as what must change first.");
+
+               break;
+            case LeaveHouseObstacle.ArmyOrBattle:
+               sb.AppendLine("That road must wait: neither house is handed over while one of you marches in an army or stands in");
+               sb.AppendLine("battle. If they speak of it, tell them it must wait until the campaign is done.");
+
+               break;
          }
       }
 
