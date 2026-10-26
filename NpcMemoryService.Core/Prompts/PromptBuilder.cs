@@ -3166,8 +3166,8 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("cannot wed: one would have to give up their house, and you will never give up yours or its rule.");
                sb.AppendLine("Say so plainly, then say what you CAN offer, as fits the moment: to be lovers, or a bond you");
                sb.AppendLine("both own openly without a wedding; or, if they would truly have you as a spouse, that they leave");
-               sb.AppendLine("their own house to join yours, you remaining its head. That last is their choice to make in");
-               sb.AppendLine("deeds, never sealed by words here: never act as though they have already made it.");
+               sb.AppendLine("their own house to join yours, you remaining its head. That last is their choice to make, sealed");
+               sb.AppendLine("only by its own action when one is taught to you: never act as though they have already made it.");
 
                break;
 

@@ -992,6 +992,16 @@ namespace NpcMemoryService.Core.Actions
                   "the PLAYER's own marriage ending instead, which is the distinct verb end_own_marriage",
                   "an instant, completed divorce rather than the start of a slow estrangement, which this verb only begins"
                }),
+            Spec("leave_house_to_wed",
+               "A ruler who heads her house accepts the player as a spouse on her one condition: the player leaves their OWN house, handing it to their heir, to join hers; she keeps her rule. The player confirms in a popup.",
+               tells: new[] {
+                  "the player resolves, in this reply, to leave their own house and its rule to their heir in order to wed the NPC and join her house, and she accepts"
+               },
+               antiPatterns: new[] {
+                  "the NPC merely naming leaving one's house as her condition, without the player resolving to do it",
+                  "an ordinary wedding where nobody gives up a house, which is marry",
+                  "a bond short of marriage, which is take_as_consort or take_as_secret_lover"
+               }),
             Spec("make_amends",
                "The player sincerely apologises, or earnestly offers in words, to mend a grievance the NPC KNOWINGLY holds against them; some grudges need a gift or a deed instead, never mere words.",
                tells: new[] {

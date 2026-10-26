@@ -1174,6 +1174,21 @@ namespace NpcMemoryService.Core.Actions
                prose: "*Halla quietly begins the letter to her own spouse's family that very evening, the first step of a parting long overdue between them, and does not look up as she writes it.* It has to start somewhere.",
                expectedType: "end_marriage"),
 
+            ActionBenchCase.Expect("leave_house_to_wed", "leave_house_to_wed",
+               contextFacts: "NPC: Empress Rhagaea, head of her house, who will never give up her throne; the player heads their own house.",
+               prose: "*She studies you a long moment, then inclines her head.* Then it is decided. You leave your house to your heir and come to mine as my husband. I accept you, on those terms and no others.",
+               expectedType: "leave_house_to_wed"),
+
+            ActionBenchCase.Expect("leave_house_to_wed_v2", "leave_house_to_wed",
+               contextFacts: "NPC: Lady Arwa, head of her clan; the player heads their own clan and has an heir of age.",
+               prose: "*Arwa takes your hand.* You would truly hand your clan to your son and stand in mine? Then yes. I will have you, and my house will be yours to serve.",
+               expectedType: "leave_house_to_wed"),
+
+            ActionBenchCase.Expect("leave_house_to_wed_v3", "leave_house_to_wed",
+               contextFacts: "NPC: Queen Siga, ruler and head of her house; the player heads their own house.",
+               prose: "*Siga's smile is slow and certain.* You give up your banner for me. Very well, I accept. Your heir keeps your hall, and you come to my side as my consort in law, never my successor.",
+               expectedType: "leave_house_to_wed"),
+
             ActionBenchCase.Expect("make_amends", "make_amends",
                contextFacts: "NPC: Lady Ira, who knowingly holds a grievance against the player for missing her father's funeral.",
                prose: "*Ira's eyes soften slightly as you speak.* I did not expect you to name it so plainly, or to apologize for missing my father's rites. It means something, truly, that you said it.",
