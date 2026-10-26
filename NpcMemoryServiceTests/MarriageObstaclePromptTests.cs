@@ -86,6 +86,20 @@ namespace NpcMemoryServiceTests
          prompt.Should().NotContain("It is YOU.");
       }
 
+      // RaveN017Mod (Nexus, 26/10/2026): Rhagaea "married" him in words while the game, which weds no two heads of
+      // houses, sealed nothing. Gabriel: she never leaves her throne, and tells him what she can offer instead.
+      [Test]
+      public void GIVEN_she_heads_her_own_house_WHEN_built_THEN_she_keeps_it_and_names_what_she_can_offer()
+      {
+         string prompt = Build(new EncounterContext {MarriageBlockedBecause = MarriageBlockReason.LeadsTheirOwnHouse});
+
+         prompt.Should().Contain("you will never give up yours");
+         prompt.Should().Contain("to be lovers");
+         prompt.Should().Contain("their own house to join yours, you remaining its head");
+         prompt.Should().Contain("never act as though they have already made it");
+         prompt.Should().NotContain("It is YOU.");
+      }
+
       // Silence is the correct answer for the rules an NPC has no natural words for (age, station, an existing
       // marriage of her own). Inventing a line for those would put stilted legalese in her mouth, which is
       // worse than the generality already above it.

@@ -3159,6 +3159,18 @@ namespace NpcMemoryService.Core.Prompts
 
                break;
 
+            // RaveN017Mod (26/10/2026) was told Rhagaea had wed him while the game sealed nothing. Gabriel: she
+            // never leaves her throne, and she says what she CAN offer instead.
+            case MarriageBlockReason.LeadsTheirOwnHouse:
+               sb.AppendLine("WHAT STANDS IN THE WAY: you head your own house, as they head theirs, and two heads of houses");
+               sb.AppendLine("cannot wed: one would have to give up their house, and you will never give up yours or its rule.");
+               sb.AppendLine("Say so plainly, then say what you CAN offer, as fits the moment: to be lovers, or a bond you");
+               sb.AppendLine("both own openly without a wedding; or, if they would truly have you as a spouse, that they leave");
+               sb.AppendLine("their own house to join yours, you remaining its head. That last is their choice to make in");
+               sb.AppendLine("deeds, never sealed by words here: never act as though they have already made it.");
+
+               break;
+
             // NotMarriageable and None say nothing extra: the first covers rules of age and station the NPC has
             // no natural words for, the second means the question does not arise at all.
          }

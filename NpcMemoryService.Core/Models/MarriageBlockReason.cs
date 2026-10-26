@@ -38,6 +38,13 @@ namespace NpcMemoryService.Core.Models
       ///   have fixed had anyone told him: he had built the FAMILY's goodwill through a quest, while the bride's
       ///   own regard never moved (a quest's relation reward goes to the giver).
       /// </summary>
-      RegardTooLow
+      RegardTooLow,
+
+      /// <summary>
+      ///   The NPC heads their own house, as the player heads theirs, and the game weds no two heads of houses: one
+      ///   would have to give up their house. RaveN017Mod (Nexus, 26/10/2026) courted Rhagaea, was told they were
+      ///   wed, and nothing followed. Gabriel the same day: "Jamais elle laissera son trone."
+      /// </summary>
+      LeadsTheirOwnHouse
    }
 }
