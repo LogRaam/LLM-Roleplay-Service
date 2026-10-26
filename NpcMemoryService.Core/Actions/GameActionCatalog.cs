@@ -993,9 +993,9 @@ namespace NpcMemoryService.Core.Actions
                   "an instant, completed divorce rather than the start of a slow estrangement, which this verb only begins"
                }),
             Spec("leave_house_to_wed",
-               "A ruler who heads her house accepts the player as a spouse on her one condition: the player leaves their OWN house, handing it to their heir, to join hers; she keeps her rule. The player confirms in a popup.",
+               "A ruler who heads her house accepts the player as a spouse on her one condition: the player gives up the rule of their OWN house, handing it to their heir or bringing her their lands and gold; she keeps her rule. The player chooses and confirms in a popup.",
                tells: new[] {
-                  "the player resolves, in this reply, to leave their own house and its rule to their heir in order to wed the NPC and join her house, and she accepts"
+                  "the player resolves, in this reply, to give up the rule of their own house (to their heir, or by bringing her their lands) in order to wed the NPC, and she accepts"
                },
                antiPatterns: new[] {
                   "the NPC merely naming leaving one's house as her condition, without the player resolving to do it",

@@ -137,7 +137,7 @@ Available actions:
 - sell_prisoner: The NPC hands the player a named hero captive their own clan holds, for the player's gold.
 - exchange_prisoners: The player and the NPC trade captives: the player hands over a hero captive they hold and receives one the NPC's clan holds (lords and companions, never troops); any gold evening an uneven swap is settled by the exchange itself.
 - end_marriage: The player persuades the NPC to BEGIN ending their OWN marriage (never the player's own spouse); a slow estrangement that plays out over days, not an instant act.
-- leave_house_to_wed: A ruler who heads her house accepts the player as a spouse on her one condition: the player leaves their OWN house, handing it to their heir, to join hers; she keeps her rule. The player confirms in a popup.
+- leave_house_to_wed: A ruler who heads her house accepts the player as a spouse on her one condition: the player gives up the rule of their OWN house, handing it to their heir or bringing her their lands and gold; she keeps her rule. The player chooses and confirms in a popup.
 - make_amends: The player sincerely apologises, or earnestly offers in words, to mend a grievance the NPC KNOWINGLY holds against them; some grudges need a gift or a deed instead, never mere words.
 - grudge_terms: The player asks what it would take to make things right over a grievance the NPC knowingly holds against them, and the NPC names the price in character: a gift, a deed, an apology, or only time.
 - hear_account: The player gives their account of, or justification for, a grievance the NPC knowingly holds against them, and the NPC records having heard it. Hearing is not forgiving: the grievance keeps its full weight.
