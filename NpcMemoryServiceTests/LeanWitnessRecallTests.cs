@@ -95,6 +95,17 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("Alys remembers:");
       }
 
+      // LapitaPolata (Nexus, 27/10/2026): X agreed to back the player's story, then stood witness to its telling "like they
+      // knew nothing about my scheme". The recall runs oldest to newest; the Lean cut must keep the newest, the agreement.
+      [Test]
+      public void GIVEN_a_long_recall_ending_on_a_fresh_agreement_WHEN_trimmed_for_lean_THEN_the_agreement_survives()
+      {
+         string recall = "Met the player at the Pravend market; spoke of the price of grain; shared a meal at the inn; "
+                         + "rode with them to Ocs Hall; agreed to back the player's story about the bandits";
+
+         LeanPromptPolicy.LeanWitnessMemory(recall).Should().Contain("agreed to back the player's story");
+      }
+
       // A recall line is one concrete fact, not a history: an untrimmed memory would spend the whole allowance on
       // one person. The cut lands on a word boundary so the model is not handed a severed word to interpret.
       [Test]
@@ -104,8 +115,8 @@ namespace NpcMemoryServiceTests
 
          trimmed.Should().NotBeNull();
          trimmed!.Length.Should().BeLessThanOrEqualTo(LeanPromptPolicy.LeanWitnessMemoryChars + 3); // the ellipsis
-         trimmed.Should().EndWith("...");
-         trimmed.Should().NotContain("wor...");
+         trimmed.Should().StartWith("...");
+         trimmed.Should().NotContain("...ord");
       }
 
       // Nothing to say stays nothing to say: an empty memory must not print a bare "remembers:" line, which would

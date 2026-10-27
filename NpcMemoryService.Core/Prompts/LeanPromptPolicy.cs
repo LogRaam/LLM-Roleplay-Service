@@ -95,9 +95,13 @@ namespace NpcMemoryService.Core.Prompts
          string trimmed = memory!.Trim();
          if (trimmed.Length <= LeanWitnessMemoryChars) return trimmed;
 
-         int cut = trimmed.LastIndexOf(' ', LeanWitnessMemoryChars);
+         // The recall runs oldest to newest, so the cut keeps the END. LapitaPolata (Nexus, 27/10/2026): X agreed to back
+         // the player's story, then stood witness to the telling of it "like they knew nothing about my scheme": the cut
+         // kept the oldest memories and dropped the newest, the very agreement he was there for.
+         int start = trimmed.Length - LeanWitnessMemoryChars;
+         int cut = trimmed.IndexOf(' ', start);
 
-         return (cut > 0 ? trimmed.Substring(0, cut) : trimmed.Substring(0, LeanWitnessMemoryChars)).TrimEnd(',', '.', ';') + "...";
+         return "..." + (cut > 0 && cut < trimmed.Length - 1 ? trimmed.Substring(cut + 1) : trimmed.Substring(start)).TrimStart(',', '.', ';', ' ');
       }
 
       /// <summary>
