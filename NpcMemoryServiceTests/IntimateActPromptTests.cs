@@ -63,6 +63,19 @@ namespace NpcMemoryServiceTests
          prompt.Should().NotContain("Gestures they");
       }
 
+      // STAKE: the block sits in every Hardcore prompt and Compact does not drop it; the Lean budget guards build at
+      // Mature and cannot see it, so its own size is held here (about 150 tokens for a full set of tastes).
+      [Test]
+      public void GIVEN_a_character_with_a_full_set_of_tastes_WHEN_the_hardcore_prompt_is_built_THEN_the_block_stays_small()
+      {
+         var many = new List<IntimateAct> {IntimateAct.Kissing, IntimateAct.OnTop, IntimateAct.HandsAndFingers};
+         var two = new List<IntimateAct> {IntimateAct.RoughHandling, IntimateAct.DirtyTalk};
+         int with = Build(AdultContentLevel.Hardcore, many, two).Length;
+         int without = Build(AdultContentLevel.Hardcore, null, null).Length;
+
+         (with - without).Should().BeLessThan(900);
+      }
+
       // STAKE: IntimateAct is saved as an integer: inserting or reordering a member would read one gesture as another
       // in every save. New members are appended last.
       [TestCase(IntimateAct.None, 0)]
