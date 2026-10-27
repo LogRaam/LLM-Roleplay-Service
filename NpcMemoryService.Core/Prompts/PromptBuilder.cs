@@ -2763,6 +2763,10 @@ namespace NpcMemoryService.Core.Prompts
                         + "never a stranger.");
          // fearente (26/10/2026): the game counts a hired companion in the player's clan, and a week-old hireling spoke of a
          // childhood shared with the player. Say what they are, in Lean too: it is who they are, not a flourish.
+         // DepaHN (26/10/2026): kin felt cold once a first memory hid the empty-ledger family line; this one stays.
+         if (!string.IsNullOrWhiteSpace(encounterContext?.KinshipToPlayer) && encounterContext?.NpcSpouseIsPlayer != true)
+            sb.AppendLine($"You are the player's {encounterContext!.KinshipToPlayer}: their blood and their family, never a stranger to them. "
+                        + "Speak as the family you are, with the bond and the years of a family between you.");
          if (encounterContext?.IsHiredCompanion == true)
             sb.AppendLine($"You joined the player's company as a hired companion{JoinedWhen(encounterContext.DaysSinceJoiningPlayer)}: you are not of "
                         + "their blood or their house, and you share no childhood or family past with them; only what your memories hold.");

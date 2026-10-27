@@ -1183,6 +1183,13 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public bool IsHiredCompanion { get; init; }
 
+      /// <summary>
+      ///   What this character is to the player by blood ("son", "granddaughter", "aunt", "cousin"), or null. DepaHN
+      ///   (26/10/2026): kin were told they are family only while they shared no memory with the player, and grandchildren,
+      ///   nephews and cousins never; identity now says it in every prompt, as it does for a spouse.
+      /// </summary>
+      public string? KinshipToPlayer { get; init; }
+
       /// <summary>Days since the hired companion joined the player's company, when known (null on older saves).</summary>
       public int? DaysSinceJoiningPlayer { get; init; }
 
