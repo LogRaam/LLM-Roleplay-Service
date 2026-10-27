@@ -179,7 +179,14 @@ namespace NpcMemoryService.Core.Models
       public List<IntimateAct>? DislikedActs { get; set; }
 
       /// <summary>
-      ///   The gestures, among <see cref="LovedActs" /> and <see cref="DislikedActs" />, whose taste the player has learned
+      ///   The gestures this character is less fond of (Gabriel, 27/10/2026: "une chose qu'elle aime moins"). They go along
+      ///   with them without eagerness, never feigning delight, and it costs the partner nothing. Null until rolled:
+      ///   profiles rolled before this have none and are given theirs the next time they are read.
+      /// </summary>
+      public List<IntimateAct>? LessFondActs { get; set; }
+
+      /// <summary>
+      ///   The gestures, among <see cref="LovedActs" />, <see cref="LessFondActs" /> and <see cref="DislikedActs" />, whose taste the player has learned
       ///   by living it with them (a gesture they love found, one they dislike met with a refusal or an unease). Null or
       ///   empty when none. Additive, absent in older saves.
       /// </summary>
@@ -266,6 +273,7 @@ namespace NpcMemoryService.Core.Models
          // Their tastes are not derived from traits: a rebuild keeps the ones already rolled.
          if (previous.LovedActs != null) LovedActs = previous.LovedActs;
          if (previous.DislikedActs != null) DislikedActs = previous.DislikedActs;
+         if (previous.LessFondActs != null) LessFondActs = previous.LessFondActs;
          KnownActs = previous.KnownActs;
       }
 

@@ -7,7 +7,8 @@ namespace NpcMemoryService.Core.Models
     ///   partner). Gabriel (26/10/2026): "le LLM a tendance a aimer tous les gestes sexuels que le joueur peut decrire.
     ///   Ce serait plus interessant si chaque NPC avait des preferences pour certains gestes sexuels, et meme parfois des
     ///   gestes qu'il n'aime pas." Each character loves a few (<see cref="RomanticProfile.LovedActs" />) and sometimes
-    ///   dislikes one or two (<see cref="RomanticProfile.DislikedActs" />). Surfaced only at Hardcore.
+    ///   dislikes one or two (<see cref="RomanticProfile.DislikedActs" />); and, since 27/10/2026, each is less fond of
+    ///   one (<see cref="RomanticProfile.LessFondActs" />). Surfaced only at Hardcore.
     ///
     ///   Saved as integers: APPEND ONLY, never insert or reorder (IntimateActOrdinalTests).
     /// </summary>

@@ -44,6 +44,18 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("they cool toward the one who pressed");
       }
 
+      // STAKE: Gabriel (27/10/2026): "une chose qu'elle aime moins": a gesture they are less fond of is met without
+      // eagerness, a temperature the player can read, and it is no offence.
+      [Test]
+      public void GIVEN_a_gesture_they_are_less_fond_of_WHEN_the_hardcore_prompt_is_built_THEN_it_is_met_without_eagerness()
+      {
+         string prompt = Build(AdultContentLevel.Hardcore, new List<IntimateAct> {IntimateAct.OnTop}, null, new List<IntimateAct> {IntimateAct.DirtyTalk});
+
+         prompt.Should().Contain("Gestures they are less fond of:");
+         prompt.Should().Contain("- crude words, said and heard in the act");
+         prompt.Should().Contain("go along with, but without eagerness");
+      }
+
       // STAKE: the gestures are Hardcore content: an Explicit game is never told them.
       [Test]
       public void GIVEN_an_explicit_game_WHEN_the_prompt_is_built_THEN_no_gesture_is_named()
@@ -64,16 +76,16 @@ namespace NpcMemoryServiceTests
       }
 
       // STAKE: the block sits in every Hardcore prompt and Compact does not drop it; the Lean budget guards build at
-      // Mature and cannot see it, so its own size is held here (about 150 tokens for a full set of tastes).
+      // Mature and cannot see it, so its own size is held here (about 250 tokens for a full set of tastes).
       [Test]
       public void GIVEN_a_character_with_a_full_set_of_tastes_WHEN_the_hardcore_prompt_is_built_THEN_the_block_stays_small()
       {
          var many = new List<IntimateAct> {IntimateAct.Kissing, IntimateAct.OnTop, IntimateAct.HandsAndFingers};
          var two = new List<IntimateAct> {IntimateAct.RoughHandling, IntimateAct.DirtyTalk};
-         int with = Build(AdultContentLevel.Hardcore, many, two).Length;
+         int with = Build(AdultContentLevel.Hardcore, many, two, new List<IntimateAct> {IntimateAct.Beneath}).Length;
          int without = Build(AdultContentLevel.Hardcore, null, null).Length;
 
-         (with - without).Should().BeLessThan(900);
+         (with - without).Should().BeLessThan(1100);
       }
 
       // STAKE: IntimateAct is saved as an integer: inserting or reordering a member would read one gesture as another
@@ -102,7 +114,7 @@ namespace NpcMemoryServiceTests
          System.Enum.GetValues(typeof(IntimateAct)).Length.Should().Be(12);
       }
 
-      private static string Build(AdultContentLevel level, List<IntimateAct>? loved, List<IntimateAct>? disliked)
+      private static string Build(AdultContentLevel level, List<IntimateAct>? loved, List<IntimateAct>? disliked, List<IntimateAct>? lessFond = null)
       {
          var npc = new NpcProfile {
             Id = "npc_test",
@@ -115,7 +127,8 @@ namespace NpcMemoryServiceTests
                Orientation = SexualOrientation.BiCurious,
                Preferences = new List<RomanticPreference>(),
                LovedActs = loved,
-               DislikedActs = disliked
+               DislikedActs = disliked,
+               LessFondActs = lessFond
             }
          };
 

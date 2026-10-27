@@ -5442,13 +5442,21 @@ namespace NpcMemoryService.Core.Prompts
       {
          List<IntimateAct> loved = (romantic.LovedActs ?? new List<IntimateAct>()).Where(a => a != IntimateAct.None).ToList();
          List<IntimateAct> disliked = (romantic.DislikedActs ?? new List<IntimateAct>()).Where(a => a != IntimateAct.None).ToList();
-         if (loved.Count == 0 && disliked.Count == 0) return;
+         List<IntimateAct> lessFond = (romantic.LessFondActs ?? new List<IntimateAct>())
+                                      .Where(a => a != IntimateAct.None && !loved.Contains(a) && !disliked.Contains(a)).ToList();
+         if (loved.Count == 0 && disliked.Count == 0 && lessFond.Count == 0) return;
 
          sb.AppendLine();
          if (loved.Count > 0)
          {
             sb.AppendLine("Gestures they particularly love in bed:");
             foreach (IntimateAct a in loved) sb.AppendLine($"- {DescribeIntimateAct(a)}");
+         }
+
+         if (lessFond.Count > 0)
+         {
+            sb.AppendLine("Gestures they are less fond of:");
+            foreach (IntimateAct a in lessFond) sb.AppendLine($"- {DescribeIntimateAct(a)}");
          }
 
          if (disliked.Count > 0)
@@ -5458,7 +5466,8 @@ namespace NpcMemoryService.Core.Prompts
          }
 
          sb.AppendLine("Not every gesture delights them. A gesture they love brings real pleasure: they seek it, ask for it, or lead "
-                       + "toward it. One they dislike they never pretend to enjoy: they refuse it plainly, or let an unease show that "
+                       + "toward it. One they are less fond of they go along with, but without eagerness: their pleasure is "
+                       + "plainly smaller, they may hurry it or steer toward something else, and it is no offence. One they dislike they never pretend to enjoy: they refuse it plainly, or let an unease show that "
                        + "a partner can read (they stiffen, turn aside, steer elsewhere, grow cooler), as their nature dictates, and "
                        + "pressed past it they cool toward the one who pressed. Anything else they meet with ordinary pleasure, "
                        + "neither feigned nor overdone.");
