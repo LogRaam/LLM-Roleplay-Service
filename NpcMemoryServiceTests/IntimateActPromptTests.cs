@@ -1,0 +1,112 @@
+// Code written by Gabriel Mailhot, 27/10/2026.
+// The gestures a character loves and dislikes reach the prompt at Hardcore only, beside their kinks (Gabriel,
+// 26/10/2026: "le LLM a tendance a aimer tous les gestes sexuels que le joueur peut decrire"; a refusal "pourrait etre
+// franc, ou encore un malaise"). IntimateAct is saved as an integer, so its ordinals are frozen here. If this is wrong,
+// every character still adores whatever the player describes, a disliked gesture is met with feigned pleasure, a lower
+// adult level is shown gestures it never asked for, or a save reads one gesture as another.
+
+#region
+
+using System.Collections.Generic;
+using FluentAssertions;
+using NpcMemoryService.Core.Models;
+using NpcMemoryService.Core.Prompts;
+using NUnit.Framework;
+
+#endregion
+
+namespace NpcMemoryServiceTests
+{
+   [TestFixture]
+   public class IntimateActPromptTests
+   {
+      // STAKE: Gabriel's own example: a character who particularly loves oral sex and hates anal sex says so in bed.
+      [Test]
+      public void GIVEN_a_character_who_loves_oral_and_dislikes_anal_WHEN_the_hardcore_prompt_is_built_THEN_both_are_stated()
+      {
+         string prompt = Build(AdultContentLevel.Hardcore, new List<IntimateAct> {IntimateAct.OralGiving}, new List<IntimateAct> {IntimateAct.AnalReceiving});
+
+         prompt.Should().Contain("Gestures they particularly love in bed:");
+         prompt.Should().Contain("- using their mouth on their partner");
+         prompt.Should().Contain("Gestures they dislike:");
+         prompt.Should().Contain("- being taken anally");
+      }
+
+      // STAKE: "franc, ou encore un malaise": a disliked gesture is refused plainly or met with a readable unease, never
+      // with feigned pleasure (NPCs never lie), and pressing past it cools them.
+      [Test]
+      public void GIVEN_a_disliked_gesture_WHEN_the_prompt_is_built_THEN_it_is_refused_or_met_with_unease_never_feigned()
+      {
+         string prompt = Build(AdultContentLevel.Hardcore, new List<IntimateAct>(), new List<IntimateAct> {IntimateAct.RoughHandling});
+
+         prompt.Should().Contain("they never pretend to enjoy");
+         prompt.Should().Contain("let an unease show that a partner can read");
+         prompt.Should().Contain("they cool toward the one who pressed");
+      }
+
+      // STAKE: the gestures are Hardcore content: an Explicit game is never told them.
+      [Test]
+      public void GIVEN_an_explicit_game_WHEN_the_prompt_is_built_THEN_no_gesture_is_named()
+      {
+         string prompt = Build(AdultContentLevel.Explicit, new List<IntimateAct> {IntimateAct.OralGiving}, new List<IntimateAct> {IntimateAct.AnalReceiving});
+
+         prompt.Should().NotContain("Gestures they particularly love");
+         prompt.Should().NotContain("Gestures they dislike");
+      }
+
+      // STAKE: a profile from before 27/10/2026 (nothing rolled yet) adds no empty heading.
+      [Test]
+      public void GIVEN_a_profile_with_no_gestures_rolled_WHEN_the_prompt_is_built_THEN_nothing_is_added()
+      {
+         string prompt = Build(AdultContentLevel.Hardcore, null, null);
+
+         prompt.Should().NotContain("Gestures they");
+      }
+
+      // STAKE: IntimateAct is saved as an integer: inserting or reordering a member would read one gesture as another
+      // in every save. New members are appended last.
+      [TestCase(IntimateAct.None, 0)]
+      [TestCase(IntimateAct.Kissing, 1)]
+      [TestCase(IntimateAct.OralGiving, 2)]
+      [TestCase(IntimateAct.OralReceiving, 3)]
+      [TestCase(IntimateAct.AnalGiving, 4)]
+      [TestCase(IntimateAct.AnalReceiving, 5)]
+      [TestCase(IntimateAct.OnTop, 6)]
+      [TestCase(IntimateAct.Beneath, 7)]
+      [TestCase(IntimateAct.FromBehind, 8)]
+      [TestCase(IntimateAct.HandsAndFingers, 9)]
+      [TestCase(IntimateAct.RoughHandling, 10)]
+      [TestCase(IntimateAct.DirtyTalk, 11)]
+      public void GIVEN_a_saved_gesture_WHEN_cast_to_int_THEN_its_ordinal_is_frozen(IntimateAct act, int ordinal)
+      {
+         ((int) act).Should().Be(ordinal);
+      }
+
+      // STAKE: a member appended without its frozen ordinal above is caught here.
+      [Test]
+      public void GIVEN_the_gesture_enum_WHEN_its_members_are_counted_THEN_each_has_its_frozen_ordinal()
+      {
+         System.Enum.GetValues(typeof(IntimateAct)).Length.Should().Be(12);
+      }
+
+      private static string Build(AdultContentLevel level, List<IntimateAct>? loved, List<IntimateAct>? disliked)
+      {
+         var npc = new NpcProfile {
+            Id = "npc_test",
+            Name = "Test Lady",
+            Faction = "Empire",
+            Clan = "Pethros",
+            ReputationWithPlayer = 30,
+            Romantic = new RomanticProfile {
+               Status = RomanticStatus.Intimate,
+               Orientation = SexualOrientation.BiCurious,
+               Preferences = new List<RomanticPreference>(),
+               LovedActs = loved,
+               DislikedActs = disliked
+            }
+         };
+
+         return new PromptBuilder {AdultLevel = level}.BuildSystemPrompt(npc, new WorldState {CurrentDay = 10}, new EncounterContext());
+      }
+   }
+}

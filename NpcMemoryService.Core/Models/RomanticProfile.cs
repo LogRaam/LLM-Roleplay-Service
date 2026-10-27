@@ -164,6 +164,20 @@ namespace NpcMemoryService.Core.Models
 
       public List<Kink> Kinks { get; init; } = new();
 
+      // ── Layer 4b: the gestures they love and dislike (Hardcore only; Gabriel, 26/10/2026) ──
+
+      /// <summary>
+      ///   The gestures this character particularly loves (<see cref="IntimateAct" />). Null until rolled: profiles made
+      ///   before 27/10/2026 have none, and are given theirs the next time they are read (rolled once, then kept).
+      /// </summary>
+      public List<IntimateAct>? LovedActs { get; set; }
+
+      /// <summary>
+      ///   The gestures this character dislikes, often none. They refuse them, frankly or in an unease the player can read;
+      ///   never with feigned pleasure. Null until rolled, like <see cref="LovedActs" />.
+      /// </summary>
+      public List<IntimateAct>? DislikedActs { get; set; }
+
       // ── Layer 2: orientation (rolled at creation; overridable by authored char data) ──
 
       // Settable, not init-only: a player may deliberately change an NPC's orientation via
@@ -242,6 +256,9 @@ namespace NpcMemoryService.Core.Models
          LoverTrystCount = previous.LoverTrystCount;
          LoverKnownToPlayer = previous.LoverKnownToPlayer;
          AffairDiscovered = previous.AffairDiscovered;
+         // Their tastes are not derived from traits: a rebuild keeps the ones already rolled.
+         if (previous.LovedActs != null) LovedActs = previous.LovedActs;
+         if (previous.DislikedActs != null) DislikedActs = previous.DislikedActs;
       }
 
       // ── Compatibility ─────────────────────────────────────────────────────

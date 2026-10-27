@@ -5419,6 +5419,53 @@ namespace NpcMemoryService.Core.Prompts
          _ => "Your clan considers this player an enemy."
       };
 
+      /// <summary>
+      ///   Gabriel (26/10/2026): "le LLM a tendance a aimer tous les gestes sexuels que le joueur peut decrire. Ce serait
+      ///   plus interessant si chaque NPC avait des preferences pour certains gestes sexuels, et meme parfois des gestes
+      ///   qu'il n'aime pas"; a refusal "pourrait etre franc, ou encore un malaise. Le joueur pourrait 'sentir la
+      ///   temperature' de la relation en roleplay." Per-character and stable, so it sits in the cached prefix.
+      /// </summary>
+      private static void AppendIntimateActs(StringBuilder sb, RomanticProfile romantic)
+      {
+         List<IntimateAct> loved = (romantic.LovedActs ?? new List<IntimateAct>()).Where(a => a != IntimateAct.None).ToList();
+         List<IntimateAct> disliked = (romantic.DislikedActs ?? new List<IntimateAct>()).Where(a => a != IntimateAct.None).ToList();
+         if (loved.Count == 0 && disliked.Count == 0) return;
+
+         sb.AppendLine();
+         if (loved.Count > 0)
+         {
+            sb.AppendLine("Gestures they particularly love in bed:");
+            foreach (IntimateAct a in loved) sb.AppendLine($"- {DescribeIntimateAct(a)}");
+         }
+
+         if (disliked.Count > 0)
+         {
+            sb.AppendLine("Gestures they dislike:");
+            foreach (IntimateAct a in disliked) sb.AppendLine($"- {DescribeIntimateAct(a)}");
+         }
+
+         sb.AppendLine("Not every gesture delights them. A gesture they love brings real pleasure: they seek it, ask for it, or lead "
+                       + "toward it. One they dislike they never pretend to enjoy: they refuse it plainly, or let an unease show that "
+                       + "a partner can read (they stiffen, turn aside, steer elsewhere, grow cooler), as their nature dictates, and "
+                       + "pressed past it they cool toward the one who pressed. Anything else they meet with ordinary pleasure, "
+                       + "neither feigned nor overdone.");
+      }
+
+      private static string DescribeIntimateAct(IntimateAct a) => a switch {
+         IntimateAct.Kissing => "long, deep kisses",
+         IntimateAct.OralGiving => "using their mouth on their partner",
+         IntimateAct.OralReceiving => "their partner's mouth on them",
+         IntimateAct.AnalGiving => "taking their partner anally",
+         IntimateAct.AnalReceiving => "being taken anally",
+         IntimateAct.OnTop => "being on top, riding their partner",
+         IntimateAct.Beneath => "lying beneath, taken from above",
+         IntimateAct.FromBehind => "being taken from behind",
+         IntimateAct.HandsAndFingers => "hands and fingers: touching, stroking, fingers inside",
+         IntimateAct.RoughHandling => "rough handling: biting, scratching, hair pulled, being held hard",
+         IntimateAct.DirtyTalk => "crude words, said and heard in the act",
+         _ => ""
+      };
+
       private static string DescribeKink(Kink k) => k switch {
          Kink.Dominance => "Finds deep satisfaction in being the one who leads — control is its own pleasure.",
          Kink.Submission => "Longs to surrender, to be guided by a stronger will — yielding is its own freedom.",
@@ -8366,6 +8413,8 @@ namespace NpcMemoryService.Core.Prompts
             foreach (Kink kink in npc.Romantic.Kinks)
                sb.AppendLine($"- {DescribeKink(kink)}");
          }
+
+         if (AdultLevel >= AdultContentLevel.Hardcore) AppendIntimateActs(sb, npc.Romantic);
 
          if (npc.Romantic.Status != RomanticStatus.None)
          {
