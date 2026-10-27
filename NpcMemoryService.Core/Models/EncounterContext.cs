@@ -1177,6 +1177,16 @@ namespace NpcMemoryService.Core.Models
       public bool NpcSpouseIsPlayer { get; init; }
 
       /// <summary>
+      ///   This character is the player's HIRED companion: the game counts them in the player's clan, so the prompt read
+      ///   them as kin of the house, and a model gave a week-old hireling a childhood shared with the player (fearente,
+      ///   26/10/2026). The identity says what they are: a hired companion, no blood, no shared past.
+      /// </summary>
+      public bool IsHiredCompanion { get; init; }
+
+      /// <summary>Days since the hired companion joined the player's company, when known (null on older saves).</summary>
+      public int? DaysSinceJoiningPlayer { get; init; }
+
+      /// <summary>
       ///   True when this NPC belongs to the player's own house: their spouse, a committed consort, or close kin
       ///   (a parent, child, or sibling). Used so a first conversation on a campaign CR only just joined does not
       ///   greet an established spouse or close relative as a stranger: when there are no recorded shared events

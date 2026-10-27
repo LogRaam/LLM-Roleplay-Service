@@ -2733,6 +2733,14 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
+      // " some 9 days ago", " today", or nothing when the day was never kept.
+      private static string JoinedWhen(int? days) => days switch {
+         null => "",
+         <= 0 => " today",
+         1 => " a day ago",
+         _ => $" some {days} days ago"
+      };
+
       private static void AppendIdentity(StringBuilder sb, NpcProfile npc, EncounterContext? encounterContext, bool playerIsFemale)
       {
          // A clanless NPC (a hunted notable, a landless wanderer) has no house to name. Older data stored the
@@ -2753,6 +2761,11 @@ namespace NpcMemoryService.Core.Prompts
          if (encounterContext?.NpcSpouseIsPlayer == true)
             sb.AppendLine($"You are married to the player: the one speaking to you is your own {(playerIsFemale ? "wife" : "husband")}, "
                         + "never a stranger.");
+         // fearente (26/10/2026): the game counts a hired companion in the player's clan, and a week-old hireling spoke of a
+         // childhood shared with the player. Say what they are, in Lean too: it is who they are, not a flourish.
+         if (encounterContext?.IsHiredCompanion == true)
+            sb.AppendLine($"You joined the player's company as a hired companion{JoinedWhen(encounterContext.DaysSinceJoiningPlayer)}: you are not of "
+                        + "their blood or their house, and you share no childhood or family past with them; only what your memories hold.");
          if (npc.Age > 0)
          {
             string lifeStage = LifeStageDescriber.Describe(npc.Age);

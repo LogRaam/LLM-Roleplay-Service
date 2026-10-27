@@ -313,6 +313,12 @@ namespace NpcMemoryService.Core.Models
       /// <summary>The days this character was taken captive lately: each makes the next land harder (Maifailun). Additive.</summary>
       public List<int> SelfEsteemCapturedOnDays { get; set; } = new();
 
+      /// <summary>
+      ///   The day this character joined the player's company as a hired companion (fearente, 26/10/2026: a companion hired a
+      ///   week before spoke of a childhood shared with the player). Null when never hired, or hired before it was kept. Additive.
+      /// </summary>
+      public int? JoinedPlayerCompanyDay { get; set; }
+
       /// <summary>The day of this character's last personal blow (a fief lost, a death in the house), for the mood of the day. Additive.</summary>
       public int? LastPersonalBlowDay { get; set; }
 
