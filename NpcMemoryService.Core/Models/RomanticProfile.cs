@@ -178,6 +178,13 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public List<IntimateAct>? DislikedActs { get; set; }
 
+      /// <summary>
+      ///   The gestures, among <see cref="LovedActs" /> and <see cref="DislikedActs" />, whose taste the player has learned
+      ///   by living it with them (a gesture they love found, one they dislike met with a refusal or an unease). Null or
+      ///   empty when none. Additive, absent in older saves.
+      /// </summary>
+      public List<IntimateAct>? KnownActs { get; set; }
+
       // ── Layer 2: orientation (rolled at creation; overridable by authored char data) ──
 
       // Settable, not init-only: a player may deliberately change an NPC's orientation via
@@ -259,6 +266,7 @@ namespace NpcMemoryService.Core.Models
          // Their tastes are not derived from traits: a rebuild keeps the ones already rolled.
          if (previous.LovedActs != null) LovedActs = previous.LovedActs;
          if (previous.DislikedActs != null) DislikedActs = previous.DislikedActs;
+         KnownActs = previous.KnownActs;
       }
 
       // ── Compatibility ─────────────────────────────────────────────────────

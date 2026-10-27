@@ -26,4 +26,33 @@ namespace NpcMemoryService.Core.Models
         RoughHandling,    // Biting, scratching, hair pulled, held hard
         DirtyTalk,        // Crude words said and heard in the act
     }
+
+    /// <summary>The gestures' written names, as a reader, an author or the console writes them ("oral_giving").</summary>
+    public static class IntimateActNames
+    {
+        /// <summary>The gesture's id ("oral_giving").</summary>
+        public static string IdOf(IntimateAct act)
+        {
+            var sb = new System.Text.StringBuilder();
+            foreach (char c in act.ToString())
+            {
+                if (char.IsUpper(c) && sb.Length > 0) sb.Append('_');
+                sb.Append(char.ToLowerInvariant(c));
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>The gesture a name writes ("oral_giving", "OralGiving", "oral giving"), or None.</summary>
+        public static IntimateAct Parse(string? id)
+        {
+            string key = (id ?? "").Replace("_", "").Replace(" ", "").Trim();
+            if (key.Length == 0) return IntimateAct.None;
+            foreach (IntimateAct a in (IntimateAct[]) System.Enum.GetValues(typeof(IntimateAct)))
+                if (a != IntimateAct.None && string.Equals(a.ToString(), key, System.StringComparison.OrdinalIgnoreCase))
+                    return a;
+
+            return IntimateAct.None;
+        }
+    }
 }
