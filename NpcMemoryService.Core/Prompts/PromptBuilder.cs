@@ -7317,6 +7317,47 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   What matters most to this character, above everything else (Gabriel, 27/10/2026: "qu'est-ce qui compte le plus
+      ///   pour un NPC. Ses enfants? Sa richesse? Son amoureux?"). The host chose it among what is true of them; it weighs
+      ///   on what they agree to, forgive and never forgive. A guarded nature may keep it private, never name a false one
+      ///   (NPCs never lie). Its own [DISCOVERY] teaching rides here because the general one is withheld when adult content
+      ///   is off, and this is no adult matter.
+      /// </summary>
+      private static void AppendMattersMost(StringBuilder sb, NpcProfile npc)
+      {
+         string what = DescribeMattersMost(npc?.MattersMost ?? MattersMost.None);
+         if (what.Length == 0) return;
+
+         sb.AppendLine($"WHAT MATTERS MOST TO YOU, above everything else: {what}. It weighs on what you agree to, what you forgive "
+                       + "and what you never will. A guarded nature may keep it private; you never name a false one.");
+         if (!npc!.MattersMostKnown)
+         {
+            sb.AppendLine("The first time your own words in [DIALOGUE] plainly tell the player this, add this block after it:");
+            sb.AppendLine("[DISCOVERY]");
+            sb.AppendLine("key: " + MattersMostDiscovery.Key);
+            sb.AppendLine("description: what matters most to you, in one sentence");
+            sb.AppendLine("[/DISCOVERY]");
+         }
+         sb.AppendLine();
+      }
+
+      private static string DescribeMattersMost(MattersMost m) => m switch {
+         MattersMost.Children => "your children",
+         MattersMost.Spouse => "your spouse",
+         MattersMost.Lover => "your lover",
+         MattersMost.ThePlayer => "the player, whom you love",
+         MattersMost.Kin => "your family: your parents, your brothers and sisters",
+         MattersMost.HouseHonor => "the honour of your house",
+         MattersMost.Wealth => "wealth: what you own and what you can gain",
+         MattersMost.Power => "power: rank, fiefs, the ear of rulers",
+         MattersMost.Glory => "glory in battle",
+         MattersMost.Lands => "your lands and the people who live on them",
+         MattersMost.Freedom => "your freedom: no lord, no oath, no walls",
+         MattersMost.Vengeance => "a score you mean to settle",
+         _ => ""
+      };
+
+      /// <summary>
       ///   Injects the list of personal traits the player already knows about this NPC.
       ///   Placed after ROMANTIC NATURE so the NPC can see what has already been shared
       ///   and avoid emitting duplicate [DISCOVERY] blocks.

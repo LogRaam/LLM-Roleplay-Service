@@ -130,6 +130,15 @@ namespace NpcMemoryService.Core.Services
             bool discoveryIsAboutPlayer = response.Discovery != null
                 && DiscoverySubjectGuard.IsAboutPlayer(response.Discovery.Key, response.Discovery.Description, playerName);
 
+            // What matters most is the host's to word (the encyclopedia names it from the game's own choice): the
+            // reserved key only marks it learned, and its free text is never stored beside it.
+            if (response.Discovery != null && !discoveryIsAboutPlayer
+                && string.Equals(response.Discovery.Key?.Trim(), MattersMostDiscovery.Key, StringComparison.OrdinalIgnoreCase))
+            {
+                if (profile.MattersMost != MattersMost.None) profile.MattersMostKnown = true;
+                return;
+            }
+
             // Record newly discovered trait — deduplicated by key so the same fact is never stored twice.
             if (response.Discovery != null
                 && !string.IsNullOrWhiteSpace(response.Discovery.Key)

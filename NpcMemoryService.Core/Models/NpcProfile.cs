@@ -100,6 +100,18 @@ namespace NpcMemoryService.Core.Models
          init => _courtActionCooldowns = value ?? new Dictionary<string, int>();
       }
 
+      /// <summary>
+      ///   What matters most to this character (<see cref="Models.MattersMost" />), chosen and kept up to date by the host;
+      ///   None until chosen. Additive, None in older saves.
+      /// </summary>
+      public MattersMost MattersMost { get; set; }
+
+      /// <summary>
+      ///   The player has learned what matters most to this character: they said it in their own words (a [DISCOVERY]
+      ///   with the reserved key <c>matters_most</c>). Additive, false in older saves.
+      /// </summary>
+      public bool MattersMostKnown { get; set; }
+
       private readonly List<DiscoveredTrait> _discoveredTraits = new();
 
       /// <summary>
