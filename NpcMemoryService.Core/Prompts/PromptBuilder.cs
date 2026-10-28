@@ -7341,6 +7341,93 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
+      /// <summary>
+      ///   A fear and a superstition of theirs, when they have one (Gabriel, 27/10/2026: "nous pourrions aussi ajouter
+      ///   certaines superstitions et phobies"). Colour, never the whole conversation; beliefs, never magic. The player
+      ///   learns each through a reserved [DISCOVERY] key, taught here while it is not yet known.
+      /// </summary>
+      private static void AppendFearAndSuperstition(StringBuilder sb, NpcProfile npc)
+      {
+         string fear = DescribeFear(npc?.Fear ?? Fear.None);
+         string belief = DescribeSuperstition(npc?.Superstition ?? Superstition.None);
+         if (fear.Length == 0 && belief.Length == 0) return;
+
+         if (fear.Length > 0)
+            sb.AppendLine($"A FEAR OF YOURS: {fear}. You would rather no one saw it; near it you grow tense and short, eager to be "
+                          + "elsewhere. It shows only when the moment brings it near.");
+         if (belief.Length > 0)
+            sb.AppendLine($"A SUPERSTITION OF YOURS: you {belief}. It colours your talk now and then, never the whole conversation; "
+                          + "it is a belief, and nothing in the world bends to it.");
+
+         var keys = new List<string>();
+         if (fear.Length > 0 && !npc!.FearKnown) keys.Add(NatureDiscovery.FearKey);
+         if (belief.Length > 0 && !npc!.SuperstitionKnown) keys.Add(NatureDiscovery.SuperstitionKey);
+         if (keys.Count > 0)
+         {
+            sb.AppendLine("The first time the player plainly sees or hears it from you, add this block after [DIALOGUE] (one per reply):");
+            sb.AppendLine("[DISCOVERY]");
+            sb.AppendLine("key: " + string.Join(" or ", keys));
+            sb.AppendLine("description: what the player learned, in one sentence");
+            sb.AppendLine("[/DISCOVERY]");
+         }
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   The kinds of gift this character loves and those that leave them cold (Gabriel, 27/10/2026: "un NPC pourrait
+      ///   [...] preferer certains cadeaux"). The game sizes the regard a gift earns; this tells the character how to meet it.
+      /// </summary>
+      private static void AppendGiftTastes(StringBuilder sb, NpcProfile npc)
+      {
+         List<string> loved = (npc?.LovedGifts ?? new List<GiftKind>()).Select(DescribeGiftKind).Where(s => s.Length > 0).ToList();
+         List<string> cold = (npc?.ColdGifts ?? new List<GiftKind>()).Select(DescribeGiftKind).Where(s => s.Length > 0).ToList();
+         if (loved.Count == 0 && cold.Count == 0) return;
+
+         if (loved.Count > 0) sb.AppendLine("GIFTS THAT DELIGHT YOU: " + string.Join(", ", loved) + ".");
+         if (cold.Count > 0) sb.AppendLine("GIFTS THAT LEAVE YOU COLD: " + string.Join(", ", cold) + ".");
+         sb.AppendLine("A gift you love warms you plainly; one that leaves you cold you accept with courtesy, never feigning delight.");
+         sb.AppendLine();
+      }
+
+      private static string DescribeGiftKind(GiftKind g) => g switch {
+         GiftKind.Furs => "furs",
+         GiftKind.Wine => "wine",
+         GiftKind.Ale => "ale and beer",
+         GiftKind.Jewelry => "jewelry",
+         GiftKind.Velvet => "velvet",
+         GiftKind.FineCloth => "fine cloth",
+         GiftKind.Horses => "horses",
+         GiftKind.Weapons => "weapons",
+         GiftKind.Armor => "armour and garments",
+         GiftKind.Delicacies => "delicacies: cheese, dates, olives, good meat",
+         GiftKind.Silver => "silver",
+         _ => ""
+      };
+
+      private static string DescribeFear(Fear f) => f switch {
+         Fear.TheSea => "the sea: deep water, ships, drowning",
+         Fear.Fire => "fire: flames, a burning hall",
+         Fear.Wolves => "wolves, and their howl at night",
+         Fear.TheDark => "the dark: night without a light",
+         Fear.Sickness => "sickness: fever, plague, a sickroom",
+         Fear.Heights => "heights: walls, cliffs, high towers",
+         Fear.Snakes => "snakes, and all that crawls",
+         Fear.ClosedSpaces => "closed places: cells, tunnels, narrow rooms",
+         _ => ""
+      };
+
+      private static string DescribeSuperstition(Superstition s) => s switch {
+         Superstition.Omens => "read omens in birds and signs before a battle or a journey",
+         Superstition.Charms => "never go without a lucky charm",
+         Superstition.Ancestors => "believe the dead watch and judge the living",
+         Superstition.EvilEye => "fear the evil eye, ill-wishing and curses",
+         Superstition.Dreams => "take dreams for portents",
+         Superstition.Rituals => "keep a small ritual before every fight or journey",
+         Superstition.Moon => "hold that the moon decides good days and bad",
+         Superstition.Thresholds => "keep iron or salt at the door against ill luck",
+         _ => ""
+      };
+
       private static string DescribeMattersMost(MattersMost m) => m switch {
          MattersMost.Children => "your children",
          MattersMost.Spouse => "your spouse",

@@ -132,10 +132,22 @@ namespace NpcMemoryService.Core.Services
 
             // What matters most is the host's to word (the encyclopedia names it from the game's own choice): the
             // reserved key only marks it learned, and its free text is never stored beside it.
-            if (response.Discovery != null && !discoveryIsAboutPlayer
-                && string.Equals(response.Discovery.Key?.Trim(), MattersMostDiscovery.Key, StringComparison.OrdinalIgnoreCase))
+            string? reservedKey = discoveryIsAboutPlayer ? null : response.Discovery?.Key?.Trim();
+            if (string.Equals(reservedKey, MattersMostDiscovery.Key, StringComparison.OrdinalIgnoreCase))
             {
                 if (profile.MattersMost != MattersMost.None) profile.MattersMostKnown = true;
+                return;
+            }
+
+            if (string.Equals(reservedKey, NatureDiscovery.FearKey, StringComparison.OrdinalIgnoreCase))
+            {
+                if (profile.Fear != Fear.None) profile.FearKnown = true;
+                return;
+            }
+
+            if (string.Equals(reservedKey, NatureDiscovery.SuperstitionKey, StringComparison.OrdinalIgnoreCase))
+            {
+                if (profile.Superstition != Superstition.None) profile.SuperstitionKnown = true;
                 return;
             }
 

@@ -57,6 +57,8 @@ namespace NpcMemoryService.Core.Prompts
          Section("intimacy_consent_rules", PromptZone.Prefix, (b, sb, s) => b.AppendIntimacyConsentRules(sb, s.Npc, s.Context), PromptSectionLock.Sealed),
          Section("social_attraction_instructions", PromptZone.Prefix, (b, sb, s) => b.AppendSocialAttractionInstructions(sb, s.Npc, s.Context)),
          Section("matters_most", PromptZone.Prefix, (b, sb, s) => AppendMattersMost(sb, s.Npc)),
+         Section("fear_and_superstition", PromptZone.Prefix, (b, sb, s) => AppendFearAndSuperstition(sb, s.Npc)),
+         Section("gift_tastes", PromptZone.Prefix, (b, sb, s) => AppendGiftTastes(sb, s.Npc)),
          Section("discovered_traits", PromptZone.Prefix, (b, sb, s) => b.AppendDiscoveredTraits(sb, s.Npc, s.Lean)),
          Section("inherited_note", PromptZone.Prefix, (b, sb, s) => AppendInheritedNote(sb, s.Npc)),
          Section("background_context", PromptZone.Prefix, (b, sb, s) => { if (LeanPromptPolicy.Include(PromptSection.CulturalBackground, s.Lean)) AppendBackgroundContext(sb, s.Npc); }),

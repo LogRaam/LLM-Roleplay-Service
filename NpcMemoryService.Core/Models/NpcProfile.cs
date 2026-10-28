@@ -112,6 +112,32 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public bool MattersMostKnown { get; set; }
 
+      /// <summary>The fear and superstition below were rolled (both may be None). Additive, false in older saves.</summary>
+      public bool NatureRolled { get; set; }
+
+      /// <summary>What this character fears, often nothing (<see cref="Models.Fear" />). Additive.</summary>
+      public Fear Fear { get; set; }
+
+      /// <summary>The player has learned this character's fear (the reserved [DISCOVERY] key <c>fear</c>). Additive.</summary>
+      public bool FearKnown { get; set; }
+
+      /// <summary>A superstition this character keeps, often none (<see cref="Models.Superstition" />). Additive.</summary>
+      public Superstition Superstition { get; set; }
+
+      /// <summary>The player has learned this character's superstition (the reserved key <c>superstition</c>). Additive.</summary>
+      public bool SuperstitionKnown { get; set; }
+
+      /// <summary>
+      ///   The kinds of gift this character loves (<see cref="GiftKind" />). Null until rolled by the host; additive.
+      /// </summary>
+      public List<GiftKind>? LovedGifts { get; set; }
+
+      /// <summary>The kinds of gift that leave this character cold, often none. Null until rolled; additive.</summary>
+      public List<GiftKind>? ColdGifts { get; set; }
+
+      /// <summary>The kinds of gift whose welcome the player has learned by giving one. Null or empty when none; additive.</summary>
+      public List<GiftKind>? KnownGifts { get; set; }
+
       private readonly List<DiscoveredTrait> _discoveredTraits = new();
 
       /// <summary>

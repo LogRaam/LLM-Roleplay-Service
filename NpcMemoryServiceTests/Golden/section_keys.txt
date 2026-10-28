@@ -114,3 +114,5 @@ item_on_offer
 captive_terms
 war_duty_terms
 matters_most
+fear_and_superstition
+gift_tastes
