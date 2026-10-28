@@ -4,7 +4,7 @@
 // That half needs no game and no LLM (no tokens, safe for nCrunch auto-run): build the system prompt from an
 // NpcProfile + WorldState + EncounterContext and assert its content. Only the residual "does the model then
 // BEHAVE" judgment needs a real LLM, and that stays in a separate, opt-in, manually-launched project. Each test
-// below names the cr.test all self-test it replaces the deterministic half of, and the C-residue left for the
+// below names the self-test it replaces the deterministic half of, and the C-residue left for the
 // live-LLM lane.
 
 #region
