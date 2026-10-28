@@ -88,6 +88,20 @@ namespace NpcMemoryServiceTests
          (with - without).Should().BeLessThan(1100);
       }
 
+      // STAKE: a gesture appended without its words would reach the model as an empty line under "Gestures they
+      // particularly love", and the character would love nothing it can name.
+      [Test]
+      public void GIVEN_every_gesture_WHEN_loved_THEN_the_prompt_names_it_in_words()
+      {
+         foreach (IntimateAct act in System.Enum.GetValues(typeof(IntimateAct)))
+         {
+            if (act == IntimateAct.None) continue;
+            string prompt = Build(AdultContentLevel.Hardcore, new List<IntimateAct> {act}, null);
+            prompt.Should().Contain("Gestures they particularly love in bed:");
+            prompt.Replace("\r", "").Should().NotContain("love in bed:\n- \n", act.ToString());
+         }
+      }
+
       // STAKE: IntimateAct is saved as an integer: inserting or reordering a member would read one gesture as another
       // in every save. New members are appended last.
       [TestCase(IntimateAct.None, 0)]
@@ -102,6 +116,19 @@ namespace NpcMemoryServiceTests
       [TestCase(IntimateAct.HandsAndFingers, 9)]
       [TestCase(IntimateAct.RoughHandling, 10)]
       [TestCase(IntimateAct.DirtyTalk, 11)]
+      [TestCase(IntimateAct.Teasing, 12)]
+      [TestCase(IntimateAct.BodyKisses, 13)]
+      [TestCase(IntimateAct.Massage, 14)]
+      [TestCase(IntimateAct.SweetWords, 15)]
+      [TestCase(IntimateAct.LingeringAfter, 16)]
+      [TestCase(IntimateAct.TakingTheLead, 17)]
+      [TestCase(IntimateAct.BeingLed, 18)]
+      [TestCase(IntimateAct.Restrained, 19)]
+      [TestCase(IntimateAct.Spanking, 20)]
+      [TestCase(IntimateAct.Urgency, 21)]
+      [TestCase(IntimateAct.FaceToFace, 22)]
+      [TestCase(IntimateAct.BeingUndressed, 23)]
+      [TestCase(IntimateAct.Bathing, 24)]
       public void GIVEN_a_saved_gesture_WHEN_cast_to_int_THEN_its_ordinal_is_frozen(IntimateAct act, int ordinal)
       {
          ((int) act).Should().Be(ordinal);
@@ -111,7 +138,7 @@ namespace NpcMemoryServiceTests
       [Test]
       public void GIVEN_the_gesture_enum_WHEN_its_members_are_counted_THEN_each_has_its_frozen_ordinal()
       {
-         System.Enum.GetValues(typeof(IntimateAct)).Length.Should().Be(12);
+         System.Enum.GetValues(typeof(IntimateAct)).Length.Should().Be(25);
       }
 
       private static string Build(AdultContentLevel level, List<IntimateAct>? loved, List<IntimateAct>? disliked, List<IntimateAct>? lessFond = null)

@@ -192,6 +192,13 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public List<IntimateAct>? KnownActs { get; set; }
 
+      /// <summary>
+      ///   Which roll of the gestures this profile's tastes come from: 0 for the eleven gestures of 27/10/2026, 2 once
+      ///   weighed by their kinks and preferences over the widened list (completed for a profile rolled before). Additive,
+      ///   0 in older saves.
+      /// </summary>
+      public int TastesRevision { get; set; }
+
       // ── Layer 2: orientation (rolled at creation; overridable by authored char data) ──
 
       // Settable, not init-only: a player may deliberately change an NPC's orientation via
@@ -270,11 +277,13 @@ namespace NpcMemoryService.Core.Models
          LoverTrystCount = previous.LoverTrystCount;
          LoverKnownToPlayer = previous.LoverKnownToPlayer;
          AffairDiscovered = previous.AffairDiscovered;
-         // Their tastes are not derived from traits: a rebuild keeps the ones already rolled.
+         // Their tastes are rolled once and kept, even when the kinks that weighed them are derived again: a rebuild keeps
+         // the ones already rolled.
          if (previous.LovedActs != null) LovedActs = previous.LovedActs;
          if (previous.DislikedActs != null) DislikedActs = previous.DislikedActs;
          if (previous.LessFondActs != null) LessFondActs = previous.LessFondActs;
          KnownActs = previous.KnownActs;
+         if (previous.LovedActs != null) TastesRevision = previous.TastesRevision;
       }
 
       // ── Compatibility ─────────────────────────────────────────────────────

@@ -5489,6 +5489,19 @@ namespace NpcMemoryService.Core.Prompts
          IntimateAct.HandsAndFingers => "hands and fingers: touching, stroking, fingers inside",
          IntimateAct.RoughHandling => "rough handling: biting, scratching, hair pulled, being held hard",
          IntimateAct.DirtyTalk => "crude words, said and heard in the act",
+         IntimateAct.Teasing => "being teased: slow caresses, desire held back, made to wait",
+         IntimateAct.BodyKisses => "kisses on the body: the neck, the breasts or chest, the belly",
+         IntimateAct.Massage => "a slow massage, oiled hands before the rest",
+         IntimateAct.SweetWords => "tender words, said and heard in the act",
+         IntimateAct.LingeringAfter => "lingering in their partner's arms afterwards",
+         IntimateAct.TakingTheLead => "taking the lead: telling their partner what to do",
+         IntimateAct.BeingLed => "being led: told what to do",
+         IntimateAct.Restrained => "being held down or bound at the wrists",
+         IntimateAct.Spanking => "being spanked",
+         IntimateAct.Urgency => "haste: half-clothed, at once, without waiting",
+         IntimateAct.FaceToFace => "face to face, eyes held",
+         IntimateAct.BeingUndressed => "being undressed slowly by their partner",
+         IntimateAct.Bathing => "bathing together, washing each other",
          _ => ""
       };
 
