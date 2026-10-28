@@ -84,7 +84,7 @@ namespace NpcMemoryServiceTests
          heard.Should().ContainSingle();
       }
    
-      // tashmetu (30/09/2026), testing his mirror: cr.testall moves regard on real characters and restores it behind the
+      // tashmetu (30/09/2026), testing his mirror: cr.test all moves regard on real characters and restores it behind the
       // listener's back, so a mod mirroring regard into the game's relation keeps what the test left (+3 then -1 from
       // the letter test alone). While a self-test runs, every change is reported as self_test, whatever its own cause.
       [Test]

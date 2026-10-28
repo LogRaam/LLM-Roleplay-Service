@@ -1343,7 +1343,7 @@ namespace NpcMemoryService.Core.Models
       ///   The people this character carries who are NOT the player. Until now every relational field here was
       ///   player-centric by construction (GrudgeNote is "against the player"; every romance field is about the
       ///   player or the player's partner), while the simulation quietly ran NPC-to-NPC lives that nobody could
-      ///   mention: in one cr.testall pass a lady took a secret lover, another bore a lord's child, and a
+      ///   mention: in one cr.test all pass a lady took a secret lover, another bore a lord's child, and a
       ///   companion nursed a grudge against his captor rather than against the player.
       /// </summary>
       public Knowledge.PersonalBondsFacts? PersonalBonds { get; init; }

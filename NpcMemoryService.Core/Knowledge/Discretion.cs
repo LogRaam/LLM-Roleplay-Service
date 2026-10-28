@@ -5,7 +5,7 @@
 //
 // He is right, and the check bore it out precisely: GrudgeNote is documented as the grievances an NPC nurses
 // AGAINST THE PLAYER, AppreciationNote is its mirror, and every romance field is about the player or the
-// player's partner. Meanwhile the simulation quietly runs NPC-to-NPC lives - in one cr.testall pass, Jinda took
+// player's partner. Meanwhile the simulation quietly runs NPC-to-NPC lives - in one cr.test all pass, Jinda took
 // Tulag as a secret lover, Decantia bore Lucon's child, and Lucon nursed a grudge against his captor rather
 // than against the player. All of it happens, all of it persists, and none of those people can mention it.
 //

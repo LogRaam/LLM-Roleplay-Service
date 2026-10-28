@@ -9,7 +9,7 @@
 //
 // NOTE WHAT THESE TESTS CANNOT DO, because it is the reason a second guard exists. They build their own
 // context. They can prove that a companion WOULD carry his house's standing and that a merchant would not; they
-// cannot prove the host ever supplied it, since they supply it themselves. That half is cr.testall's, sweeping
+// cannot prove the host ever supplied it, since they supply it themselves. That half is cr.test all's, sweeping
 // real heroes, and it is the half that would have caught the governor.
 
 #region

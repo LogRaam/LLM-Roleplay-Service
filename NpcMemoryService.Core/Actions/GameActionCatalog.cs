@@ -1014,7 +1014,7 @@ namespace NpcMemoryService.Core.Actions
                   "softening a companion's voiced unhappiness in general, which is the distinct verb reassure_companion"
                }),
             // FOUND BY docs/maps/verbs.md (21/09/2026). grudge_terms had a verb class, a teaching, a registry entry and a
-            // cr.testall self-test, and was in NEITHER this catalogue NOR the bridge's handled list, so the parity
+            // cr.test all self-test, and was in NEITHER this catalogue NOR the bridge's handled list, so the parity
             // self-test (which compares exactly those two) saw nothing wrong. The interpreter learns only what is
             // listed here: in the two-call mode every player runs, no character could ever emit it, and the one way
             // to LEARN what would mend a grievance had been silently unreachable since it shipped.

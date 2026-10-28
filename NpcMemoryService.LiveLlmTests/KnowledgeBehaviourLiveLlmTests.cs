@@ -17,7 +17,7 @@
 //     argument for structural ignorance over instructed ignorance, measured rather than asserted.
 //
 // Every fixture is [Explicit] and self-skips without CR_RUN_LIVE_LLM=1, so this never spends a token by
-// accident and never runs in cr.testall (which is deliberately free and deterministic).
+// accident and never runs in cr.test all (which is deliberately free and deterministic).
 
 #region
 

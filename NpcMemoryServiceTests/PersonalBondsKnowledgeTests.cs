@@ -7,7 +7,7 @@
 //
 // He was right, and checking made it exact: GrudgeNote is documented as the grievances an NPC nurses AGAINST
 // THE PLAYER, and every romance field is about the player or the player's partner. The simulation meanwhile
-// runs NPC-to-NPC lives - one cr.testall pass had a lady take a secret lover, another bear a lord's child, and
+// runs NPC-to-NPC lives - one cr.test all pass had a lady take a secret lover, another bear a lord's child, and
 // a companion nurse a grudge against his captor. All of it happened; none of those people could mention it.
 //
 // The second half is the one that earns its keep. A feud is something a man says. A love, especially a secret

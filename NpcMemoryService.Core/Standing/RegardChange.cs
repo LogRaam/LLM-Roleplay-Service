@@ -62,7 +62,7 @@ namespace NpcMemoryService.Core.Standing
       public const string Unspecified = "unspecified";
 
       /// <summary>
-      ///   A self-test (cr.testall) moved regard on a real character and will put it back without a notice. Every change
+      ///   A self-test (cr.test all) moved regard on a real character and will put it back without a notice. Every change
       ///   made while a self-test runs is reported with this cause, whatever its own (tashmetu, 30/09/2026): a mod
       ///   mirroring regard should ignore it, or keep what the test left behind.
       /// </summary>
