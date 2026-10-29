@@ -188,6 +188,13 @@ namespace NpcMemoryServiceTests
             },
             Audience = new ListeningAudience {Regard = 70, InPrivate = true},
 
+            // The station pillar (28/10/2026), never budgeted: the lord's own definition and where the player stands
+            // beside him, with the longest rung line, a gap at arms and his station's reaction, as a lord receives them.
+            OwnStation = "You are a noble who heads a house: its men, its name and whatever lands it holds are yours, and you expect commoners and lesser men to know it.",
+            BesideThePlayer = "In the eyes of the world the player heads a rising house: a name of some weight, not yet a great lord. "
+                              + "The player is a far better fighter than you, and you know it: you would not last against them. "
+                              + "To you this player is a lesser noble on the rise: owed the courtesy between houses, though yours is the elder name.",
+
             // The worst case includes a player the law wants: a clean record renders nothing, so measuring a
             // budget against one would measure a prompt cheaper than the one a criminal campaign sends.
             Underworld = new UnderworldFacts {PlayerNotoriety = Notoriety.Severe, PlaceName = "Ocs Hall"},
