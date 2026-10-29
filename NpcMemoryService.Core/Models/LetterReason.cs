@@ -236,6 +236,14 @@ namespace NpcMemoryService.Core.Models
       ///   the courier window rather than the game's plain popup). Its body is never generated. Added last to
       ///   preserve old-save ordinals.
       /// </summary>
-      FromAnotherMod
+      FromAnotherMod,
+
+      /// <summary>
+      ///   A lord writes to the player about an aim of his own that another mod registered for him through CrAims
+      ///   (tashmetu, 14/10/2026: "nobody takes the first step with the player"; Gabriel, 28/10/2026). The Context
+      ///   carries the want, the player's part and how he puts such a thing; nothing else. Added last to preserve
+      ///   old-save ordinals.
+      /// </summary>
+      StandingAim
    }
 }
