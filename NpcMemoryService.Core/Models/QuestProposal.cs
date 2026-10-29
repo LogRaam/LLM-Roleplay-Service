@@ -54,7 +54,7 @@ namespace NpcMemoryService.Core.Models
 
         /// <summary>
         ///   For a <see cref="QuestType.ProvideGoods" /> supply task: the goods category the giver named
-        ///   ("horses", "livestock", "grain", or a synonym), as the LLM wrote it. Normalized game-side.
+        ///   ("horses", "livestock", "grain", "food", or a synonym), as the LLM wrote it. Normalized game-side.
         /// </summary>
         public string? Category { get; init; }
 

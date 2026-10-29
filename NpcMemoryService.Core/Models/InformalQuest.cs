@@ -112,7 +112,7 @@ namespace NpcMemoryService.Core.Models
 
         /// <summary>
         ///   For a <see cref="QuestType.ProvideGoods" /> supply task: the canonical goods category the player
-        ///   must hand over ("horses", "livestock", or "grain"). Null for non-supply quests.
+        ///   must hand over ("horses", "livestock", "grain" or "food"). Null for non-supply quests.
         /// </summary>
         public string? RequiredItemCategory { get; set; }
 
