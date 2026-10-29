@@ -81,6 +81,17 @@ namespace NpcMemoryServiceTests
          prompt.Should().NotContain("Friends: Lord Olek");
       }
 
+      // A kinsman of the player who asks for a word is told where his bond is written; in Compact that heading is YOUR
+      // FAMILY, since RELATIONSHIPS is gone, and pointing at a missing heading leaves him guessing who he is to them.
+      [Test]
+      public void GIVEN_compact_mode_WHEN_the_players_kin_asks_for_a_word_THEN_he_is_pointed_at_his_family()
+      {
+         var context = new EncounterContext {LeanLevel = LeanPromptLevel.Lean, CompanionAudience = CompanionAudienceReason.Grievance, AudienceFromKin = true};
+
+         new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context)
+                            .Should().Contain("your bond is under YOUR FAMILY");
+      }
+
       // Full already carries the family inside RELATIONSHIPS: it must not be said twice.
       [Test]
       public void GIVEN_full_mode_WHEN_built_THEN_the_family_is_said_once_inside_relationships()

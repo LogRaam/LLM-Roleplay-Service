@@ -677,8 +677,10 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("YOU ASKED THE PLAYER FOR THIS PRIVATE AUDIENCE:");
          // HakiTakiUmba (09/10/2026): family travelling with the player asks too, and is no hired help.
          bool kin = context!.AudienceFromKin;
+         // Compact drops RELATIONSHIPS and keeps the family as YOUR FAMILY: point at the heading that is there (29/10/2026).
+         string bondHeading = LeanPromptPolicy.Include(PromptSection.Relationships, context.LeanLevel) ? "RELATIONSHIPS" : "YOUR FAMILY";
          if (kin)
-            sb.AppendLine("You are of the player's own family (your bond is under RELATIONSHIPS), not a hired companion: speak as kin, never as one who serves them.");
+            sb.AppendLine($"You are of the player's own family (your bond is under {bondHeading}), not a hired companion: speak as kin, never as one who serves them.");
 
          if (reason == CompanionAudienceReason.Grievance)
          {
