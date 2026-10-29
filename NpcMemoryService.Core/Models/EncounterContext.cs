@@ -1191,6 +1191,12 @@ namespace NpcMemoryService.Core.Models
       public string? BesideThePlayer { get; init; }
 
       /// <summary>
+      ///   Who this character is by station, from the host's definition of that station (a companion, a landowner, a
+      ///   gang leader...): Gabriel (28/10/2026), one definition per social status. Null when the host has none.
+      /// </summary>
+      public string? OwnStation { get; init; }
+
+      /// <summary>
       ///   What this character is to the player by blood ("son", "granddaughter", "aunt", "cousin"), or null. DepaHN
       ///   (26/10/2026): kin were told they are family only while they shared no memory with the player, and grandchildren,
       ///   nephews and cousins never; identity now says it in every prompt, as it does for a spouse.

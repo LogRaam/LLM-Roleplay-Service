@@ -67,12 +67,15 @@ namespace NpcMemoryService.Core.Knowledge
                    || !string.IsNullOrWhiteSpace(context.PartyPostHeld)
                    || context.RidesAsRetainer
                    || context.IsHiredCompanion
-                   || !string.IsNullOrWhiteSpace(context.BesideThePlayer));
+                   || !string.IsNullOrWhiteSpace(context.BesideThePlayer)
+                   || !string.IsNullOrWhiteSpace(context.OwnStation));
 
         public override void Render(StringBuilder sb, EncounterContext context, bool lean)
         {
             if (context == null) return;
 
+            // Who they are by station first (Gabriel, 28/10/2026: one definition per social status), then any rank they hold.
+            if (!string.IsNullOrWhiteSpace(context.OwnStation)) sb.AppendLine(context.OwnStation!.Trim());
             RenderRank(sb, context);
             // Gabriel (28/10/2026): how anyone speaks to the player depends on where the player stands beside them.
             if (!string.IsNullOrWhiteSpace(context.BesideThePlayer)) sb.AppendLine(context.BesideThePlayer!.Trim());
