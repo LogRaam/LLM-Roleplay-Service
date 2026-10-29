@@ -147,7 +147,7 @@ namespace NpcMemoryService.Core.Prompts
          Section("matchmaker", PromptZone.Prefix, (b, sb, s) => AppendMatchmaker(sb, s.Context)),
          // The player's chosen writing voice. Last of the cacheable prefix: it is stable for the whole
          // conversation, so it must never sit after the marker below or it would bust the cache every turn.
-         Section("narrative_style", PromptZone.Prefix, (b, sb, s) => AppendNarrativeStyle(sb, s.Context?.NarrativeStyle, s.Vars)),
+         Section("narrative_style", PromptZone.Prefix, (b, sb, s) => AppendNarrativeStyle(sb, s.Context?.NarrativeStyle, s.Vars, b.ReplyLength)),
          // ── Dynamic tail (changes every turn): AppendEncounterContext emits EncounterSectionHeading, the
          // literal marker NpcChatService splits the cacheable prefix on. Everything from here on is per-turn
          // volatile (day count, time of day, scene stage, witness turn flags) and MUST stay after the marker,

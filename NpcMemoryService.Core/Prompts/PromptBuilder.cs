@@ -147,6 +147,12 @@ namespace NpcMemoryService.Core.Prompts
       public string ReplyLanguage { get; init; } = "";
 
       /// <summary>
+      ///   How long the character's replies run, from the host's own setting (RaveN017Mod, 29/10/2026: replies too long).
+      ///   Full (default) is the length always taught.
+      /// </summary>
+      public ReplyLength ReplyLength { get; init; } = ReplyLength.Full;
+
+      /// <summary>
       ///   Static world description loaded from <c>world.txt</c>.
       ///   Injected early in the prompt (before NPC-specific sections) so it
       ///   is shared across all NPCs in a session and maximizes prefix cache hits.
@@ -168,7 +174,7 @@ namespace NpcMemoryService.Core.Prompts
          // cached on the instance, or a concurrent build could leak one NPC's name into another's prompt.
          Dictionary<string, string> vars = BuildPromptVariables(profile, null);
          AppendCommonerIdentity(sb, profile, knowledge);
-         AppendCommonerRules(sb);
+         AppendCommonerRules(sb, ReplyLength);
          AppendProseCraft(sb);
          AppendCommonerRumors(sb, knowledge);
          if (!string.IsNullOrWhiteSpace(knowledge?.AuthoredQuestBlock))
@@ -185,7 +191,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendLanguageMirror(sb, LeanPromptLevel.Lean);
          // The player's chosen writing voice reaches commoners too: picking "Tolkien" must not leave the
          // tavernkeeper in the generic voice while the lord next door speaks it. Same cap as the lord path.
-         AppendNarrativeStyle(sb, narrativeStyle, vars);
+         AppendNarrativeStyle(sb, narrativeStyle, vars, ReplyLength);
          // Last of all (highest recency) — the modder's own post-history instructions, if any.
          AppendPostHistoryInstructions(sb, vars);
 
@@ -541,7 +547,7 @@ namespace NpcMemoryService.Core.Prompts
          }
       }
 
-      private static void AppendCommonerRules(StringBuilder sb)
+      private static void AppendCommonerRules(StringBuilder sb, ReplyLength length)
       {
          sb.AppendLine("WHO YOU ARE AND HOW YOU SPEAK:");
          sb.AppendLine("- You are an ordinary person — not a noble, not a soldier, not a scholar.");
@@ -549,7 +555,10 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("  rumor, things that happened nearby, what the neighbors say.");
          sb.AppendLine("- The stranger before you is unknown to you. You do NOT know their name, rank,");
          sb.AppendLine("  clan, or title. They are just a traveler passing through.");
-         sb.AppendLine("- Speak 2 to 4 sentences per response. Keep it grounded. You are not a herald.");
+         // Short replies chosen in the MCM reach the street too (RaveN017Mod, 29/10/2026); otherwise the commoner's own 2 to 4.
+         sb.AppendLine(length == ReplyLength.Short
+            ? "- Speak 1 to 3 sentences per response. Keep it grounded. You are not a herald."
+            : "- Speak 2 to 4 sentences per response. Keep it grounded. You are not a herald.");
          sb.AppendLine("- Share what you have heard, ask what the stranger wants, or try to be left alone.");
          sb.AppendLine("- If asked about something beyond your knowledge, say so plainly. Do not invent.");
          sb.AppendLine("- Do NOT break character under any circumstances.");
@@ -4570,7 +4579,7 @@ namespace NpcMemoryService.Core.Prompts
       /// </summary>
       public const int MaxNarrativeStyleChars = 1500;
 
-      private static void AppendNarrativeStyle(StringBuilder sb, string? style, IReadOnlyDictionary<string, string> vars)
+      private static void AppendNarrativeStyle(StringBuilder sb, string? style, IReadOnlyDictionary<string, string> vars, ReplyLength length)
       {
          if (string.IsNullOrWhiteSpace(style)) return;
 
@@ -4594,8 +4603,13 @@ namespace NpcMemoryService.Core.Prompts
          // interior asides), and only the machine-read structure stays absolute (block labels, whose words go
          // in whose block, the facts of the world).
          sb.AppendLine("Hold to that voice — it is the difference the reader came for. Wherever it touches prose");
-         sb.AppendLine("shape, it OVERRIDES the general guidance above: if the style runs speeches long, the");
-         sb.AppendLine("\"3-7 sentences\" norm yields; if it gives the character's own private thoughts or dry");
+         // A length the player set on purpose holds against the style (RaveN017Mod, 29/10/2026).
+         sb.AppendLine(ReplyLengthPolicy.StyleMayLengthen(length)
+            ? "shape, it OVERRIDES the general guidance above: if the style runs speeches long, the"
+            : "shape, it OVERRIDES the general guidance above, except the reply length the player chose, which holds;");
+         sb.AppendLine(ReplyLengthPolicy.StyleMayLengthen(length)
+            ? "\"3-7 sentences\" norm yields; if it gives the character's own private thoughts or dry"
+            : "if it gives the character's own private thoughts or dry");
          sb.AppendLine("asides, those belong in the narration even where show-don't-tell was taught; rhythm,");
          sb.AppendLine("imagery, and sentence music are the style's to command.");
          sb.AppendLine("What a style may NEVER touch: the block structure itself (speech stays quoted inside");
@@ -7248,10 +7262,7 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.AppendLine("DIALOGUE STYLE:");
          sb.AppendLine("[DIALOGUE] is the heart of your response. Develop it with substance:");
-         sb.AppendLine("- 3-7 sentences for normal exchanges.");
-         sb.AppendLine("- Longer when telling stories, recalling past events, explaining politics,");
-         sb.AppendLine("  or expressing strong emotion. Take your time when the moment warrants it.");
-         sb.AppendLine("- Brief one or two sentences only for trivial confirmations or quick questions.");
+         foreach (string line in ReplyLengthPolicy.Lines(ReplyLength)) sb.AppendLine(line);
          sb.AppendLine();
          // Eisendrache2 (25/10/2026, log): qwen3.5-9B narrated "*I lean against the post, my hand...*". The
          // third-person rule lives in AppendNarrativeVoice, Full only, and the one person rule Lean keeps is the
