@@ -66,9 +66,13 @@ namespace NpcMemoryService.Core.Knowledge
 
             if (clauses.Count == 0) return;
 
+            // avalanche24 (Nexus, 28/10/2026): a hireling is not of the house she serves.
+            bool hireling = context?.IsHiredCompanion == true;
             string preamble = lean
-                ? "Your house:"
-                : "Your own house's means, as you would know them without asking anyone:";
+                ? hireling ? "The house you serve:" : "Your house:"
+                : hireling
+                    ? "The means of the house you serve, as you would know them without asking anyone:"
+                    : "Your own house's means, as you would know them without asking anyone:";
 
             sb.AppendLine($"{preamble} {Sentence(clauses)}");
 

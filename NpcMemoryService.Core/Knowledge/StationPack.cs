@@ -65,7 +65,8 @@ namespace NpcMemoryService.Core.Knowledge
                    || context.LeadsOwnClan
                    || !string.IsNullOrWhiteSpace(context.GovernedSettlementName)
                    || !string.IsNullOrWhiteSpace(context.PartyPostHeld)
-                   || context.RidesAsRetainer);
+                   || context.RidesAsRetainer
+                   || context.IsHiredCompanion);
 
         public override void Render(StringBuilder sb, EncounterContext context, bool lean)
         {
@@ -99,6 +100,7 @@ namespace NpcMemoryService.Core.Knowledge
             AppendGovernorship(sb, context);
             AppendPartyPost(sb, context);
             AppendRetainer(sb, context);
+            AppendHiredCompanion(sb, context);
         }
 
         /// <summary>
@@ -147,6 +149,19 @@ namespace NpcMemoryService.Core.Knowledge
         }
 
         #region private
+
+        /// <summary>
+        ///   A hireling's place in the player's company. avalanche24 (Nexus, 28/10/2026): a companion told him to "take her
+        ///   men and prove" himself, another called him out for being told to follow orders. Nothing had said who commands.
+        /// </summary>
+        private static void AppendHiredCompanion(StringBuilder sb, EncounterContext context)
+        {
+            if (!context.IsHiredCompanion) return;
+
+            sb.AppendLine("You hold no rank of your own: the player is your captain and pays your wage. Say what you think, and "
+                          + "argue it in private if you must, but their order stands: you never command their men, never set them "
+                          + "tests or ask them to prove themselves to you, and never speak as if their company were yours.");
+        }
 
         /// <summary>
         ///   Riding with the player without belonging to them, which is a distinction only this line makes.

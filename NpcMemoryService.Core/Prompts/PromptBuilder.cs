@@ -2749,10 +2749,15 @@ namespace NpcMemoryService.Core.Prompts
          bool hasClan = !string.IsNullOrWhiteSpace(npc.Clan)
                         && !string.Equals(npc.Clan.Trim(), "No clan", StringComparison.OrdinalIgnoreCase);
          string clanPhrase = hasClan ? $"of the {npc.Clan} clan" : "of no noble clan";
+         string belonging = $"{clanPhrase}, {npc.Faction} faction";
+         // avalanche24 (Nexus, 28/10/2026): a hireling read "of the {player's clan} clan, Vlandia faction" and reasoned she
+         // was a lady of that realm, "loyal to her house". The game files a companion under the player's clan and realm;
+         // she belongs to neither.
+         if (encounterContext?.IsHiredCompanion == true) belonging = "with no noble house of your own, riding for hire in the player's company";
 
          sb.AppendLine(npc.Age > 0
-            ? $"YOU ARE {npc.Name.ToUpperInvariant()}, a {(npc.IsFemale ? "woman" : "man")} of {npc.Age} years, {clanPhrase}, {npc.Faction} faction."
-            : $"YOU ARE {npc.Name.ToUpperInvariant()}, a {(npc.IsFemale ? "woman" : "man")} {clanPhrase}, {npc.Faction} faction.");
+            ? $"YOU ARE {npc.Name.ToUpperInvariant()}, a {(npc.IsFemale ? "woman" : "man")} of {npc.Age} years, {belonging}."
+            : $"YOU ARE {npc.Name.ToUpperInvariant()}, a {(npc.IsFemale ? "woman" : "man")} {belonging}.");
          sb.AppendLine(npc.IsFemale
             ? "You are female. Always speak of yourself as a woman, using she/her, whatever any older record might imply."
             : "You are male. Always speak of yourself as a man, using he/him, whatever any older record might imply.");
