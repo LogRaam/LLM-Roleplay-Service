@@ -249,6 +249,14 @@ namespace NpcMemoryService.Core.Models
       public int CorrespondenceInterest { get; set; }
 
       /// <summary>
+      ///   The player marked this correspondence as awaited (the ribbon bookmark in the letter book; Gabriel, 28/10/2026:
+      ///   "si je suis en train d'ecrire des lettres d'amour a une NPC, peut-etre que j'aimerais avoir de ses nouvelles
+      ///   rapidement meme si c'est la guerre"). Their letters come before others' in the mailbox and press with the
+      ///   world's initiative; nothing else changes. Additive/save-safe (JSON default false).
+      /// </summary>
+      public bool LettersAwaited { get; set; }
+
+      /// <summary>
       ///   True once the player has paid for an ARMED ESCORT on this correspondent's whole thread: every courier
       ///   between the player and this NPC (that outgoing letter, this NPC's replies, and every later leg both
       ///   directions) then rides under guard and is immune to bandit interception. Paid once per thread; replies
