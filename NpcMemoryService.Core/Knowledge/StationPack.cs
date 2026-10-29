@@ -66,11 +66,20 @@ namespace NpcMemoryService.Core.Knowledge
                    || !string.IsNullOrWhiteSpace(context.GovernedSettlementName)
                    || !string.IsNullOrWhiteSpace(context.PartyPostHeld)
                    || context.RidesAsRetainer
-                   || context.IsHiredCompanion);
+                   || context.IsHiredCompanion
+                   || !string.IsNullOrWhiteSpace(context.BesideThePlayer));
 
         public override void Render(StringBuilder sb, EncounterContext context, bool lean)
         {
             if (context == null) return;
+
+            RenderRank(sb, context);
+            // Gabriel (28/10/2026): how anyone speaks to the player depends on where the player stands beside them.
+            if (!string.IsNullOrWhiteSpace(context.BesideThePlayer)) sb.AppendLine(context.BesideThePlayer!.Trim());
+        }
+
+        private static void RenderRank(StringBuilder sb, EncounterContext context)
+        {
 
             if (!string.IsNullOrWhiteSpace(context.RuledRealmName))
             {

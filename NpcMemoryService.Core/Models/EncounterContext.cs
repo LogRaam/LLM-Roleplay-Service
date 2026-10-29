@@ -1184,6 +1184,13 @@ namespace NpcMemoryService.Core.Models
       public bool IsHiredCompanion { get; init; }
 
       /// <summary>
+      ///   Where the player stands beside this character, in rank and at arms, as one sentence or two (the host's
+      ///   PlayerRungPolicy). Gabriel (28/10/2026): a villager is ruder to a nobody than to the head of a tier 3 house;
+      ///   avalanche24 (28/10/2026): a weakling spoke to a master of arms as his better. Null when the host says nothing.
+      /// </summary>
+      public string? BesideThePlayer { get; init; }
+
+      /// <summary>
       ///   What this character is to the player by blood ("son", "granddaughter", "aunt", "cousin"), or null. DepaHN
       ///   (26/10/2026): kin were told they are family only while they shared no memory with the player, and grandchildren,
       ///   nephews and cousins never; identity now says it in every prompt, as it does for a spouse.
