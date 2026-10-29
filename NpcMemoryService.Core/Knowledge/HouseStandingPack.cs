@@ -63,11 +63,17 @@ namespace NpcMemoryService.Core.Knowledge
 
             sb.AppendLine(whose);
 
+            // CLOSED LISTS (RaveN017Mod, Nexus 29/10/2026: lords "make up possessions they don't have or wars that
+            // don't exist"). A landless house and a realm at peace used to get no line at all, and a model handed
+            // silence fills it; KnowledgeBoundaryPolicy's own header says as much. The lands are stated whole or as
+            // none, and the villages ride with their town or castle, as they do in the game.
             int fiefCap = lean ? HouseStandingFacts.MaxFiefsNamedLean : HouseStandingFacts.MaxFiefsNamed;
             List<string> fiefs = Named(facts.Fiefs, fiefCap);
-            if (fiefs.Count > 0)
+            if (fiefs.Count == 0)
+                sb.AppendLine($"{ours} holds no town, castle or village: it has no lands of its own.");
+            else
             {
-                sb.Append($"{ours} holds {Join(fiefs, facts.Fiefs.Count, fiefCap)}.");
+                sb.Append($"{ours} holds {Join(fiefs, facts.Fiefs.Count, fiefCap)} with their villages, and no other lands.");
 
                 // Coaching, and it used to sit INSIDE this fact, so Compact paid 124 characters for it on every
                 // landed conversation. Measured 2026-09-12 when the budget guard was finally given a character
@@ -88,7 +94,9 @@ namespace NpcMemoryService.Core.Knowledge
             int warCap = lean ? HouseStandingFacts.MaxWarsNamedLean : HouseStandingFacts.MaxWarsNamed;
             List<string> wars = cutOff ? new List<string>() : Named(facts.AtWarWith, warCap);
             if (wars.Count > 0)
-                sb.AppendLine($"{ours} is at war with {Join(wars, facts.AtWarWith.Count, warCap)}.");
+                sb.AppendLine($"{ours} is at war with {Join(wars, facts.AtWarWith.Count, warCap)}, and with no other realm.");
+            else if (!cutOff)
+                sb.AppendLine($"{ours} is at war with no realm.");
 
             // Lean stops here. The Full prompt adds the one line that turns a list of facts into conduct, which
             // is the difference between a character who CAN answer and one who behaves as though he has lived

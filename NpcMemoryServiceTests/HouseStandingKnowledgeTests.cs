@@ -130,16 +130,44 @@ namespace NpcMemoryServiceTests
             .Should().Contain("at war with Sturgia");
       }
 
-      // A house at peace holding nothing must produce no sentence about lands or wars, rather than an empty
-      // "your house holds ." that reads as a bug to anyone who sees it.
+      // RaveN017Mod (Nexus, 29/10/2026): lords "make up possessions they don't have or wars that don't exist".
+      // A landless house at peace used to get no line at all, and a model handed silence fills it. It is told
+      // plainly that it holds nothing and fights no one (never an empty "your house holds .").
       [Test]
-      public void GIVEN_a_house_with_no_lands_and_no_wars_WHEN_rendered_THEN_nothing_is_claimed_about_either()
+      public void GIVEN_a_house_with_no_lands_and_no_wars_WHEN_rendered_THEN_it_is_told_it_holds_none_and_fights_none()
       {
          string said = Render(new HouseStandingFacts {HouseName = "Aelindrath"});
 
          said.Should().Contain("Aelindrath");
-         said.ToLowerInvariant().Should().NotContain("holds");
-         said.ToLowerInvariant().Should().NotContain("at war");
+         said.Should().Contain("holds no town, castle or village");
+         said.Should().Contain("at war with no realm");
+         said.Should().NotContain("holds .");
+      }
+
+      // The same report from the other side: a lord who holds two towns must not add a third, nor a realm at war
+      // with Sturgia invent a war with Vlandia. The list says it is whole.
+      [Test]
+      public void GIVEN_a_house_with_lands_and_a_war_WHEN_rendered_THEN_both_lists_say_they_are_whole()
+      {
+         string said = Render(new HouseStandingFacts {
+            HouseName = "dey Meroc", Fiefs = new List<string> {"Pravend", "Ortysia"}, AtWarWith = new List<string> {"Sturgia"}
+         });
+
+         said.Should().Contain("no other lands");
+         said.Should().Contain("at war with Sturgia, and with no other realm");
+      }
+
+      // Gabriel's cut-off ruling (12/09/2026): a captive keeps his lands and loses the week's news. "At war with no
+      // realm" would be news he cannot have, so a cut-off character is told nothing about wars either way.
+      [Test]
+      public void GIVEN_a_cut_off_character_of_a_house_at_peace_WHEN_rendered_THEN_he_is_not_told_there_is_no_war()
+      {
+         var sb = new StringBuilder();
+         Pack.Render(sb, new EncounterContext {
+            HouseStanding = new HouseStandingFacts {HouseName = "Aelindrath"}, Bearer = new KnowledgeBearer {IsCutOff = true}
+         }, lean: false);
+
+         sb.ToString().Should().NotContain("at war");
       }
 
       // ── the budget, which the design says must be carried from increment one ──
