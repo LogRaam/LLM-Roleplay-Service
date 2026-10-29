@@ -253,6 +253,9 @@ namespace NpcMemoryServiceTests
             if (p.Name.StartsWith("Suppress", StringComparison.Ordinal) || p.Name.EndsWith("Turn", StringComparison.Ordinal))
                p.SetValue(ctx, false);
          typeof(EncounterContext).GetProperty(nameof(EncounterContext.IsCaptorScene))!.SetValue(ctx, captor);
+         // As a LORD: his fight is the duel of honour, and he may call the player out (the brawl is the all-flags golden's).
+         foreach (string brawl in new[] {nameof(EncounterContext.DuelIsBrawl), nameof(EncounterContext.NpcMayNotCallOut), nameof(EncounterContext.PostDuelWasBrawl)})
+            typeof(EncounterContext).GetProperty(brawl)!.SetValue(ctx, false);
 
          return ctx;
       }

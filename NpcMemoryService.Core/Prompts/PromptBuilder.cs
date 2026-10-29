@@ -1175,11 +1175,15 @@ namespace NpcMemoryService.Core.Prompts
       {
          if (context?.IsPostDuel != true) return;
 
-         sb.AppendLine("THE DUEL IS OVER, AND THIS CONVERSATION RESUMES FROM IT:");
+         // Gabriel (28/10/2026): a brawl is fists, not steel; the resumed conversation must say which it was.
+         string fought = context.PostDuelWasBrawl ? "traded blows with the player, fists not steel," : "crossed blades with the player";
+         sb.AppendLine(context.PostDuelWasBrawl
+                          ? "THE BRAWL IS OVER, AND THIS CONVERSATION RESUMES FROM IT:"
+                          : "THE DUEL IS OVER, AND THIS CONVERSATION RESUMES FROM IT:");
 
          if (context.PostDuelPlayerWon)
          {
-            sb.AppendLine("You just crossed blades with the player and you LOST, fairly, and you live (it was not to the");
+            sb.AppendLine($"You just {fought} and you LOST, fairly, and you live (it was not to the");
             sb.AppendLine("death). Speak from that, in your own voice and true to your nature: a proud person may be");
             sb.AppendLine("bitter, a gracious one magnanimous, but you do NOT pretend it did not happen and you do NOT");
             sb.AppendLine("boast or threaten as though you had won. You concede the player bested you.");
@@ -1194,7 +1198,7 @@ namespace NpcMemoryService.Core.Prompts
          }
          else
          {
-            sb.AppendLine("You just crossed blades with the player and you WON, fairly, and they live (it was not to the");
+            sb.AppendLine($"You just {fought} and you WON, fairly, and they live (it was not to the");
             sb.AppendLine("death). Speak as the victor, in your own voice and true to your nature: magnanimous or");
             sb.AppendLine("triumphant, but do NOT grovel or plead. The field settled the matter your way, and you may");
             sb.AppendLine("make plain what you now expect of the player.");
@@ -1236,6 +1240,13 @@ namespace NpcMemoryService.Core.Prompts
             ? string.Empty
             : $", {context.DuelVenueLabel!.Trim()},";
 
+         if (context.DuelIsBrawl)
+         {
+            AppendBrawlChallenge(sb, context, venue);
+
+            return;
+         }
+
          sb.AppendLine("A MATTER OF HONOUR MAY BE SETTLED WITH STEEL:");
          sb.AppendLine("You and the player are both of standing, both able to fight, and you stand face to face, so a");
          sb.AppendLine($"duel between you could happen. It would be fought at once{venue} as soon as this conversation");
@@ -1264,6 +1275,46 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("whether you accept, do NOT refuse, and do NOT describe drawing, the fight, a wound, or who");
          sb.AppendLine("prevails. The answer, and the fight itself, come after you have spoken, and the game stages");
          sb.AppendLine("them for real. Without this action nothing is called for, whatever your words say.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   The brawl in place of the duel, for a companion, a wanderer, the street and the notables of trade (Gabriel,
+      ///   28/10/2026: "la bagarre de rue qui est un reglement de compte", "bagarre seulement pour le compagnon"). Nothing in
+      ///   it speaks of standing, steel or satisfaction. avalanche24 (28/10/2026): a new hire called him out for being told
+      ///   to follow orders, so one who may not start it is told so and is only taught to answer.
+      /// </summary>
+      private static void AppendBrawlChallenge(StringBuilder sb, EncounterContext context, string venue)
+      {
+         bool mayCallOut = !context.NpcMayNotCallOut;
+
+         sb.AppendLine("A SCORE MAY BE SETTLED WITH FISTS:");
+         sb.AppendLine($"You stand face to face with the player, so a brawl between you could happen: fists, not steel, out{venue}");
+         sb.AppendLine("as soon as this conversation ends. No honour is at stake and nobody dies: the loser is knocked down and");
+         sb.AppendLine("gets up again. Never speak of blades, killing, seconds or a later hour.");
+         if (mayCallOut)
+         {
+            sb.AppendLine("A brawl settles a real score: a grudge you carry, or a wrong words have failed to mend. Never raise one");
+            sb.AppendLine("over an order, a refusal or a trifle, and never because you think yourself the better.");
+         }
+         else
+         {
+            sb.AppendLine("You will NOT start one yourself: you have no score worth it, or you know better than to raise your");
+            sb.AppendLine("hand to them. Only if the PLAYER offers to take it outside may you answer.");
+         }
+
+         sb.AppendLine("A FRIENDLY SCUFFLE is a different thing: a wager, a test of strength, a match you both want for the");
+         sb.AppendLine("fun of it. Say which this is in the action below, because the game treats them differently.");
+         sb.AppendLine("When a brawl is genuinely called for THIS TURN, emit alongside your dialogue:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: challenge_duel");
+         sb.AppendLine(mayCallOut
+                          ? "challenger: player   (they called for it)   OR   challenger: you   (you call them out)"
+                          : "challenger: player   (they called for it; you never call them out yourself)");
+         sb.AppendLine("spirit: grievance   OR   spirit: friendly");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("Then STOP AT THE CHALLENGE: do not say whether it is taken up, and do not describe the fight or who");
+         sb.AppendLine("wins. The game stages it for real. Without this action nothing is called for, whatever your words say.");
          sb.AppendLine();
       }
 

@@ -743,6 +743,18 @@ namespace NpcMemoryService.Core.Models
       public bool DuelChallengeAvailable { get; init; }
 
       /// <summary>
+      ///   The fight on offer is a brawl with fists, not a duel of honour (Gabriel, 28/10/2026: the duel is noble, the street
+      ///   brawl a settling of scores, a companion only brawls). Only read when <see cref="DuelChallengeAvailable" /> is set.
+      /// </summary>
+      public bool DuelIsBrawl { get; init; }
+
+      /// <summary>
+      ///   This character may not start the fight themselves, only answer the player's (avalanche24, 28/10/2026: a new hire
+      ///   called him out for being told to follow orders). Only read when <see cref="DuelChallengeAvailable" /> is set.
+      /// </summary>
+      public bool NpcMayNotCallOut { get; init; }
+
+      /// <summary>
       ///   Where the duel would be staged, as a short phrase for the NPC's own line ("on the open field",
       ///   "at the gates of this town"). Flavour only, and only read when
       ///   <see cref="DuelChallengeAvailable" /> is set; null simply leaves the place unstated. The host, not
@@ -764,6 +776,12 @@ namespace NpcMemoryService.Core.Models
       ///   make plain what the field settled).
       /// </summary>
       public bool PostDuelPlayerWon { get; init; }
+
+      /// <summary>
+      ///   Read only when <see cref="IsPostDuel" />: the fight was a brawl with fists, not a duel with steel (Gabriel,
+      ///   28/10/2026), so the resumed conversation speaks of blows traded, never of crossed blades.
+      /// </summary>
+      public bool PostDuelWasBrawl { get; init; }
 
       /// <summary>
       ///   Read only when <see cref="IsPostDuel" />: the contested hero's name when the duel was fought over a
