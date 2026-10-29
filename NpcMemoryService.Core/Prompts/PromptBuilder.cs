@@ -4434,6 +4434,15 @@ namespace NpcMemoryService.Core.Prompts
 
       // ── Sprint 8.4: relationships ────────────────────────────────────────
 
+      /// <summary>The Compact prompt's family: the close kin alone, from <see cref="NpcProfile.Family" />.</summary>
+      private static void AppendFamilyOnly(StringBuilder sb, NpcProfile npc)
+      {
+         if (string.IsNullOrWhiteSpace(npc.Family)) return;
+         sb.AppendLine("YOUR FAMILY:");
+         sb.AppendLine(npc.Family!.Trim());
+         sb.AppendLine();
+      }
+
       private static void AppendRelationships(StringBuilder sb, NpcProfile npc)
       {
          if (string.IsNullOrWhiteSpace(npc.Relationships)) return;
@@ -5027,6 +5036,8 @@ namespace NpcMemoryService.Core.Prompts
             string presence = string.IsNullOrWhiteSpace(w.PresenceStatus)
                ? ""
                : $" [{w.PresenceStatus}]";
+            // Who they are to you (kin, rank): fearente, 29/10/2026. Beside the role, never instead of it.
+            if (!string.IsNullOrWhiteSpace(w.Standing)) role = $"{role}; {w.Standing!.Trim()}";
             // Bug fix (player report 2026-08-31): with no sex stated the model guessed each witness's gender
             // from their NAME and got it wrong (a female companion voiced as "he"). Stated right beside the
             // name, before the role, like CouncilPromptBuilder already does for a seat. Synthetic flavour

@@ -21,6 +21,16 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public required string RelationToNpc { get; init; }
 
+      /// <summary>
+      ///   Who this person IS to the one speaking: kinship and rank ("your father, head of your clan", "ruler of
+      ///   Vlandia", "your sister, governor of Pravend"). fearente (Nexus, 29/10/2026): a lady governor spoke to her
+      ///   father, the head of her clan, like a servant, and a ruler was treated like an ordinary noble, because the
+      ///   line carried only how the speaker felt about them, and a companion of the player's party nothing but
+      ///   "the player's companion". Composed by the host for the speaker of THIS turn. Null when they are no kin
+      ///   and hold no rank: the line is then what it always was.
+      /// </summary>
+      public string? Standing { get; init; }
+
       /// <summary>True when the witness is one of the player's own companions.</summary>
       public bool IsPlayerCompanion { get; init; }
 

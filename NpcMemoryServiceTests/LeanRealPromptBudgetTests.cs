@@ -64,6 +64,14 @@ namespace NpcMemoryServiceTests
             Personality = "A composed, calculating lord of the western marches, courteous to a fault and slow to forgive.",
             Trait = "Calculating",
             Relationships = "Married to Lady Ira. Sworn to King Derthert. Close friend of Ajin the Hawk; bitter enemy of Lord Temion.",
+            // A ruler's large family, the most Compact will carry since it keeps the family (fearente, 29/10/2026): a guard
+            // whose subject has no family would measure its own setup.
+            Family = "Family: Spouse: Lady Ira (daughter of Lord Aldric), wed for many years; Spouse now dead: the late Lady Elys, "
+                   + "who died in childbirth 9 years ago; Father: the late Lord Merin, who fell in battle 12 years ago; Mother: Lady Sela "
+                   + "(age 71); Born into the Meroc (of Vlandia); Children: Ilmar (male, age 24), Tessa (female, age 21, by the late "
+                   + "Lady Elys), Corwin (male, age 17), Ada (female, age 12), the late Bren (male), who died of illness 3 years ago, "
+                   + "and no other children; Siblings: Lord Harl (male, age 49), Lady Wenna (female, age 44), the late Lord Ost (male), "
+                   + "who fell in battle 6 years ago.",
             BackgroundContext = "Over the past season he and the player have crossed paths at tournaments, on campaign, "
                               + "and once across a negotiating table, where he found them quicker than he had expected."
          };

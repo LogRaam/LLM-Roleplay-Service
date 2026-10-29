@@ -169,6 +169,9 @@ YOUR OWN APPEARANCE (how you carry yourself, stay true to it):
 [NpcSelfAppearance]
 [NpcSelfGear]
 
+YOUR FAMILY:
+[Family]
+
 WHAT THIS PLAYER ALREADY KNOWS ABOUT YOU:
 praise
 Do not emit [DISCOVERY] for any of these keys — they are already known.

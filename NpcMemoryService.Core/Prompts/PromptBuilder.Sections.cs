@@ -53,6 +53,8 @@ namespace NpcMemoryService.Core.Prompts
          Section("authored_backstory", PromptZone.Prefix, (b, sb, s) => { if (LeanPromptPolicy.Include(PromptSection.AuthoredBackstory, s.Lean)) AppendAuthoredBackstory(sb, s.Npc); }),
          Section("authored_conviction", PromptZone.Prefix, (b, sb, s) => { if (LeanPromptPolicy.Include(PromptSection.AuthoredBackstory, s.Lean)) AppendAuthoredConviction(sb, s.Npc); }),
          Section("relationships", PromptZone.Prefix, (b, sb, s) => { if (LeanPromptPolicy.Include(PromptSection.Relationships, s.Lean)) AppendRelationships(sb, s.Npc); }),
+         // Compact drops RELATIONSHIPS (friends, enemies, liege) but keeps the family inside it: fearente, 29/10/2026.
+         Section("family_compact", PromptZone.Prefix, (b, sb, s) => { if (!LeanPromptPolicy.Include(PromptSection.Relationships, s.Lean)) AppendFamilyOnly(sb, s.Npc); }),
          Section("romantic_context", PromptZone.Prefix, (b, sb, s) => b.AppendRomanticContext(sb, s.Npc, s.Context)),
          Section("intimacy_consent_rules", PromptZone.Prefix, (b, sb, s) => b.AppendIntimacyConsentRules(sb, s.Npc, s.Context), PromptSectionLock.Sealed),
          Section("social_attraction_instructions", PromptZone.Prefix, (b, sb, s) => b.AppendSocialAttractionInstructions(sb, s.Npc, s.Context)),

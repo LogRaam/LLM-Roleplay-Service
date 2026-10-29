@@ -466,6 +466,14 @@ namespace NpcMemoryService.Core.Models
       public string? Relationships { get; set; }
 
       /// <summary>
+      ///   The NPC's close family alone (spouse, parents, children, siblings), the same words as the family part of
+      ///   <see cref="Relationships" />, refreshed with it. The Compact prompt drops RELATIONSHIPS whole and keeps
+      ///   this: fearente (Nexus, 29/10/2026) met a brother who spoke of a son "Lorgand" when he has a daughter,
+      ///   and a character who is never told who their children are fills the gap. Null until refreshed.
+      /// </summary>
+      public string? Family { get; set; }
+
+      /// <summary>
       ///   This NPC's OWN personal opinion of the player — independent of the
       ///   clan's collective standing. Per-NPC, persisted, moved only through the
       ///   gated relation action. Clamped to [-100, 100]. Negative = hostile.
