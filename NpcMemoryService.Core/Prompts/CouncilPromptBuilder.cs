@@ -243,6 +243,9 @@ namespace NpcMemoryService.Core.Prompts
             // person may say rather than how they say it: a king who is not told he rules will deny the crown.
             if (!string.IsNullOrWhiteSpace(member.StationLine)) clauses.Add(member.StationLine!.Trim());
 
+            // Kin beside rank (fearente, 29/10/2026): a father at the table is not spoken to as a stranger.
+            if (!string.IsNullOrWhiteSpace(member.KinAtTable)) clauses.Add(member.KinAtTable!.Trim());
+
             if (member.Age.HasValue) clauses.Add("aged " + member.Age.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
             if (!string.IsNullOrWhiteSpace(member.PersonaLine)) clauses.Add(member.PersonaLine!.Trim());
             if (!string.IsNullOrWhiteSpace(member.Culture)) clauses.Add(member.Culture!.Trim());

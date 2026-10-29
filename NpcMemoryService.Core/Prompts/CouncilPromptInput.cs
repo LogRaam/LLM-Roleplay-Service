@@ -58,6 +58,14 @@ namespace NpcMemoryService.Core.Prompts
       public string? StationLine { get; init; }
 
       /// <summary>
+      ///   Who this seat is to the others at the table and to the player, in one clause: "father of Lady Ira; the
+      ///   player's wife". fearente (Nexus, 29/10/2026): a lady governor spoke to her father, the head of her clan, like
+      ///   a servant. The chat now tells each speaker who the others in the room are; the whole-table call writes every
+      ///   seat at once, so it states the kinship between seats instead. Null when the seat is kin to no one present.
+      /// </summary>
+      public string? KinAtTable { get; init; }
+
+      /// <summary>
       ///   Another mod's text about THIS seat: the council_seat.txt template (contributed through cr_patch) expanded
       ///   with this member's own {{variables}} by <see cref="CouncilSeatNote" />, on the host's game thread. Null when
       ///   no template exists or every variable came back empty, which is the ordinary case. tashmetu (Bellum Civile
