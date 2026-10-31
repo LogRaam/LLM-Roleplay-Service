@@ -257,6 +257,14 @@ namespace NpcMemoryService.Core.Models
       public bool LettersAwaited { get; set; }
 
       /// <summary>
+      ///   The subjects the player no longer wants letters about from this character (the letter box: a thrown letter means
+      ///   "le joueur ne veut plus entendre parler de ce sujet de la part de cet expediteur", Gabriel 30/10/2026). Each entry
+      ///   is a subject key from the mod's LetterSubjectPolicy, never a raw reason. It silences the letters, not the person:
+      ///   what the character does in the world is unchanged. Additive/save-safe (JSON default null).
+      /// </summary>
+      public List<string>? SilencedLetterSubjects { get; set; }
+
+      /// <summary>
       ///   True once the player has paid for an ARMED ESCORT on this correspondent's whole thread: every courier
       ///   between the player and this NPC (that outgoing letter, this NPC's replies, and every later leg both
       ///   directions) then rides under guard and is immune to bandit interception. Paid once per thread; replies

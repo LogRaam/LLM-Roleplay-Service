@@ -27,6 +27,20 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public bool SetAside { get; set; }
 
+      /// <summary>
+      ///   The letter arrived and waits in the player's letter box, unopened (the letter box, Gabriel 30/10/2026: "toutes
+      ///   les lettres [...] vont dans la boite aux lettres"). The sender's side of the arrival already happened
+      ///   (<see cref="IsDelivered"/>); only the player's reading is still to come. Cleared when the player opens or throws
+      ///   it. Additive; false on old saves, so every letter delivered before the box counts as read.
+      /// </summary>
+      public bool InBox { get; set; }
+
+      /// <summary>
+      ///   The player threw the letter away unread (the box's throw-away icon). Its sender cannot know; the letter book
+      ///   keeps a line that it came, never its words. Additive; false on old saves.
+      /// </summary>
+      public bool ThrownAway { get; set; }
+
       /// <summary>Hero StringId of the NPC who wrote the letter.</summary>
       public string? SenderId { get; set; }
 
