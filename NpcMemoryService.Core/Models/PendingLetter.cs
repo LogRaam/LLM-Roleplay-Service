@@ -41,6 +41,29 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public bool ThrownAway { get; set; }
 
+      /// <summary>
+      ///   The letter is an envelope: its text is written by the model only when the player first opens it (the letter box,
+      ///   step 3, Gabriel 31/10/2026: "oui go pour etape 3"), so a letter thrown away or never opened costs nothing.
+      ///   <see cref="Content"/> stays null until then. Additive; false on old saves (their letters were written at sending).
+      /// </summary>
+      public bool WrittenOnOpening { get; set; }
+
+      /// <summary>
+      ///   The envelope's writing instructions, composed on the day it was sent (the occasion, where the sender was, where
+      ///   the player was, the sender's mood that day), so the text written later is the letter of that day. Null on a
+      ///   letter written at sending.
+      /// </summary>
+      public string? EnvelopeMessage { get; set; }
+
+      /// <summary>
+      ///   How many memories the sender held when the envelope was sent: the text written later is cut there, so it never
+      ///   knows what happened after its own sending. Null on a letter written at sending.
+      /// </summary>
+      public int? EnvelopeKnownThrough { get; set; }
+
+      /// <summary>The id of the sender's memory of writing it, filed at sending, so the text can enrich it once written.</summary>
+      public string? MemoryEventId { get; set; }
+
       /// <summary>Hero StringId of the NPC who wrote the letter.</summary>
       public string? SenderId { get; set; }
 
