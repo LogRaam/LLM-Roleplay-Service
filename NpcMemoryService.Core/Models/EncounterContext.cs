@@ -339,6 +339,18 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public CaptiveSceneIntent CaptiveIntent { get; init; } = CaptiveSceneIntent.Interrogation;
 
+      /// <summary>In a captor's talk: the ransom the game names, which the player has on them; 0 when none is on offer.</summary>
+      public int CaptorRansomPrice { get; init; }
+
+      /// <summary>In a captor's talk: the days of the oath he would free the player on; 0 when he asks none.</summary>
+      public int CaptorParoleDays { get; init; }
+
+      /// <summary>In a captor's talk: the name of his own man the player holds, whom he would take in exchange; null when there is none.</summary>
+      public string? CaptorExchangeCaptive { get; init; }
+
+      /// <summary>In a captor's talk: the realm the oath of parole is sworn about.</summary>
+      public string? CaptorParoleRealm { get; init; }
+
       /// <summary>
       ///   True when the captive scene is physically happening ABOARD A SHIP on open water (the captor's
       ///   holding party, or the captor's own live party, is at sea right now). Distinct from

@@ -705,3 +705,7 @@ ACTION CHECKLIST, BEFORE YOU FINISH THIS REPLY:
 ===== Intimidation ===== (same as Interrogation)
 ===== Revenge ===== (same as Interrogation)
 ===== Reckoning ===== (same as Interrogation)
+===== Courtesy ===== (same as Interrogation)
+===== Bargain ===== (same as Interrogation)
+===== Parole ===== (same as Interrogation)
+===== TornFriend ===== (same as Interrogation)

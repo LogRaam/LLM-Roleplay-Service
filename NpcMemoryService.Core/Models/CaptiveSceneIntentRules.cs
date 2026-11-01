@@ -29,10 +29,18 @@ namespace NpcMemoryService.Core.Models
                 case CaptiveSceneIntent.Extortion:
                 case CaptiveSceneIntent.Intimidation:
                 case CaptiveSceneIntent.Revenge:
+                case CaptiveSceneIntent.Courtesy:
+                case CaptiveSceneIntent.Bargain:
+                case CaptiveSceneIntent.Parole:
+                case CaptiveSceneIntent.TornFriend:
                     return false;
                 default:
                     return true;
             }
         }
+
+        /// <summary>True when this intent is a lord's talk with his prisoner: open at every content level, and it can end in freedom.</summary>
+        public static bool IsAudience(CaptiveSceneIntent intent)
+            => intent is CaptiveSceneIntent.Courtesy or CaptiveSceneIntent.Bargain or CaptiveSceneIntent.Parole or CaptiveSceneIntent.TornFriend;
     }
 }

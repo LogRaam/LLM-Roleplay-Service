@@ -6823,6 +6823,82 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
+      /// <summary>
+      ///   A lord's talk with his prisoner (Windmolen, 26/10/2026: "just execute you or let you free or ransom you"). Only what
+      ///   the host declared possible is taught: the price is the game's, the exchange names a real captive, and the captor
+      ///   who grants nothing simply ends the talk, the player back in his keeping.
+      /// </summary>
+      private void AppendCaptorAudienceRules(StringBuilder sb, EncounterContext context)
+      {
+         sb.AppendLine("THIS PLAYER IS YOUR PRISONER, AND YOU HAVE SENT FOR THEM TO TALK:");
+         sb.AppendLine("This scene is a conversation between two people, one of whom holds the other. Nobody is harmed");
+         sb.AppendLine("or touched here, and nothing in it is sexual. Whether it changes anything is for you to decide.");
+         switch (context.CaptiveIntent)
+         {
+            case CaptiveSceneIntent.Courtesy:
+               sb.AppendLine("You keep this person as a guest of rank: a prisoner, but one owed the courtesies of their");
+               sb.AppendLine("station. You have had them brought to your table, or sat with them where they are held. You");
+               sb.AppendLine("are civil, curious about who they are, and you do not forget who holds the keys.");
+               break;
+            case CaptiveSceneIntent.Bargain:
+               sb.AppendLine("This is business. You hold something of value, and you want to know what it is worth to");
+               sb.AppendLine("them. You weigh them as you would weigh any purchase, without malice and without warmth.");
+               break;
+            case CaptiveSceneIntent.Parole:
+               sb.AppendLine("You see no use in keeping this person in irons if their word can do the work of the irons.");
+               sb.AppendLine("You want to know what that word is worth, and whether they would give it to you.");
+               break;
+            default:
+               sb.AppendLine("You know this person, and you did not want this. Your duty, your lord or the war put them in");
+               sb.AppendLine("your hands. You are torn, and you let that show or fight to hide it, as your nature goes.");
+               break;
+         }
+
+         sb.AppendLine();
+         AppendCaptorReleaseRule(sb, context);
+         if (context.CaptorRansomPrice > 0)
+         {
+            sb.AppendLine("THE RANSOM:");
+            sb.AppendLine($"Your price is {context.CaptorRansomPrice} denars, and the prisoner has it. Name that sum and no other. When,");
+            sb.AppendLine("and ONLY when, they have agreed to pay it and you accept, emit:");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: ransom_player");
+            sb.AppendLine("[/ACTION]");
+            sb.AppendLine("The game takes the gold and frees them. Speak your parting in character.");
+            sb.AppendLine();
+         }
+
+         if (context.CaptorParoleDays > 0)
+         {
+            sb.AppendLine("THE OATH:");
+            sb.AppendLine($"You may free them on their sworn word not to attack {context.CaptorParoleRealm} for {context.CaptorParoleDays} days. Defending");
+            sb.AppendLine("themselves would not break it. When, and ONLY when, they have sworn it and you accept, emit:");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: parole_player");
+            sb.AppendLine("[/ACTION]");
+            sb.AppendLine("The game frees them and holds them to it. Speak your parting in character.");
+            sb.AppendLine();
+         }
+
+         if (!string.IsNullOrEmpty(context.CaptorExchangeCaptive))
+         {
+            sb.AppendLine("THE EXCHANGE:");
+            sb.AppendLine($"The prisoner holds {context.CaptorExchangeCaptive}, who is of your own. You may take them back in exchange for the");
+            sb.AppendLine("prisoner's freedom. When, and ONLY when, the two of you have agreed it, emit:");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: exchange_for_player");
+            sb.AppendLine("[/ACTION]");
+            sb.AppendLine("The game makes the exchange. Speak your parting in character.");
+            sb.AppendLine();
+         }
+
+         sb.AppendLine("Offer only what is written above. You owe them nothing, and refusing is yours to do. If the talk");
+         sb.AppendLine("settles nothing, say so in your own way and emit end_conversation: they go back to where they");
+         sb.AppendLine("are held, with nothing lost. Never promise a release you do not then grant.");
+         sb.AppendLine();
+         AppendEscapeRules(sb);
+      }
+
       private void AppendCaptivePlayerRules(StringBuilder sb, NpcProfile npc, EncounterContext? context)
       {
          bool isCollective = context?.IsCollectiveCaptiveScene ?? false;
@@ -8020,6 +8096,14 @@ namespace NpcMemoryService.Core.Prompts
 
       private void AppendIntimacyConsentRules(StringBuilder sb, NpcProfile npc, EncounterContext? context)
       {
+         // Before the Off gate: a captor's talk is no intimacy, and it runs at every content level.
+         if (context?.PlayerStatus == PlayerStatusVsNpc.Captive && CaptiveSceneIntentRules.IsAudience(context.CaptiveIntent))
+         {
+            AppendCaptorAudienceRules(sb, context);
+
+            return;
+         }
+
          if (AdultLevel == AdultContentLevel.Off) return;
 
          // Bring-participants-to-a-captor-scene, increment 1: this turn's "npc" is a companion ACTING ON the

@@ -54,6 +54,21 @@ namespace NpcMemoryService.Core.Models
         ///   now their captive and that their fate will be decided later, and warn of worse should the player keep
         ///   crossing their clan. The player learns WHY they were taken. Non-sexual at every adult level.
         /// </summary>
-        Reckoning
+        Reckoning,
+
+        // ── A lord's talk with his prisoner, at every content level (Windmolen, 26/10/2026; Gabriel: "il faudra d'autres
+        //    scenarios que de la maltraitance"). Non-sexual, and they can end in freedom. Appended last for save ordinals. ──
+
+        /// <summary>A prisoner of rank, kept as a guest of rank.</summary>
+        Courtesy,
+
+        /// <summary>The captor talks price.</summary>
+        Bargain,
+
+        /// <summary>The captor would take the player's oath for their freedom.</summary>
+        Parole,
+
+        /// <summary>Kin or an old friend who holds the player and does not want to.</summary>
+        TornFriend
     }
 }
