@@ -96,6 +96,7 @@ namespace NpcMemoryService.Core.Models
             case LetterReason.PatrolReport: return "to report on the patrol and ask whether to keep on";
             case LetterReason.FromAnotherMod: return "on a matter of my own";
             case LetterReason.StandingAim: return "to put to them a matter of my own";
+            case LetterReason.AbandonedReproach: return "to tell them what their silence cost me";
             // A future LetterReason with no mapping yet still gets a plain, truthful fallback rather than
             // an exception thrown deep in a letter-delivery tick.
             default: return "in correspondence";

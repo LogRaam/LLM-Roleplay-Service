@@ -244,6 +244,13 @@ namespace NpcMemoryService.Core.Models
       ///   carries the want, the player's part and how he puts such a thing; nothing else. Added last to preserve
       ///   old-save ordinals.
       /// </summary>
-      StandingAim
+      StandingAim,
+
+      /// <summary>
+      ///   Someone who called on the player for help, was left without it, and lost the place (Gabriel, 01/11/2026): the
+      ///   last letter, a reproach that asks nothing. The Context carries what was asked and what followed. Added last to
+      ///   preserve old-save ordinals.
+      /// </summary>
+      AbandonedReproach
    }
 }
