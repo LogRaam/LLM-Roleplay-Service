@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NpcMemoryService.Core.Extension;
+using NpcMemoryService.Core.Memory;
 using NpcMemoryService.Core.Models;
 
 #endregion
@@ -2598,7 +2599,8 @@ namespace NpcMemoryService.Core.Prompts
 
       private static void AppendHistory(
          StringBuilder sb, NpcProfile npc, int currentDay, int maxEvents = int.MaxValue,
-         bool spouseIsPlayer = false, bool household = false, int? knownThrough = null, string playerName = "")
+         bool spouseIsPlayer = false, bool household = false, int? knownThrough = null, string playerName = "",
+         IReadOnlyCollection<string>? discussedAtOpening = null)
       {
          // WHAT THIS CHARACTER ALREADY REMEMBERED WHEN THE CONVERSATION OPENED. Memories recorded DURING it
          // are not history yet - they are the conversation, and the model already has them in the raw
@@ -2666,6 +2668,11 @@ namespace NpcMemoryService.Core.Prompts
             ? $"In the memory lines just below (each begins \"- Day\"), \"you\" and \"your\" mean the PLAYER, and \"I\", \"me\" and \"my\" mean {self}."
             : $"In the memory lines just below (each begins \"- Day\"), \"you\" and \"your\" mean the player, {playerName}, and \"I\", \"me\" and \"my\" mean {self}.");
 
+         // Only a conversation reads a tag: a letter or a council shows no code and is asked for none.
+         bool showCodes = discussedAtOpening != null && lived.Any(i => npc.Events[i].ShortUid != null);
+         string listener = string.IsNullOrWhiteSpace(playerName) ? "the player" : playerName;
+         var anyDiscussed = false;
+
          // Spell the elapsed time out so it never has to.
          foreach (int i in lived)
          {
@@ -2681,7 +2688,11 @@ namespace NpcMemoryService.Core.Prompts
             // aloud has no syntactic signature to catch. What this buys is that revealing it becomes a
             // CHARACTER'S CHOICE rather than an accident of a prompt that never mentioned discretion.
             string confided = ev.IsPrivate ? " [said to you in confidence - do not repeat it in front of others]" : "";
-            sb.AppendLine($"- Day {ev.gameDay} ({ev.type}{RecencySuffix(ev.gameDay, currentDay)}): {ev.summary}{confided}");
+            // kurushimi00, Gabriel (01/11/2026): the code the model names a memory by, and what it said of it before.
+            string code = showCodes && ev.ShortUid != null ? " " + ev.ShortUid : "";
+            string discussed = MemoryRecall.ReadsAsDiscussed(ev, discussedAtOpening) ? $" [already discussed with {listener}]" : "";
+            anyDiscussed |= discussed.Length > 0;
+            sb.AppendLine($"- Day {ev.gameDay} ({ev.type}{RecencySuffix(ev.gameDay, currentDay)}){code}: {ev.summary}{confided}{discussed}");
          }
          sb.AppendLine();
          // kurushimi00 (Nexus, 01/11/2026): the same character marvels at the same cleared road in every meeting, "reciting
@@ -2689,6 +2700,18 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Respond as someone who lived through these events. They colour how you speak; they are not a list to");
          sb.AppendLine("go through. Bring one up only when it serves this moment, and leave the rest unsaid. When you do speak");
          sb.AppendLine("of one, use the elapsed times given above, and do not invent how long ago something was.");
+         if (anyDiscussed)
+            sb.AppendLine("A memory marked as already discussed is settled between you: leave it unsaid unless the player raises it or something new gives it a reason.");
+
+         if (showCodes)
+         {
+            sb.AppendLine("The code after a memory's date (m1) is for your records: never say or write it. When your reply speaks of a");
+            sb.AppendLine("coded memory, add this block after your reply, with the code of each one:");
+            sb.AppendLine("[DISCUSSED]");
+            sb.AppendLine("memories: m1, m2");
+            sb.AppendLine("[/DISCUSSED]");
+         }
+
          // A memory keeps the allegiances of its day ("we fought for the king"), and this section is read AFTER the
          // standing note, so it was the fresher voice: tashmetu (19/09/2026), expelled from his kingdom, was still
          // spoken to as a member. The standing note is built live every turn; the memories are not.

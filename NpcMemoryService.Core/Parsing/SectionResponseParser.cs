@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text.RegularExpressions;
 using NpcMemoryService.Core.Models;
 
@@ -67,6 +68,7 @@ namespace NpcMemoryService.Core.Parsing
       private const string DiscoveryDescriptionKey = "description";
       private const string DiscoveryKeyKey = "key";
       private const string DiscoveryTag = "DISCOVERY";
+      private const string DiscussedTag = "DISCUSSED";
       private const string EventTag = "EVENT";
       private const string EventTypeKey = "type";
       private const string FactionDeltaKey = "faction_delta";
@@ -84,6 +86,10 @@ namespace NpcMemoryService.Core.Parsing
       // Property keys inside sections (matched case-insensitively).
       private const string TopicKey = "topic";
       private const string WitnessReactionTag = "WITNESS_REACTION";
+
+      // A memory's code, written bare or in brackets: bookkeeping that must never reach the screen.
+      private static readonly Regex MemoryCodeInProse = new(@"[ \t]*(?:[\[(]m\d{1,5}[\])]|\bm\d{1,5}\b)", RegexOptions.Compiled);
+      private static readonly Regex MemoryCode = new(@"\bm\d{1,5}\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
       public ParsedResponse Parse(string rawResponse)
       {
@@ -126,12 +132,15 @@ namespace NpcMemoryService.Core.Parsing
          // tashmetu (08/10/2026): a gesture written twice in one breath ("*A dry, bitter laugh escapes me.*" before and
          // inside the quotes) is shown once.
          dialogueClean = StageDirectionDedupe.Apply(dialogueClean);
+         dialogueClean = MemoryCodeInProse.Replace(dialogueClean, string.Empty);
+         narration = narration == null ? null : MemoryCodeInProse.Replace(narration, string.Empty);
 
          return new ParsedResponse {
             Dialogue = dialogueClean,
             Narration = string.IsNullOrWhiteSpace(narration) ? null : narration,
             NarrationBeforeDialogue = IsNarrationBeforeDialogue(rawResponse),
             Memory = ParseMemory(memorySection),
+            DiscussedMemories = ParseDiscussedMemories(ExtractSection(rawResponse, DiscussedTag)),
             NewEventData = ParseEventData(eventSection),
             Reputation = ParseReputation(reputationSection),
             StanceShift = ParseStanceShift(stanceSection),
@@ -515,6 +524,11 @@ namespace NpcMemoryService.Core.Parsing
          // GameDay is 0 here — the consumer stamps the real day when persisting.
          return new DiscoveredTrait {Key = key.Trim(), Description = description.Trim(), GameDay = 0};
       }
+
+      private static IReadOnlyList<string> ParseDiscussedMemories(string? section)
+         => section == null
+            ? new List<string>()
+            : MemoryCode.Matches(section).Cast<Match>().Select(m => m.Value.ToLowerInvariant()).Distinct().ToList();
 
       private static ParsedEventData? ParseEventData(string? section)
       {

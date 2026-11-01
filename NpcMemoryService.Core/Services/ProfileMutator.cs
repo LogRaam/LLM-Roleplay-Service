@@ -5,6 +5,7 @@
 
 using System;
 using System.Linq;
+using NpcMemoryService.Core.Memory;
 using NpcMemoryService.Core.Models;
 using NpcMemoryService.Core.Parsing;
 using NpcMemoryService.Core.Standing;
@@ -91,6 +92,8 @@ namespace NpcMemoryService.Core.Services
         /// </summary>
         public static void Apply(NpcProfile profile, ParsedResponse response, int gameDay, bool romanticContentEnabled, bool orientationCompatible, bool applyReputation, bool intimacyPermitted, string? playerName)
         {
+            MemoryRecall.MarkDiscussed(profile, response.DiscussedMemories, gameDay);
+
             // An [EVENT] whose summary is un-tagged meta-reasoning (the model thinking out loud about its
             // task instead of remembering — "The user wants me to write a memory line...") is dropped
             // whole: never stored, and never allowed to move the romantic arc on a hallucinated memory.

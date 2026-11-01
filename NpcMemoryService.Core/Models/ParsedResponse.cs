@@ -31,6 +31,13 @@ namespace NpcMemoryService.Core.Models
         public bool NarrationBeforeDialogue { get; init; }
 
         public ConversationMemory? Memory { get; init; }
+
+        /// <summary>
+        ///   The short codes of the memories this reply spoke of (a <c>[DISCUSSED]</c> block). Empty when none. The writer's
+        ///   in both compositions, since only its prompt carries the codes.
+        /// </summary>
+        public IReadOnlyList<string> DiscussedMemories { get; init; } = new List<string>();
+
         public ParsedEventData? NewEventData { get; init; }
         public ReputationDelta? Reputation { get; init; }
 

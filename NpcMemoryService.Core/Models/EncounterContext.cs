@@ -1803,6 +1803,14 @@ namespace NpcMemoryService.Core.Models
       public int? QuestsKnownThrough { get; init; }
 
       /// <summary>
+      ///   The codes of the memories already marked as discussed when this speaker's conversation opened, captured once as
+      ///   <see cref="HistoryKnownThrough" /> is, so a tag written on turn two leaves the cached lines as they were and the
+      ///   character is not told to leave alone what it is in the middle of saying (kurushimi00, 01/11/2026). Set means a
+      ///   conversation: the memory lines then show their codes and the [DISCUSSED] tag is taught. Null is any other prompt.
+      /// </summary>
+      public IReadOnlyCollection<string>? MemoriesDiscussedAtOpening { get; init; }
+
+      /// <summary>
       ///   The realm that binds the two of them, when one of them RULES it: the kingdom the player has sworn
       ///   to (<see cref="PlayerStatusVsNpc.Vassal" />) or the one the player rules and this NPC serves
       ///   (<see cref="PlayerStatusVsNpc.Liege" />). Null when unknown or when neither applies, in which case

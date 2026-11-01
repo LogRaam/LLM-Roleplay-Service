@@ -78,6 +78,20 @@ namespace NpcMemoryService.Core.Models
         public string? SourceMod { get; set; }
 
         /// <summary>
+        ///   The short code this memory shows on its line in a conversation's prompt ("m12"), the name a model uses to say it
+        ///   spoke of it (kurushimi00, Gabriel, 01/11/2026). Unique within one character. Null until a conversation opens with
+        ///   this character. Not <see cref="Id" />: that one marks what something means to come back to, and is 32 characters.
+        ///   Additive and optional, as above.
+        /// </summary>
+        public string? ShortUid { get; set; }
+
+        /// <summary>
+        ///   The day this character last spoke of this memory to the player, or null when it never did. Read as "already
+        ///   discussed" from the next conversation on (see <see cref="Memory.MemoryRecall" />). Additive and optional, as above.
+        /// </summary>
+        public int? DiscussedDay { get; set; }
+
+        /// <summary>
         ///   A copy of this memory carrying a fresh identity. Used where something is written now and meant
         ///   to be found again later; everything else may stay anonymous.
         /// </summary>
