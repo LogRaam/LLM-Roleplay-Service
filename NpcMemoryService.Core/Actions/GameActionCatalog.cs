@@ -230,7 +230,7 @@ namespace NpcMemoryService.Core.Actions
                },
                new GameActionParam("delta", "signed integer, the proposed relation shift")),
             Spec("give_gold",
-               "The NPC hands the player a sum of denars from their own purse (clamped to what they actually hold).",
+               "The NPC hands the player a sum of denars from their own purse (clamped to what they hold and would give).",
                tells: new[] {
                   "the NPC actually parts with a stated sum of their OWN coin to the player, the transfer completed here in this reply"
                },

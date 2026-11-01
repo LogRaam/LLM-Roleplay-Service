@@ -65,6 +65,8 @@ namespace NpcMemoryServiceTests
             ["all_offers_lean"] = () => Builder(AdultContentLevel.Hardcore).BuildSystemPrompt(DeepNpc(), World(), Offers(RichEncounter(LeanPromptLevel.Lean), captor: false)),
             ["conversation_memories_full"] = () => InConversation(LeanPromptLevel.Full),
             ["conversation_memories_lean"] = () => InConversation(LeanPromptLevel.Lean),
+            ["coin_full"] = () => Builder(AdultContentLevel.Mature).BuildSystemPrompt(RichNpc(), World(), WithCoin(RichEncounter(LeanPromptLevel.Full))),
+            ["coin_lean"] = () => Builder(AdultContentLevel.Mature).BuildSystemPrompt(RichNpc(), World(), WithCoin(RichEncounter(LeanPromptLevel.Lean))),
             ["captor_scene"] = () => Builder(AdultContentLevel.Hardcore).BuildSystemPrompt(DeepNpc(), World(), WithWitnesses(Offers(RichEncounter(LeanPromptLevel.Full), captor: true)))
          };
 
@@ -207,6 +209,18 @@ namespace NpcMemoryServiceTests
          typeof(EncounterContext).GetProperty(nameof(EncounterContext.MemoriesDiscussedAtOpening))!.SetValue(ctx, MemoryRecall.DiscussedSoFar(npc));
 
          return Builder(AdultContentLevel.Mature).BuildSystemPrompt(npc, World(), ctx);
+      }
+
+      // What every real conversation carries since RaveN017Mod (01/11/2026): the price table, the purse, the gift's ceiling.
+      private static EncounterContext WithCoin(EncounterContext ctx)
+      {
+         foreach ((string name, object value) in new (string, object)[] {
+                     (nameof(EncounterContext.Purse), 50000), (nameof(EncounterContext.GiftCeiling), 500),
+                     (nameof(EncounterContext.PriceReference), "[the price table]"), (nameof(EncounterContext.PriceReferenceCompact), "[the price line]")
+                  })
+            typeof(EncounterContext).GetProperty(name)!.SetValue(ctx, value);
+
+         return ctx;
       }
 
       private static EncounterContext WithWitnesses(EncounterContext ctx)

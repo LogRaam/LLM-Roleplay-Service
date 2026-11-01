@@ -172,6 +172,8 @@ YOUR OWN APPEARANCE (how you carry yourself, stay true to it):
 YOUR FAMILY:
 [Family]
 
+[PriceReferenceCompact]
+
 WHAT THIS PLAYER ALREADY KNOWS ABOUT YOU:
 praise
 Do not emit [DISCOVERY] for any of these keys — they are already known.
@@ -866,9 +868,13 @@ given here and threaten nothing it does not. Never call the levy paid or settled
 hand-over; a promise to pay later is not payment.
 
 THE ITEM HELD OUT TO YOU: [ItemOnOffer], worth about 3 denars at market.
+No buyer pays more than 3 for it.
 Your purse holds 3 denars: never offer or agree to pay more than that.
 You may buy it at a price you both agree (sell_item), haggle, decline, accept it as a gift if it is one
 (give_item), or only look it over and hand it back.
+
+YOUR COIN: your purse holds 3 denars. With nothing in return you would give 3 at the very most.
+Never name a sum you could not pay. A captive, an item or a ransom goes for its worth through its own action, not as a gift.
 
 It is a winter night, and a blizzard is blowing.
 Near Ocs Hall, in Vlandia.

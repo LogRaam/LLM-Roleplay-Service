@@ -61,6 +61,7 @@ namespace NpcMemoryService.Core.Prompts
          Section("matters_most", PromptZone.Prefix, (b, sb, s) => AppendMattersMost(sb, s.Npc)),
          Section("fear_and_superstition", PromptZone.Prefix, (b, sb, s) => AppendFearAndSuperstition(sb, s.Npc)),
          Section("gift_tastes", PromptZone.Prefix, (b, sb, s) => AppendGiftTastes(sb, s.Npc)),
+         Section("price_reference", PromptZone.Prefix, (b, sb, s) => AppendPriceReference(sb, s.Context, s.Lean)),
          Section("discovered_traits", PromptZone.Prefix, (b, sb, s) => b.AppendDiscoveredTraits(sb, s.Npc, s.Lean)),
          Section("inherited_note", PromptZone.Prefix, (b, sb, s) => AppendInheritedNote(sb, s.Npc)),
          Section("background_context", PromptZone.Prefix, (b, sb, s) => { if (LeanPromptPolicy.Include(PromptSection.CulturalBackground, s.Lean)) AppendBackgroundContext(sb, s.Npc); }),
@@ -167,6 +168,8 @@ namespace NpcMemoryService.Core.Prompts
          Section("war_duty_terms", PromptZone.Tail, (b, sb, s) => AppendWarDutyTerms(sb, s.Context)),
          // An item held out THIS turn, with its worth and the character's purse: a per-turn fact (3chmidt, 13/10/2026).
          Section("item_on_offer", PromptZone.Tail, (b, sb, s) => AppendItemOnOffer(sb, s.Context)),
+         // What the character holds and would give: a gift moves both, so per turn (RaveN017Mod, 01/11/2026).
+         Section("coin_in_hand", PromptZone.Tail, (b, sb, s) => AppendCoinInHand(sb, s.Context)),
          // The knowledge that changes under the character (the hour, the sky, where they stand) belongs here
          // with the rest of the per-turn tail, not up in the identity block - see AppendVolatileKnowledge.
          Section("volatile_knowledge", PromptZone.Tail, (b, sb, s) => AppendVolatileKnowledge(sb, s.Context)),

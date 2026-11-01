@@ -333,6 +333,16 @@ namespace NpcMemoryService.Core.Models
       public double? LastRelationGainHour { get; set; }
 
       /// <summary>
+      ///   The game day the current window of gifts to the player opened, or null when none is on record. With
+      ///   <see cref="GiftedInWindow" />, keeps a player from asking again for the same share of what is left of a purse
+      ///   (Gabriel, 01/11/2026). The SDK only stores it; the consumer defines the policy. Additive: old saves read null.
+      /// </summary>
+      public int? GiftWindowStartDay { get; set; }
+
+      /// <summary>What this character gave the player freely since <see cref="GiftWindowStartDay" />. Additive: old saves read 0.</summary>
+      public int GiftedInWindow { get; set; }
+
+      /// <summary>
       ///   Regard audit C1: the in-game hour of the last GRANTED intimacy relation bonus (the +3, cooldown-
       ///   bypassing gain). Its own dedicated cooldown, separate from <see cref="LastRelationGainHour" />, is what
       ///   stops a model that tags every reply "intimacy" from farming +3 per turn. Null = none granted yet.

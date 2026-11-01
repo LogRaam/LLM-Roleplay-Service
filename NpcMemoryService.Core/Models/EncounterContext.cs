@@ -964,11 +964,29 @@ namespace NpcMemoryService.Core.Models
       /// <summary>The offered item's market value in denars (with <see cref="ItemOnOffer" />).</summary>
       public int ItemOnOfferValue { get; init; }
 
+      /// <summary>The most any buyer pays for the offered item, stated before a price is named. Null when unknown.</summary>
+      public int? ItemOnOfferMost { get; init; }
+
       /// <summary>
-      ///   What this character's purse holds, given with an offer so a price is never promised beyond it (Gabriel's
-      ///   rule: gate before the character declares, never refute after). Null when unknown.
+      ///   What this character's purse holds, given so a sum is never promised beyond it (Gabriel's rule: gate before the
+      ///   character declares, never refute after). Null when unknown.
       /// </summary>
       public int? Purse { get; init; }
+
+      /// <summary>
+      ///   The most this character would give the player now with nothing in return, the host's own ruling on the give_gold
+      ///   action (RaveN017Mod, Gabriel, 01/11/2026). Per turn: a gift moves it. Null when unknown, and no line is written.
+      /// </summary>
+      public int? GiftCeiling { get; init; }
+
+      /// <summary>
+      ///   What things are worth, read from the running game, for a character to reason from before naming a sum (Gabriel,
+      ///   01/11/2026). Stable through a session, so it sits in the cached prefix. Null when unread.
+      /// </summary>
+      public string? PriceReference { get; init; }
+
+      /// <summary>The same in one line, for a compact prompt.</summary>
+      public string? PriceReferenceCompact { get; init; }
 
       /// <summary>
       ///   True on the final beat of a captive scene continuation (mirrors

@@ -2528,10 +2528,40 @@ namespace NpcMemoryService.Core.Prompts
          if (string.IsNullOrWhiteSpace(context?.ItemOnOffer)) return;
 
          sb.AppendLine($"THE ITEM HELD OUT TO YOU: {context!.ItemOnOffer.Trim()}, worth about {context.ItemOnOfferValue:N0} denars at market.");
+         if (context.ItemOnOfferMost.HasValue)
+            sb.AppendLine($"No buyer pays more than {context.ItemOnOfferMost.Value:N0} for it.");
          if (context.Purse.HasValue)
             sb.AppendLine($"Your purse holds {Math.Max(0, context.Purse.Value):N0} denars: never offer or agree to pay more than that.");
          sb.AppendLine("You may buy it at a price you both agree (sell_item), haggle, decline, accept it as a gift if it is one");
          sb.AppendLine("(give_item), or only look it over and hand it back.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   What things are worth, read from the game, before a character names a sum (Gabriel, 01/11/2026, on RaveN017Mod's
+      ///   Rhagaea offering 20,000 denars: "Il faudrait que le modele connaisse la valeur des choses avant de proposer un montant").
+      /// </summary>
+      private static void AppendPriceReference(StringBuilder sb, EncounterContext? context, LeanPromptLevel lean)
+      {
+         string? table = lean == LeanPromptLevel.Lean ? context?.PriceReferenceCompact : context?.PriceReference;
+         if (string.IsNullOrWhiteSpace(table)) return;
+
+         sb.AppendLine(table!.Trim());
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   What this character holds and would give away, stated before they name a sum, so what they say is what the
+      ///   player receives (RaveN017Mod, 01/11/2026: 20,000 offered, 1,000 sent).
+      /// </summary>
+      private static void AppendCoinInHand(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.Purse == null || context.GiftCeiling == null) return;
+
+         int ceiling = Math.Max(0, context.GiftCeiling.Value);
+         sb.AppendLine($"YOUR COIN: your purse holds {Math.Max(0, context.Purse.Value):N0} denars. "
+                     + (ceiling > 0 ? $"With nothing in return you would give {ceiling:N0} at the very most." : "With nothing in return you would give nothing."));
+         sb.AppendLine("Never name a sum you could not pay. A captive, an item or a ransom goes for its worth through its own action, not as a gift.");
          sb.AppendLine();
       }
 

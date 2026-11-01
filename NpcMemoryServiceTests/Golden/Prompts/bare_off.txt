@@ -66,7 +66,7 @@ Emit actions only when the world should actually change — not for narration al
 
 Available actions:
 - change_relation: Shifts the NPC's own personal regard for the player by a signed amount (cooldown, cap, and captivity floor are re-applied by the gate before it lands).
-- give_gold: The NPC hands the player a sum of denars from their own purse (clamped to what they actually hold).
+- give_gold: The NPC hands the player a sum of denars from their own purse (clamped to what they hold and would give).
 - take_gold: The player pays, hands over, or is made to surrender a sum of denars to the NPC (clamped to the player's purse).
 - pay_blackmail: The player settles, in full, a bastard-mother's outstanding demand for her silence; the bridge itself looks up and pays the exact owed sum.
 - join_party: A free, recruitable wanderer agrees to take service as a companion in the player's own party for an agreed hiring price.
