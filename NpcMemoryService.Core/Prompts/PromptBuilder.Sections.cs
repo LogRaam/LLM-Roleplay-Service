@@ -166,6 +166,8 @@ namespace NpcMemoryService.Core.Prompts
          Section("captive_terms", PromptZone.Tail, (b, sb, s) => AppendCaptiveTerms(sb, s.Context)),
          // A vassal's reckoning before his liege: what is still owed moves with every hand-over, so per turn.
          Section("war_duty_terms", PromptZone.Tail, (b, sb, s) => AppendWarDutyTerms(sb, s.Context)),
+         // A resolve the game holds this character to: without it he threatens villages he will never touch (DepaHN, 27/10/2026).
+         Section("spared_villages", PromptZone.Tail, (b, sb, s) => AppendSparedVillages(sb, s.Context)),
          // An item held out THIS turn, with its worth and the character's purse: a per-turn fact (3chmidt, 13/10/2026).
          Section("item_on_offer", PromptZone.Tail, (b, sb, s) => AppendItemOnOffer(sb, s.Context)),
          // What the character holds and would give: a gift moves both, so per turn (RaveN017Mod, 01/11/2026).

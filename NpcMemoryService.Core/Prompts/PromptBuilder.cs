@@ -4145,6 +4145,15 @@ namespace NpcMemoryService.Core.Prompts
       ///   from the reckoning as it stands; this section frames them and holds the character to them, so he names only
       ///   what the game will carry out (gating before declaration) and never calls the levy paid before the game does.
       /// </summary>
+      private static void AppendSparedVillages(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.SparesPlayerVillages != true) return;
+
+         sb.AppendLine("Your realm is at war with them, but for what stands between you, you have resolved not to raid or burn their");
+         sb.AppendLine("villages in this war. You remain your realm's soldier, yet you never threaten those villages.");
+         sb.AppendLine();
+      }
+
       private static void AppendWarDutyTerms(StringBuilder sb, EncounterContext? context)
       {
          if (string.IsNullOrWhiteSpace(context?.WarDutyTerms)) return;

@@ -119,3 +119,4 @@ gift_tastes
 family_compact
 price_reference
 coin_in_hand
+spared_villages

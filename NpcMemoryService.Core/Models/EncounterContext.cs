@@ -351,6 +351,9 @@ namespace NpcMemoryService.Core.Models
       /// <summary>In a captor's talk: the realm the oath of parole is sworn about.</summary>
       public string? CaptorParoleRealm { get; init; }
 
+      /// <summary>True when this character, at war with the player, has resolved not to raid the player's villages.</summary>
+      public bool SparesPlayerVillages { get; init; }
+
       /// <summary>
       ///   True when the captive scene is physically happening ABOARD A SHIP on open water (the captor's
       ///   holding party, or the captor's own live party, is at sea right now). Distinct from
