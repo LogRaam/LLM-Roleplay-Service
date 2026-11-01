@@ -2703,7 +2703,9 @@ namespace NpcMemoryService.Core.Prompts
          if (anyDiscussed)
             sb.AppendLine("A memory marked as already discussed is settled between you: leave it unsaid unless the player raises it or something new gives it a reason.");
 
-         if (showCodes)
+         if (showCodes && maxEvents != int.MaxValue)
+            sb.AppendLine("Never say a memory's code (m1). If your reply speaks of one, add: [DISCUSSED]memories: m1[/DISCUSSED]");
+         else if (showCodes)
          {
             sb.AppendLine("The code after a memory's date (m1) is for your records: never say or write it. When your reply speaks of a");
             sb.AppendLine("coded memory, add this block after your reply, with the code of each one:");

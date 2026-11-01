@@ -17,6 +17,7 @@ using NpcMemoryService.Core.Models;
 using NpcMemoryService.Core.Parsing;
 using NpcMemoryService.Core.Prompts;
 using NpcMemoryService.Core.Services;
+using NpcMemoryService.Core.Storage;
 using NUnit.Framework;
 
 #endregion
@@ -143,6 +144,45 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().Contain(") m1: " + Road);
          prompt.Should().Contain("[DISCUSSED]");
+      }
+
+      // STAKE: a small model pays for every character (DuskSymphony's 8,192-token server), and the budget guards build no
+      // conversation, so they cannot see this. Six memories is the compact window (LeanPromptPolicy).
+      [Test]
+      public void GIVEN_a_compact_conversation_WHEN_the_prompt_is_built_THEN_the_tag_costs_under_150_characters()
+      {
+         NpcProfile npc = Npc(Road, Ford, "A.", "B.", "C.", "D.");
+         MemoryRecall.AssignShortUids(npc);
+
+         int cost = Build(npc, LeanPromptLevel.Lean, MemoryRecall.DiscussedSoFar(npc)).Length - Build(npc, LeanPromptLevel.Lean, null).Length;
+
+         cost.Should().BeLessThan(150);
+      }
+
+      // STAKE: the one-line form a compact model is taught must read like the block a full model writes.
+      [Test]
+      public void GIVEN_the_tag_written_on_one_line_WHEN_it_is_parsed_THEN_its_codes_are_read_and_it_stays_off_the_screen()
+      {
+         ParsedResponse reply = new SectionResponseParser().Parse("[DIALOGUE]Aye.[/DIALOGUE] [DISCUSSED]memories: m2[/DISCUSSED]");
+
+         reply.Dialogue.Should().Be("Aye.");
+         reply.DiscussedMemories.Should().Equal("m2");
+      }
+
+      // STAKE: the marks live in the save. If they do not come back from it, the character forgets at every reload what it
+      // has said, and the report returns after the player's next session.
+      [Test]
+      public void GIVEN_a_marked_memory_WHEN_the_save_is_written_and_read_THEN_the_code_and_the_mark_survive()
+      {
+         NpcProfile npc = Npc(Road);
+         MemoryRecall.AssignShortUids(npc);
+         MemoryRecall.MarkDiscussed(npc, new[] {"m1"}, 20);
+
+         string saved = ResilientProfileBundle.Serialize(new Dictionary<string, NpcProfile> {["n"] = npc});
+         NotableEvent back = ResilientProfileBundle.Deserialize(saved)["n"].Events[0];
+
+         back.ShortUid.Should().Be("m1");
+         back.DiscussedDay.Should().Be(20);
       }
 
       // STAKE: Enhanced rests on this. The writer sees the codes and the interpreter never does, so the tag must be taught

@@ -23,6 +23,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using NpcMemoryService.Core.Actions;
 using NpcMemoryService.Core.Knowledge;
+using NpcMemoryService.Core.Memory;
 using NpcMemoryService.Core.Models;
 using NpcMemoryService.Core.Prompts;
 using NUnit.Framework;
@@ -62,6 +63,8 @@ namespace NpcMemoryServiceTests
             ["lord_lean_no_station"] = () => Builder(AdultContentLevel.Mature).BuildSystemPrompt(RichNpc(), World(), NoStation(RichEncounter(LeanPromptLevel.Lean))),
             ["all_offers_full"] = () => Builder(AdultContentLevel.Hardcore).BuildSystemPrompt(DeepNpc(), World(), Offers(RichEncounter(LeanPromptLevel.Full), captor: false)),
             ["all_offers_lean"] = () => Builder(AdultContentLevel.Hardcore).BuildSystemPrompt(DeepNpc(), World(), Offers(RichEncounter(LeanPromptLevel.Lean), captor: false)),
+            ["conversation_memories_full"] = () => InConversation(LeanPromptLevel.Full),
+            ["conversation_memories_lean"] = () => InConversation(LeanPromptLevel.Lean),
             ["captor_scene"] = () => Builder(AdultContentLevel.Hardcore).BuildSystemPrompt(DeepNpc(), World(), WithWitnesses(Offers(RichEncounter(LeanPromptLevel.Full), captor: true)))
          };
 
@@ -193,6 +196,18 @@ namespace NpcMemoryServiceTests
                Tidings = new List<Tiding> {new() {Text = "A siege was broken at Ocs Hall."}, new() {Text = "A lord was executed in the east.", Confidence = TidingConfidence.Distant}}
             }
          };
+
+      // What every real conversation carries since kurushimi00 (01/11/2026): codes, a mark, the tag's teaching.
+      private static string InConversation(LeanPromptLevel lean)
+      {
+         NpcProfile npc = RichNpc();
+         MemoryRecall.AssignShortUids(npc);
+         MemoryRecall.MarkDiscussed(npc, new[] {"m1"}, 100);
+         EncounterContext ctx = RichEncounter(lean);
+         typeof(EncounterContext).GetProperty(nameof(EncounterContext.MemoriesDiscussedAtOpening))!.SetValue(ctx, MemoryRecall.DiscussedSoFar(npc));
+
+         return Builder(AdultContentLevel.Mature).BuildSystemPrompt(npc, World(), ctx);
+      }
 
       private static EncounterContext WithWitnesses(EncounterContext ctx)
       {
