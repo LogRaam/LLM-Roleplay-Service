@@ -27,7 +27,7 @@ namespace NpcMemoryService.Core.Models
       /// <summary>A parent wishes to propose a match between their child and the player.</summary>
       MarriageProposal,
 
-      /// <summary>A lord calls for the player's military aid during an active war.</summary>
+      /// <summary>A friend, kinsman or ally calls on the player for help in a crisis: troops, coin or food.</summary>
       ReinforcementRequest,
 
       /// <summary>A gang leader asks the player to strike a rival gang.</summary>
