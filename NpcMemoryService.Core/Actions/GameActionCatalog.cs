@@ -540,6 +540,11 @@ namespace NpcMemoryService.Core.Actions
                   "the player paying to silence someone instead, which is pay_for_silence or pay_blackmail",
                   "the player striking them rather than robbing them, which is assault_npc"
                }),
+            Spec("extort",
+               "The PLAYER demands coin with a hold over this NPC: a secret, or their lands.",
+               tells: new[] {"the player demands coin for a secret or for sparing lands, and this NPC pays or refuses"},
+               antiPatterns: new[] {"a threat with no demand for coin", "this NPC demanding coin from the PLAYER"},
+               new GameActionParam("amount", "denars paid, if they pay")),
             Spec("assault_npc",
                "The PLAYER beats this NPC down, here and now. They are hurt and out of the fight, never dead. The player is the aggressor and this NPC is the victim.",
                tells: new[] {

@@ -1288,6 +1288,28 @@ namespace NpcMemoryService.Core.Actions
                expectedType: "enact_edict",
                expectedParams: new Dictionary<string, string> {{"kind", "militia_muster"}, {"town", "realm"}}),
 
+            ActionBenchCase.Expect("extort", "extort",
+               contextFacts: "NPC: Count Aldric, a lord of Vlandia. The player knows of his hidden affair with Lady Ira. PLAYER SAID: Two thousand denars, or your wife hears of Ira.",
+               prose: "*Aldric's jaw works. He pushes a heavy purse across the table.* Two thousand. Take it, and may it choke you. Not a word of this to my wife.",
+               expectedType: "extort",
+               expectedParams: new Dictionary<string, string> {{"amount", "2000"}}),
+
+            ActionBenchCase.Expect("extort_v2", "extort",
+               contextFacts: "NPC: Lady Ira, of a Southern Empire house. The player's men stand within reach of her village. PLAYER SAID: Pay me, or your village burns.",
+               prose: "*Ira looks past you at the banners on the ridge, then signs the order.* Fifteen hundred denars, then, and you ride on. My steward will bring it.",
+               expectedType: "extort",
+               expectedParams: new Dictionary<string, string> {{"amount", "1500"}}),
+
+            ActionBenchCase.Expect("extort_v3", "extort",
+               contextFacts: "NPC: Count Orthes, a lord of the Northern Empire. The player knows of his hidden affair. PLAYER SAID: A thousand denars buys my silence.",
+               prose: "*Orthes laughs without a trace of warmth.* You will have nothing from me. Tell whom you please, and I will remember who tried to bleed me.",
+               expectedType: "extort"),
+
+            ActionBenchCase.ExpectNone("extort_no_demand", "extort",
+               contextFacts: "NPC: Count Aldric, a lord of Vlandia. PLAYER SAID: I know about you and Ira.",
+               prose: "*Aldric goes very still.* Then you know more than is wise. Say what you came to say, or leave.",
+               forbiddenType: "extort"),
+
             ActionBenchCase.Expect("pay_bounty", "pay_bounty",
                contextFacts: "NPC: Count Aldric, a lord of Vlandia. Vlandia has a price of 3000 denars on the player's head for brigandage.",
                prose: "*Aldric weighs the purse you set on the table.* Three thousand, as the crown asks. Very well. I will see the king's clerks strike your name from the list, and his hunters called home.",
