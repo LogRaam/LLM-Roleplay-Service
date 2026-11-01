@@ -2562,7 +2562,21 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine($"YOUR COIN: your purse holds {Math.Max(0, context.Purse.Value):N0} denars. "
                      + (ceiling > 0 ? $"With nothing in return you would give {ceiling:N0} at the very most." : "With nothing in return you would give nothing."));
          sb.AppendLine("Never name a sum you could not pay. A captive, an item or a ransom goes for its worth through its own action, not as a gift.");
+         AppendMoneyTokens(sb, context);
          sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   The sums this character may name, each with its token and its figure: the figure so they can react to it, the
+      ///   token so what they say is what the game pays (Gabriel, 01/11/2026). Low, fair and most are their stance in a bargain.
+      /// </summary>
+      private static void AppendMoneyTokens(StringBuilder sb, EncounterContext context)
+      {
+         if (context.MoneyTokens == null || context.MoneyTokens.Count == 0) return;
+
+         sb.AppendLine("When you offer one of these sums, in words or in an action, write its token and never the figure; it is filled in for you:");
+         sb.AppendLine(string.Join("; ", context.MoneyTokens.Select(t => $"{{{t.Key}}} = {t.Value:N0}")));
+         sb.AppendLine("A sum the player named first you may repeat in figures.");
       }
 
       /// <summary>

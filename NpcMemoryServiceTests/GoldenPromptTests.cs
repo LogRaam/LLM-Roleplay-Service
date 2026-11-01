@@ -216,7 +216,8 @@ namespace NpcMemoryServiceTests
       {
          foreach ((string name, object value) in new (string, object)[] {
                      (nameof(EncounterContext.Purse), 50000), (nameof(EncounterContext.GiftCeiling), 500),
-                     (nameof(EncounterContext.PriceReference), "[the price table]"), (nameof(EncounterContext.PriceReferenceCompact), "[the price line]")
+                     (nameof(EncounterContext.PriceReference), "[the price table]"), (nameof(EncounterContext.PriceReferenceCompact), "[the price line]"),
+                     (nameof(EncounterContext.MoneyTokens), new Dictionary<string, int> {["gift"] = 500, ["fair:Monchug"] = 4900})
                   })
             typeof(EncounterContext).GetProperty(name)!.SetValue(ctx, value);
 

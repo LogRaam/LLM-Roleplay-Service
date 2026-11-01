@@ -989,6 +989,13 @@ namespace NpcMemoryService.Core.Models
       public string? PriceReferenceCompact { get; init; }
 
       /// <summary>
+      ///   The sums this character may name this turn, by the token that stands for each (Parsing.MoneyTokens): taught below
+      ///   the marker with their figures and filled in the raw reply before it is read (Gabriel, 01/11/2026). Set on a live
+      ///   conversation only. Null is a road with no fill, and no token is taught there.
+      /// </summary>
+      public IReadOnlyDictionary<string, int>? MoneyTokens { get; init; }
+
+      /// <summary>
       ///   True on the final beat of a captive scene continuation (mirrors
       ///   <see cref="IsLastWitnessExchange" /> for the 15C loop). When set, the prompt
       ///   instructs the NPC to bring the scene to a definitive conclusion this turn —

@@ -159,7 +159,8 @@ namespace NpcMemoryService.Core.Services
             if (measured.HasValue) _charsPerToken = measured.Value;
          }
 
-         ParsedResponse parsed = _parser.Parse(llmResponse.Content);
+         // Once, before anything reads the reply: what is spoken, remembered and paid is one sum (Gabriel, 01/11/2026).
+         ParsedResponse parsed = _parser.Parse(MoneyTokens.Fill(llmResponse.Content, encounterContext?.MoneyTokens));
          session.AddNpcMessage(parsed.Dialogue);
 
          return NpcChatResult.Success(parsed, llmResponse.Usage, llmResponse.FinishReason, llmResponse.WasRetried);

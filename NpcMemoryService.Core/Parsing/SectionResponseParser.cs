@@ -95,6 +95,8 @@ namespace NpcMemoryService.Core.Parsing
       {
          if (string.IsNullOrWhiteSpace(rawResponse)) return new ParsedResponse {Dialogue = string.Empty};
 
+         // A token no table filled must not reach the screen, on any road (a letter, an envoy). ChatAsync fills its own first.
+         rawResponse = MoneyTokens.Fill(rawResponse, null);
          string dialogue = ExtractDialogue(rawResponse);
 
          // Adult-prompt audit M8: [NARRATION] was the ONE channel with no open-tag tolerance, while the QUEST
