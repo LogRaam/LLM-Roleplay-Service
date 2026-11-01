@@ -66,6 +66,8 @@ namespace NpcMemoryService.Core.Prompts
          Section("inherited_note", PromptZone.Prefix, (b, sb, s) => AppendInheritedNote(sb, s.Npc)),
          Section("background_context", PromptZone.Prefix, (b, sb, s) => { if (LeanPromptPolicy.Include(PromptSection.CulturalBackground, s.Lean)) AppendBackgroundContext(sb, s.Npc); }),
          Section("history", PromptZone.Prefix, (b, sb, s) => AppendHistory(sb, s.Npc, s.World.CurrentDay, LeanPromptPolicy.MemoryEventLimit(s.Lean), s.Context?.NpcSpouseIsPlayer == true, s.Context?.NpcIsPlayerHousehold == true, s.Context?.HistoryKnownThrough, b.PlayerName, s.Context?.MemoriesDiscussedAtOpening)),
+         // A legend moves only when a new one reaches this character, so it stays in the cached prefix.
+         Section("legend", PromptZone.Prefix, (b, sb, s) => AppendLegend(sb, s.Context)),
          // A captor holding the player prisoner is not a quest-giver: listing the player's tasks
          // here let a bandit captor mistake a "clear the bandits" quest for one HE gave, and torture
          // the prisoner for "failing" it. Quests have no place in a captive scene. SuppressQuests withholds

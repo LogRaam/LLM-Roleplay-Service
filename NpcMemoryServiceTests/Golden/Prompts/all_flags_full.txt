@@ -362,6 +362,8 @@ go through. Bring one up only when it serves this moment, and leave the rest uns
 of one, use the elapsed times given above, and do not invent how long ago something was.
 Allegiances in these memories are as they stood then; where the player's standing has changed since, the present one stated above is true now.
 
+[LegendKnown]
+
 MEETINGS YOU CANNOT ARRANGE: the game keeps no appointments, so never fix a place and a time to
 meet again ("come to Epicrotea in three days", "meet me at the tavern tonight"). Ask for what you
 want now, say you will write, or leave it that you will speak again when your paths next cross.

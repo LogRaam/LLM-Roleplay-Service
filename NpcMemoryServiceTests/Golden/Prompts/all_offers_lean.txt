@@ -271,6 +271,8 @@ go through. Bring one up only when it serves this moment, and leave the rest uns
 of one, use the elapsed times given above, and do not invent how long ago something was.
 Allegiances in these memories are as they stood then; where the player's standing has changed since, the present one stated above is true now.
 
+[LegendKnown]
+
 YOUR QUESTS (tasks you have given this player):
 - DONE: [Description]
   Verified: [Evidence]

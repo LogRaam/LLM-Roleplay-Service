@@ -4145,6 +4145,14 @@ namespace NpcMemoryService.Core.Prompts
       ///   from the reckoning as it stands; this section frames them and holds the character to them, so he names only
       ///   what the game will carry out (gating before declaration) and never calls the levy paid before the game does.
       /// </summary>
+      private static void AppendLegend(StringBuilder sb, EncounterContext? context)
+      {
+         if (string.IsNullOrWhiteSpace(context?.LegendKnown)) return;
+
+         sb.AppendLine(context.LegendKnown);
+         sb.AppendLine();
+      }
+
       private static void AppendSparedVillages(StringBuilder sb, EncounterContext? context)
       {
          if (context?.SparesPlayerVillages != true) return;

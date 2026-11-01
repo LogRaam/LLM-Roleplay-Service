@@ -351,6 +351,9 @@ namespace NpcMemoryService.Core.Models
       /// <summary>In a captor's talk: the realm the oath of parole is sworn about.</summary>
       public string? CaptorParoleRealm { get; init; }
 
+      /// <summary>The one legend this character carries, with what it is to them; null when none has reached them (DepaHN, 27/10/2026).</summary>
+      public string? LegendKnown { get; init; }
+
       /// <summary>True when this character, at war with the player, has resolved not to raid the player's villages.</summary>
       public bool SparesPlayerVillages { get; init; }
 
