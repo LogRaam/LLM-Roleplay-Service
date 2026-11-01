@@ -251,6 +251,13 @@ namespace NpcMemoryService.Core.Models
       ///   last letter, a reproach that asks nothing. The Context carries what was asked and what followed. Added last to
       ///   preserve old-save ordinals.
       /// </summary>
-      AbandonedReproach
+      AbandonedReproach,
+
+      /// <summary>
+      ///   A friend or relative now at war with the player, who has resolved to leave the player's villages alone and says
+      ///   so (DepaHN, 27/10/2026; Gabriel, 01/11/2026): the closest one, once per war. Added last to preserve old-save
+      ///   ordinals.
+      /// </summary>
+      VillagesSpared
    }
 }
