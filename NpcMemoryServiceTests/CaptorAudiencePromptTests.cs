@@ -73,6 +73,7 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().Contain("2400 denars");
          prompt.Should().Contain("type: ransom_player");
+         prompt.Should().Contain("never use take_gold for it");
       }
 
       // STAKE: the oath's terms are what the game holds the player to, so the model must state them as they are.

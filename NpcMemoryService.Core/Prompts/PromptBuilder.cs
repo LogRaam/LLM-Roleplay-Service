@@ -6864,7 +6864,8 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("[ACTION]");
             sb.AppendLine("type: ransom_player");
             sb.AppendLine("[/ACTION]");
-            sb.AppendLine("The game takes the gold and frees them. Speak your parting in character.");
+            sb.AppendLine("The game takes the gold and frees them: never use take_gold for it, or they pay and stay your");
+            sb.AppendLine("prisoner. Speak your parting in character.");
             sb.AppendLine();
          }
 
