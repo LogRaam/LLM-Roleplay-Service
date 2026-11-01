@@ -2684,8 +2684,11 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine($"- Day {ev.gameDay} ({ev.type}{RecencySuffix(ev.gameDay, currentDay)}): {ev.summary}{confided}");
          }
          sb.AppendLine();
-         sb.AppendLine("Respond as someone who lived through these events. Reference them when relevant,");
-         sb.AppendLine("and use the elapsed times given above — do not invent how long ago something was.");
+         // kurushimi00 (Nexus, 01/11/2026): the same character marvels at the same cleared road in every meeting, "reciting
+         // the checklist of events in our past" where new content could be. "Reference them when relevant" had no counterweight.
+         sb.AppendLine("Respond as someone who lived through these events. They colour how you speak; they are not a list to");
+         sb.AppendLine("go through. Bring one up only when it serves this moment, and leave the rest unsaid. When you do speak");
+         sb.AppendLine("of one, use the elapsed times given above, and do not invent how long ago something was.");
          // A memory keeps the allegiances of its day ("we fought for the king"), and this section is read AFTER the
          // standing note, so it was the fresher voice: tashmetu (19/09/2026), expelled from his kingdom, was still
          // spoken to as a member. The standing note is built live every turn; the memories are not.
@@ -7378,6 +7381,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("  jolt\", \"a testament to\", \"little did (they/she/he) know\", \"can't help but\", \"ministrations\",");
          sb.AppendLine("  \"orbs\" for eyes, \"the air was thick with\", \"voice dripping with\", \"a symphony/dance of\". Find a");
          sb.AppendLine("  fresher, more specific line instead.");
+         // kurushimi00 (Nexus, 01/11/2026): "some symbolic gesture or item traded" raised "beyond all proportion".
+         sb.AppendLine("- Keep PROPORTION. A small gift, a traded item or a passing gesture is only that: do not make it a symbol,");
+         sb.AppendLine("  an omen or a turning point, and do not marvel at it. Save weight for what truly changed something.");
          sb.AppendLine("- Stay inside the fiction and inside the character: no moralising narrator, no out-of-character");
          sb.AppendLine("  disclaimers. A cruel or calculating lord stays cruel or calculating — do not soften or lecture.");
          sb.AppendLine();
@@ -7392,7 +7398,7 @@ namespace NpcMemoryService.Core.Prompts
       /// </summary>
       private static void AppendLeanProseCraft(StringBuilder sb)
       {
-         sb.AppendLine("PROSE CRAFT: be specific and concrete, never break character.");
+         sb.AppendLine("PROSE CRAFT: be specific and concrete, keep small things small, never break character.");
          sb.AppendLine();
       }
 
@@ -7687,13 +7693,14 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("EMIT [EVENT] WHEN ANY OF THESE OCCUR IN THIS EXCHANGE:");
          sb.AppendLine("- An agreement is reached (mission accepted, oath sworn, contract, promise, alliance).");
          sb.AppendLine("- A status changes (alliance formed or broken, ally became enemy, marriage, divorce).");
-         sb.AppendLine("- A consequential action (violence, theft, gift, payment of significance).");
+         sb.AppendLine("- A consequential action (violence, theft, a gift or payment of real significance).");
          sb.AppendLine("- A reveal (secret disclosed, true identity uncovered, hidden allegiance exposed).");
          sb.AppendLine("- A strong emotional moment (declaration of love, deep insult, threat).");
          sb.AppendLine("- The first meeting between you and the player.");
          sb.AppendLine("- The parting words at the end of the encounter (use 'farewell' type).");
          sb.AppendLine("  The summary should capture any obligations carried forward.");
-         sb.AppendLine("Casual conversation alone is NOT enough — but a deal struck during casual talk IS.");
+         sb.AppendLine("Casual conversation alone is NOT enough, but a deal struck during casual talk IS. A small gift, a");
+         sb.AppendLine("passing courtesy or a trade of no weight is not a memory: what you record is what you will carry for years.");
          sb.AppendLine();
          sb.AppendLine("WHEN THE PLAYER RETURNS AFTER A FAREWELL:");
          sb.AppendLine("If your most recent event with the player is a 'farewell' on a past day, treat this as");
@@ -7756,7 +7763,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine(AdultLevel != AdultContentLevel.Off
             ? "type: first_meeting|farewell|conflict|collaboration|agreement|flirt|intimacy|betrayal|confrontation|other"
             : "type: first_meeting|farewell|conflict|collaboration|agreement|betrayal|confrontation|other");
-         sb.AppendLine("summary: One sentence, in the FIRST PERSON and past tense (your own memory: \"I ...\", never your own name or \"he\"/\"she\"); write so a future you can recall what happened and why it mattered. Use \"I\" ONLY for what YOU did: an act your soldiers or men carried out at your command is \"I had my men do X\" or \"my men did X while I watched\", never \"I did X\" for what someone else performed. Name the other party by NAME rather than writing \"you\": a future you reads this line among many, with nobody standing in front of you.");
+         sb.AppendLine("summary: One sentence, in the FIRST PERSON and past tense (your own memory: \"I ...\", never your own name or \"he\"/\"she\"); write so a future you can recall what happened, plainly, with no more weight than it deserves. Use \"I\" ONLY for what YOU did: an act your soldiers or men carried out at your command is \"I had my men do X\" or \"my men did X while I watched\", never \"I did X\" for what someone else performed. Name the other party by NAME rather than writing \"you\": a future you reads this line among many, with nobody standing in front of you.");
          sb.AppendLine("[/EVENT]");
          sb.AppendLine();
 

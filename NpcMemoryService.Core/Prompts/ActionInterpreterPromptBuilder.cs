@@ -503,10 +503,10 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("you did not perform yourself.");
          sb.AppendLine("Refer to the PLAYER by the name given in the facts below, never by an invented epithet");
          sb.AppendLine("(not \"the coward\", \"the stranger\") and never by a bare \"he\"/\"she\". Record what happened this");
-         sb.AppendLine("reply and why it mattered; do NOT state how long ago it was.");
+         sb.AppendLine("reply, plainly, with no more weight than it deserves; do NOT state how long ago it was.");
          sb.AppendLine("[/EVENT]");
-         sb.AppendLine("These [EVENT] type words (first_meeting, farewell, conflict, collaboration, agreement, flirt,");
-         sb.AppendLine("intimacy, betrayal, confrontation, other) label the [EVENT] block ONLY. NEVER emit one as an");
+         sb.AppendLine("A small gift, courtesy or trade is no memory: emit no [EVENT].");
+         sb.AppendLine("These [EVENT] type words label the [EVENT] block ONLY. NEVER emit one as an");
          sb.AppendLine("[ACTION]: an [ACTION] type is ALWAYS one of the action verbs (change_relation, end_conversation,");
          sb.AppendLine("give_gold, take_gold, or one listed under OTHER ACTIONS below). A moment that is intimate or a");
          sb.AppendLine("flirt is recorded as an [EVENT], never emitted as an action. BUT naming or AGREEING to a romantic");
