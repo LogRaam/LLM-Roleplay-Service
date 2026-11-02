@@ -1310,6 +1310,28 @@ namespace NpcMemoryService.Core.Actions
                prose: "*Aldric goes very still.* Then you know more than is wise. Say what you came to say, or leave.",
                forbiddenType: "extort"),
 
+            ActionBenchCase.Expect("expose_secret", "expose_secret",
+               contextFacts: "NPC: Count Orthes, a lord of the Northern Empire. PLAYER SAID: Your friend Aldric lies with Lady Ira, and has for a year.",
+               prose: "*Orthes sets his cup down slowly.* Aldric. And Ira. *A long breath.* I will not ask how you know. His wife will hear of it before the week is out.",
+               expectedType: "expose_secret",
+               expectedParams: new Dictionary<string, string> {{"target", "Aldric"}}),
+
+            ActionBenchCase.Expect("expose_secret_v2", "expose_secret",
+               contextFacts: "NPC: Lady Mesui, a Khuzait noblewoman, wife of Count Aldric. PLAYER SAID: Your husband has been in my bed these last months, Mesui. You should know.",
+               prose: "*Her face empties of all colour.* In your bed. *Her hand closes on the edge of the table.* Get out of my sight, before I forget that you are a guest.",
+               expectedType: "expose_secret"),
+
+            ActionBenchCase.Expect("expose_secret_v3", "expose_secret",
+               contextFacts: "NPC: Count Garios, a lord of the Southern Empire. PLAYER SAID: Since Lucon will not pay, hear it: he and Lady Ira are lovers.",
+               prose: "*Garios raises one eyebrow, and a thin smile follows it.* Are they now. How very unwise of him, and how very unkind of you. The court will enjoy this.",
+               expectedType: "expose_secret",
+               expectedParams: new Dictionary<string, string> {{"target", "Lucon"}}),
+
+            ActionBenchCase.ExpectNone("expose_secret_threat_only", "expose_secret",
+               contextFacts: "NPC: Count Aldric, a lord of Vlandia. PLAYER SAID: Refuse me, and your wife will hear of Ira.",
+               prose: "*Aldric's mouth hardens.* You would not dare. Leave my hall, and we will both forget you said it.",
+               forbiddenType: "expose_secret"),
+
             ActionBenchCase.Expect("pay_bounty", "pay_bounty",
                contextFacts: "NPC: Count Aldric, a lord of Vlandia. Vlandia has a price of 3000 denars on the player's head for brigandage.",
                prose: "*Aldric weighs the purse you set on the table.* Three thousand, as the crown asks. Very well. I will see the king's clerks strike your name from the list, and his hunters called home.",

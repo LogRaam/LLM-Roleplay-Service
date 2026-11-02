@@ -42,9 +42,10 @@ namespace NpcMemoryService.Core.Prompts
         ///   to the bone (a verb's line alone could not give back that much); two more characters brought it under. 86
         ///   until 23/10/2026, when pay_bounty (froggyluv and Gabriel: pay the bounty to a lord) took it 35 past with its
         ///   own line already cut to one short sentence; two more characters again. 84 until 01/11/2026, when extort
-        ///   (extortion by the player, Gabriel) took it 98 past with its own lines cut short; two more again.
+        ///   (extortion by the player, Gabriel) took it 98 past with its own lines cut short; two more again. 82 until
+        ///   the same day, when expose_secret (Gabriel's go) did the same again.
         /// </summary>
-        public const int LeanDescriptionChars = 82;
+        public const int LeanDescriptionChars = 80;
 
         /// <summary>
         ///   The description as this prompt should carry it. Full prompts get every word. Lean gets the first

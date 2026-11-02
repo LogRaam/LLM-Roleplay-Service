@@ -545,6 +545,11 @@ namespace NpcMemoryService.Core.Actions
                tells: new[] {"the player demands coin for a secret or for sparing lands, and this NPC pays or refuses"},
                antiPatterns: new[] {"a threat with no demand for coin", "this NPC demanding coin from the PLAYER"},
                new GameActionParam("amount", "denars paid, if they pay")),
+            Spec("expose_secret",
+               "The PLAYER tells this NPC a hidden affair.",
+               tells: new[] {"the player plainly tells this NPC who is lying with whom"},
+               antiPatterns: new[] {"a threat to tell", "a hint that names nobody"},
+               new GameActionParam("target", "the name told of")),
             Spec("assault_npc",
                "The PLAYER beats this NPC down, here and now. They are hurt and out of the fight, never dead. The player is the aggressor and this NPC is the victim.",
                tells: new[] {
