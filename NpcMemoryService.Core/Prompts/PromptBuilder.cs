@@ -3698,7 +3698,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("You ride in the player's own party. If the player asks you to go and do one of these for them,");
          sb.AppendLine("and you agree, name exactly one of these words, plainly:");
          sb.AppendLine("  - gathernews: bring back word of the realm, the latest tidings");
-         sb.AppendLine("  - spy       : spy out a town or lord, its strength and whereabouts");
+         sb.AppendLine("  - spy       : spy out a town or lord: strength, whereabouts, what a lord hides");
          sb.AppendLine("  - steal     : lift coin from a place");
          sb.AppendLine("  - barter    : turn a profit at market");
          sb.AppendLine("  - envoy     : take the measure of a faction's mood");

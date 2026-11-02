@@ -493,7 +493,7 @@ AN ERRAND ABROAD, THE PLAYER MAY SEND YOU OUT ON A MISSION:
 You ride in the player's own party. If the player asks you to go and do one of these for them,
 and you agree, name exactly one of these words, plainly:
   - gathernews: bring back word of the realm, the latest tidings
-  - spy       : spy out a town or lord, its strength and whereabouts
+  - spy       : spy out a town or lord: strength, whereabouts, what a lord hides
   - steal     : lift coin from a place
   - barter    : turn a profit at market
   - envoy     : take the measure of a faction's mood
