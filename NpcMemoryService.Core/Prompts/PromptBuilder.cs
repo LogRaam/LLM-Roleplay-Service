@@ -3238,7 +3238,8 @@ namespace NpcMemoryService.Core.Prompts
       ///   words. When NOT eligible and the NPC is still unmarried, a short anti-empty-promise guard is
       ///   emitted instead of a silent skip — otherwise the LLM was free to have the NPC "agree" to a
       ///   ceremony in words with no matching [ACTION], a player-reported empty promise. Nothing is
-      ///   said when the NPC is already wed (the "already married" framing elsewhere covers that case),
+      ///   said of a proposal when the NPC is already wed to someone else: they are told plainly that their
+      ///   marriage rules it out (<see cref="AppendAlreadyMarried" />, Lean included),
       ///   and the guard itself is dropped in Lean mode (a small model gets only the minimal action
       ///   contract, same as <see cref="AppendExtraActionTeachings" />), so it never touches the Lean
       ///   token budget for the overwhelmingly common non-eligible case.
@@ -3252,8 +3253,18 @@ namespace NpcMemoryService.Core.Prompts
             return;
          }
 
+         // EmhyrTyl (Nexus, 03/11/2026): a married noble agreed on day one to wed the player and never mentioned the
+         // spouse; the game then refused "under the laws of Calradia". The spouse sat in YOUR FAMILY, but nothing said
+         // it rules marriage out (the consent block that names the vows is absent with adult content off). Said in Lean
+         // too, in one line: a small model is the one that forgets.
+         if (!string.IsNullOrWhiteSpace(npc?.SpouseName))
+         {
+            if (context?.NpcSpouseIsPlayer != true) AppendAlreadyMarried(sb, npc!.SpouseName!);
+
+            return;
+         }
+
          if (context?.LeanLevel == LeanPromptLevel.Lean) return;
-         if (!string.IsNullOrWhiteSpace(npc?.SpouseName)) return; // already wed — covered elsewhere
 
          sb.AppendLine("MARRIAGE IS NOT YET ON OFFER:");
          sb.AppendLine($"Marriage is a formal, family-gated matter of {PromptLore.WorldAdjective} law. It cannot be settled or sealed");
@@ -3261,6 +3272,17 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("but you must NOT declare a marriage done, agree to an immediate ceremony, or act as though");
          sb.AppendLine("you are already wed to the player.");
          AppendMarriageObstacle(sb, context?.MarriageBlockedBecause ?? MarriageBlockReason.None, context?.LeaveHouseClosedBecause ?? LeaveHouseObstacle.None);
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   A married NPC is told their marriage rules out wedding the player, and to say so if it comes up: the
+      ///   bridge refuses the match anyway, and a character who agreed first would have promised what never happens.
+      /// </summary>
+      private static void AppendAlreadyMarried(StringBuilder sb, string spouseName)
+      {
+         sb.AppendLine($"YOU ARE ALREADY MARRIED, to {spouseName}. You cannot wed the player while that marriage stands:");
+         sb.AppendLine("if marriage comes up, say so plainly in your own words, and never agree to it or speak as if it could be done.");
          sb.AppendLine();
       }
 
