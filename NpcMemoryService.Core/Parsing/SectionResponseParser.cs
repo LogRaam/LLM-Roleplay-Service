@@ -121,6 +121,9 @@ namespace NpcMemoryService.Core.Parsing
          IReadOnlyList<WitnessReaction> witnessReactions = ParseWitnessReactions(rawResponse);
          IReadOnlyList<ResolutionProposal> resolutions = ParseResolutions(rawResponse);
          QuestProposal? questGiven = ParseQuestProposal(questSection);
+         // avalanche24 (Nexus, 03/11/2026): a lord agreed to a bandit task and wrote it as [ACTION] type: quest instead
+         // of a [QUEST] block; "quest" is no verb, so it was refused and no task was given.
+         actions = SalvageQuestActions(actions, questSection, ref questGiven, out bool questActionUnreadable);
 
          // A model that answers with a function-CALL rather than our [ACTION] block leaves the raw JSON sitting in
          // the spoken line, and the player watches the NPC recite our plumbing (Nexus, 2026-07-19). ParseActions
@@ -154,7 +157,8 @@ namespace NpcMemoryService.Core.Parsing
             // TRUNCATED [QUEST] arrives non-empty and trips this flag instead of vanishing (it used to be
             // dropped silently, which this comment wrongly claimed it covered). Surfaced so the host can tell
             // the player the spoken offer was NOT recorded, instead of the two silently diverging.
-            QuestBlockMalformed = questGiven == null && !string.IsNullOrWhiteSpace(questSection),
+            // A task offered as an [ACTION] whose kind cannot be read is the same broken word (avalanche24, 03/11/2026).
+            QuestBlockMalformed = (questGiven == null && !string.IsNullOrWhiteSpace(questSection)) || questActionUnreadable,
             QuestCompleted = ParseQuestCompletion(questCompleteSection),
             QuestAbandoned = ParseQuestAbandon(questAbandonSection),
             WitnessReactions = witnessReactions,
@@ -638,6 +642,91 @@ namespace NpcMemoryService.Core.Parsing
       }
 
       /// <summary>
+      ///   The [ACTION] types a model writes when it means a [QUEST] block, in the separator-free lower case of
+      ///   <see cref="QuestActionKey" />. None is a verb in the action catalog. A quest TYPE word (bandit_clear, siege)
+      ///   written as the action type is deliberately not here: "execute" or "capture" read as a quest would turn a
+      ///   deed the character meant to do now into a task for the player.
+      /// </summary>
+      private static readonly HashSet<string> QuestActionTypes = new(StringComparer.Ordinal)
+      {
+         "quest", "givequest", "offerquest", "assignquest", "questgiven", "newquest"
+      };
+
+      /// <summary>The fields where a quest written as an [ACTION] names its kind, first found wins.</summary>
+      private static readonly string[] QuestKindKeys = {"quest_type", "task_type", "task", "quest"};
+
+      private static string QuestActionKey(string? type)
+         => string.IsNullOrWhiteSpace(type)
+            ? string.Empty
+            : type!.Trim().ToLowerInvariant().Replace("_", "").Replace("-", "").Replace(" ", "");
+
+      /// <summary>
+      ///   avalanche24 (Nexus, 03/11/2026): a local model agreed to give a bandit task and wrote it as
+      ///   <c>[ACTION] type: quest</c> instead of a <c>[QUEST]</c> block. "quest" is no verb, so the game refused it
+      ///   and the task the lord had just spoken was never given. Every such action leaves the action list here.
+      ///   When no [QUEST] block came, the first one whose kind can be read (quest_type, or a sibling key) becomes
+      ///   the quest; when none can be read, <paramref name="unreadable" /> is set so the player is told nothing was
+      ///   recorded and the model is asked to state the task again, exactly as for a garbled [QUEST] block. The
+      ///   kind is never guessed from the description: a wrong task is worse than none. When a [QUEST] block came,
+      ///   it speaks for the offer and the action is only a duplicate.
+      /// </summary>
+      private static IReadOnlyList<GameAction> SalvageQuestActions(IReadOnlyList<GameAction> actions, string? questSection,
+                                                                   ref QuestProposal? questGiven, out bool unreadable)
+      {
+         unreadable = false;
+         List<GameAction>? kept = null;
+         bool blockCame = !string.IsNullOrWhiteSpace(questSection) || questGiven != null;
+
+         for (var i = 0; i < actions.Count; i++)
+         {
+            GameAction action = actions[i];
+            if (!QuestActionTypes.Contains(QuestActionKey(action.Type)))
+            {
+               kept?.Add(action);
+
+               continue;
+            }
+
+            if (kept == null)
+            {
+               kept = new List<GameAction>(actions.Count);
+               for (var j = 0; j < i; j++) kept.Add(actions[j]);
+            }
+
+            if (blockCame || questGiven != null) continue;
+
+            QuestProposal? salvaged = BuildQuestProposal(QuestFieldsFromAction(action));
+            if (salvaged != null) questGiven = salvaged;
+            else unreadable = true;
+         }
+
+         if (questGiven != null) unreadable = false;
+
+         return kept ?? actions;
+      }
+
+      /// <summary>A quest written as an [ACTION], read as the [QUEST] block's fields: its kind becomes the type, its context the description when it wrote none.</summary>
+      private static Dictionary<string, string> QuestFieldsFromAction(GameAction action)
+      {
+         var fields = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+         if (action.Parameters != null)
+            foreach (KeyValuePair<string, string> kvp in action.Parameters)
+               fields[kvp.Key] = kvp.Value;
+
+         string? kind = null;
+         foreach (string key in QuestKindKeys)
+         {
+            if (kind == null && !string.IsNullOrWhiteSpace(GetField(fields, key))) kind = fields[key];
+            fields.Remove(key);
+         }
+
+         if (kind != null) fields["type"] = kind;
+         if (!fields.ContainsKey("description") && !string.IsNullOrWhiteSpace(action.Context)) fields["description"] = action.Context!;
+
+         return fields;
+      }
+
+      /// <summary>
       ///   Folds an action type to the canonical snake_case the bridge matches on: runs of spaces and dashes
       ///   become one underscore, so "give gold" and "give-gold" both reach "give_gold". Deliberately NOT an
       ///   alias table: the bridge already lowercases, and synonyms like "pay" are ambiguous (player pays vs NPC
@@ -710,8 +799,13 @@ namespace NpcMemoryService.Core.Parsing
       private static QuestProposal? ParseQuestProposal(string? section)
       {
          if (string.IsNullOrWhiteSpace(section)) return null;
-         Dictionary<string, string> fields = ParseKeyValueLines(section!);
 
+         return BuildQuestProposal(ParseKeyValueLines(section!));
+      }
+
+      /// <summary>A [QUEST] block's fields as a proposal; null when the type is absent or unrecognized.</summary>
+      private static QuestProposal? BuildQuestProposal(Dictionary<string, string> fields)
+      {
          if (!fields.TryGetValue("type", out string? typeStr)) return null;
          QuestType? type = ParseQuestType(typeStr);
 
