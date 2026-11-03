@@ -107,6 +107,32 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain(PartWaysActionType);
       }
 
+      // STAKE: a lord of a warring realm may ride now (Lordfadooboo, Maifailun, Nexus, 01-03/11/2026) and leaves
+      // when his liege leads an army; unwarned, the player watches him ride off mid-campaign like a broken promise.
+      [Test]
+      public void GIVEN_his_realm_is_at_war_WHEN_ride_with_me_is_taught_THEN_he_is_told_to_warn_of_the_muster()
+      {
+         string prompt = Build(new EncounterContext {
+            PlayerStatus = PlayerStatusVsNpc.Free,
+            NpcCanRideWithPlayer = true,
+            NpcMayBeCalledToMuster = true
+         });
+
+         prompt.Should().Contain("answer the muster");
+      }
+
+      // STAKE: at peace there is no muster to warn of; saying it anyway would make every friend sound reluctant.
+      [Test]
+      public void GIVEN_his_realm_is_at_peace_WHEN_ride_with_me_is_taught_THEN_no_muster_warning_is_given()
+      {
+         string prompt = Build(new EncounterContext {
+            PlayerStatus = PlayerStatusVsNpc.Free,
+            NpcCanRideWithPlayer = true
+         });
+
+         prompt.Should().NotContain("answer the muster");
+      }
+
       // No active retainer, no parting to offer: teaching part_ways here would hand the model an action the
       // bridge has nothing to end.
       [Test]

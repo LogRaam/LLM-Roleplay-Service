@@ -847,6 +847,8 @@ When you clearly agree, emit:
 [ACTION]
 type: ride_with_me
 [/ACTION]
+Your own realm is at war. Say so plainly as you agree: if your liege leads an army, you will
+have to leave their party and answer the muster. Promise to ride, not that it will last.
 The game then has you ride in the player's party. Later, when either of you judges it time,
 the arrangement ends with the part_ways action and you return to your own affairs. Never
 claim to be riding with the player unless you emit ride_with_me, and never claim it is

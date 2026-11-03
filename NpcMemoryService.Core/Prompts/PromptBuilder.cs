@@ -4014,6 +4014,13 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: ride_with_me");
          sb.AppendLine("[/ACTION]");
+         // Lordfadooboo, Maifailun (Nexus, 01-03/11/2026): a lord of a warring realm may ride now, and leaves when his
+         // liege leads an army. Said in advance, as follow_me's lord says it (Gabriel, 10/09/2026).
+         if (context.NpcMayBeCalledToMuster)
+         {
+            sb.AppendLine("Your own realm is at war. Say so plainly as you agree: if your liege leads an army, you will");
+            sb.AppendLine("have to leave their party and answer the muster. Promise to ride, not that it will last.");
+         }
          sb.AppendLine("The game then has you ride in the player's party. Later, when either of you judges it time,");
          sb.AppendLine("the arrangement ends with the part_ways action and you return to your own affairs. Never");
          sb.AppendLine("claim to be riding with the player unless you emit ride_with_me, and never claim it is");

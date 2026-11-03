@@ -1640,7 +1640,8 @@ namespace NpcMemoryService.Core.Models
       ///   away mid-escort. He is told to say so as he agrees, rather than leaving the player to discover it when
       ///   he rides off (Gabriel's condition, 2026-09-10, on relaxing the gate that used to refuse such a lord
       ///   outright and thereby made the whole feature nearly unreachable). Meaningless when
-      ///   <see cref="NpcCanEscortPlayer" /> is false.
+      ///   <see cref="NpcCanEscortPlayer" /> is false. Also set for ride_with_me since 03/11/2026 (Lordfadooboo,
+      ///   Maifailun): a lord of a warring realm may ride in the player's party and leaves when his liege leads an army.
       /// </summary>
       public bool NpcMayBeCalledToMuster { get; init; }
 
