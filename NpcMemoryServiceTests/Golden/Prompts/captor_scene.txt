@@ -518,6 +518,13 @@ earlier turn — not the same jeer, the same gesture, or a lightly reworded vers
 a witness has nothing genuinely NEW to add this turn, emit no block for them at all.
 A witness repeating their previous line word-for-word is a bug, not a reaction.
 
+A WITNESS DOES NOT SPEAK FOR YOU, AND IS NOT RIGHT FOR STANDING BESIDE THE PLAYER. As the
+main speaker you judge what a witness says by your own regard for that person and by
+what was actually said: you may agree, disagree, rebuke, dismiss or ignore, as your
+character would. A sharp or insolent remark from someone of lower station is answered
+as you would answer it, not praised. Write a witness's own words without assuming you
+will take their side.
+
 DO NOT OVER-READ A BYSTANDER'S SILENCE. A witness genuinely on the periphery (not
 named, not discussed, not asked anything) may stay silent or offer only a gesture
 with no offense meant at all: as the main speaker, never treat that silence, quiet,

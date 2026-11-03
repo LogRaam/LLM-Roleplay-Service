@@ -5250,6 +5250,15 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("a witness has nothing genuinely NEW to add this turn, emit no block for them at all.");
             sb.AppendLine("A witness repeating their previous line word-for-word is a bug, not a reaction.");
             sb.AppendLine();
+            // froggyluv (2/11/2026, 2.8.1): the player's companion spoke up and the lord ALWAYS praised her, however
+            // sharp. Nothing told the main speaker he may disagree; the only ally example was "confirms".
+            sb.AppendLine("A WITNESS DOES NOT SPEAK FOR YOU, AND IS NOT RIGHT FOR STANDING BESIDE THE PLAYER. As the");
+            sb.AppendLine("main speaker you judge what a witness says by your own regard for that person and by");
+            sb.AppendLine("what was actually said: you may agree, disagree, rebuke, dismiss or ignore, as your");
+            sb.AppendLine("character would. A sharp or insolent remark from someone of lower station is answered");
+            sb.AppendLine("as you would answer it, not praised. Write a witness's own words without assuming you");
+            sb.AppendLine("will take their side.");
+            sb.AppendLine();
             sb.AppendLine("DO NOT OVER-READ A BYSTANDER'S SILENCE. A witness genuinely on the periphery (not");
             sb.AppendLine("named, not discussed, not asked anything) may stay silent or offer only a gesture");
             sb.AppendLine("with no offense meant at all: as the main speaker, never treat that silence, quiet,");
@@ -5265,6 +5274,7 @@ namespace NpcMemoryService.Core.Prompts
          else
          {
             sb.AppendLine("When a witness reacts visibly, emit [WITNESS_REACTION] (name, text) for them; never inside [DIALOGUE].");
+            sb.AppendLine("You judge a witness's words by your own regard for them, not as an ally of the player: agree, rebuke or dismiss as your character would.");
             sb.AppendLine();
          }
 
@@ -5380,6 +5390,9 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("The last message above came from a witness, not the player. React to what they");
             sb.AppendLine("expressed — with a statement, a gesture, a sharp glance, a wry remark — as your");
             sb.AppendLine("character demands. The player is present but has not spoken this turn.");
+            sb.AppendLine("You are not bound to agree with the witness or to praise them: weigh what they said");
+            sb.AppendLine("against your own regard for them and your station. Disagree, rebuke or dismiss a");
+            sb.AppendLine("sharp or insolent remark if that is what you would do.");
             sb.AppendLine("Skip [EVENT]/[MEMORY] unless truly warranted; this is a brief in-scene beat.");
             // Lordfadooboo (20/10/2026): the character answered the bystander, then asked the player the question it
             // had already asked, sometimes a third time, before the player could answer.
