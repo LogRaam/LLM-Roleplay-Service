@@ -217,6 +217,27 @@ namespace NpcMemoryServiceTests
                   new() {Text = "A lord was executed in the east.", Confidence = TidingConfidence.Distant},
                   new() {Text = "A caravan was taken on the south road."}
                }
+            },
+
+            // Folklore (03/11/2026): everyone of a people with tales carries them, so the worst case carries a full set,
+            // the favourite with its parts. It is the first pack Compact drops.
+            Folklore = new FolkloreFacts {
+               Tales = new List<FolkTaleFacts> {
+                  new() {
+                     Title = "The Knight Who Kept the Bridge",
+                     Gist = "a knight who held a bridge alone through a night, for a vow made to a lady he never saw again.",
+                     Beats = new List<string> {
+                        "A young knight swears to a lady at a feast that no foe will cross the river while he lives.",
+                        "Raiders come at dusk; his companions flee, and he stands alone on the bridge.",
+                        "All night he fights, and by dawn the raiders give up the crossing.",
+                        "He rides to find the lady and learns she wed another that same night.",
+                        "He keeps the bridge all his life, and it bears his name still."
+                     }
+                  },
+                  new() {Title = "The Miller's Three Sons", Gist = "three brothers, a mill, and the one who listened to the river."},
+                  new() {Title = "The Hawk and the Count", Gist = "a count who loved his hawk more than his people, and what the hawk did."},
+                  new() {Title = "The Wolf at Pravend Gate", Gist = "a wolf that walked into a town at midwinter and asked for bread."}
+               }
             }
          };
 
@@ -243,7 +264,7 @@ namespace NpcMemoryServiceTests
                             .Select(p => p.Name)
                             .Should().BeEquivalentTo(new[] {
                                "here_and_now", "own_body", "house_standing", "house_means", "seat_standing",
-                               "personal_bonds", "underworld", "station", "realm_news"
+                               "personal_bonds", "underworld", "station", "realm_news", "folklore"
                             });
 
          string full = Build(LeanPromptLevel.Full);

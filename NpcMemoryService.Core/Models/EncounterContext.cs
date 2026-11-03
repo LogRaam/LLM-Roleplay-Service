@@ -1516,6 +1516,12 @@ namespace NpcMemoryService.Core.Models
       public Knowledge.UnderworldFacts? Underworld { get; init; }
 
       /// <summary>
+      ///   The tales of this character's own people, known as tales, the favourite first (Gabriel, 03/11/2026: tales
+      ///   NPCs know are tales, may allude to, or tell when asked). Null when their people has none on file.
+      /// </summary>
+      public Knowledge.FolkloreFacts? Folklore { get; init; }
+
+      /// <summary>
       ///   The SPEAKING character's own house name. Added 2026-09-12 when station became a knowledge pack: a
       ///   pack reads the context and not the profile, and the clan-head line needs the name. The host has it
       ///   either way, so this is a seam rather than a new fact.

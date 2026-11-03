@@ -65,7 +65,10 @@ namespace NpcMemoryService.Core.Knowledge
 
             // The wider world, last of the outward-facing packs and the first whose REACH depends on rank.
             new RealmNewsPack(),
-            new PersonalBondsPack()
+            new PersonalBondsPack(),
+
+            // Last: what was learned at the hearth colours a voice and changes nothing a character can do.
+            new FolklorePack()
         };
 
         /// <summary>
