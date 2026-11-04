@@ -45,11 +45,14 @@ namespace NpcMemoryServiceTests
          return session;
       }
 
-      private static async Task<LlmRequest> Send(int window, ChatSession session, LeanPromptLevel level = LeanPromptLevel.Full)
+      private static async Task<LlmRequest> Send(int window, ChatSession session, LeanPromptLevel level = LeanPromptLevel.Full,
+         LlmParameters chosen = null)
       {
          var client = new CapturingClient();
          var service = new NpcChatService(client, new SectionResponseParser(), LeanRealPromptBudgetTests.RealBuilder()) {
-            ContextWindowProvider = () => window
+            ContextWindowProvider = () => window,
+            ChatParameters = chosen ?? new LlmParameters {MaxTokens = 3000, Creativity = 0.7f},
+            KeepReplyBudgetInCompact = chosen != null
          };
          await service.ChatAsync(LeanRealPromptBudgetTests.Npc(), new WorldState {CurrentDay = 10}, session, NewLine, LeanRealPromptBudgetTests.Encounter(level));
 
@@ -88,6 +91,26 @@ namespace NpcMemoryServiceTests
 
          r.SystemPrompt.Should().Be(full);
          r.Messages.Count.Should().BeLessThan(session.Messages.Count);
+      }
+
+      // STAKE: a player on Compact who never touched the budget keeps the small reply that leaves room in an 8k window.
+      [Test]
+      public async Task GIVEN_compact_and_no_budget_chosen_WHEN_sent_THEN_the_reply_is_held_to_the_compact_budget()
+      {
+         LlmRequest r = await Send(0, LongConversation(), LeanPromptLevel.Lean);
+
+         r.Parameters.MaxTokens.Should().Be(LeanReplyBudget.Tokens);
+      }
+
+      // STAKE: avalanche24 (03/11/2026): a local reasoning model counts its thinking against the reply budget and was cut off
+      // mid-thought at 1200. The budget and the penalty the player chose are the ones sent, in Compact too.
+      [Test]
+      public async Task GIVEN_compact_and_a_budget_the_player_chose_WHEN_sent_THEN_that_budget_and_penalty_are_sent()
+      {
+         LlmRequest r = await Send(0, LongConversation(), LeanPromptLevel.Lean, new LlmParameters {MaxTokens = 4000, Creativity = 0.7f, PresencePenalty = 0.1f});
+
+         r.Parameters.MaxTokens.Should().Be(4000);
+         r.Parameters.PresencePenalty.Should().Be(0.1f);
       }
 
       // A window too small for the full prompt with its latest lines: the compact prompt and its smaller reply go, still

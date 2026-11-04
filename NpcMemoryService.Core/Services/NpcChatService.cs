@@ -50,6 +50,14 @@ namespace NpcMemoryService.Core.Services
       public IPromptBuilder PromptBuilder { get; }
 
       /// <summary>
+      ///   True when the player chose <see cref="ChatParameters" />' reply budget themselves: Compact then keeps it instead of
+      ///   lowering it to <see cref="LeanReplyBudget.Tokens" />. avalanche24 (Nexus, 03/11/2026): a local reasoning model counts its
+      ///   thinking against that budget and was cut off mid-thought at 1200, whatever the reasoning setting. A declared context
+      ///   window still fits it.
+      /// </summary>
+      public bool KeepReplyBudgetInCompact { get; init; }
+
+      /// <summary>
       ///   The context window of the model this service talks to, in tokens, read on every turn; 0 (or no provider) when
       ///   none is declared. When set, each request is fitted to it by CR (ContextFitPolicy) instead of being cut by the
       ///   server (fkasad, 13/10/2026: LM Studio's "truncate middle" cut the action rules out of CR's prompt).
@@ -103,7 +111,7 @@ namespace NpcMemoryService.Core.Services
          // ~1,000 across Gabriel's own sessions). A thousand is ample for the longest of those, and it frees
          // two thousand tokens: more headroom than every trim to the prompt TEXT put together, and it takes
          // no sentence away from anybody (DuskSymphony, Nexus, 8,192-token local model).
-         int maxTokens = encounterContext?.LeanLevel == LeanPromptLevel.Lean
+         int maxTokens = encounterContext?.LeanLevel == LeanPromptLevel.Lean && !KeepReplyBudgetInCompact
             ? Math.Min(ChatParameters.MaxTokens, LeanReplyBudget.Tokens)
             : ChatParameters.MaxTokens;
 
