@@ -467,6 +467,8 @@ namespace NpcMemoryService.Core.Actions
                   "the PLAYER buying from the NPC, which this verb never covers"
                },
                new GameActionParam("item", "the item's name, matched case-insensitively against the player's roster"),
+               // froggyluv (04/11/2026): the bridge sells the amount set in the bag; no count is taught here, the Compact
+               // interpreter prompt has no room left for one.
                new GameActionParam("price", "the agreed denars the NPC pays")),
             Spec("give_prisoner",
                "The player hands over the exact captive an outstanding deliver-prisoner bargain named; the bridge resolves which held prisoner satisfies it and settles the bargain's reward.",

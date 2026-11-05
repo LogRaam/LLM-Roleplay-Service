@@ -71,6 +71,24 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain(Boundary).And.Contain("you are NOT in love with them");
       }
 
+      // STAKE: avalanche24 (Nexus, 04/11/2026): Rhagaea, courted since winter 1085 at a regard of 15, was told not to call
+      // it a bond and denied the courtship itself. She may still not declare love, but she owns the courtship.
+      [Test]
+      public void GIVEN_a_courtship_below_the_declaration_bar_WHEN_building_THEN_the_courtship_is_stated_and_never_denied()
+      {
+         string prompt = Build(Npc(regard: 15, status: RomanticStatus.Courting));
+
+         prompt.Should().Contain("You and the player are courting").And.Contain("never deny it or call it mere friendship");
+         prompt.Should().Contain("you are NOT in love with them");
+      }
+
+      // STAKE: avalanche24: a courtship ended by her marriage to another is over, not erased; she never denies it was real.
+      [Test]
+      public void GIVEN_an_estranged_former_courtship_WHEN_building_THEN_it_is_over_but_never_denied()
+      {
+         Build(Npc(regard: 15, status: RomanticStatus.Estranged)).Should().Contain("it happened: never deny it");
+      }
+
       // The reported contradiction, gone. Standing makes the player a credible PROSPECT; it never manufactured
       // the feeling, and it must no longer invite an NPC to open a subject the game will refuse.
       [Test]

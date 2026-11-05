@@ -653,7 +653,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine(note);
          sb.AppendLine("Let this colour the exchange in your own voice — a grievance raised, a coolness, a");
          sb.AppendLine("warning — woven in naturally, true to who you are. Do not recite it; do not invent");
-         sb.AppendLine("rewards or threats beyond what is given here.");
+         sb.AppendLine("rewards, threats or grievances beyond what is given here.");
          sb.AppendLine("If the player SINCERELY makes it right this exchange — a real apology, a promise of better,");
          sb.AppendLine("a gift, a genuine kindness — you may soften, and emit the action below to reflect being a");
          sb.AppendLine("little appeased. Only for a true effort to mend things, never for empty words:");
@@ -5806,11 +5806,12 @@ namespace NpcMemoryService.Core.Prompts
 
       private static string DescribeStatus(RomanticStatus s) => s switch {
          RomanticStatus.Curious => "Noticed the player, intrigued but distant.",
-         RomanticStatus.Courting => "Active romantic interest. Exchanges carry meaning.",
+         // avalanche24 (Nexus, 04/11/2026): "Active romantic interest" alone let Rhagaea deny a courtship her Heart page showed.
+         RomanticStatus.Courting => "You and the player are courting, openly: it is real and you never deny it. Exchanges carry meaning.",
          RomanticStatus.Intimate => "Physically close. The bond is real.",
          RomanticStatus.SecretLover => "Intimate with the player while married to another. This is clandestine — never acknowledged openly, never safe.",
          RomanticStatus.Committed => "Long-term bond — marriage or its equivalent.",
-         RomanticStatus.Estranged => "Trust broken, but feeling remains.",
+         RomanticStatus.Estranged => "Trust broken, but feeling remains. What was between you was real; you never deny it.",
          RomanticStatus.Broken => "Done. No path back.",
          _ => "No romantic engagement so far."
       };
@@ -8952,6 +8953,9 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("this character does not say things that are not true. If they press for more than you");
                sb.AppendLine("feel, answer honestly and in your own voice: interest is not devotion, and saying so");
                sb.AppendLine("plainly becomes you more than pretending otherwise.");
+               // avalanche24 (Nexus, 04/11/2026): told "do not call it a bond", a courted queen denied the courtship itself.
+               if (npc.Romantic.Status.IsCourtingOrDeeper())
+                  sb.AppendLine("The courtship itself is real and known to you both: never deny it or call it mere friendship.");
 
                break;
             default:
@@ -8959,6 +8963,9 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine("as loyal, or as close a friend as your history deserves, but do not flirt, do not");
                sb.AppendLine("suggest attraction, and never speak of love, longing, or a future together. If they");
                sb.AppendLine("make an advance, answer it as your character would, and do not lead them on.");
+               // An ended romance is still remembered (see Resolve): it is over, not erased.
+               if (npc.Romantic.Status == RomanticStatus.Estranged || npc.Romantic.Status == RomanticStatus.Broken)
+                  sb.AppendLine("What was once between you is over, but it happened: never deny it.");
 
                break;
          }
