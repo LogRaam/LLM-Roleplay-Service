@@ -39,10 +39,54 @@ namespace NpcMemoryService.Core.Parsing
          if (string.IsNullOrEmpty(text) || text!.IndexOf('{') < 0) return text ?? string.Empty;
 
          return Token.Replace(text, m => {
-            string key = Key(m.Groups[1].Value.ToLowerInvariant(), m.Groups[2].Value);
+            string kind = m.Groups[1].Value.ToLowerInvariant();
+            string key = Key(kind, m.Groups[2].Value);
+            if (table == null) return NoFigure;
+            if (table.TryGetValue(key, out int sum) || TryLooseSubject(table, kind, m.Groups[2].Value, out sum))
+               return sum.ToString(CultureInfo.InvariantCulture);
 
-            return table != null && table.TryGetValue(key, out int sum) ? sum.ToString(CultureInfo.InvariantCulture) : NoFigure;
+            return NoFigure;
          });
+      }
+
+      /// <summary>
+      ///   The sum for a subject written its own way: "{most:Monchug of the Arkits}" for the captive taught as "Monchug"
+      ///   (RaveN017Mod, Nexus, 05/11/2026: sales "still don't work every single time"; a token the table missed read "a fair
+      ///   sum", which no price can parse, so the sale paid the floor). The one subject of this kind whose whole name stands
+      ///   as words in what was written, or that contains what was written; two candidates are no answer.
+      /// </summary>
+      private static bool TryLooseSubject(IReadOnlyDictionary<string, int> table, string kind, string written, out int sum)
+      {
+         sum = 0;
+         string query = written?.Trim() ?? string.Empty;
+         if (query.Length == 0) return false;
+
+         string prefix = kind + ":";
+         int found = 0;
+         foreach (KeyValuePair<string, int> entry in table)
+         {
+            if (!entry.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) continue;
+
+            string subject = entry.Key.Substring(prefix.Length).Trim();
+            if (subject.Length == 0 || !(subject.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0 || StandsAsWords(subject, query))) continue;
+
+            if (++found > 1) return false;
+            sum = entry.Value;
+         }
+
+         return found == 1;
+      }
+
+      /// <summary>True when <paramref name="name" /> stands as whole words inside <paramref name="text" />, never inside a longer word.</summary>
+      private static bool StandsAsWords(string name, string text)
+      {
+         for (int at = text.IndexOf(name, StringComparison.OrdinalIgnoreCase); at >= 0; at = text.IndexOf(name, at + 1, StringComparison.OrdinalIgnoreCase))
+         {
+            int end = at + name.Length;
+            if ((at == 0 || !char.IsLetter(text[at - 1])) && (end == text.Length || !char.IsLetter(text[end]))) return true;
+         }
+
+         return false;
       }
    }
 }

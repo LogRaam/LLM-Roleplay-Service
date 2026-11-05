@@ -57,6 +57,34 @@ namespace NpcMemoryServiceTests
          MoneyTokens.Fill(token, Table).Should().Be("4900");
       }
 
+      // STAKE: RaveN017Mod (Nexus, 05/11/2026), sales that "still don't work every single time": a model that writes the
+      // captive with his house lost the sum, the price read "a fair sum", and the sale paid the floor instead of the agreed figure.
+      [TestCase("{most:Monchug of the Arkits}")]
+      [TestCase("{most:Lord Monchug}")]
+      [TestCase("{most:Monch}")]
+      public void GIVEN_a_captive_named_with_his_house_or_title_WHEN_the_token_is_filled_THEN_his_sum_is_found(string token)
+      {
+         MoneyTokens.Fill(token, Table).Should().Be("14000");
+      }
+
+      // STAKE: two captives a written name could mean must never pay one's price for the other: no figure is better than a wrong one.
+      [Test]
+      public void GIVEN_a_written_name_two_captives_share_WHEN_the_token_is_filled_THEN_no_figure_is_chosen()
+      {
+         var two = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase) {["most:Ira"] = 3000, ["most:Irana"] = 9000};
+
+         MoneyTokens.Fill("{most:Ir}", two).Should().Be(MoneyTokens.NoFigure);
+      }
+
+      // STAKE: a name inside a longer word is another person ("Ira" is not "Irawen"): the loose match never reads across a word.
+      [Test]
+      public void GIVEN_a_name_inside_a_longer_word_WHEN_the_token_is_filled_THEN_it_is_not_that_captive()
+      {
+         var one = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase) {["most:Ira"] = 3000};
+
+         MoneyTokens.Fill("{most:Irawen}", one).Should().Be(MoneyTokens.NoFigure);
+      }
+
       // STAKE: a token the table does not hold must never reach the screen, and no figure may be invented for it.
       [Test]
       public void GIVEN_a_token_nobody_holds_WHEN_it_is_filled_THEN_no_figure_is_invented()
