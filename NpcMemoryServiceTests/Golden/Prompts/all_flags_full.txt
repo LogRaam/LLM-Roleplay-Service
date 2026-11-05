@@ -760,7 +760,7 @@ YOUR CONTENTMENT IN THE PLAYER'S SERVICE:
 [CompanionMoodNote]
 Let this colour the exchange in your own voice — a grievance raised, a coolness, a
 warning — woven in naturally, true to who you are. Do not recite it; do not invent
-rewards, threats or grievances beyond what is given here.
+rewards, threats or grievances beyond what is given here or in your memories.
 If the player SINCERELY makes it right this exchange — a real apology, a promise of better,
 a gift, a genuine kindness — you may soften, and emit the action below to reflect being a
 little appeased. Only for a true effort to mend things, never for empty words:

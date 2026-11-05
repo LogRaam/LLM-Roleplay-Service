@@ -653,7 +653,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine(note);
          sb.AppendLine("Let this colour the exchange in your own voice — a grievance raised, a coolness, a");
          sb.AppendLine("warning — woven in naturally, true to who you are. Do not recite it; do not invent");
-         sb.AppendLine("rewards, threats or grievances beyond what is given here.");
+         sb.AppendLine("rewards, threats or grievances beyond what is given here or in your memories.");
          sb.AppendLine("If the player SINCERELY makes it right this exchange — a real apology, a promise of better,");
          sb.AppendLine("a gift, a genuine kindness — you may soften, and emit the action below to reflect being a");
          sb.AppendLine("little appeased. Only for a true effort to mend things, never for empty words:");
@@ -5807,7 +5807,7 @@ namespace NpcMemoryService.Core.Prompts
       private static string DescribeStatus(RomanticStatus s) => s switch {
          RomanticStatus.Curious => "Noticed the player, intrigued but distant.",
          // avalanche24 (Nexus, 04/11/2026): "Active romantic interest" alone let Rhagaea deny a courtship her Heart page showed.
-         RomanticStatus.Courting => "You and the player are courting, openly: it is real and you never deny it. Exchanges carry meaning.",
+         RomanticStatus.Courting => "You and the player are courting: it is real and you never deny it. Exchanges carry meaning.",
          RomanticStatus.Intimate => "Physically close. The bond is real.",
          RomanticStatus.SecretLover => "Intimate with the player while married to another. This is clandestine — never acknowledged openly, never safe.",
          RomanticStatus.Committed => "Long-term bond — marriage or its equivalent.",
