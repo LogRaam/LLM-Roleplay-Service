@@ -1488,6 +1488,17 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         // 3chmidt (05/11/2026): an enemy army of 1,800 stood five meters away and the lord never saw it. What stands in
+         // sight on the open map is a per-turn fact (armies move between turns), so it sits here, below the marker.
+         if (context.ForcesInSight is {Count: > 0})
+         {
+            sb.AppendLine("FORCES IN SIGHT (on the open map around you, as plainly visible to you as to the player):");
+            foreach (string force in context.ForcesInSight)
+               sb.AppendLine($"- {force}");
+            sb.AppendLine("You have seen them; never be surprised to hear of them. Mention them only when they matter to what is said.");
+            sb.AppendLine();
+         }
+
          if (!string.IsNullOrWhiteSpace(context.CurrentLocationNote))
          {
             sb.AppendLine("WHERE YOU ARE:");

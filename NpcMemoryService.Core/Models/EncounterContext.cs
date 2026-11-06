@@ -1691,6 +1691,14 @@ namespace NpcMemoryService.Core.Models
       public string? NpcCurrentActivity { get; init; }
 
       /// <summary>
+      ///   The armies and war parties in sight of a conversation held on the campaign map, nearest first, each as the eye
+      ///   reads it ("an enemy army of Vlandia under Lord Derthert, some 1,800 men"). Null or empty when nothing is in
+      ///   sight or the talk is not on the open map. 3chmidt (Nexus, 05/11/2026): a lord did not notice an enemy army of
+      ///   1,800 five meters away and acted surprised when it was mentioned.
+      /// </summary>
+      public IReadOnlyList<string>? ForcesInSight { get; init; }
+
+      /// <summary>
       ///   True when this NPC is a captive of someone OTHER than the player (a lord held in an enemy
       ///   dungeon the player is visiting). Lets the captive bargain to be broken out — a rescue deed,
       ///   verified when the player actually frees them. Distinct from PlayerStatus.NpcIsCaptive (which
