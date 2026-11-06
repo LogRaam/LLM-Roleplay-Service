@@ -472,9 +472,10 @@ namespace NpcMemoryService.Core.Actions
                // interpreter prompt has no room left for one.
                new GameActionParam("price", "the agreed denars the NPC pays")),
             Spec("give_prisoner",
-               "The player hands over the exact captive an outstanding deliver-prisoner bargain named; the bridge resolves which held prisoner satisfies it and settles the bargain's reward.",
+               "The player hands over a captive they hold: the one an outstanding deliver-prisoner bargain named (the bargain's reward is settled), or, with no bargain, one given freely, asking nothing.",
                tells: new[] {
-                  "the player actually hands over the bargained-for captive in this reply, settling an outstanding deliver-prisoner bargain"
+                  "the player actually hands over the bargained-for captive in this reply, settling an outstanding deliver-prisoner bargain",
+                  "the player gives the NPC a captive they hold, asking nothing for them, and the NPC takes them in this reply"
                },
                antiPatterns: new[] {
                   "the handover merely being discussed or promised, without the captive actually changing hands",

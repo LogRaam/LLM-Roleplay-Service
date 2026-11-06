@@ -93,7 +93,7 @@ Available actions:
 - end_affair: The NPC's current secret affair ends at the player's asking, when the NPC agrees; the lover link and every affair-tracking field are cleared.
 - give_item: The player gives an item, or several of the same item, from their own party inventory to the NPC, who may equip a single item on the spot if it fits and suits them.
 - sell_item: The player sells an item from their own party inventory to the NPC, who pays the agreed price from their own purse in the same deal (clamped to what they hold).
-- give_prisoner: The player hands over the exact captive an outstanding deliver-prisoner bargain named; the bridge resolves which held prisoner satisfies it and settles the bargain's reward.
+- give_prisoner: The player hands over a captive they hold: the one an outstanding deliver-prisoner bargain named (the bargain's reward is settled), or, with no bargain, one given freely, asking nothing.
 - free_prisoner: The player releases a captive they hold, honouring a struck bargain for their freedom (Fear/Respect may mark the release as fear-coerced rather than a mercy).
 - execute_prisoner: The player kills, at their own hand, a hero prisoner they currently hold.
 - execute_player: YOU, the NPC, holding the player as YOUR prisoner, end the player's life. The direction is fixed: the victim is always the PLAYER and the killer is always you, and it is only possible while the player is your captive. Hardcore-only, MCM opt-in required, and irreversible: every guard is re-checked live before it lands.

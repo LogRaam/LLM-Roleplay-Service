@@ -1169,8 +1169,10 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[ACTION]");
          sb.AppendLine("type: give_prisoner");
          sb.AppendLine("[/ACTION]");
-         sb.AppendLine("The game then transfers that prisoner and honors your bargain. Only emit give_prisoner when the");
-         sb.AppendLine("player has an OUTSTANDING prisoner bargain with you and holds the captive.");
+         sb.AppendLine("The game then transfers that prisoner and honors your bargain. The player may also simply GIVE you");
+         sb.AppendLine("a captive they hold, asking nothing (3chmidt, 05/11/2026): when one is handed to you this turn and you");
+         sb.AppendLine("take them, emit the same action with a line `target: <the captive's name>`. Emit give_prisoner only");
+         sb.AppendLine("when a captive the player holds actually changes hands in this reply.");
          sb.AppendLine();
       }
 
