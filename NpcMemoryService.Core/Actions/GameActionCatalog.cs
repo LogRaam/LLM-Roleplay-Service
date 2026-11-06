@@ -301,7 +301,8 @@ namespace NpcMemoryService.Core.Actions
                antiPatterns: new[] {
                   "the ruler merely discussing or weighing an offer of vassalage without actually swearing it",
                   "a paid mercenary contract rather than a permanent oath of fealty, which is join_as_mercenary",
-                  "an NPC who is not their kingdom's own ruler purporting to grant vassalage"
+                  "an NPC who is not their kingdom's own ruler purporting to grant vassalage",
+                  "a lord agreeing to bring their OWN house into the PLAYER's realm, the opposite direction: no verb covers it, emit nothing"
                }),
             Spec("mediate_peace",
                "The player, as mediator, brokers peace between the NPC's own realm (the NPC must be its ruler) and a named enemy realm; the player's own faction need not be involved.",
