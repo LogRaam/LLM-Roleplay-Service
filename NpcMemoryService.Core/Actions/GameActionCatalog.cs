@@ -983,7 +983,7 @@ namespace NpcMemoryService.Core.Actions
                   "one captive traded for another rather than for gold, which is exchange_prisoners"
                },
                new GameActionParam("target", "the captive's name, exactly as listed among the NPC's held prisoners"),
-               new GameActionParam("price", "the agreed denars, clamped around the game's own ransom valuation")),
+               new GameActionParam("price", "agreed denars around the ransom value; 0 if given freely")),
             Spec("exchange_prisoners",
                "The player and the NPC trade captives: the player hands over a hero captive they hold and receives one the NPC's clan holds (lords and companions, never troops); any gold evening an uneven swap is settled by the exchange itself.",
                tells: new[] {
