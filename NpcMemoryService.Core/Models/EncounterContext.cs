@@ -1699,6 +1699,13 @@ namespace NpcMemoryService.Core.Models
       public IReadOnlyList<string>? ForcesInSight { get; init; }
 
       /// <summary>
+      ///   The tournaments under way the character would know of, own realm first ("at Pravend, in your own realm, the prize
+      ///   a Noble Bow"). Null or empty when none. 3chmidt (Nexus, 05/11/2026): "lords know in what town currently tournaments
+      ///   happen, at least in the same kingdom or a neighbouring one".
+      /// </summary>
+      public IReadOnlyList<string>? TournamentsHeld { get; init; }
+
+      /// <summary>
       ///   True when this NPC is a captive of someone OTHER than the player (a lord held in an enemy
       ///   dungeon the player is visiting). Lets the captive bargain to be broken out — a rescue deed,
       ///   verified when the player actually frees them. Distinct from PlayerStatus.NpcIsCaptive (which

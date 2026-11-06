@@ -1501,6 +1501,15 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         // 3chmidt (05/11/2026): lords should know where tournaments are held. Tournaments open and close by the day: per turn.
+         if (context.TournamentsHeld is {Count: > 0})
+         {
+            sb.AppendLine("TOURNAMENTS BEING HELD (word you have had; these are the ones you know of):");
+            foreach (string tournament in context.TournamentsHeld)
+               sb.AppendLine($"- {tournament}");
+            sb.AppendLine();
+         }
+
          if (!string.IsNullOrWhiteSpace(context.CurrentLocationNote))
          {
             sb.AppendLine("WHERE YOU ARE:");

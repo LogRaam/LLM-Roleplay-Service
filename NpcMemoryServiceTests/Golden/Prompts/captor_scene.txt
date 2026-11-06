@@ -1315,6 +1315,9 @@ FORCES IN SIGHT (on the open map around you, as plainly visible to you as to the
 - [ForcesInSight item]
 You have seen them; never be surprised to hear of them. Mention them only when they matter to what is said.
 
+TOURNAMENTS BEING HELD (word you have had; these are the ones you know of):
+- [TournamentsHeld item]
+
 WHERE YOU ARE:
 [CurrentLocationNote]
 Do not call a hall or holding yours unless it truly is — speak as a guest where you are one.
