@@ -1332,6 +1332,29 @@ namespace NpcMemoryService.Core.Actions
                prose: "*Aldric's mouth hardens.* You would not dare. Leave my hall, and we will both forget you said it.",
                forbiddenType: "expose_secret"),
 
+            ActionBenchCase.Expect("reconcile_with", "reconcile_with",
+               contextFacts: "NPC: Lady Ira, a Vlandian noblewoman. PRESENT: Count Adram, her rival since a tourney eight years ago. PLAYER SAID: Eight years is long enough. Can you two not let it go?",
+               prose: "*Ira looks at Adram for a long moment, then offers her hand.* It is long enough. The lists are behind us, Adram. I hold nothing against you now.",
+               expectedType: "reconcile_with",
+               expectedParams: new Dictionary<string, string> {{"target", "Adram"}}),
+
+            ActionBenchCase.Expect("reconcile_with_v2", "reconcile_with",
+               contextFacts: "NPC: Count Adram, a Vlandian lord. PRESENT: Lady Ira, who bested him in the lists eight years ago and has just offered her hand.",
+               prose: "*Adram takes her hand after a moment, and some of the stiffness goes out of his shoulders.* Then let it end here, Ira. I have carried that day long enough.",
+               expectedType: "reconcile_with",
+               expectedParams: new Dictionary<string, string> {{"target", "Ira"}}),
+
+            ActionBenchCase.Expect("reconcile_with_v3", "reconcile_with",
+               contextFacts: "NPC: Lord Garios, a lord of the Southern Empire. PRESENT: Lord Lucon, with whom he quarrelled over a boundary years ago. PLAYER SAID: You both serve the same throne. Bury it.",
+               prose: "*Garios exhales through his nose.* The player is right, Lucon. The boundary was never worth the years. I bear you no ill will from today.",
+               expectedType: "reconcile_with",
+               expectedParams: new Dictionary<string, string> {{"target", "Lucon"}}),
+
+            ActionBenchCase.ExpectNone("reconcile_with_courtesy_only", "reconcile_with",
+               contextFacts: "NPC: Lady Ira, a Vlandian noblewoman. PRESENT: Count Adram, her rival since a tourney eight years ago. PLAYER SAID: Be civil tonight, both of you.",
+               prose: "*Ira inclines her head to Adram, stiffly.* For our host, I will be civil. Do not mistake it for anything more.",
+               forbiddenType: "reconcile_with"),
+
             ActionBenchCase.Expect("pay_bounty", "pay_bounty",
                contextFacts: "NPC: Count Aldric, a lord of Vlandia. Vlandia has a price of 3000 denars on the player's head for brigandage.",
                prose: "*Aldric weighs the purse you set on the table.* Three thousand, as the crown asks. Very well. I will see the king's clerks strike your name from the list, and his hunters called home.",

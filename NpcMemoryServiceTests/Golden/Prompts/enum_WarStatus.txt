@@ -91,6 +91,7 @@ Available actions:
 - rob_npc: The PLAYER takes this NPC's coin from them by force or open threat, here and now. The direction is the reverse of every other harm verb: the player is the aggressor and this NPC is the victim.
 - extort: The PLAYER demands coin with a hold over this NPC: a secret, or their lands.
 - expose_secret: The PLAYER tells this NPC a hidden affair.
+- reconcile_with: This NPC makes peace with someone present.
 - assault_npc: The PLAYER beats this NPC down, here and now. They are hurt and out of the fight, never dead. The player is the aggressor and this NPC is the victim.
 - kill_npc: The PLAYER takes this NPC's life, here and now. Only ever possible when the player has opted in through the mod options; the game re-checks that and every other guard before it lands, and the attempt may simply fail.
 - turn_nemesis: A tracked nemesis the player holds prisoner is spared, freed, sworn into the player's clan and party, and their vendetta closed for good.
@@ -791,6 +792,7 @@ Available actions:
 - rob_npc: The PLAYER takes this NPC's coin from them by force or open threat, here and now. The direction is the reverse of every other harm verb: the player is the aggressor and this NPC is the victim.
 - extort: The PLAYER demands coin with a hold over this NPC: a secret, or their lands.
 - expose_secret: The PLAYER tells this NPC a hidden affair.
+- reconcile_with: This NPC makes peace with someone present.
 - assault_npc: The PLAYER beats this NPC down, here and now. They are hurt and out of the fight, never dead. The player is the aggressor and this NPC is the victim.
 - kill_npc: The PLAYER takes this NPC's life, here and now. Only ever possible when the player has opted in through the mod options; the game re-checks that and every other guard before it lands, and the attempt may simply fail.
 - turn_nemesis: A tracked nemesis the player holds prisoner is spared, freed, sworn into the player's clan and party, and their vendetta closed for good.
@@ -1512,6 +1514,7 @@ Available actions:
 - rob_npc: The PLAYER takes this NPC's coin from them by force or open threat, here and now. The direction is the reverse of every other harm verb: the player is the aggressor and this NPC is the victim.
 - extort: The PLAYER demands coin with a hold over this NPC: a secret, or their lands.
 - expose_secret: The PLAYER tells this NPC a hidden affair.
+- reconcile_with: This NPC makes peace with someone present.
 - assault_npc: The PLAYER beats this NPC down, here and now. They are hurt and out of the fight, never dead. The player is the aggressor and this NPC is the victim.
 - kill_npc: The PLAYER takes this NPC's life, here and now. Only ever possible when the player has opted in through the mod options; the game re-checks that and every other guard before it lands, and the attempt may simply fail.
 - turn_nemesis: A tracked nemesis the player holds prisoner is spared, freed, sworn into the player's clan and party, and their vendetta closed for good.
@@ -2065,6 +2068,7 @@ Available actions:
 - rob_npc: The PLAYER takes this NPC's coin from them by force or open threat, here and now. The direction is the reverse of every other harm verb: the player is the aggressor and this NPC is the victim.
 - extort: The PLAYER demands coin with a hold over this NPC: a secret, or their lands.
 - expose_secret: The PLAYER tells this NPC a hidden affair.
+- reconcile_with: This NPC makes peace with someone present.
 - assault_npc: The PLAYER beats this NPC down, here and now. They are hurt and out of the fight, never dead. The player is the aggressor and this NPC is the victim.
 - kill_npc: The PLAYER takes this NPC's life, here and now. Only ever possible when the player has opted in through the mod options; the game re-checks that and every other guard before it lands, and the attempt may simply fail.
 - turn_nemesis: A tracked nemesis the player holds prisoner is spared, freed, sworn into the player's clan and party, and their vendetta closed for good.

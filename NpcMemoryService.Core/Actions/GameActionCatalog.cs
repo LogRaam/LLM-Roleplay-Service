@@ -554,6 +554,11 @@ namespace NpcMemoryService.Core.Actions
                tells: new[] {"the player plainly tells this NPC who is lying with whom"},
                antiPatterns: new[] {"a threat to tell", "a hint that names nobody"},
                new GameActionParam("target", "the name told of")),
+            Spec("reconcile_with",
+               "This NPC makes peace with someone present.",
+               tells: new[] {"this NPC lays a quarrel with someone present to rest"},
+               antiPatterns: new[] {"mere courtesy, or only the other forgiving"},
+               new GameActionParam("target", "who")),
             Spec("assault_npc",
                "The PLAYER beats this NPC down, here and now. They are hurt and out of the fight, never dead. The player is the aggressor and this NPC is the victim.",
                tells: new[] {
