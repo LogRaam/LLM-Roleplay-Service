@@ -156,7 +156,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("   is never enough: whatever the verb, coin AND chain must actually change hands in this reply, or");
          sb.AppendLine("   nothing happened. An ITEM sold is one deal: the player's item goes to the NPC and the NPC's coin to");
          sb.AppendLine("   the player ('the coin is yours' means the buyer pays the PLAYER). Emit sell_item ALONE for it,");
-         sb.AppendLine("   never give_item, give_gold or take_gold beside it. An item held out only to be looked at, weighed");
+         sb.AppendLine("   never give_item, give_gold or take_gold beside it. Part paid, the rest sworn, is still a sale:");
+         sb.AppendLine("   sell_item at the sum paid, plus swear_oath pay_gold for the rest. An item held out only to be");
+         sb.AppendLine("   looked at, weighed");
          sb.AppendLine("   or tested has not changed hands: emit nothing. A captive offering or accepting terms for her own");
          sb.AppendLine("   freedom is counter_offer alone, never free_prisoner/give_gold/join_clan beside it; a refusal or an");
          sb.AppendLine("   unsettled haggle is nothing.");

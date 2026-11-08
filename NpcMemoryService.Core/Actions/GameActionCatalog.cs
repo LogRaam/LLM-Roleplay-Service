@@ -237,7 +237,8 @@ namespace NpcMemoryService.Core.Actions
                antiPatterns: new[] {
                   "the NPC only speaks OF wealth, prices, cost, or poverty, with no coin actually leaving their hands",
                   "a future or conditional payment (owed later, or promised in return for a deed) rather than a completed transfer this turn",
-                  "the PLAYER giving or paying the NPC, which is the mirror verb take_gold"
+                  "the PLAYER giving or paying the NPC, which is the mirror verb take_gold",
+                  "coin paid for an item the player hands over, which is sell_item"
                },
                new GameActionParam("amount", "whole number of denars")),
             Spec("take_gold",
@@ -459,7 +460,10 @@ namespace NpcMemoryService.Core.Actions
             Spec("sell_item",
                "The player sells an item from their own party inventory to the NPC, who pays the agreed price from their own purse in the same deal (clamped to what they hold).",
                tells: new[] {
-                  "the player's item goes to the NPC AND the NPC's coin goes to the player for it, the deal completed here in this reply ('the coin is yours')"
+                  "the player's item goes to the NPC AND the NPC's coin goes to the player for it, the deal completed here in this reply ('the coin is yours')",
+                  // 3chmidt (Nexus, 06/11/2026): 4,000 paid for a sword with 36,000 sworn was read as give_gold, an oath, then a
+                  // free give_item: the sale never existed. Part paid now is the price; the balance is the oath's.
+                  "the item handed over for PART of the price now and the rest sworn: sell_item at the sum paid now, with swear_oath pay_gold for the balance"
                },
                antiPatterns: new[] {
                   "a price merely asked, offered or haggled over, with no deal struck in this reply",
