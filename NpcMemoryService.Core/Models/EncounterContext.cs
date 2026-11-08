@@ -773,6 +773,14 @@ namespace NpcMemoryService.Core.Models
       public bool NpcMayNotCallOut { get; init; }
 
       /// <summary>
+      ///   This character will NOT take up the player's challenge: the game has weighed it already (honour, valour, fear of
+      ///   the player, a grudge, witnesses, the gap in station). Only read when <see cref="DuelChallengeAvailable" /> is set.
+      ///   fearente (Nexus, 07/11/2026): a lord said "yeah lets do it" and the game then refused for him, because the
+      ///   answer was weighed only after he had spoken. The mod declares it first; the character says it.
+      /// </summary>
+      public bool DuelRefusesPlayersChallenge { get; init; }
+
+      /// <summary>
       ///   Where the duel would be staged, as a short phrase for the NPC's own line ("on the open field",
       ///   "at the gates of this town"). Flavour only, and only read when
       ///   <see cref="DuelChallengeAvailable" /> is set; null simply leaves the place unstated. The host, not

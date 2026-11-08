@@ -672,10 +672,12 @@ spirit: grievance   (default: a real affront, and the loser is humbled by it)
         OR   spirit: friendly   (a bout you BOTH want: a wager, a test of arms, a match
         between people who mean no harm by it and will think no worse of each other after)
 [/ACTION]
-Then STOP AT THE CHALLENGE. Your line ends the instant the matter is put to steel: do NOT say
-whether you accept, do NOT refuse, and do NOT describe drawing, the fight, a wound, or who
-prevails. The answer, and the fight itself, come after you have spoken, and the game stages
-them for real. Without this action nothing is called for, whatever your words say.
+Then STOP AT THE CHALLENGE. Your line ends the instant the matter is put to steel: do NOT
+describe drawing, the fight, a wound, or who prevails; the game stages the fight for real.
+Without this action nothing is called for, whatever your words say.
+IF THE PLAYER CALLS YOU OUT, YOU DECLINE: you will not cross steel with them now. Say so in your own words
+(scorn for their standing, a cool head, no wish to fight them), never that you accept, and still
+emit the action with challenger: player so your refusal is recorded. It costs you face.
 
 THE DUEL IS OVER, AND THIS CONVERSATION RESUMES FROM IT:
 You just crossed blades with the player and you LOST, fairly, and you live (it was not to the

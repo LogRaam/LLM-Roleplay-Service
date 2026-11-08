@@ -1285,10 +1285,10 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("        OR   spirit: friendly   (a bout you BOTH want: a wager, a test of arms, a match");
          sb.AppendLine("        between people who mean no harm by it and will think no worse of each other after)");
          sb.AppendLine("[/ACTION]");
-         sb.AppendLine("Then STOP AT THE CHALLENGE. Your line ends the instant the matter is put to steel: do NOT say");
-         sb.AppendLine("whether you accept, do NOT refuse, and do NOT describe drawing, the fight, a wound, or who");
-         sb.AppendLine("prevails. The answer, and the fight itself, come after you have spoken, and the game stages");
-         sb.AppendLine("them for real. Without this action nothing is called for, whatever your words say.");
+         sb.AppendLine("Then STOP AT THE CHALLENGE. Your line ends the instant the matter is put to steel: do NOT");
+         sb.AppendLine("describe drawing, the fight, a wound, or who prevails; the game stages the fight for real.");
+         sb.AppendLine("Without this action nothing is called for, whatever your words say.");
+         AppendAnswerToPlayersChallenge(sb, context, "cross steel with them");
          sb.AppendLine();
       }
 
@@ -1327,9 +1327,30 @@ namespace NpcMemoryService.Core.Prompts
                           : "challenger: player   (they called for it; you never call them out yourself)");
          sb.AppendLine("spirit: grievance   OR   spirit: friendly");
          sb.AppendLine("[/ACTION]");
-         sb.AppendLine("Then STOP AT THE CHALLENGE: do not say whether it is taken up, and do not describe the fight or who");
-         sb.AppendLine("wins. The game stages it for real. Without this action nothing is called for, whatever your words say.");
+         sb.AppendLine("Then STOP AT THE CHALLENGE: do not describe the fight or who wins. The game stages it for real.");
+         sb.AppendLine("Without this action nothing is called for, whatever your words say.");
+         AppendAnswerToPlayersChallenge(sb, context, "trade blows with them");
          sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   What this character answers when the PLAYER calls them out, decided by the game before they speak (fearente,
+      ///   Nexus, 07/11/2026: a lord said "yeah lets do it" and the game then refused for him). They say that answer in
+      ///   their own words, and still emit the action, which records it.
+      /// </summary>
+      private static void AppendAnswerToPlayersChallenge(StringBuilder sb, EncounterContext context, string fight)
+      {
+         if (context.DuelRefusesPlayersChallenge)
+         {
+            sb.AppendLine($"IF THE PLAYER CALLS YOU OUT, YOU DECLINE: you will not {fight} now. Say so in your own words");
+            sb.AppendLine("(scorn for their standing, a cool head, no wish to fight them), never that you accept, and still");
+            sb.AppendLine("emit the action with challenger: player so your refusal is recorded. It costs you face.");
+         }
+         else
+         {
+            sb.AppendLine($"IF THE PLAYER CALLS YOU OUT, YOU TAKE IT UP: you will {fight}. You may say you accept; never");
+            sb.AppendLine("refuse or back down.");
+         }
       }
 
       /// <summary>

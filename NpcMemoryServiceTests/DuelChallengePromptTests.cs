@@ -9,6 +9,12 @@
 // CHALLENGE rule: whether the NPC takes the field is DuelAcceptancePolicy's call, weighed from their honour,
 // valour, fear and grudges, so a model that answered "I accept" inside its own line would make that whole
 // policy decorative and hand the decision back to the LLM.
+//
+// fearente (Nexus, 07/11/2026): "Lords accept the duel but It doesn't get initiated. It says '... lets the challenge
+// hang, and will not take it up.' even if the npc says yeah lets do it." Told only to stop, the model said yes anyway,
+// and the policy's refusal came after. The policy still decides, but now before the character speaks: the host weighs
+// it (DuelRefusesPlayersChallenge) and the character voices that answer. If these fail, a lord agrees and the game
+// refuses for him, or refuses in his words and is dragged onto the field anyway.
 
 #region
 
@@ -148,6 +154,37 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().NotContain(DuelHeading);
          prompt.Should().NotContain(DuelActionType);
+      }
+
+      // STAKE (fearente): a lord the game has already ruled will not fight the player says no in his own words, and still
+      // emits the action so the refusal (and its cost to him) is recorded.
+      [Test]
+      public void GIVEN_the_host_ruled_this_character_refuses_WHEN_built_THEN_they_are_told_to_decline_and_still_emit()
+      {
+         string prompt = Build(new EncounterContext {DuelChallengeAvailable = true, DuelRefusesPlayersChallenge = true});
+
+         prompt.Should().Contain("IF THE PLAYER CALLS YOU OUT, YOU DECLINE");
+         prompt.Should().Contain("never that you accept");
+         prompt.Should().NotContain("YOU TAKE IT UP");
+      }
+
+      // STAKE: one the game has ruled will fight never backs down in words before being staged on the field.
+      [Test]
+      public void GIVEN_the_host_ruled_this_character_fights_WHEN_built_THEN_they_are_told_to_take_it_up()
+      {
+         string prompt = Build(new EncounterContext {DuelChallengeAvailable = true});
+
+         prompt.Should().Contain("IF THE PLAYER CALLS YOU OUT, YOU TAKE IT UP");
+         prompt.Should().NotContain("YOU DECLINE");
+      }
+
+      // STAKE: the brawl answers the same way, in its own words.
+      [Test]
+      public void GIVEN_a_brawl_the_character_refuses_WHEN_built_THEN_they_are_told_to_decline()
+      {
+         string prompt = Build(new EncounterContext {DuelChallengeAvailable = true, DuelIsBrawl = true, DuelRefusesPlayersChallenge = true});
+
+         prompt.Should().Contain("YOU DECLINE: you will not trade blows with them now");
       }
    }
 }
