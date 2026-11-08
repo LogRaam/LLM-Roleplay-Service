@@ -35,6 +35,50 @@ namespace NpcMemoryServiceTests
 
       // ---------- [QUEST] proposal ----------
 
+      // STAKE (avalanche24, Nexus, 08/11/2026): the block his local model wrote, verbatim. Refused as garbled three times
+      // in a row, so the bandit task he agreed could never be taken. It registers now, at Seonon, for 500.
+      [Test]
+      public void GIVEN_the_block_a_local_model_wrote_with_bare_target_and_reward_WHEN_parsed_THEN_the_task_registers()
+      {
+         ParsedResponse r = _parser.Parse("[DIALOGUE]\n\"I will pay you 500 denars to clear the bandits from Seonon.\"\n[/DIALOGUE]\n"
+                                          + "[QUEST]\ntype: kill_bandits\ntarget: Seonon\nreward: 500 denars\n[/QUEST]");
+
+         r.QuestBlockMalformed.Should().BeFalse();
+         r.QuestGiven!.Type.Should().Be(QuestType.BanditClear);
+         r.QuestGiven.TargetSettlement.Should().Be("Seonon");
+         r.QuestGiven.RewardGold.Should().Be(500);
+      }
+
+      // STAKE: a bare target goes to the slot the type reads: a lord to defeat is a hero, never a settlement name.
+      [Test]
+      public void GIVEN_a_bare_target_on_a_hero_task_WHEN_parsed_THEN_it_is_the_hero()
+      {
+         ParsedResponse r = _parser.Parse("[QUEST]\ntype: attack_lord\ntarget: Derthert\n[/QUEST]");
+
+         r.QuestGiven!.TargetHero.Should().Be("Derthert");
+         r.QuestGiven.TargetSettlement.Should().BeNull();
+      }
+
+      // STAKE: the exact field wins over the bare one, and a reward in regard is never read as coin.
+      [Test]
+      public void GIVEN_exact_fields_and_a_regard_reward_WHEN_parsed_THEN_the_exact_field_wins_and_no_coin_is_invented()
+      {
+         ParsedResponse r = _parser.Parse("[QUEST]\ntype: bandit_clear\ntarget: Seonon\ntarget_settlement: Sargot\nreward: 3 relation\n[/QUEST]");
+
+         r.QuestGiven!.TargetSettlement.Should().Be("Sargot");
+         r.QuestGiven.RewardGold.Should().Be(0);
+      }
+
+      // STAKE: a block still refused is kept as written, so the log can show what the model sent.
+      [Test]
+      public void GIVEN_a_block_with_an_unknown_type_WHEN_parsed_THEN_it_is_refused_and_kept_for_the_log()
+      {
+         ParsedResponse r = _parser.Parse("[QUEST]\ntype: sing_a_song\n[/QUEST]");
+
+         r.QuestBlockMalformed.Should().BeTrue();
+         r.QuestBlockRaw.Should().Contain("sing_a_song");
+      }
+
       // Happy path: every declared field of a well-formed proposal must survive the round trip
       // unchanged, since QuestService persists exactly what QuestGiven carries (no re-derivation).
       [Test]

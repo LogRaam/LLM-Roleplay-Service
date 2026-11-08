@@ -76,6 +76,12 @@ namespace NpcMemoryService.Core.Models
         public bool QuestBlockMalformed { get; init; }
 
         /// <summary>
+        ///   The refused [QUEST] block as the model wrote it, so the host can log it (avalanche24, 08/11/2026: a log said only
+        ///   "could not be parsed"). Null when no block was refused.
+        /// </summary>
+        public string? QuestBlockRaw { get; init; }
+
+        /// <summary>
         ///   The NPC's acknowledgement that one of their active quests is done
         ///   (a <c>[QUEST_COMPLETE]</c> block). Null when none was claimed. The consumer
         ///   pays the reward only if a matching, already-satisfied quest exists.

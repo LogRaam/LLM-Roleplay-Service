@@ -159,6 +159,7 @@ namespace NpcMemoryService.Core.Parsing
             // the player the spoken offer was NOT recorded, instead of the two silently diverging.
             // A task offered as an [ACTION] whose kind cannot be read is the same broken word (avalanche24, 03/11/2026).
             QuestBlockMalformed = (questGiven == null && !string.IsNullOrWhiteSpace(questSection)) || questActionUnreadable,
+            QuestBlockRaw = questGiven == null && !string.IsNullOrWhiteSpace(questSection) ? questSection!.Trim() : null,
             QuestCompleted = ParseQuestCompletion(questCompleteSection),
             QuestAbandoned = ParseQuestAbandon(questAbandonSection),
             WitnessReactions = witnessReactions,
@@ -817,14 +818,21 @@ namespace NpcMemoryService.Core.Parsing
          if (deadline is <= 0) deadline = null;   // 0 or negative means "no deadline"
          if (deadline is > MaxDeadlineDays) deadline = MaxDeadlineDays; // a model that wrote "365" gets a sane cap
 
+         // avalanche24 (Nexus, 08/11/2026), a local model: "type: kill_bandits / target: Seonon / reward: 500 denars" was
+         // refused whole as garbled, three times. A bare "target" goes to the slot the type reads, and a bare "reward"
+         // that names a sum (not regard) is the coin, each only when the exact field is absent.
+         string? target = NullIfBlank(GetField(fields, "target"));
+         QuestTargetSlot slot = TargetSlotOf(type.Value);
+         int? rewardGold = TryParseSignedInt(fields, "reward_gold") ?? RewardWrittenBare(fields);
+
          return new QuestProposal {
             Type = type.Value,
             Description = description?.Trim() ?? "",
-            TargetSettlement = NullIfBlank(GetField(fields, "target_settlement")),
-            TargetHero = NullIfBlank(GetField(fields, "target_hero")),
-            TargetFaction = NullIfBlank(GetField(fields, "target_faction")),
+            TargetSettlement = NullIfBlank(GetField(fields, "target_settlement")) ?? (slot == QuestTargetSlot.Settlement ? target : null),
+            TargetHero = NullIfBlank(GetField(fields, "target_hero")) ?? (slot == QuestTargetSlot.Hero ? target : null),
+            TargetFaction = NullIfBlank(GetField(fields, "target_faction")) ?? (slot == QuestTargetSlot.Faction ? target : null),
             DeadlineDays = deadline,
-            RewardGold = ClampNonNegative(TryParseSignedInt(fields, "reward_gold")),
+            RewardGold = ClampNonNegative(rewardGold),
             RewardRelation = ClampNonNegative(TryParseSignedInt(fields, "reward_relation")),
             Reward = fields.TryGetValue("reward_grant", out string? grantStr)
                ? ParseRewardGrant(grantStr)
@@ -844,6 +852,38 @@ namespace NpcMemoryService.Core.Parsing
       ///   reuses this ONE vocabulary for a [RESOLUTION] quest's quest_type field, synonyms included, rather
       ///   than growing a second, divergent token table.
       /// </summary>
+      /// <summary>Which target field a quest type reads, for a block that wrote a bare "target".</summary>
+      private enum QuestTargetSlot
+      {
+         None,
+         Settlement,
+         Hero,
+         Faction
+      }
+
+      // The slot each type's taught target names (the task list in PromptBuilder.AppendQuestInstructions); a type taught
+      // "target_faction or target_hero" takes the hero, the more specific. A type with no target takes none.
+      private static QuestTargetSlot TargetSlotOf(QuestType type) => type switch {
+         QuestType.BanditClear or QuestType.BanditHideout or QuestType.RaidVillage or QuestType.Siege
+            or QuestType.ReinforceGarrison or QuestType.ScoutTown => QuestTargetSlot.Settlement,
+         QuestType.AttackLord or QuestType.CapturePrisoner or QuestType.ExecuteEnemy or QuestType.RescuePrisoner
+            or QuestType.DeliverLetter or QuestType.ScoutArmy or QuestType.DeliverPrisoner or QuestType.EarnRegard
+            or QuestType.PleadCase or QuestType.RansomEnvoy or QuestType.ArrangeMatch => QuestTargetSlot.Hero,
+         QuestType.AttackFaction or QuestType.AttackCaravan or QuestType.DeclareWar => QuestTargetSlot.Faction,
+         _ => QuestTargetSlot.None
+      };
+
+      // A bare "reward" is coin when it carries a number and speaks of no regard ("500 denars", "500"); "3 relation"
+      // or "her favour" is not coin and is left alone.
+      private static int? RewardWrittenBare(IReadOnlyDictionary<string, string> fields)
+      {
+         string? raw = GetField(fields, "reward");
+         if (string.IsNullOrWhiteSpace(raw)) return null;
+         if (Regex.IsMatch(raw, @"relation|regard|favou?r|respect", RegexOptions.IgnoreCase)) return null;
+
+         return TryParseSignedInt(fields, "reward");
+      }
+
       public static QuestType? ParseQuestType(string raw)
       {
          string v = raw.TrimStart(trimChars: '#').Trim().ToLowerInvariant();
@@ -851,7 +891,9 @@ namespace NpcMemoryService.Core.Parsing
          if (Enum.TryParse(v, true, out QuestType direct)) return direct;
 
          return v switch {
-            "bandit_clear" or "bandits" or "clear_bandits" => QuestType.BanditClear,
+            // avalanche24 (08/11/2026): a local model wrote kill_bandits.
+            "bandit_clear" or "bandits" or "clear_bandits" or "kill_bandits" or "hunt_bandits" or "bandit_hunt"
+               or "defeat_bandits" or "fight_bandits" => QuestType.BanditClear,
             "bandit_hideout" or "hideout" or "clear_hideout" => QuestType.BanditHideout,
             "attack_faction" or "raid_faction" or "war_faction" => QuestType.AttackFaction,
             "attack_lord" or "defeat_lord" or "fight_lord" => QuestType.AttackLord,
