@@ -550,7 +550,10 @@ namespace NpcMemoryService.Core.Actions
                }),
             Spec("extort",
                "The PLAYER demands coin with a hold over this NPC: a secret, or their lands.",
-               tells: new[] {"the player demands coin for a secret or for sparing lands, and this NPC pays or refuses"},
+               tells: new[] {
+                  "the player demands coin for a secret or for sparing lands, and this NPC pays or refuses",
+                  "this NPC REFUSING the demand ('you will have nothing from me'), which is still extort, with no amount: the game records the attempt and its cost, so do not read the refusal as change_relation alone"
+               },
                antiPatterns: new[] {"a threat with no demand for coin", "this NPC demanding coin from the PLAYER"},
                new GameActionParam("amount", "denars paid, if they pay")),
             Spec("expose_secret",
@@ -886,7 +889,8 @@ namespace NpcMemoryService.Core.Actions
                   "the offer merely being discussed, without the NPC actually accepting the soldiers",
                   "a DEFERRED or conditional acceptance ('perhaps I will ask you for them later', 'for now my ranks hold', 'when my numbers thin'), which completes nothing this turn",
                   "the NPC GIVING soldiers to the player instead, which is the mirror verb lend_troops",
-                  "an NPC whose party is not under-strength accepting reinforcement it does not need"
+                  "an NPC whose party is not under-strength accepting reinforcement it does not need",
+                  "fresh recruits this lord had ASKED the player to bring him ('fresh men, as I asked', counting the number he asked for), which is deliver_recruits"
                }),
             // fkasad (Nexus, 01/10/2026): a matchmaker's errand. Taught only to someone with authority over the lady.
             Spec("arrange_match",
@@ -903,7 +907,8 @@ namespace NpcMemoryService.Core.Actions
             Spec("deliver_recruits",
                "The lord takes into his own party the fresh recruits of his people he asked the player to bring, here and now.",
                tells: new[] {
-                  "the lord actually takes the recruits the player hands over into his ranks in this reply"
+                  "the lord actually takes the recruits the player hands over into his ranks in this reply",
+                  "the lord takes in the men he had asked the player for: he counts them against his ask, calls them the fresh men he wanted, or sends them to his camp, even if he never names them recruits"
                },
                antiPatterns: new[] {
                   "the recruits merely promised or discussed for later",
