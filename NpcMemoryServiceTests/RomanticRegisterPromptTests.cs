@@ -150,5 +150,31 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().NotContain("SOCIAL STANDING & ATTRACTION");
       }
+
+      // STAKE: avalanche24 (Nexus, 04/11/2026): Rhagaea denied a courtship her Heart page dated. Told when it began, the
+      // courtship is a fact of her life, not a mood she may disown.
+      [Test]
+      public void GIVEN_a_courtship_with_a_recorded_season_WHEN_building_THEN_the_bond_is_stated_with_its_date()
+      {
+         var builder = new PromptBuilder {AdultLevel = AdultContentLevel.Mature, PlayerIsFemale = false};
+         var context = new EncounterContext {LeanLevel = LeanPromptLevel.Full, RomanticBondSince = "spring 1091"};
+
+         string prompt = builder.BuildSystemPrompt(Npc(regard: 20, RomanticStatus.Courting), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain("Current bond with the player (since spring 1091): You and the player are courting");
+      }
+
+      // STAKE: an old save's bond has no recorded day; the line must not invent one, and a passing curiosity is never dated.
+      [Test]
+      public void GIVEN_no_recorded_day_or_mere_curiosity_WHEN_building_THEN_no_date_is_stated()
+      {
+         var builder = new PromptBuilder {AdultLevel = AdultContentLevel.Mature, PlayerIsFemale = false};
+
+         builder.BuildSystemPrompt(Npc(regard: 20, RomanticStatus.Courting), new WorldState {CurrentDay = 10}, new EncounterContext {LeanLevel = LeanPromptLevel.Full})
+                .Should().Contain("Current bond with the player: You and the player are courting");
+         builder.BuildSystemPrompt(Npc(regard: 20, RomanticStatus.Curious), new WorldState {CurrentDay = 10},
+                                   new EncounterContext {LeanLevel = LeanPromptLevel.Full, RomanticBondSince = "spring 1091"})
+                .Should().NotContain("since spring 1091");
+      }
    }
 }

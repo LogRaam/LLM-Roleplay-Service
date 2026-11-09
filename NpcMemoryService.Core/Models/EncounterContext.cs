@@ -1246,6 +1246,13 @@ namespace NpcMemoryService.Core.Models
       public bool NpcSpouseIsPlayer { get; init; }
 
       /// <summary>
+      ///   When the bond with the player took its present form, as the host's calendar names it ("spring 1091"), or null when
+      ///   no day was recorded. avalanche24 (Nexus, 04/11/2026): a courtship told without a date read as a mood the character
+      ///   could deny. A season, not a count of days, so the cached part of the prompt only moves when the bond does.
+      /// </summary>
+      public string? RomanticBondSince { get; init; }
+
+      /// <summary>
       ///   This character is the player's HIRED companion: the game counts them in the player's clan, so the prompt read
       ///   them as kin of the house, and a model gave a week-old hireling a childhood shared with the player (fearente,
       ///   26/10/2026). The identity says what they are: a hired companion, no blood, no shared past.

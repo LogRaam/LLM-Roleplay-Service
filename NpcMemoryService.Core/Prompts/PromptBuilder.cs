@@ -5847,6 +5847,12 @@ namespace NpcMemoryService.Core.Prompts
          _ => ""
       };
 
+      // The bond dated as a fact (avalanche24, 04/11/2026); a passing curiosity carries no date, a broken bond says when it ended.
+      private static string BondSince(RomanticStatus s, string? since)
+         => string.IsNullOrWhiteSpace(since) || s is RomanticStatus.None or RomanticStatus.Curious ? ""
+            : s == RomanticStatus.Broken ? $" (ended in {since})"
+            : $" (since {since})";
+
       private static string DescribeStatus(RomanticStatus s) => s switch {
          RomanticStatus.Curious => "Noticed the player, intrigued but distant.",
          // avalanche24 (Nexus, 04/11/2026): "Active romantic interest" alone let Rhagaea deny a courtship her Heart page showed.
@@ -8930,7 +8936,7 @@ namespace NpcMemoryService.Core.Prompts
          if (npc.Romantic.Status != RomanticStatus.None)
          {
             sb.AppendLine();
-            sb.AppendLine($"Current bond with the player: {DescribeStatus(npc.Romantic.Status)}");
+            sb.AppendLine($"Current bond with the player{BondSince(npc.Romantic.Status, context?.RomanticBondSince)}: {DescribeStatus(npc.Romantic.Status)}");
             sb.AppendLine($"Attraction toward the player: {DescribeAttraction(npc.Romantic.AttractionToPlayer)}");
          }
 
