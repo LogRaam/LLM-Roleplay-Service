@@ -130,6 +130,17 @@ namespace NpcMemoryService.Core.Prompts
       public static int MemoryEventLimit(LeanPromptLevel level)
          => level == LeanPromptLevel.Full ? int.MaxValue : LeanMemoryEventLimit;
 
+      /// <summary>
+      ///   The level's window, narrowed by the player's cap when one is set (avalanche24, 07/11/2026). A cap below 1 is no
+      ///   cap; a cap above the level's window changes nothing, so Compact never grows.
+      /// </summary>
+      public static int MemoryEventLimit(LeanPromptLevel level, int? cap)
+      {
+         int window = MemoryEventLimit(level);
+
+         return cap is int c && c > 0 && c < window ? c : window;
+      }
+
       /// <summary>True when the full file-authored behaviour guidelines are used; Lean substitutes a short built-in set.</summary>
       public static bool UseFullBehaviorGuidelines(LeanPromptLevel level)
          => Include(PromptSection.FullBehaviorGuidelines, level);

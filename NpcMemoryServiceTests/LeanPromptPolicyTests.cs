@@ -76,6 +76,30 @@ namespace NpcMemoryServiceTests
          LeanPromptPolicy.LeanMemoryEventLimit.Should().BeLessThan(int.MaxValue).And.BePositive();
       }
 
+      // STAKE (avalanche24, Nexus, 07/11/2026): a player on a short-context local model caps the memories a full prompt
+      // shows; the cap is what the window becomes.
+      [Test]
+      public void GIVEN_the_full_level_and_a_player_cap_WHEN_reading_the_memory_limit_THEN_the_cap_is_the_window()
+      {
+         LeanPromptPolicy.MemoryEventLimit(LeanPromptLevel.Full, 5).Should().Be(5);
+      }
+
+      // STAKE: a cap only narrows. Set above Compact's window it must not grow Compact past what a small model holds.
+      [Test]
+      public void GIVEN_the_lean_level_and_a_cap_above_its_window_WHEN_reading_the_memory_limit_THEN_compact_keeps_its_window()
+      {
+         LeanPromptPolicy.MemoryEventLimit(LeanPromptLevel.Lean, 20).Should().Be(LeanPromptPolicy.LeanMemoryEventLimit);
+         LeanPromptPolicy.MemoryEventLimit(LeanPromptLevel.Lean, 3).Should().Be(3);
+      }
+
+      // STAKE: no cap (0, the setting's default, or unset) keeps a capable model's whole memory.
+      [TestCase(null)]
+      [TestCase(0)]
+      public void GIVEN_no_cap_WHEN_reading_the_memory_limit_THEN_full_keeps_everything(int? cap)
+      {
+         LeanPromptPolicy.MemoryEventLimit(LeanPromptLevel.Full, cap).Should().Be(int.MaxValue);
+      }
+
       // The authored behaviour_guidelines.txt is one of the heaviest sections; Lean must fall back to the
       // short built-in set rather than carry the full file at the cost of the model's short context.
       [Test]

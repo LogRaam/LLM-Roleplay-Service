@@ -1862,6 +1862,14 @@ namespace NpcMemoryService.Core.Models
       public int? HistoryKnownThrough { get; init; }
 
       /// <summary>
+      ///   The most memories lived with the player the prompt shows (the latest ones), as the player set it for a
+      ///   short-context model (avalanche24, Nexus, 07/11/2026: a local model "taking too much tokens just analyzing each
+      ///   memory entry", past 16k). Null or below 1 keeps the level's own window: all in Full,
+      ///   <see cref="Prompts.LeanPromptPolicy.LeanMemoryEventLimit" /> in Compact. It only ever narrows, never widens Compact.
+      /// </summary>
+      public int? HistoryMemoryCap { get; init; }
+
+      /// <summary>
       ///   How many quests this character already held when the conversation opened. Anything past this count
       ///   was agreed DURING it, and must not be spoken of as an errand already under way.
       ///   <para>

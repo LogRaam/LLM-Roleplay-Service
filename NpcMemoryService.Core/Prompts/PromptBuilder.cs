@@ -2710,10 +2710,10 @@ namespace NpcMemoryService.Core.Prompts
          // news a character heard never pushes what they lived with the player out of the window.
          IReadOnlyList<int> lived = HistoryWindowPolicy.LatestLived(npc.Events, maxEvents, end);
          IReadOnlyList<int> heard = HistoryWindowPolicy.LatestHeard(npc.Events,
-            maxEvents == int.MaxValue ? int.MaxValue : HistoryWindowPolicy.LeanHearsayLimit, end);
+            maxEvents == int.MaxValue ? int.MaxValue : Math.Min(maxEvents, HistoryWindowPolicy.LeanHearsayLimit), end);
          // tashmetu (08/10/2026): the character's own life apart from the player, counted apart the same way.
          IReadOnlyList<int> own = HistoryWindowPolicy.LatestOwnLife(npc.Events,
-            maxEvents == int.MaxValue ? int.MaxValue : HistoryWindowPolicy.LeanOwnLifeLimit, end);
+            maxEvents == int.MaxValue ? int.MaxValue : Math.Min(maxEvents, HistoryWindowPolicy.LeanOwnLifeLimit), end);
 
          sb.AppendLine("YOUR HISTORY WITH THIS PLAYER:");
          if (lived.Count == 0)
