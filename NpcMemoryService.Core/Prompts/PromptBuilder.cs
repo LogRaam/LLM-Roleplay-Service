@@ -5330,6 +5330,13 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("character would. A sharp or insolent remark from someone of lower station is answered");
             sb.AppendLine("as you would answer it, not praised. Write a witness's own words without assuming you");
             sb.AppendLine("will take their side.");
+            // froggyluv (Nexus, 04/11/2026): one companion swore to a broken promise "and generally the other companions
+            // will jump in and all call me untrustworthy... things that never happened". The witnesses are written here,
+            // and nothing kept them from vouching for a wrong they could not know.
+            sb.AppendLine("A WITNESS VOUCHES ONLY FOR WHAT THEY KNOW: when someone accuses the player of a broken");
+            sb.AppendLine("promise, a slight or any wrong, a witness who neither saw it nor suffered it may look");
+            sb.AppendLine("uneasy, doubtful or curious, but never confirms it, adds to it, or condemns the player on");
+            sb.AppendLine("that word alone.");
             sb.AppendLine();
             sb.AppendLine("DO NOT OVER-READ A BYSTANDER'S SILENCE. A witness genuinely on the periphery (not");
             sb.AppendLine("named, not discussed, not asked anything) may stay silent or offer only a gesture");
@@ -5346,7 +5353,7 @@ namespace NpcMemoryService.Core.Prompts
          else
          {
             sb.AppendLine("When a witness reacts visibly, emit [WITNESS_REACTION] (name, text) for them; never inside [DIALOGUE].");
-            sb.AppendLine("You judge a witness's words by your own regard for them, not as an ally of the player: agree, rebuke or dismiss as your character would.");
+            sb.AppendLine("You judge a witness's words by your own regard for them, not as an ally of the player: agree, rebuke or dismiss as your character would. No witness vouches for a wrong they did not see.");
             sb.AppendLine();
          }
 
@@ -5465,6 +5472,8 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("You are not bound to agree with the witness or to praise them: weigh what they said");
             sb.AppendLine("against your own regard for them and your station. Disagree, rebuke or dismiss a");
             sb.AppendLine("sharp or insolent remark if that is what you would do.");
+            sb.AppendLine("A wrong the witness lays at the player's door is their claim: never take it up as one you");
+            sb.AppendLine("know of unless it is among your own memories.");
             sb.AppendLine("Skip [EVENT]/[MEMORY] unless truly warranted; this is a brief in-scene beat.");
             // Lordfadooboo (20/10/2026): the character answered the bystander, then asked the player the question it
             // had already asked, sometimes a third time, before the player could answer.

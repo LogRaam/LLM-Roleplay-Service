@@ -68,5 +68,24 @@ namespace NpcMemoryServiceTests
       {
          Build(LeanPromptLevel.Lean, false).Should().Contain("not as an ally of the player");
       }
+
+      // froggyluv (Nexus, 04/11/2026): one companion swore to a broken promise "and generally the other companions will
+      // jump in and all call me untrustworthy... things that never happened". The witnesses' reactions are written in the
+      // same reply, so one invented wrong became a chorus.
+
+      // STAKE: the companions in the room pile onto an accusation none of them could know is true.
+      [Test]
+      public void GIVEN_witnesses_in_the_room_WHEN_the_prompt_is_built_THEN_a_witness_never_vouches_for_a_wrong_they_did_not_see()
+      {
+         Build(LeanPromptLevel.Full, false).Should().Contain("A WITNESS VOUCHES ONLY FOR WHAT THEY KNOW");
+         Build(LeanPromptLevel.Lean, false).Should().Contain("No witness vouches for a wrong they did not see.");
+      }
+
+      // STAKE: the turn after a companion accuses the player, the speaker takes the accusation up as a known fact.
+      [Test]
+      public void GIVEN_a_witness_has_just_spoken_WHEN_the_prompt_is_built_THEN_their_accusation_is_their_claim()
+      {
+         Build(LeanPromptLevel.Full, true).Should().Contain("A wrong the witness lays at the player's door is their claim");
+      }
    }
 }
