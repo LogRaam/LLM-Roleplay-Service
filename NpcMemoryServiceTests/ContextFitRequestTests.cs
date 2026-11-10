@@ -81,12 +81,14 @@ namespace NpcMemoryServiceTests
       [Test]
       public async Task GIVEN_a_window_old_lines_alone_can_satisfy_WHEN_sent_THEN_the_full_prompt_goes_with_fewer_lines()
       {
-         string full = LeanRealPromptBudgetTests.RealBuilder().BuildSystemPrompt(LeanRealPromptBudgetTests.Npc(), new WorldState {CurrentDay = 10}, LeanRealPromptBudgetTests.Encounter(LeanPromptLevel.Full));
+         ChatSession session = LongConversation();
+         // The full prompt as sent: it carries the character's own earlier replies (the words it has worn out).
+         string[] ownLines = session.Messages.Where(m => m.Role == MessageRole.Assistant).Select(m => m.Content).ToArray();
+         string full = LeanRealPromptBudgetTests.RealBuilder().BuildSystemPrompt(LeanRealPromptBudgetTests.Npc(), new WorldState {CurrentDay = 10}, LeanRealPromptBudgetTests.Encounter(LeanPromptLevel.Full).WithOwnEarlierLines(ownLines));
          // Room for the full prompt, its reply, the recap and the six latest lines, and not for all twenty-two.
          double tokens = full.Length / ContextFitPolicy.DefaultCharsPerToken + 3000 + 8 * (900 / ContextFitPolicy.DefaultCharsPerToken + ContextFitPolicy.PerMessageTokens);
          var window = (int) (tokens / ContextFitPolicy.UsableShare);
 
-         ChatSession session = LongConversation();
          LlmRequest r = await Send(window, session);
 
          r.SystemPrompt.Should().Be(full);

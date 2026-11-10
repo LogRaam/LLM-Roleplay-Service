@@ -322,8 +322,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine($"traits, the guidelines, and the world of {PromptLore.WorldName}. If it names a figure, take that");
          sb.AppendLine("figure's FULL manner, voice, and force of personality; keep only their world out of the fiction");
          sb.AppendLine($"(import no names, places, powers, or lore from outside {PromptLore.WorldName}).");
-         sb.AppendLine("If, and ONLY if, it spells out no speech quirks of its own, invent two or three that fit and use");
-         sb.AppendLine("them consistently, so a clear personality still comes through.");
+         sb.AppendLine("If, and ONLY if, it spells out no speech quirks of its own, take the habit under YOUR VOICE below");
+         sb.AppendLine("(or, when there is none, invent two or three that fit) and use them consistently.");
          sb.AppendLine(npc.AuthoredBackstory);
          sb.AppendLine();
       }
@@ -344,6 +344,37 @@ namespace NpcMemoryService.Core.Prompts
       ///   were pulling the strings of my clan behind the scenes": Thoragoros1, 2026-07-12). An NPC acting on a
       ///   conviction the world does not share is the drama. And a conviction they must HIDE is a motive in itself.
       /// </summary>
+      /// <summary>
+      ///   How this character speaks (EncounterContext.CharacterVoice), right after who they are and what they want: a
+      ///   habit of speech, cursing, piety. When the player authored a voice in the backstory above, that voice wins and
+      ///   this fills only what it leaves unsaid.
+      /// </summary>
+      private static void AppendCharacterVoice(StringBuilder sb, NpcProfile npc, EncounterContext? context, bool backstoryShown)
+      {
+         string? voice = context?.CharacterVoice;
+         if (string.IsNullOrWhiteSpace(voice)) return;
+
+         bool authored = backstoryShown && !string.IsNullOrWhiteSpace(npc?.AuthoredBackstory);
+         sb.AppendLine(authored
+            ? "YOUR VOICE (where your backstory above says how you speak, it wins; this fills only what it leaves unsaid):"
+            : "YOUR VOICE (how you, and no one else, speak):");
+         sb.AppendLine(voice);
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   The words this character has already worn out in this conversation (WornPhrasePolicy), per turn, so the reply
+      ///   finds new ones. Spares the player's name and the character's own.
+      /// </summary>
+      private void AppendWornPhrases(StringBuilder sb, NpcProfile npc, EncounterContext? context)
+      {
+         string? block = WornPhrasePolicy.Render(WornPhrasePolicy.Of(context?.OwnEarlierLines, new[] {PlayerName, npc?.Name}));
+         if (block == null) return;
+
+         sb.Append(block);
+         sb.AppendLine();
+      }
+
       private static void AppendAuthoredConviction(StringBuilder sb, NpcProfile npc)
       {
          if (string.IsNullOrWhiteSpace(npc.AuthoredConviction)) return;

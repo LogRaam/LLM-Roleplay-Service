@@ -52,6 +52,8 @@ namespace NpcMemoryService.Core.Prompts
          // dropping it to save tokens on a small model would silently return them the generic NPC they replaced.
          Section("authored_backstory", PromptZone.Prefix, (b, sb, s) => { if (LeanPromptPolicy.Include(PromptSection.AuthoredBackstory, s.Lean)) AppendAuthoredBackstory(sb, s.Npc); }),
          Section("authored_conviction", PromptZone.Prefix, (b, sb, s) => { if (LeanPromptPolicy.Include(PromptSection.AuthoredBackstory, s.Lean)) AppendAuthoredConviction(sb, s.Npc); }),
+         // How they SOUND, after who they are and what they want; derived from the character, so stable all conversation.
+         Section("character_voice", PromptZone.Prefix, (b, sb, s) => AppendCharacterVoice(sb, s.Npc, s.Context, LeanPromptPolicy.Include(PromptSection.AuthoredBackstory, s.Lean))),
          Section("relationships", PromptZone.Prefix, (b, sb, s) => { if (LeanPromptPolicy.Include(PromptSection.Relationships, s.Lean)) AppendRelationships(sb, s.Npc); }),
          // Compact drops RELATIONSHIPS (friends, enemies, liege) but keeps the family inside it: fearente, 29/10/2026.
          Section("family_compact", PromptZone.Prefix, (b, sb, s) => { if (!LeanPromptPolicy.Include(PromptSection.Relationships, s.Lean)) AppendFamilyOnly(sb, s.Npc); }),
@@ -192,6 +194,8 @@ namespace NpcMemoryService.Core.Prompts
          Section("player_gender_context", PromptZone.Tail, (b, sb, s) => b.AppendPlayerGenderContext(sb, s.Npc, s.Context)),
          // Hoisted out of AppendEncounterContext so it still renders when encounterContext is null, and kept
          // late (near the language mirror) so recency reinforces the anti-confabulation guard.
+         // The character's own words already worn out this conversation: they grow every turn, so tail only.
+         Section("worn_phrases", PromptZone.Tail, (b, sb, s) => b.AppendWornPhrases(sb, s.Npc, s.Context)),
          Section("stay_within_what_you_know", PromptZone.Tail, (b, sb, s) => AppendStayWithinWhatYouKnow(sb, s.Lean), PromptSectionLock.Required),
          Section("player_action_narration", PromptZone.Tail, (b, sb, s) => AppendPlayerActionNarration(sb, s.Lean), PromptSectionLock.Required),
          // Kept beside its two siblings at the very end of the prompt, where recency is highest: the three of

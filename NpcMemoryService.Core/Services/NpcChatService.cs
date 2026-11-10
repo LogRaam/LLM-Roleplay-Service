@@ -90,9 +90,13 @@ namespace NpcMemoryService.Core.Services
          bool allowTruncationRetry = true,
          string? modelOverride = null)
       {
+         // The character's own replies so far, read before this turn's: the tail shows the words they have worn out.
+         IReadOnlyList<string> ownLines = session.Messages.Where(m => m.Role == MessageRole.Assistant).Select(m => m.Content).ToList();
+         EncounterContext? promptContext = encounterContext?.WithOwnEarlierLines(ownLines);
+
          session.AddPlayerMessage(playerMessage);
 
-         string systemPrompt = PromptBuilder.BuildSystemPrompt(npc, world, encounterContext);
+         string systemPrompt = PromptBuilder.BuildSystemPrompt(npc, world, promptContext);
 
          // Prompt-cache split: everything up to the per-turn "CURRENT ENCOUNTER" block is stable within a
          // conversation (identity, persona, instructions) and makes the cacheable prefix; the dynamic tail
@@ -119,7 +123,7 @@ namespace NpcMemoryService.Core.Services
          int window = DeclaredWindow();
          if (window > 0)
          {
-            FittedRequest fitted = FitToWindow(window, npc, world, encounterContext, systemPrompt, session, maxTokens);
+            FittedRequest fitted = FitToWindow(window, npc, world, promptContext, systemPrompt, session, maxTokens);
             systemPrompt = fitted.SystemPrompt;
             stablePrefix = PromptCacheSplit.StablePrefixOf(systemPrompt);
             messages = fitted.Messages;

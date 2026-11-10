@@ -50,6 +50,24 @@ namespace NpcMemoryService.Core.Models
       private LeanPromptLevel _leanLevel;
 
       /// <summary>
+      ///   The character's own earlier replies in THIS conversation, oldest first, set by NpcChatService from the session
+      ///   just before the prompt is built, so the per-turn tail can show the words the character has already worn out
+      ///   (WornPhrasePolicy). Null for a host-built context and for any build outside a chat turn: nothing is shown.
+      /// </summary>
+      public IReadOnlyList<string>? OwnEarlierLines => _ownEarlierLines;
+
+      private IReadOnlyList<string>? _ownEarlierLines;
+
+      /// <summary>This same encounter carrying the character's own earlier replies. A shallow copy; nothing else changes.</summary>
+      public EncounterContext WithOwnEarlierLines(IReadOnlyList<string>? lines)
+      {
+         var copy = (EncounterContext) MemberwiseClone();
+         copy._ownEarlierLines = lines;
+
+         return copy;
+      }
+
+      /// <summary>
       ///   This same encounter at another prompt level: the compact prompt CR turns to when the full one does not fit a
       ///   local model's declared context window (ContextFitPolicy). A shallow copy; nothing else changes.
       /// </summary>
@@ -100,6 +118,14 @@ namespace NpcMemoryService.Core.Models
       ///   conversation, so it sits in the cacheable prefix. Null or empty renders nothing.
       /// </summary>
       public string? NarrativeStyle { get; init; }
+
+      /// <summary>
+      ///   How THIS character speaks, host-composed in the second person: a habit of speech, how freely they curse, how
+      ///   their piety shows (Gabriel, 10/11/2026: a voice of their own per character). Rendered verbatim under YOUR
+      ///   VOICE; an authored backstory's own voice comes first. Derived from the character, never saved, so it is the
+      ///   same in every conversation and sits in the cacheable prefix. Null or empty renders nothing.
+      /// </summary>
+      public string? CharacterVoice { get; init; }
 
       /// <summary>
       ///   The PLAYER's appearance in the THIRD person (Subject voice), composed by the host from derived body

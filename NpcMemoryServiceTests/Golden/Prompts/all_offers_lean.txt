@@ -213,6 +213,9 @@ YOUR OWN APPEARANCE (how you carry yourself, stay true to it):
 [NpcSelfAppearance]
 [NpcSelfGear]
 
+YOUR VOICE (how you, and no one else, speak):
+[CharacterVoice]
+
 YOUR FAMILY:
 [Family]
 
