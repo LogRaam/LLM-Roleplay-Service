@@ -2602,15 +2602,22 @@ namespace NpcMemoryService.Core.Prompts
 
       /// <summary>
       ///   What this character holds and would give away, stated before they name a sum, so what they say is what the
-      ///   player receives (RaveN017Mod, 01/11/2026: 20,000 offered, 1,000 sent).
+      ///   player receives (RaveN017Mod, 01/11/2026: 20,000 offered, 1,000 sent). Aporo (Discord, 10/11/2026): a character
+      ///   named 400 and 5 changed hands, because "with nothing in return" read as if a payment or a reward fell outside the
+      ///   ceiling, when the game holds every coin handed over to it except what is owed. Gabriel, same day: "il devrait deja
+      ///   connaitre la regle plutot que la regle corrige une declaration du LLM."
       /// </summary>
       private static void AppendCoinInHand(StringBuilder sb, EncounterContext? context)
       {
          if (context?.Purse == null || context.GiftCeiling == null) return;
 
          int ceiling = Math.Max(0, context.GiftCeiling.Value);
+         int owed = Math.Min(ceiling, Math.Max(0, context.GiftOwed ?? 0));
          sb.AppendLine($"YOUR COIN: your purse holds {Math.Max(0, context.Purse.Value):N0} denars. "
-                     + (ceiling > 0 ? $"With nothing in return you would give {ceiling:N0} at the very most." : "With nothing in return you would give nothing."));
+                     + (ceiling > 0 ? $"With nothing in return you would give {ceiling:N0} at the very most" : "With nothing in return you would give nothing")
+                     + (owed > 0 ? $", {owed:N0} of it what you owe the player (a reward for a task done, or a sworn payment)." : "."));
+         sb.AppendLine("Every coin you hand the player counts against that, whatever you call it: a gift, a reward, payment for a favour or a deed not yet done, a bribe, a loan. "
+                     + "Asked for more, refuse or offer less, in character; never name a larger sum, not even as a promise.");
          sb.AppendLine("Never name a sum you could not pay. A captive, an item or a ransom goes for its worth through its own action, not as a gift.");
          AppendMoneyTokens(sb, context);
          sb.AppendLine();

@@ -542,6 +542,7 @@ One deal: you pay the player. Never give_item beside it, and no gold action for 
 CURRENT ENCOUNTER:
 
 YOUR COIN: your purse holds 50,000 denars. With nothing in return you would give 500 at the very most.
+Every coin you hand the player counts against that, whatever you call it: a gift, a reward, payment for a favour or a deed not yet done, a bribe, a loan. Asked for more, refuse or offer less, in character; never name a larger sum, not even as a promise.
 Never name a sum you could not pay. A captive, an item or a ransom goes for its worth through its own action, not as a gift.
 When you offer one of these sums, in words or in an action, write its token and never the figure; it is filled in for you:
 {gift} = 500; {fair:Monchug} = 4,900

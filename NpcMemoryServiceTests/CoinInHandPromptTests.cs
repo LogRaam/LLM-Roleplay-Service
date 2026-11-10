@@ -30,6 +30,25 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("your purse holds 50,000 denars").And.Contain("you would give 500 at the very most");
       }
 
+      // STAKE: Aporo (Discord, 10/11/2026): a character named 400 and 5 changed hands. A payment or a reward read as outside
+      // the ceiling; the character must know before speaking that every coin handed over counts against it.
+      [TestCase(LeanPromptLevel.Full)]
+      [TestCase(LeanPromptLevel.Lean)]
+      public void GIVEN_a_ceiling_WHEN_the_prompt_is_built_THEN_payments_and_rewards_count_against_it_too(LeanPromptLevel level)
+      {
+         Build(new EncounterContext {LeanLevel = level, Purse = 7000, GiftCeiling = 5})
+            .Should().Contain("Every coin you hand the player counts against that").And.Contain("a reward, payment for a favour")
+            .And.Contain("never name a larger sum");
+      }
+
+      // STAKE: what is owed is paid in full; told it apart, the character pays a debt without treating it as a gift.
+      [Test]
+      public void GIVEN_a_debt_to_the_player_WHEN_the_prompt_is_built_THEN_the_character_knows_what_part_is_owed()
+      {
+         Build(new EncounterContext {LeanLevel = LeanPromptLevel.Full, Purse = 7000, GiftCeiling = 400, GiftOwed = 300})
+            .Should().Contain("you would give 400 at the very most, 300 of it what you owe the player");
+      }
+
       // STAKE: a hostile character still has a purse; it must not read as a figure it would hand over.
       [Test]
       public void GIVEN_a_character_who_would_give_nothing_WHEN_the_prompt_is_built_THEN_it_is_told_so()

@@ -1006,6 +1006,13 @@ namespace NpcMemoryService.Core.Models
       public int? GiftCeiling { get; init; }
 
       /// <summary>
+      ///   The part of <see cref="GiftCeiling" /> this character owes the player (a task reward the game recorded done, a
+      ///   sworn payment), so the model can tell a debt it pays from a gift it makes (Aporo, Discord, 10/11/2026). Null or
+      ///   zero when nothing is owed.
+      /// </summary>
+      public int? GiftOwed { get; init; }
+
+      /// <summary>
       ///   What things are worth, read from the running game, for a character to reason from before naming a sum (Gabriel,
       ///   01/11/2026). Stable through a session, so it sits in the cached prefix. Null when unread.
       /// </summary>
