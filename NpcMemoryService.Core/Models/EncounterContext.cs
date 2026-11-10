@@ -110,6 +110,14 @@ namespace NpcMemoryService.Core.Models
       public string? CharacterVoice { get; init; }
 
       /// <summary>
+      ///   How readily THIS character believes the player, host-composed in the second person (Gabriel, 10/11/2026): hard
+      ///   to fool, or trusting, or wary because the player broke faith with them before. Null for the ordinary, who need
+      ///   no word. Belief only: what they give or do on the player's word still follows the claims rule. Stable for a
+      ///   conversation, so it sits in the cacheable prefix.
+      /// </summary>
+      public string? CredulityNote { get; init; }
+
+      /// <summary>
       ///   The PLAYER's appearance in the THIRD person (Subject voice), composed by the host from derived body
       ///   facts plus any authored prose. Rendered under THE PLAYER so the NPC pictures the player consistently
       ///   and stops inventing their looks. Null/empty renders nothing.

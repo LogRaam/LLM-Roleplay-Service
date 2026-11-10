@@ -362,6 +362,21 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
+      /// <summary>
+      ///   How readily this character believes the player (EncounterContext.CredulityNote). Their own nature goes before
+      ///   the general caution of the guidelines; what they give or do on a claim alone stays with the claims rule.
+      /// </summary>
+      private static void AppendCredulity(StringBuilder sb, EncounterContext? context)
+      {
+         string? note = context?.CredulityNote;
+         if (string.IsNullOrWhiteSpace(note)) return;
+
+         sb.AppendLine("HOW READILY YOU BELIEVE THE PLAYER (your own nature; it goes before the general caution of the guidelines):");
+         sb.AppendLine(note);
+         sb.AppendLine("This is what you believe and how you feel. What you give or do on their word alone still follows WHAT THEY SAY THEY HAVE DONE IS A CLAIM.");
+         sb.AppendLine();
+      }
+
       private static void AppendAuthoredConviction(StringBuilder sb, NpcProfile npc)
       {
          if (string.IsNullOrWhiteSpace(npc.AuthoredConviction)) return;

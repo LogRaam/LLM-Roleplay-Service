@@ -122,3 +122,4 @@ coin_in_hand
 spared_villages
 legend
 character_voice
+credulity

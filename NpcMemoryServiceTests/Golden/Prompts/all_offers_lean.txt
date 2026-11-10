@@ -216,6 +216,10 @@ YOUR OWN APPEARANCE (how you carry yourself, stay true to it):
 YOUR VOICE (how you, and no one else, speak):
 [CharacterVoice]
 
+HOW READILY YOU BELIEVE THE PLAYER (your own nature; it goes before the general caution of the guidelines):
+[CredulityNote]
+This is what you believe and how you feel. What you give or do on their word alone still follows WHAT THEY SAY THEY HAVE DONE IS A CLAIM.
+
 YOUR FAMILY:
 [Family]
 

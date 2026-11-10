@@ -54,6 +54,8 @@ namespace NpcMemoryService.Core.Prompts
          Section("authored_conviction", PromptZone.Prefix, (b, sb, s) => { if (LeanPromptPolicy.Include(PromptSection.AuthoredBackstory, s.Lean)) AppendAuthoredConviction(sb, s.Npc); }),
          // How they SOUND, after who they are and what they want; derived from the character, so stable all conversation.
          Section("character_voice", PromptZone.Prefix, (b, sb, s) => AppendCharacterVoice(sb, s.Npc, s.Context, LeanPromptPolicy.Include(PromptSection.AuthoredBackstory, s.Lean))),
+         // How readily they believe the player: their nature, or a broken faith; stable all conversation.
+         Section("credulity", PromptZone.Prefix, (b, sb, s) => AppendCredulity(sb, s.Context)),
          Section("relationships", PromptZone.Prefix, (b, sb, s) => { if (LeanPromptPolicy.Include(PromptSection.Relationships, s.Lean)) AppendRelationships(sb, s.Npc); }),
          // Compact drops RELATIONSHIPS (friends, enemies, liege) but keeps the family inside it: fearente, 29/10/2026.
          Section("family_compact", PromptZone.Prefix, (b, sb, s) => { if (!LeanPromptPolicy.Include(PromptSection.Relationships, s.Lean)) AppendFamilyOnly(sb, s.Npc); }),
