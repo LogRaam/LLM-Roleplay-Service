@@ -2423,10 +2423,13 @@ namespace NpcMemoryService.Core.Prompts
       private static void AppendStayWithinWhatYouKnow(StringBuilder sb, LeanPromptLevel lean)
       {
          sb.AppendLine("STAY WITHIN WHAT YOU KNOW:");
-         sb.AppendLine("Do not invent concrete facts you have not been given. If the player's parentage is not named");
-         sb.AppendLine("above, speak of their parents only in general terms — never make up a name. Likewise, if your");
-         sb.AppendLine("current situation above does not state where you are headed, do not fabricate a destination,");
-         sb.AppendLine("troop movements, or war plans; speak in general terms rather than naming a specific place.");
+         // Lordfadooboo (Nexus, 03/11/2026): asked whom a character held opinions of, "they started listing names ive
+         // never seen to houses that ive never heard of". Only the player's parents were named here; people and houses
+         // now are too, folded into the old parentage and destination lines so the Lean budget holds.
+         sb.AppendLine("Do not invent concrete facts you have not been given. Never make up a name: no person or house");
+         sb.AppendLine("that is not named in this prompt (the player's parents included), and no destination, troop");
+         sb.AppendLine("movement or war plan your situation above does not state. Of anyone or anywhere else, speak in");
+         sb.AppendLine("general terms (\"a captain at court\", \"a lord of the west\") or say you do not know them.");
          sb.AppendLine("And never AGREE to perform a concrete deed — entering someone's service, handing over troops");
          sb.AppendLine("or prisoners, surrendering yourself or your party into the player's captivity, granting land,");
          sb.AppendLine("killing someone, starting a war, fighting a duel, marrying or divorcing, unless an [ACTION] for it is");
