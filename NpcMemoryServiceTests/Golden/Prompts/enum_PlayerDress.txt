@@ -264,7 +264,9 @@ reward_relation: N (personal regard you promise, 0 if none)
 reward_grant: a favor you grant on completion instead of coin (omit for an ordinary task). One of: join_party, marriage_consent, give_item, give_troops, release_prisoner. See CONDITIONAL BARGAINS.
 category: for provide_goods only, one of: horses, livestock, grain, food (food = any food: grain, fish, meat, cheese...)
 required_count: for provide_goods only, how many head/units you need (e.g. 15)
-description: one or two sentences in your own voice
+description: one or two sentences in your own voice, asking for EXACTLY the deed the type records
+(provide_goods = goods handed to you, here). A deed no type records (an escort, safe passage, a
+road to guard, goods carried elsewhere) is no task: write no [QUEST] for it.
 [/QUEST]
 
 For example:
@@ -965,7 +967,9 @@ reward_relation: N (personal regard you promise, 0 if none)
 reward_grant: a favor you grant on completion instead of coin (omit for an ordinary task). One of: join_party, marriage_consent, give_item, give_troops, release_prisoner. See CONDITIONAL BARGAINS.
 category: for provide_goods only, one of: horses, livestock, grain, food (food = any food: grain, fish, meat, cheese...)
 required_count: for provide_goods only, how many head/units you need (e.g. 15)
-description: one or two sentences in your own voice
+description: one or two sentences in your own voice, asking for EXACTLY the deed the type records
+(provide_goods = goods handed to you, here). A deed no type records (an escort, safe passage, a
+road to guard, goods carried elsewhere) is no task: write no [QUEST] for it.
 [/QUEST]
 
 For example:
@@ -1668,7 +1672,9 @@ reward_relation: N (personal regard you promise, 0 if none)
 reward_grant: a favor you grant on completion instead of coin (omit for an ordinary task). One of: join_party, marriage_consent, give_item, give_troops, release_prisoner. See CONDITIONAL BARGAINS.
 category: for provide_goods only, one of: horses, livestock, grain, food (food = any food: grain, fish, meat, cheese...)
 required_count: for provide_goods only, how many head/units you need (e.g. 15)
-description: one or two sentences in your own voice
+description: one or two sentences in your own voice, asking for EXACTLY the deed the type records
+(provide_goods = goods handed to you, here). A deed no type records (an escort, safe passage, a
+road to guard, goods carried elsewhere) is no task: write no [QUEST] for it.
 [/QUEST]
 
 For example:

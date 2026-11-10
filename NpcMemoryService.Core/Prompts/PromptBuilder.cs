@@ -8729,7 +8729,12 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.AppendLine("category: for provide_goods only, one of: horses, livestock, grain, food (food = any food: grain, fish, meat, cheese...)");
          sb.AppendLine("required_count: for provide_goods only, how many head/units you need (e.g. 15)");
-         sb.AppendLine("description: one or two sentences in your own voice");
+         // superdeeplearningaibot (Discord, 10/11/2026): "Secure safe passage for 100 sacks of Chanopsis grain to the market"
+         // was recorded as provide_goods, so the journal set "Bring 100 grain" beside words asking for an escort. The words
+         // ask for the deed the type records, or there is no task.
+         sb.AppendLine("description: one or two sentences in your own voice, asking for EXACTLY the deed the type records");
+         sb.AppendLine("(provide_goods = goods handed to you, here). A deed no type records (an escort, safe passage, a");
+         sb.AppendLine("road to guard, goods carried elsewhere) is no task: write no [QUEST] for it.");
          sb.AppendLine("[/QUEST]");
          sb.AppendLine();
          sb.AppendLine("For example:");
