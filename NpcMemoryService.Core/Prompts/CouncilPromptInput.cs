@@ -168,5 +168,21 @@ namespace NpcMemoryService.Core.Prompts
 
       /// <summary>The seated member who presides over a trial and pronounces its verdict (the player's liege).</summary>
       public string? TrialPresiding { get; init; }
+
+      /// <summary>
+      ///   The men in the player's own company, by the game's count; null omits the company line. bdionysis80 (Nexus,
+      ///   10/11/2026): a war council kept saying the army was starving, the waggons empty, although the stores were full.
+      /// </summary>
+      public int? CompanyMen { get; init; }
+
+      /// <summary>The days the player's company's food will last, by the game's count; null omits it.</summary>
+      public int? CompanyFoodDays { get; init; }
+
+      /// <summary>
+      ///   The tasks already set the player and still open, or done lately, each a pre-rendered line ("Athina: scout an
+      ///   army of Sturgia, done: 1,257 men under Olek"). bdionysis80 (10/11/2026): a second council set the very task a
+      ///   first had seen done. Empty omits the block.
+      /// </summary>
+      public IReadOnlyList<string> TasksAtHand { get; init; } = new List<string>();
    }
 }

@@ -21,6 +21,7 @@
 
 #region
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -59,6 +60,8 @@ namespace NpcMemoryService.Core.Prompts
          AppendTrial(sb, input);
          AppendPlayerIdentity(sb, input);
          AppendWorldState(sb, input);
+         AppendCompany(sb, input);
+         AppendTasksAtHand(sb, input.TasksAtHand);
          AppendTranscript(sb, input.TranscriptSoFar);
          AppendOfferedKinds(sb, input.OfferedResolutionKinds);
          AppendPlayerLine(sb, input);
@@ -313,6 +316,45 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.AppendLine();
          sb.AppendLine("WORLD STATE: " + string.Join(", ", clauses) + ".");
+      }
+
+      /// <summary>
+      ///   The player's company as the game counts it, for the whole table (bdionysis80, Nexus 10/11/2026: the council,
+      ///   the quartermaster included, insisted the army was starving while the stores were full; a seat learned of the
+      ///   food only when it rode with the player, and between 7 and 21 days of food nothing at all was said).
+      /// </summary>
+      internal static void AppendCompany(StringBuilder sb, CouncilPromptInput input)
+      {
+         if (!input.CompanyMen.HasValue && !input.CompanyFoodDays.HasValue) return;
+
+         var clauses = new List<string>();
+         if (input.CompanyMen.HasValue) clauses.Add(input.CompanyMen.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) + " men");
+         if (input.CompanyFoodDays.HasValue) clauses.Add("food for " + Math.Max(0, input.CompanyFoodDays.Value).ToString(System.Globalization.CultureInfo.InvariantCulture) + " days");
+
+         sb.AppendLine();
+         sb.AppendLine("THE PLAYER'S COMPANY (the game's own count, true whatever anyone at the table believes): " + string.Join("; ", clauses) + ".");
+         if (input.CompanyFoodDays.HasValue) sb.AppendLine(FoodSentence(input.CompanyFoodDays.Value));
+      }
+
+      private static string FoodSentence(int days)
+         => days <= 0 ? "The food is gone and the men are going hungry."
+            : days < 7 ? "The food will not last the week."
+            : days < 21 ? "There is food enough for now: no one is hungry, and no member says otherwise."
+            : "The stores are well found: no one is hungry, no member says otherwise, and no raid is needed for food.";
+
+      /// <summary>
+      ///   The tasks the game already holds for the player (bdionysis80, 10/11/2026: a second council set the scouting a
+      ///   first council had seen done), so the table builds on them instead of setting them again.
+      /// </summary>
+      internal static void AppendTasksAtHand(StringBuilder sb, IReadOnlyList<string> tasks)
+      {
+         List<string>? lines = tasks?.Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
+         if (lines == null || lines.Count == 0) return;
+
+         sb.AppendLine();
+         sb.AppendLine("TASKS ALREADY SET THE PLAYER (the game's record): never set one of these again; build on what was found.");
+         foreach (string line in lines)
+            sb.AppendLine("- " + line.Trim());
       }
 
       private static void AppendTranscript(StringBuilder sb, IReadOnlyList<string> transcriptSoFar)
