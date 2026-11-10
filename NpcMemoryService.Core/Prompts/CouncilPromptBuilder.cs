@@ -163,6 +163,10 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("storm the bandits' lair near a place, bandit_clear to defeat the bandits infesting a place's");
          sb.AppendLine("roads and fields. Pick the one that matches what is pledged; when the deed matches none of");
          sb.AppendLine("these, leave quest_type out entirely rather than forcing one.");
+         // bdionysis80 (Nexus, 10/11/2026): a pledge to scout Hvalvik's garrison was set as scout_army and the game, finding
+         // no army there, bound "an army of Sturgia". No deed scouts a place; scout_army is a host of a realm already at war.
+         sb.AppendLine("scout_army is an army in the field of a realm ALREADY at war with the player, near target_settlement;");
+         sb.AppendLine("no task scouts a town, a castle or its garrison.");
          sb.AppendLine("A quest is ALWAYS the player's own task. A member who offers to ride out and do something");
          sb.AppendLine("THEMSELVES (patrol, scout, fight) is NOT a quest: recording it as one hands their deed to the player.");
          sb.AppendLine("target_settlement is REQUIRED for a quest pledge: a task the table sets always concerns a");

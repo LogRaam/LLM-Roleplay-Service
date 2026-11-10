@@ -814,6 +814,8 @@ enemy host and report its strength, raid_village to plunder a village, bandit_hi
 storm the bandits' lair near a place, bandit_clear to defeat the bandits infesting a place's
 roads and fields. Pick the one that matches what is pledged; when the deed matches none of
 these, leave quest_type out entirely rather than forcing one.
+scout_army is an army in the field of a realm ALREADY at war with the player, near target_settlement;
+no task scouts a town, a castle or its garrison.
 A quest is ALWAYS the player's own task. A member who offers to ride out and do something
 THEMSELVES (patrol, scout, fight) is NOT a quest: recording it as one hands their deed to the player.
 The target_settlement is REQUIRED: a task the table sets always concerns a PLACE, and
