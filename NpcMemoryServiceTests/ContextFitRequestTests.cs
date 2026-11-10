@@ -74,21 +74,20 @@ namespace NpcMemoryServiceTests
          r.SystemPrompt.Should().Contain("GAME ACTIONS:");
          r.Messages.First().Content.Should().Contain("Earlier in this conversation");
          r.Messages[1].Role.Should().Be(MessageRole.User);
-         r.Messages.Last().Content.Should().Be(NewLine);
+         // The player's new line, with the note on worn words riding under it (WornPhrasePolicy.OnTheLastLine).
+         r.Messages.Last().Content.Should().StartWith(NewLine);
       }
 
       // The cheapest loss first: when leaving out old lines is enough, the full prompt goes, unchanged.
       [Test]
       public async Task GIVEN_a_window_old_lines_alone_can_satisfy_WHEN_sent_THEN_the_full_prompt_goes_with_fewer_lines()
       {
-         ChatSession session = LongConversation();
-         // The full prompt as sent: it carries the character's own earlier replies (the words it has worn out).
-         string[] ownLines = session.Messages.Where(m => m.Role == MessageRole.Assistant).Select(m => m.Content).ToArray();
-         string full = LeanRealPromptBudgetTests.RealBuilder().BuildSystemPrompt(LeanRealPromptBudgetTests.Npc(), new WorldState {CurrentDay = 10}, LeanRealPromptBudgetTests.Encounter(LeanPromptLevel.Full).WithOwnEarlierLines(ownLines));
+         string full = LeanRealPromptBudgetTests.RealBuilder().BuildSystemPrompt(LeanRealPromptBudgetTests.Npc(), new WorldState {CurrentDay = 10}, LeanRealPromptBudgetTests.Encounter(LeanPromptLevel.Full));
          // Room for the full prompt, its reply, the recap and the six latest lines, and not for all twenty-two.
          double tokens = full.Length / ContextFitPolicy.DefaultCharsPerToken + 3000 + 8 * (900 / ContextFitPolicy.DefaultCharsPerToken + ContextFitPolicy.PerMessageTokens);
          var window = (int) (tokens / ContextFitPolicy.UsableShare);
 
+         ChatSession session = LongConversation();
          LlmRequest r = await Send(window, session);
 
          r.SystemPrompt.Should().Be(full);
@@ -124,7 +123,7 @@ namespace NpcMemoryServiceTests
 
          r.Parameters.MaxTokens.Should().BeLessThanOrEqualTo(LeanReplyBudget.Tokens);
          r.SystemPrompt.Should().Contain("GAME ACTIONS:");
-         r.Messages.Last().Content.Should().Be(NewLine);
+         r.Messages.Last().Content.Should().StartWith(NewLine);
       }
 
       // No window declared (a cloud model): the request goes exactly as built, as it always has.

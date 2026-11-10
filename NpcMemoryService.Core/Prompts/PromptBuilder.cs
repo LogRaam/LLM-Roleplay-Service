@@ -362,19 +362,6 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
-      /// <summary>
-      ///   The words this character has already worn out in this conversation (WornPhrasePolicy), per turn, so the reply
-      ///   finds new ones. Spares the player's name and the character's own.
-      /// </summary>
-      private void AppendWornPhrases(StringBuilder sb, NpcProfile npc, EncounterContext? context)
-      {
-         string? block = WornPhrasePolicy.Render(WornPhrasePolicy.Of(context?.OwnEarlierLines, new[] {PlayerName, npc?.Name}));
-         if (block == null) return;
-
-         sb.Append(block);
-         sb.AppendLine();
-      }
-
       private static void AppendAuthoredConviction(StringBuilder sb, NpcProfile npc)
       {
          if (string.IsNullOrWhiteSpace(npc.AuthoredConviction)) return;

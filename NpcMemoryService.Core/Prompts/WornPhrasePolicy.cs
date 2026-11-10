@@ -7,6 +7,14 @@
 // principle. So the character is shown, per turn, how it opened its recent replies and the runs of words it has already
 // said in two replies or more.
 //
+// WHERE it is shown is a matter of money. The providers players use (Grok, GLM, DeepSeek) cache the longest common
+// prefix of a request automatically, past the explicit breakpoint: the 09/11/2026 replay log shows 16,768 of 16,925
+// input tokens read from cache at turn 18, tail and history included. A note that changes every turn, put anywhere in
+// the system prompt, would cut that cache before the history and the constant rules that close the prompt. So the note
+// rides on the player's NEW line, on the wire only, in brackets that say it is not the player's words (as the prior
+// exchange and witness statements already do); the session keeps the plain line, so next turn the cache runs up to the
+// line before. It also sits where it is read last, next to the reply it is about.
+//
 // Language-blind on purpose: players write in Turkish, French, Chinese. Words are runs of letters or digits, phrases are
 // runs of at least PhraseWords words found in two replies; there is no stopword list to be English about. A script written
 // without spaces simply yields no phrase, which is the safe failure. Names are spared: a character who says the player's
@@ -18,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NpcMemoryService.Core.Models;
 
 #endregion
 
@@ -72,18 +81,33 @@ namespace NpcMemoryService.Core.Prompts
          return new WornPhrases {Openings = OpeningsOf(lines), Phrases = PhrasesOf(lines, spared)};
       }
 
-      /// <summary>The block for the prompt, or null when nothing is worn.</summary>
+      /// <summary>The note for the player's new line, or null when nothing is worn.</summary>
       public static string? Render(WornPhrases? worn)
       {
          if (worn == null || worn.IsEmpty) return null;
 
          var sb = new StringBuilder();
-         sb.AppendLine("WORDS YOU HAVE ALREADY USED (your own, earlier in this conversation). Find new ones for this reply:");
-         if (worn.Openings.Count > 0) sb.AppendLine("- you opened with: " + string.Join(" / ", worn.Openings.Select(o => $"\"{o}...\"")));
-         if (worn.Phrases.Count > 0) sb.AppendLine("- you have already said, more than once: " + string.Join(" / ", worn.Phrases.Select(p => $"\"{p}\"")));
-         sb.AppendLine("Your habit of speech may come back; these exact words may not.");
+         sb.Append("[A note to you, not words the player said. WORDS YOU HAVE ALREADY USED earlier in this conversation; find new ones for this reply.");
+         if (worn.Openings.Count > 0) sb.Append(" You opened with: " + string.Join(" / ", worn.Openings.Select(o => $"\"{o}...\"")) + ".");
+         if (worn.Phrases.Count > 0) sb.Append(" You have already said, more than once: " + string.Join(" / ", worn.Phrases.Select(p => $"\"{p}\"")) + ".");
+         sb.Append(" Your habit of speech may come back; these exact words may not. Answer in the language you were already using.]");
 
          return sb.ToString();
+      }
+
+      /// <summary>
+      ///   <paramref name="messages" /> with <paramref name="note" /> added under the last line when it is the player's;
+      ///   otherwise, or with no note, the same list. A copy: the session's own line stays as the player wrote it.
+      /// </summary>
+      public static IReadOnlyList<LlmMessage> OnTheLastLine(IReadOnlyList<LlmMessage> messages, string? note)
+      {
+         if (string.IsNullOrWhiteSpace(note) || messages == null || messages.Count == 0 || messages[messages.Count - 1].Role != MessageRole.User) return messages!;
+
+         var sent = messages.ToList();
+         LlmMessage last = sent[sent.Count - 1];
+         sent[sent.Count - 1] = new LlmMessage(MessageRole.User, last.Content + Environment.NewLine + Environment.NewLine + note);
+
+         return sent;
       }
 
       private static List<string> OpeningsOf(List<List<string>> lines)

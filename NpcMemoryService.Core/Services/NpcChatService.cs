@@ -90,13 +90,12 @@ namespace NpcMemoryService.Core.Services
          bool allowTruncationRetry = true,
          string? modelOverride = null)
       {
-         // The character's own replies so far, read before this turn's: the tail shows the words they have worn out.
+         // The character's own replies so far, read before this turn's, for the note on the words they have worn out.
          IReadOnlyList<string> ownLines = session.Messages.Where(m => m.Role == MessageRole.Assistant).Select(m => m.Content).ToList();
-         EncounterContext? promptContext = encounterContext?.WithOwnEarlierLines(ownLines);
 
          session.AddPlayerMessage(playerMessage);
 
-         string systemPrompt = PromptBuilder.BuildSystemPrompt(npc, world, promptContext);
+         string systemPrompt = PromptBuilder.BuildSystemPrompt(npc, world, encounterContext);
 
          // Prompt-cache split: everything up to the per-turn "CURRENT ENCOUNTER" block is stable within a
          // conversation (identity, persona, instructions) and makes the cacheable prefix; the dynamic tail
@@ -123,13 +122,17 @@ namespace NpcMemoryService.Core.Services
          int window = DeclaredWindow();
          if (window > 0)
          {
-            FittedRequest fitted = FitToWindow(window, npc, world, promptContext, systemPrompt, session, maxTokens);
+            FittedRequest fitted = FitToWindow(window, npc, world, encounterContext, systemPrompt, session, maxTokens);
             systemPrompt = fitted.SystemPrompt;
             stablePrefix = PromptCacheSplit.StablePrefixOf(systemPrompt);
             messages = fitted.Messages;
             maxTokens = fitted.MaxTokens;
             allowTruncationRetry = allowTruncationRetry && fitted.RetryFits;
          }
+
+         // The words the character has worn out ride on the player's new line, on the wire only: they change every
+         // turn, and anywhere in the system prompt they would cut the provider's automatic cache before the history.
+         messages = WornPhrasePolicy.OnTheLastLine(messages, WornPhrasePolicy.Render(WornPhrasePolicy.Of(ownLines, new[] {(PromptBuilder as NpcMemoryService.Core.Prompts.PromptBuilder)?.PlayerName, npc?.Name})));
 
          LlmParameters parameters = allowTruncationRetry && maxTokens == ChatParameters.MaxTokens
             ? ChatParameters

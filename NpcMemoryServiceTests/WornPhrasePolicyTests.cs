@@ -1,17 +1,23 @@
 // Code written by Gabriel Mailhot, 10/11/2026.
 // WornPhrasePolicy finds, in a character's own earlier replies of this conversation, how they opened and the runs of
-// words they have said twice, and the per-turn tail shows them so the next reply finds new ones; YOUR VOICE carries the
+// words they have said twice, and the note on the player's new line shows them so the next reply finds new ones; YOUR VOICE carries the
 // character's habit of speech in the stable prefix. Gabriel (10/11/2026), after AI Influence 7.0.0; kurushimi00 (Nexus,
 // 01/11/2026) heard characters recite like a checklist. If this is wrong, the character keeps its groove, a name is
-// flagged as a tic, a phrase said once is forbidden, or the growing list lands above the cache marker and every turn
-// pays for the whole prefix again.
+// flagged as a tic, a phrase said once is forbidden, or the note lands in the system prompt and every turn bills the
+// history and the closing rules afresh on providers that cache the longest common prefix.
 
 #region
 
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using FluentAssertions;
+using NpcMemoryService.Core.LlmClient;
 using NpcMemoryService.Core.Models;
+using NpcMemoryService.Core.Parsing;
 using NpcMemoryService.Core.Prompts;
+using NpcMemoryService.Core.Services;
 using NUnit.Framework;
 
 #endregion
@@ -90,23 +96,67 @@ namespace NpcMemoryServiceTests
          worn.Phrases.Count.Should().BeLessThanOrEqualTo(WornPhrasePolicy.MaxPhrases);
       }
 
-      // STAKE: the list grows every turn; above the marker it would bust the cached prefix on every turn of a long talk.
+      // STAKE: the note must say it is not the player's words, or the character answers it as if the player had said it.
       [Test]
-      public void GIVEN_earlier_replies_WHEN_the_prompt_is_built_THEN_the_worn_words_sit_below_the_cache_marker()
+      public void GIVEN_a_note_WHEN_put_on_the_player_s_line_THEN_it_follows_the_line_says_whose_it_is_and_the_session_line_is_untouched()
       {
-         EncounterContext context = new EncounterContext().WithOwnEarlierLines(new[] {"Ah, my friend, the roads are long.", "Ah, my friend, the rain again."});
+         var history = new List<LlmMessage> {new(MessageRole.Assistant, "Aye."), new(MessageRole.User, "What of the ford?")};
+         string note = WornPhrasePolicy.Render(WornPhrasePolicy.Of(new[] {"Ah, my friend, the roads.", "Ah, my friend, the rain."}, null));
 
-         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState(), context);
+         IReadOnlyList<LlmMessage> sent = WornPhrasePolicy.OnTheLastLine(history, note);
 
-         prompt.Should().Contain("WORDS YOU HAVE ALREADY USED");
-         prompt.IndexOf("WORDS YOU HAVE ALREADY USED").Should().BeGreaterThan(prompt.IndexOf(PromptBuilder.EncounterSectionHeading));
+         sent[1].Content.Should().StartWith("What of the ford?");
+         sent[1].Content.Should().Contain("[A note to you, not words the player said.");
+         history[1].Content.Should().Be("What of the ford?");
       }
 
-      // STAKE: a host-built context with no chat behind it (a test, a letter) must not show an empty list.
+      // STAKE: with nothing worn, or a last line that is not the player's, the request goes exactly as before.
       [Test]
-      public void GIVEN_no_earlier_replies_WHEN_the_prompt_is_built_THEN_no_worn_words_are_shown()
+      public void GIVEN_no_note_or_no_player_line_last_WHEN_put_on_the_line_THEN_the_messages_are_unchanged()
       {
-         new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState(), new EncounterContext()).Should().NotContain("WORDS YOU HAVE ALREADY USED");
+         var history = new List<LlmMessage> {new(MessageRole.User, "Hail."), new(MessageRole.Assistant, "Aye.")};
+
+         WornPhrasePolicy.OnTheLastLine(history, null).Should().BeSameAs(history);
+         WornPhrasePolicy.OnTheLastLine(history, "[A note]").Should().BeSameAs(history);
+      }
+
+      // STAKE: Grok, GLM and DeepSeek cache the longest common prefix (09/11/2026 log: 16,768 of 16,925 tokens at turn 18).
+      // A note that changed the system prompt every turn would bill the history and the closing rules afresh each turn;
+      // on the wire, two turns share the whole system prompt and every line but the last few.
+      [Test]
+      public async Task GIVEN_two_turns_with_worn_words_WHEN_sent_THEN_the_system_prompt_and_the_earlier_lines_are_the_same()
+      {
+         var client = new CapturingClient();
+         var service = new NpcChatService(client, new SectionResponseParser(), LeanRealPromptBudgetTests.RealBuilder());
+         var session = new ChatSession();
+         session.AddPlayerMessage("Tell me of the war.");
+         session.AddNpcMessage("I remember the battle at the ford as if it were yesterday.");
+         session.AddPlayerMessage("And then?");
+         session.AddNpcMessage("Still, I remember the battle at the ford, and my brother.");
+         EncounterContext context = LeanRealPromptBudgetTests.Encounter(LeanPromptLevel.Full);
+
+         await service.ChatAsync(LeanRealPromptBudgetTests.Npc(), new WorldState {CurrentDay = 10}, session, "Who won?", context);
+         LlmRequest first = client.Last;
+         await service.ChatAsync(LeanRealPromptBudgetTests.Npc(), new WorldState {CurrentDay = 10}, session, "And your brother?", context);
+         LlmRequest second = client.Last;
+
+         first.Messages.Last().Content.Should().Contain("I remember the battle at the ford");
+         second.SystemPrompt.Should().Be(first.SystemPrompt);
+         second.SystemPrompt.Should().NotContain("WORDS YOU HAVE ALREADY USED");
+         second.Messages.Take(first.Messages.Count - 1).Select(m => m.Content).Should().Equal(first.Messages.Take(first.Messages.Count - 1).Select(m => m.Content));
+         session.Messages[session.Messages.Count - 2].Content.Should().Be("And your brother?");
+      }
+
+      private sealed class CapturingClient : ILlmClient
+      {
+         public LlmRequest Last { get; private set; } = null!;
+
+         public Task<LlmResponse> CompleteAsync(LlmRequest request, CancellationToken ct = default)
+         {
+            Last = new LlmRequest {SystemPrompt = request.SystemPrompt, Messages = request.Messages.ToList(), Parameters = request.Parameters};
+
+            return Task.FromResult(new LlmResponse {Content = "[DIALOGUE]\nAye.", IsSuccess = true});
+         }
       }
 
       // STAKE: the voice is the same all conversation, so it belongs in the cached prefix, above the marker.

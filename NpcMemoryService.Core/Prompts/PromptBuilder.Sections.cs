@@ -194,8 +194,6 @@ namespace NpcMemoryService.Core.Prompts
          Section("player_gender_context", PromptZone.Tail, (b, sb, s) => b.AppendPlayerGenderContext(sb, s.Npc, s.Context)),
          // Hoisted out of AppendEncounterContext so it still renders when encounterContext is null, and kept
          // late (near the language mirror) so recency reinforces the anti-confabulation guard.
-         // The character's own words already worn out this conversation: they grow every turn, so tail only.
-         Section("worn_phrases", PromptZone.Tail, (b, sb, s) => b.AppendWornPhrases(sb, s.Npc, s.Context)),
          Section("stay_within_what_you_know", PromptZone.Tail, (b, sb, s) => AppendStayWithinWhatYouKnow(sb, s.Lean), PromptSectionLock.Required),
          Section("player_action_narration", PromptZone.Tail, (b, sb, s) => AppendPlayerActionNarration(sb, s.Lean), PromptSectionLock.Required),
          // Kept beside its two siblings at the very end of the prompt, where recency is highest: the three of

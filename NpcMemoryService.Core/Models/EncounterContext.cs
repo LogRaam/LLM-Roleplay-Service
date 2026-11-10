@@ -50,24 +50,6 @@ namespace NpcMemoryService.Core.Models
       private LeanPromptLevel _leanLevel;
 
       /// <summary>
-      ///   The character's own earlier replies in THIS conversation, oldest first, set by NpcChatService from the session
-      ///   just before the prompt is built, so the per-turn tail can show the words the character has already worn out
-      ///   (WornPhrasePolicy). Null for a host-built context and for any build outside a chat turn: nothing is shown.
-      /// </summary>
-      public IReadOnlyList<string>? OwnEarlierLines => _ownEarlierLines;
-
-      private IReadOnlyList<string>? _ownEarlierLines;
-
-      /// <summary>This same encounter carrying the character's own earlier replies. A shallow copy; nothing else changes.</summary>
-      public EncounterContext WithOwnEarlierLines(IReadOnlyList<string>? lines)
-      {
-         var copy = (EncounterContext) MemberwiseClone();
-         copy._ownEarlierLines = lines;
-
-         return copy;
-      }
-
-      /// <summary>
       ///   This same encounter at another prompt level: the compact prompt CR turns to when the full one does not fit a
       ///   local model's declared context window (ContextFitPolicy). A shallow copy; nothing else changes.
       /// </summary>
