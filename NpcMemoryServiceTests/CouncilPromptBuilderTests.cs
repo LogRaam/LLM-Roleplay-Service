@@ -264,6 +264,32 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("Ajin the Hawk: The roads grow unsafe, my lord.");
       }
 
+      // STAKE (Gabriel, 10/11/2026: "la memoire du conseil"): a long sitting's older part reaches the table as a recap,
+      // before the lines still shown whole, so what the player said ten turns ago is still known.
+      [Test]
+      public void GIVEN_a_folded_sitting_WHEN_building_the_prompt_THEN_the_recap_comes_before_the_recent_lines()
+      {
+         var input = new CouncilPromptInput {
+            Roster = new List<CouncilMemberInput> {new() {Name = "Ajin"}},
+            PlayerLine = "So, Hvalvik?",
+            SittingRecap = "The player vowed to take Hvalvik before winter. Settled: Ajin leads the vanguard.",
+            TranscriptSoFar = new List<string> {"Ajin the Hawk: The vanguard is ready."}
+         };
+
+         string prompt = CouncilPromptBuilder.Build(input);
+
+         prompt.Should().Contain("EARLIER IN THIS SITTING").And.Contain("The player vowed to take Hvalvik before winter.");
+         prompt.IndexOf("The player vowed", System.StringComparison.Ordinal).Should().BeLessThan(prompt.IndexOf("Ajin the Hawk: The vanguard", System.StringComparison.Ordinal));
+      }
+
+      // STAKE: a short sitting has nothing folded and must not print an empty recap heading.
+      [Test]
+      public void GIVEN_no_recap_WHEN_building_the_prompt_THEN_no_recap_heading_is_written()
+      {
+         CouncilPromptBuilder.Build(new CouncilPromptInput {Roster = new List<CouncilMemberInput> {new() {Name = "Ajin"}}, PlayerLine = "Well?"})
+                             .Should().NotContain("EARLIER IN THIS SITTING");
+      }
+
       // World state grounds the scene (a sitting in high summer reads differently from one in a winter siege);
       // each clause the caller supplies must render, and an absent one must not print a stray label.
       [Test]

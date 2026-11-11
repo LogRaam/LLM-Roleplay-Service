@@ -153,6 +153,13 @@ namespace NpcMemoryService.Core.Prompts
       public IReadOnlyList<string> TranscriptSoFar { get; init; } = new List<string>();
 
       /// <summary>
+      ///   The recap of the older part of THIS sitting, folded by the host once it ran long (the player's words, stances and
+      ///   what was settled), shown before <see cref="TranscriptSoFar" />, which then holds only the lines after it. Null
+      ///   when nothing was folded (Gabriel, 10/11/2026: "la memoire du conseil").
+      /// </summary>
+      public string? SittingRecap { get; init; }
+
+      /// <summary>
       ///   The <c>[RESOLUTION] type:</c> values the mod's own <c>ResolutionOfferingResolver</c> has proven the
       ///   lift could honour right now, beyond the always-available <c>quest</c> kind. Empty means only
       ///   <c>quest</c> is on offer this turn.

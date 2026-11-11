@@ -62,7 +62,7 @@ namespace NpcMemoryService.Core.Prompts
          AppendWorldState(sb, input);
          AppendCompany(sb, input);
          AppendTasksAtHand(sb, input.TasksAtHand);
-         AppendTranscript(sb, input.TranscriptSoFar);
+         AppendTranscript(sb, input.TranscriptSoFar, input.SittingRecap);
          AppendOfferedKinds(sb, input.OfferedResolutionKinds);
          AppendPlayerLine(sb, input);
          AppendLanguage(sb, input.ReplyLanguage);
@@ -357,8 +357,18 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("- " + line.Trim());
       }
 
-      private static void AppendTranscript(StringBuilder sb, IReadOnlyList<string> transcriptSoFar)
+      private static void AppendTranscript(StringBuilder sb, IReadOnlyList<string> transcriptSoFar, string? recap)
       {
+         // Gabriel (10/11/2026): "la memoire du conseil". A long sitting is folded by the host; the recap keeps what the
+         // player said and what was settled before the lines still shown whole.
+         if (!string.IsNullOrWhiteSpace(recap))
+         {
+            sb.AppendLine();
+            sb.AppendLine("EARLIER IN THIS SITTING (a recap of what was said before the lines below, the player's words and what was");
+            sb.AppendLine("settled included; hold to it, never re-decide it):");
+            sb.AppendLine(recap!.Trim());
+         }
+
          List<string>? lines = transcriptSoFar?.Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
          if (lines == null || lines.Count == 0) return;
 
