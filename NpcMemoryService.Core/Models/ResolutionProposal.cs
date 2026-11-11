@@ -33,7 +33,7 @@ namespace NpcMemoryService.Core.Models
         ///   For a "quest" kind (player report 2026-08-25: every council pledge grounded as a bandit-clear, so a
         ///   single bandit fight near the target completed the WHOLE table's pledges at once): WHICH verifiable
         ///   deed the pledge asks, in the model's own words (the [QUEST] block's own vocabulary: "siege",
-        ///   "scout_army", "raid_village", "bandit_hideout", "bandit_clear"). The consumer maps it through its own
+        ///   "scout_army", "scout_place", "raid_village", "bandit_hideout", "bandit_clear"). The consumer maps it through its own
         ///   whitelist (CalradiaRemembers.Logic.Assemblies.CouncilQuestTypePolicy) and composes it alongside
         ///   <see cref="TargetSettlement" /> into the ledger entry's one grounding slot (QuestGroundingCodec), so
         ///   each pledged task lives and completes independently. Null when the model named none: the consumer

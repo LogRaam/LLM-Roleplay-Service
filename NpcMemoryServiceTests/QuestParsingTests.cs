@@ -240,6 +240,10 @@ namespace NpcMemoryServiceTests
       // "Playing wingman for a guy trying hard to get a girl married?" (fkasad, 01/10/2026)
       [TestCase("arrange_match", QuestType.ArrangeMatch)]
       [TestCase("wingman", QuestType.ArrangeMatch)]
+      // "on fait le type de quete eclairer un lieu" (Gabriel, 10/11/2026; bdionysis80's Hvalvik garrison)
+      [TestCase("scout_place", QuestType.ScoutPlace)]
+      [TestCase("scout_castle", QuestType.ScoutPlace)]
+      [TestCase("scout_garrison", QuestType.ScoutPlace)]
       [TestCase("BanditClear", QuestType.BanditClear)] // direct enum-name match
       public void Quest_type_alias_resolves_to_expected_type(string rawType, QuestType expected)
       {

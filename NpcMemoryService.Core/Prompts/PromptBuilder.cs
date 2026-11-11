@@ -1644,20 +1644,21 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("[RESOLUTION]");
             sb.AppendLine("type: quest");
             sb.AppendLine("actor: <the member's name exactly as listed above>");
-            sb.AppendLine("quest_type: <one of: siege, scout_army, raid_village, bandit_hideout, bandit_clear>");
+            sb.AppendLine("quest_type: <one of: siege, scout_army, scout_place, raid_village, bandit_hideout, bandit_clear>");
             sb.AppendLine("target_settlement: <the town or village the deed concerns, spelled exactly as a real place>");
             sb.AppendLine("detail: <the task set for the player, in plain words>");
             sb.AppendLine("[/RESOLUTION]");
             sb.AppendLine("quest_type names the DEED itself, so each pledge is its own task the game can verify on its");
             sb.AppendLine("own: siege to take part in capturing a town or castle, scout_army to locate and observe an");
-            sb.AppendLine("enemy host and report its strength, raid_village to plunder a village, bandit_hideout to");
+            sb.AppendLine("enemy host and report its strength, scout_place to ride close to a town, castle or village of");
+            sb.AppendLine("another realm and report its walls, garrison and militia, raid_village to plunder a village, bandit_hideout to");
             sb.AppendLine("storm the bandits' lair near a place, bandit_clear to defeat the bandits infesting a place's");
             sb.AppendLine("roads and fields. Pick the one that matches what is pledged; when the deed matches none of");
             sb.AppendLine("these, leave quest_type out entirely rather than forcing one.");
             // bdionysis80 (Nexus, 10/11/2026): a pledge to scout Hvalvik's garrison was set as scout_army and the game, finding
             // no army there, bound "an army of Sturgia". No deed scouts a place; scout_army is a host of a realm already at war.
             sb.AppendLine("scout_army is an army in the field of a realm ALREADY at war with the player, near target_settlement;");
-            sb.AppendLine("no task scouts a town, a castle or its garrison.");
+            sb.AppendLine("to scout a town, a castle, a village or its garrison, use scout_place with that place as target_settlement.");
             sb.AppendLine("A quest is ALWAYS the player's own task. A member who offers to ride out and do something");
             sb.AppendLine("THEMSELVES (patrol, scout, fight) is NOT a quest: recording it as one hands their deed to the player.");
             // Council audit C2: target_settlement is REQUIRED to ground the only executable kind (the lift binds
@@ -5959,6 +5960,7 @@ namespace NpcMemoryService.Core.Prompts
          QuestType.RecruitTroops => "recruit_troops",
          QuestType.CraftWeapon => "craft_weapon",
          QuestType.ArrangeMatch => "arrange_match",
+         QuestType.ScoutPlace => "scout_place",
          _ => t.ToString().ToLowerInvariant()
       };
 
@@ -8732,6 +8734,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("- reinforce_garrison (target_settlement; set 'required_count'): the player brings soldiers for the thin garrison of a place you govern or hold. Verified by a real hand-over of the men in that place.");
             sb.AppendLine("- ransom_envoy (target_hero): one of your own men is held by a realm the player is NOT at war with; send the player as your envoy to buy him back. The game hands the player your purse when the task is given, and what they do not spend is theirs. Verified when the player frees the man he bought, or brings him home to you.");
             sb.AppendLine("- scout_town (target_settlement): the player goes INTO an enemy town and gets what its gang leader knows of its walls, stores and people. Verified when the gang leader actually tells them; you then read what he said.");
+            sb.AppendLine("- scout_place (target_settlement): the player rides close to a town, castle or village of another realm and sees it: its walls, garrison, militia and stores. Verified when the player's party comes within sight of it; you then read what was seen. Not a place of your own realm.");
             sb.AppendLine("- recruit_troops (set 'required_count'): the player brings you fresh recruits of your own people for your party. Verified by a real hand-over of the men in conversation.");
             sb.AppendLine("- craft_weapon (set 'category' to the weapon: sword, two-handed sword, axe, two-handed axe, mace, two-handed mace, spear, dagger, javelin, throwing axe or throwing knife): the player forges you that weapon at a smithy and hands it to you. Verified only by a weapon the player forged himself, of that kind; a bought one does not count.");
             sb.AppendLine("- arrange_match (target_hero: the one you would wed): the player wins that person over for you, then wins her family's consent, and you are wed. Verified only by the marriage itself.");

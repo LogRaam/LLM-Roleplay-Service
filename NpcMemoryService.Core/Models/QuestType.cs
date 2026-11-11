@@ -182,6 +182,16 @@ namespace NpcMemoryService.Core.Models
         ///   marriage, in two steps, her heart (a real sway toward him) then her family's consent (the arrange_match
         ///   verb). Done when the two are wed, however it comes about. Appended last to preserve the ordinals above.
         /// </summary>
-        ArrangeMatch
+        ArrangeMatch,
+
+        /// <summary>
+        ///   Ride close enough to a town, castle or village of another realm to see it, and report what it holds (Gabriel,
+        ///   10/11/2026: "on fait le type de quete eclairer un lieu"; bdionysis80, Nexus 10/11/2026: a council pledged to
+        ///   scout Hvalvik's garrison and no task could hold it). <see cref="InformalQuest.TargetSettlement" /> names the
+        ///   place. Done when the player's party comes within sight of it; what the game shows of it then (owner, garrison,
+        ///   militia, walls, food) is the evidence. Scout_town stays the job done inside a town through its gang leader.
+        ///   Appended last to preserve the integer ordinals above.
+        /// </summary>
+        ScoutPlace
     }
 }

@@ -865,7 +865,7 @@ namespace NpcMemoryService.Core.Parsing
       // "target_faction or target_hero" takes the hero, the more specific. A type with no target takes none.
       private static QuestTargetSlot TargetSlotOf(QuestType type) => type switch {
          QuestType.BanditClear or QuestType.BanditHideout or QuestType.RaidVillage or QuestType.Siege
-            or QuestType.ReinforceGarrison or QuestType.ScoutTown => QuestTargetSlot.Settlement,
+            or QuestType.ReinforceGarrison or QuestType.ScoutTown or QuestType.ScoutPlace => QuestTargetSlot.Settlement,
          QuestType.AttackLord or QuestType.CapturePrisoner or QuestType.ExecuteEnemy or QuestType.RescuePrisoner
             or QuestType.DeliverLetter or QuestType.ScoutArmy or QuestType.DeliverPrisoner or QuestType.EarnRegard
             or QuestType.PleadCase or QuestType.RansomEnvoy or QuestType.ArrangeMatch => QuestTargetSlot.Hero,
@@ -965,6 +965,14 @@ namespace NpcMemoryService.Core.Parsing
                or "spy_town"
                or "spy_on_town"
                or "gather_intel" => QuestType.ScoutTown,
+            "scout_place"
+               or "scout_castle"
+               or "scout_village"
+               or "scout_settlement"
+               or "scout_garrison"
+               or "scout_fort"
+               or "reconnoiter"
+               or "reconnoitre" => QuestType.ScoutPlace,
             "recruit_troops"
                or "bring_recruits"
                or "recruits"
