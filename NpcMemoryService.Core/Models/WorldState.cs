@@ -12,6 +12,12 @@ namespace NpcMemoryService.Core.Models
         public string? Rumors           { get; init; }
 
         /// <summary>
+        ///   The realms of the world: the towns and castles each holds, and those that have fallen (Schmidt, Discord
+        ///   11/11/2026: "everyone acts surprised when I tell them that Sturgia is no more"). Null or empty says nothing.
+        /// </summary>
+        public string? Realms           { get; init; }
+
+        /// <summary>
         ///   The current part of the day (e.g. "morning", "afternoon", "evening", "night"),
         ///   so a scene's lighting and ambiance match vanilla time. Null when unknown.
         /// </summary>

@@ -1544,6 +1544,17 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         // Schmidt (Discord, 11/11/2026): a lord knows whom he summoned to his army and how many each brought. Parties join
+         // and leave between turns: per turn, below the marker.
+         if (context.NpcArmyRoster is {Count: > 0})
+         {
+            sb.AppendLine("THE ARMY YOU MARCH IN (you know it well; speak of it plainly):");
+            foreach (string line in context.NpcArmyRoster)
+               sb.AppendLine($"- {line}");
+            sb.AppendLine("These are the lords who march with you; never name others as part of this army.");
+            sb.AppendLine();
+         }
+
          // 3chmidt (05/11/2026): an enemy army of 1,800 stood five meters away and the lord never saw it. What stands in
          // sight on the open map is a per-turn fact (armies move between turns), so it sits here, below the marker.
          if (context.ForcesInSight is {Count: > 0})
@@ -5643,6 +5654,8 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine($"Time of day: it is {world.TimeOfDay}. Match the scene's light, sky, and ambiance to this — " + "do NOT describe darkness or torches in daylight, nor bright sun at night.");
          if (!string.IsNullOrWhiteSpace(world.ActiveConflicts))
             sb.AppendLine($"Active conflicts: {world.ActiveConflicts}");
+         if (!string.IsNullOrWhiteSpace(world.Realms))
+            sb.AppendLine($"Realms (common knowledge in every hall): {world.Realms}");
          if (!string.IsNullOrWhiteSpace(world.Rumors))
             sb.AppendLine($"Rumors: {world.Rumors}");
          sb.AppendLine();

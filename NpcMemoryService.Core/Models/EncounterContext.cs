@@ -1737,6 +1737,13 @@ namespace NpcMemoryService.Core.Models
       public IReadOnlyList<string>? ForcesInSight { get; init; }
 
       /// <summary>
+      ///   The army this character marches in, one line per party, the leader's first, then the total, as a captain reckons
+      ///   men ("Ingalther, some 150 men."). Null when they march in no army. Schmidt (Discord, 11/11/2026): lords should
+      ///   know which lords they summoned, how many each brought, and the whole.
+      /// </summary>
+      public IReadOnlyList<string>? NpcArmyRoster { get; init; }
+
+      /// <summary>
       ///   The tournaments under way the character would know of, own realm first ("at Pravend, in your own realm, the prize
       ///   a Noble Bow"). Null or empty when none. 3chmidt (Nexus, 05/11/2026): "lords know in what town currently tournaments
       ///   happen, at least in the same kingdom or a neighbouring one".
