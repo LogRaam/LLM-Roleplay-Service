@@ -102,5 +102,18 @@ namespace NpcMemoryServiceTests
             (cue.Trim().Length >= 15).Should().BeTrue($"'{spec.Type}' has a placeholder cue: \"{cue}\"");
          }
       }
+
+      // A player sold Monchug to a lady for 20,000; the sale did not go through and, asked for the money, she "sends me
+      // only 1,000 deniers" (Nexus bug tracker, 01/11/2026, 2.8.1): the price came as a give_gold, judged as a gift and
+      // capped by regard. STAKE: coin paid FOR a captive read as a gift pays the player the gift ceiling, not the
+      // price, and the captive stays unsold. give_gold must send the interpreter to buy_prisoner, as it sends coin paid
+      // for an item to sell_item.
+      [Test]
+      public void GIVEN_give_gold_WHEN_its_anti_patterns_are_read_THEN_coin_paid_for_a_captive_is_named_buy_prisoner()
+      {
+         GameActionSpec giveGold = GameActionCatalog.All.Single(s => s.Type == "give_gold");
+
+         giveGold.AntiPatterns.Should().Contain(a => a.Contains("captive") && a.Contains("buy_prisoner"));
+      }
    }
 }

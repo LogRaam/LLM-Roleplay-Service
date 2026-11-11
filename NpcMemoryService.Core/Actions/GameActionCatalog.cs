@@ -238,7 +238,8 @@ namespace NpcMemoryService.Core.Actions
                   "the NPC only speaks OF wealth, prices, cost, or poverty, with no coin actually leaving their hands",
                   "a future or conditional payment (owed later, or promised in return for a deed) rather than a completed transfer this turn",
                   "the PLAYER giving or paying the NPC, which is the mirror verb take_gold",
-                  "coin paid for an item the player hands over, which is sell_item"
+                  "coin paid for an item the player hands over, which is sell_item",
+                  "coin paid for a captive the player hands over, which is buy_prisoner"
                },
                new GameActionParam("amount", "whole number of denars")),
             Spec("take_gold",
