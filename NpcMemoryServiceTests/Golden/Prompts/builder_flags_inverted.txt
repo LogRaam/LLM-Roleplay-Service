@@ -85,7 +85,6 @@ Available actions:
 - join_party: A free, recruitable wanderer agrees to take service as a companion in the player's own party for an agreed hiring price.
 - join_as_mercenary: The player's clan enlists as paid mercenary swords under this NPC's kingdom.
 - join_as_vassal: This kingdom's ruler swears the player's clan into full vassalage under their banner (a permanent oath of fealty, distinct from a mercenary contract).
-- marry: The NPC and the player are wed in law (a real MarriageAction.Apply). A wanderer companion match is first promoted from Wanderer to Lord of the player's clan so the engine accepts the union.
 - admit_secret_lover: The player CONFESSES to this NPC, in words this turn, that the player is the hidden lover behind a secret whispers already circulate about; the NPC now privately knows the identity (a fact none can otherwise deduce, and that this NPC may later spread or use).
 - pay_for_silence: The player pays a lord who holds their secret-lover identity a sum of gold to buy his silence; the coin actually changes hands this turn.
 - accept_other_partners: The player's committed partner accepts that the PLAYER may have other partners, while she herself remains his alone. A closed, one-sided household, not an open couple.

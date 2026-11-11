@@ -119,6 +119,26 @@ namespace NpcMemoryServiceTests
          VerbCatalogPolicy.Offered("appoint_governor", nothingTaught).Should().BeFalse();
       }
 
+      // EmhyrTyl (Nexus, 03/11/2026): a noble agreed on day one to wed the player and the game refused. STAKE: with
+      // marry listed on a Lean prompt where the match is not on offer, the rule "never agree to marrying unless an
+      // [ACTION] for it is available" lets a small model promise a wedding the game never seals.
+      [Test]
+      public void GIVEN_lean_and_marriage_not_on_offer_WHEN_built_THEN_marry_is_not_offered_and_the_rule_forbids_agreeing_to_it()
+      {
+         string prompt = Build(new EncounterContext {LeanLevel = LeanPromptLevel.Lean, MarriageBlockedBecause = MarriageBlockReason.RegardTooLow});
+
+         prompt.Should().NotContain("- marry:");
+         prompt.Should().Contain("marrying or divorcing, unless an [ACTION] for it is");
+      }
+
+      // STAKE: the other side of the same gate: where the game can seal the match, the verb must stay offered.
+      [Test]
+      public void GIVEN_marriage_on_offer_WHEN_built_THEN_marry_is_offered()
+      {
+         Build(new EncounterContext {LeanLevel = LeanPromptLevel.Lean, LoveMatchEligible = true})
+            .Should().Contain("- marry:");
+      }
+
       // Read back out of the finished text rather than out of a map of the code, which is what makes it
       // incapable of drifting from it - and what lets a teaching arriving from the mod's own verb registry
       // through ExtraActionTeachings be seen exactly like one written here.

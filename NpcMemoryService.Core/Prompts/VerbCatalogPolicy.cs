@@ -98,7 +98,13 @@ namespace NpcMemoryService.Core.Prompts
             // pay_blackmail was offered to the same test and REFUSED: nothing in a permissive prompt
             // teaches it, so gating it would have deleted it rather than trimmed a duplicate. Left out,
             // which is the whole point of making the list earn itself.
-            "scheme_assist", "reassure_companion", "retire"
+            "scheme_assist", "reassure_companion", "retire",
+
+            // EmhyrTyl (Nexus, 03/11/2026): a noble agreed on day one to wed the player and the game refused. marry was
+            // listed on every prompt ("wed in law"), so Lean's rule "never AGREE to ... marrying ... unless an [ACTION]
+            // for it is available" was always satisfied, and Lean carries no "not yet on offer" guard. Its teaching
+            // renders only when LoveMatchEligible, so off the list it is exactly when the game would refuse it.
+            "marry"
         };
 
         /// <summary>
