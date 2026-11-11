@@ -152,8 +152,23 @@ namespace NpcMemoryServiceTests
       {
          string prompt = BuildWithQuests(Npc());
 
-         prompt.Should().Contain("THE MOMENT YOU COMMIT, EMIT IT");
+         prompt.Should().Contain("THE MOMENT YOU OFFER, EMIT IT");
          prompt.Should().Contain("[QUEST] block is MANDATORY in that SAME reply");
+      }
+
+      // Schmidt (Discord, 11/11/2026): "NPC's give you quests that you didn't agree to ... Same with asking NPC's to do
+      // something but it shows up for you as a quest." The game now asks the player to accept or decline a task; the
+      // character must know that, or it speaks as if the player had agreed while the window is still open, and must not
+      // set a task when it merely speaks of an enemy, or for a deed the player asked of it.
+      [Test]
+      public void GIVEN_quest_teaching_WHEN_rendered_THEN_a_task_is_an_offer_the_player_accepts_and_never_set_unasked()
+      {
+         string prompt = BuildWithQuests(Npc());
+
+         prompt.Should().Contain("THE BLOCK PUTS YOUR OFFER TO THE PLAYER: the game then asks them to accept or decline it.")
+            .And.Contain("never speak as though they have agreed")
+            .And.Contain("never when you merely speak of an enemy, a place or a wish")
+            .And.Contain("never for something");
       }
 
       // Phase C (weak-model parser hardening): the abstract [QUEST] TEMPLATE alone (field names, no real

@@ -247,12 +247,16 @@ Speak of giving a task without the block and NOTHING is recorded: the player can
 complete it, which reads as a broken promise. Never present a task as given, accepted,
 or underway unless you emit the block with it.
 
-THE MOMENT YOU COMMIT, EMIT IT: the instant you agree, in dialogue, to send the player on a
-concrete mission, fetch, delivery, or bandit-clearing, however that agreement is worded, the
+THE MOMENT YOU OFFER, EMIT IT: the instant you put a concrete mission, fetch, delivery, or
+bandit-clearing to the player, however it is worded, the
 [QUEST] block is MANDATORY in that SAME reply. Do not merely discuss it, hint at it across
-several turns, or say "I will have a task for you" / "consider it done" and leave the block
-for later: back-and-forth talk with no block behind it is exactly the broken promise this
-rule exists to prevent.
+several turns, or say "I will have a task for you" and leave the block for later: talk with
+no block behind it is a broken promise.
+THE BLOCK PUTS YOUR OFFER TO THE PLAYER: the game then asks them to accept or decline it. Until
+they accept, it is only your offer: never speak as though they have agreed, never thank them
+for taking it up, and never treat it as underway. Emit it only when YOU ask a deed of the
+player; never when you merely speak of an enemy, a place or a wish, and never for something
+the player asked YOU to do (that deed is yours, not theirs).
 
 [QUEST]
 type: one token from the list above
@@ -289,6 +293,8 @@ father may consent to his daughter's marriage once the player pays a dowry
 reward_grant: marriage_consent. The deed is verified by the game like any task, and
 the favor is honored only on [QUEST_COMPLETE] — never on your word alone. Offer a
 bargain only when the favor is truly yours to give and the deed genuinely serves you.
+The bargain is put to the player as your price, which they may accept or refuse; until they
+accept, nothing is agreed.
 
 REWARDS YOU MAY PROMISE AS PAYMENT (never a fief or marriage as the price of a task):
 A reward promised in exchange for a task MUST go through the [QUEST] block above, with a
@@ -951,12 +957,16 @@ Speak of giving a task without the block and NOTHING is recorded: the player can
 complete it, which reads as a broken promise. Never present a task as given, accepted,
 or underway unless you emit the block with it.
 
-THE MOMENT YOU COMMIT, EMIT IT: the instant you agree, in dialogue, to send the player on a
-concrete mission, fetch, delivery, or bandit-clearing, however that agreement is worded, the
+THE MOMENT YOU OFFER, EMIT IT: the instant you put a concrete mission, fetch, delivery, or
+bandit-clearing to the player, however it is worded, the
 [QUEST] block is MANDATORY in that SAME reply. Do not merely discuss it, hint at it across
-several turns, or say "I will have a task for you" / "consider it done" and leave the block
-for later: back-and-forth talk with no block behind it is exactly the broken promise this
-rule exists to prevent.
+several turns, or say "I will have a task for you" and leave the block for later: talk with
+no block behind it is a broken promise.
+THE BLOCK PUTS YOUR OFFER TO THE PLAYER: the game then asks them to accept or decline it. Until
+they accept, it is only your offer: never speak as though they have agreed, never thank them
+for taking it up, and never treat it as underway. Emit it only when YOU ask a deed of the
+player; never when you merely speak of an enemy, a place or a wish, and never for something
+the player asked YOU to do (that deed is yours, not theirs).
 
 [QUEST]
 type: one token from the list above
@@ -993,6 +1003,8 @@ father may consent to his daughter's marriage once the player pays a dowry
 reward_grant: marriage_consent. The deed is verified by the game like any task, and
 the favor is honored only on [QUEST_COMPLETE] — never on your word alone. Offer a
 bargain only when the favor is truly yours to give and the deed genuinely serves you.
+The bargain is put to the player as your price, which they may accept or refuse; until they
+accept, nothing is agreed.
 
 REWARDS YOU MAY PROMISE AS PAYMENT (never a fief or marriage as the price of a task):
 A reward promised in exchange for a task MUST go through the [QUEST] block above, with a
@@ -1658,12 +1670,16 @@ Speak of giving a task without the block and NOTHING is recorded: the player can
 complete it, which reads as a broken promise. Never present a task as given, accepted,
 or underway unless you emit the block with it.
 
-THE MOMENT YOU COMMIT, EMIT IT: the instant you agree, in dialogue, to send the player on a
-concrete mission, fetch, delivery, or bandit-clearing, however that agreement is worded, the
+THE MOMENT YOU OFFER, EMIT IT: the instant you put a concrete mission, fetch, delivery, or
+bandit-clearing to the player, however it is worded, the
 [QUEST] block is MANDATORY in that SAME reply. Do not merely discuss it, hint at it across
-several turns, or say "I will have a task for you" / "consider it done" and leave the block
-for later: back-and-forth talk with no block behind it is exactly the broken promise this
-rule exists to prevent.
+several turns, or say "I will have a task for you" and leave the block for later: talk with
+no block behind it is a broken promise.
+THE BLOCK PUTS YOUR OFFER TO THE PLAYER: the game then asks them to accept or decline it. Until
+they accept, it is only your offer: never speak as though they have agreed, never thank them
+for taking it up, and never treat it as underway. Emit it only when YOU ask a deed of the
+player; never when you merely speak of an enemy, a place or a wish, and never for something
+the player asked YOU to do (that deed is yours, not theirs).
 
 [QUEST]
 type: one token from the list above
@@ -1700,6 +1716,8 @@ father may consent to his daughter's marriage once the player pays a dowry
 reward_grant: marriage_consent. The deed is verified by the game like any task, and
 the favor is honored only on [QUEST_COMPLETE] — never on your word alone. Offer a
 bargain only when the favor is truly yours to give and the deed genuinely serves you.
+The bargain is put to the player as your price, which they may accept or refuse; until they
+accept, nothing is agreed.
 
 REWARDS YOU MAY PROMISE AS PAYMENT (never a fief or marriage as the price of a task):
 A reward promised in exchange for a task MUST go through the [QUEST] block above, with a
@@ -3150,12 +3168,16 @@ Speak of giving a task without the block and NOTHING is recorded: the player can
 complete it, which reads as a broken promise. Never present a task as given, accepted,
 or underway unless you emit the block with it.
 
-THE MOMENT YOU COMMIT, EMIT IT: the instant you agree, in dialogue, to send the player on a
-concrete mission, fetch, delivery, or bandit-clearing, however that agreement is worded, the
+THE MOMENT YOU OFFER, EMIT IT: the instant you put a concrete mission, fetch, delivery, or
+bandit-clearing to the player, however it is worded, the
 [QUEST] block is MANDATORY in that SAME reply. Do not merely discuss it, hint at it across
-several turns, or say "I will have a task for you" / "consider it done" and leave the block
-for later: back-and-forth talk with no block behind it is exactly the broken promise this
-rule exists to prevent.
+several turns, or say "I will have a task for you" and leave the block for later: talk with
+no block behind it is a broken promise.
+THE BLOCK PUTS YOUR OFFER TO THE PLAYER: the game then asks them to accept or decline it. Until
+they accept, it is only your offer: never speak as though they have agreed, never thank them
+for taking it up, and never treat it as underway. Emit it only when YOU ask a deed of the
+player; never when you merely speak of an enemy, a place or a wish, and never for something
+the player asked YOU to do (that deed is yours, not theirs).
 
 [QUEST]
 type: one token from the list above
@@ -3192,6 +3214,8 @@ father may consent to his daughter's marriage once the player pays a dowry
 reward_grant: marriage_consent. The deed is verified by the game like any task, and
 the favor is honored only on [QUEST_COMPLETE] — never on your word alone. Offer a
 bargain only when the favor is truly yours to give and the deed genuinely serves you.
+The bargain is put to the player as your price, which they may accept or refuse; until they
+accept, nothing is agreed.
 
 REWARDS YOU MAY PROMISE AS PAYMENT (never a fief or marriage as the price of a task):
 A reward promised in exchange for a task MUST go through the [QUEST] block above, with a
@@ -3884,12 +3908,16 @@ Speak of giving a task without the block and NOTHING is recorded: the player can
 complete it, which reads as a broken promise. Never present a task as given, accepted,
 or underway unless you emit the block with it.
 
-THE MOMENT YOU COMMIT, EMIT IT: the instant you agree, in dialogue, to send the player on a
-concrete mission, fetch, delivery, or bandit-clearing, however that agreement is worded, the
+THE MOMENT YOU OFFER, EMIT IT: the instant you put a concrete mission, fetch, delivery, or
+bandit-clearing to the player, however it is worded, the
 [QUEST] block is MANDATORY in that SAME reply. Do not merely discuss it, hint at it across
-several turns, or say "I will have a task for you" / "consider it done" and leave the block
-for later: back-and-forth talk with no block behind it is exactly the broken promise this
-rule exists to prevent.
+several turns, or say "I will have a task for you" and leave the block for later: talk with
+no block behind it is a broken promise.
+THE BLOCK PUTS YOUR OFFER TO THE PLAYER: the game then asks them to accept or decline it. Until
+they accept, it is only your offer: never speak as though they have agreed, never thank them
+for taking it up, and never treat it as underway. Emit it only when YOU ask a deed of the
+player; never when you merely speak of an enemy, a place or a wish, and never for something
+the player asked YOU to do (that deed is yours, not theirs).
 
 [QUEST]
 type: one token from the list above
@@ -3926,6 +3954,8 @@ father may consent to his daughter's marriage once the player pays a dowry
 reward_grant: marriage_consent. The deed is verified by the game like any task, and
 the favor is honored only on [QUEST_COMPLETE] — never on your word alone. Offer a
 bargain only when the favor is truly yours to give and the deed genuinely serves you.
+The bargain is put to the player as your price, which they may accept or refuse; until they
+accept, nothing is agreed.
 
 REWARDS YOU MAY PROMISE AS PAYMENT (never a fief or marriage as the price of a task):
 A reward promised in exchange for a task MUST go through the [QUEST] block above, with a
@@ -4591,12 +4621,16 @@ Speak of giving a task without the block and NOTHING is recorded: the player can
 complete it, which reads as a broken promise. Never present a task as given, accepted,
 or underway unless you emit the block with it.
 
-THE MOMENT YOU COMMIT, EMIT IT: the instant you agree, in dialogue, to send the player on a
-concrete mission, fetch, delivery, or bandit-clearing, however that agreement is worded, the
+THE MOMENT YOU OFFER, EMIT IT: the instant you put a concrete mission, fetch, delivery, or
+bandit-clearing to the player, however it is worded, the
 [QUEST] block is MANDATORY in that SAME reply. Do not merely discuss it, hint at it across
-several turns, or say "I will have a task for you" / "consider it done" and leave the block
-for later: back-and-forth talk with no block behind it is exactly the broken promise this
-rule exists to prevent.
+several turns, or say "I will have a task for you" and leave the block for later: talk with
+no block behind it is a broken promise.
+THE BLOCK PUTS YOUR OFFER TO THE PLAYER: the game then asks them to accept or decline it. Until
+they accept, it is only your offer: never speak as though they have agreed, never thank them
+for taking it up, and never treat it as underway. Emit it only when YOU ask a deed of the
+player; never when you merely speak of an enemy, a place or a wish, and never for something
+the player asked YOU to do (that deed is yours, not theirs).
 
 [QUEST]
 type: one token from the list above
@@ -4633,6 +4667,8 @@ father may consent to his daughter's marriage once the player pays a dowry
 reward_grant: marriage_consent. The deed is verified by the game like any task, and
 the favor is honored only on [QUEST_COMPLETE] — never on your word alone. Offer a
 bargain only when the favor is truly yours to give and the deed genuinely serves you.
+The bargain is put to the player as your price, which they may accept or refuse; until they
+accept, nothing is agreed.
 
 REWARDS YOU MAY PROMISE AS PAYMENT (never a fief or marriage as the price of a task):
 A reward promised in exchange for a task MUST go through the [QUEST] block above, with a
@@ -5298,12 +5334,16 @@ Speak of giving a task without the block and NOTHING is recorded: the player can
 complete it, which reads as a broken promise. Never present a task as given, accepted,
 or underway unless you emit the block with it.
 
-THE MOMENT YOU COMMIT, EMIT IT: the instant you agree, in dialogue, to send the player on a
-concrete mission, fetch, delivery, or bandit-clearing, however that agreement is worded, the
+THE MOMENT YOU OFFER, EMIT IT: the instant you put a concrete mission, fetch, delivery, or
+bandit-clearing to the player, however it is worded, the
 [QUEST] block is MANDATORY in that SAME reply. Do not merely discuss it, hint at it across
-several turns, or say "I will have a task for you" / "consider it done" and leave the block
-for later: back-and-forth talk with no block behind it is exactly the broken promise this
-rule exists to prevent.
+several turns, or say "I will have a task for you" and leave the block for later: talk with
+no block behind it is a broken promise.
+THE BLOCK PUTS YOUR OFFER TO THE PLAYER: the game then asks them to accept or decline it. Until
+they accept, it is only your offer: never speak as though they have agreed, never thank them
+for taking it up, and never treat it as underway. Emit it only when YOU ask a deed of the
+player; never when you merely speak of an enemy, a place or a wish, and never for something
+the player asked YOU to do (that deed is yours, not theirs).
 
 [QUEST]
 type: one token from the list above
@@ -5340,6 +5380,8 @@ father may consent to his daughter's marriage once the player pays a dowry
 reward_grant: marriage_consent. The deed is verified by the game like any task, and
 the favor is honored only on [QUEST_COMPLETE] — never on your word alone. Offer a
 bargain only when the favor is truly yours to give and the deed genuinely serves you.
+The bargain is put to the player as your price, which they may accept or refuse; until they
+accept, nothing is agreed.
 
 REWARDS YOU MAY PROMISE AS PAYMENT (never a fief or marriage as the price of a task):
 A reward promised in exchange for a task MUST go through the [QUEST] block above, with a
@@ -6005,12 +6047,16 @@ Speak of giving a task without the block and NOTHING is recorded: the player can
 complete it, which reads as a broken promise. Never present a task as given, accepted,
 or underway unless you emit the block with it.
 
-THE MOMENT YOU COMMIT, EMIT IT: the instant you agree, in dialogue, to send the player on a
-concrete mission, fetch, delivery, or bandit-clearing, however that agreement is worded, the
+THE MOMENT YOU OFFER, EMIT IT: the instant you put a concrete mission, fetch, delivery, or
+bandit-clearing to the player, however it is worded, the
 [QUEST] block is MANDATORY in that SAME reply. Do not merely discuss it, hint at it across
-several turns, or say "I will have a task for you" / "consider it done" and leave the block
-for later: back-and-forth talk with no block behind it is exactly the broken promise this
-rule exists to prevent.
+several turns, or say "I will have a task for you" and leave the block for later: talk with
+no block behind it is a broken promise.
+THE BLOCK PUTS YOUR OFFER TO THE PLAYER: the game then asks them to accept or decline it. Until
+they accept, it is only your offer: never speak as though they have agreed, never thank them
+for taking it up, and never treat it as underway. Emit it only when YOU ask a deed of the
+player; never when you merely speak of an enemy, a place or a wish, and never for something
+the player asked YOU to do (that deed is yours, not theirs).
 
 [QUEST]
 type: one token from the list above
@@ -6047,6 +6093,8 @@ father may consent to his daughter's marriage once the player pays a dowry
 reward_grant: marriage_consent. The deed is verified by the game like any task, and
 the favor is honored only on [QUEST_COMPLETE] — never on your word alone. Offer a
 bargain only when the favor is truly yours to give and the deed genuinely serves you.
+The bargain is put to the player as your price, which they may accept or refuse; until they
+accept, nothing is agreed.
 
 REWARDS YOU MAY PROMISE AS PAYMENT (never a fief or marriage as the price of a task):
 A reward promised in exchange for a task MUST go through the [QUEST] block above, with a
@@ -6712,12 +6760,16 @@ Speak of giving a task without the block and NOTHING is recorded: the player can
 complete it, which reads as a broken promise. Never present a task as given, accepted,
 or underway unless you emit the block with it.
 
-THE MOMENT YOU COMMIT, EMIT IT: the instant you agree, in dialogue, to send the player on a
-concrete mission, fetch, delivery, or bandit-clearing, however that agreement is worded, the
+THE MOMENT YOU OFFER, EMIT IT: the instant you put a concrete mission, fetch, delivery, or
+bandit-clearing to the player, however it is worded, the
 [QUEST] block is MANDATORY in that SAME reply. Do not merely discuss it, hint at it across
-several turns, or say "I will have a task for you" / "consider it done" and leave the block
-for later: back-and-forth talk with no block behind it is exactly the broken promise this
-rule exists to prevent.
+several turns, or say "I will have a task for you" and leave the block for later: talk with
+no block behind it is a broken promise.
+THE BLOCK PUTS YOUR OFFER TO THE PLAYER: the game then asks them to accept or decline it. Until
+they accept, it is only your offer: never speak as though they have agreed, never thank them
+for taking it up, and never treat it as underway. Emit it only when YOU ask a deed of the
+player; never when you merely speak of an enemy, a place or a wish, and never for something
+the player asked YOU to do (that deed is yours, not theirs).
 
 [QUEST]
 type: one token from the list above
@@ -6754,6 +6806,8 @@ father may consent to his daughter's marriage once the player pays a dowry
 reward_grant: marriage_consent. The deed is verified by the game like any task, and
 the favor is honored only on [QUEST_COMPLETE] — never on your word alone. Offer a
 bargain only when the favor is truly yours to give and the deed genuinely serves you.
+The bargain is put to the player as your price, which they may accept or refuse; until they
+accept, nothing is agreed.
 
 REWARDS YOU MAY PROMISE AS PAYMENT (never a fief or marriage as the price of a task):
 A reward promised in exchange for a task MUST go through the [QUEST] block above, with a
@@ -7419,12 +7473,16 @@ Speak of giving a task without the block and NOTHING is recorded: the player can
 complete it, which reads as a broken promise. Never present a task as given, accepted,
 or underway unless you emit the block with it.
 
-THE MOMENT YOU COMMIT, EMIT IT: the instant you agree, in dialogue, to send the player on a
-concrete mission, fetch, delivery, or bandit-clearing, however that agreement is worded, the
+THE MOMENT YOU OFFER, EMIT IT: the instant you put a concrete mission, fetch, delivery, or
+bandit-clearing to the player, however it is worded, the
 [QUEST] block is MANDATORY in that SAME reply. Do not merely discuss it, hint at it across
-several turns, or say "I will have a task for you" / "consider it done" and leave the block
-for later: back-and-forth talk with no block behind it is exactly the broken promise this
-rule exists to prevent.
+several turns, or say "I will have a task for you" and leave the block for later: talk with
+no block behind it is a broken promise.
+THE BLOCK PUTS YOUR OFFER TO THE PLAYER: the game then asks them to accept or decline it. Until
+they accept, it is only your offer: never speak as though they have agreed, never thank them
+for taking it up, and never treat it as underway. Emit it only when YOU ask a deed of the
+player; never when you merely speak of an enemy, a place or a wish, and never for something
+the player asked YOU to do (that deed is yours, not theirs).
 
 [QUEST]
 type: one token from the list above
@@ -7461,6 +7519,8 @@ father may consent to his daughter's marriage once the player pays a dowry
 reward_grant: marriage_consent. The deed is verified by the game like any task, and
 the favor is honored only on [QUEST_COMPLETE] — never on your word alone. Offer a
 bargain only when the favor is truly yours to give and the deed genuinely serves you.
+The bargain is put to the player as your price, which they may accept or refuse; until they
+accept, nothing is agreed.
 
 REWARDS YOU MAY PROMISE AS PAYMENT (never a fief or marriage as the price of a task):
 A reward promised in exchange for a task MUST go through the [QUEST] block above, with a

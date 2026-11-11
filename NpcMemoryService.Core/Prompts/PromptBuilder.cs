@@ -900,6 +900,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("reward_grant: marriage_consent. The deed is verified by the game like any task, and");
          sb.AppendLine("the favor is honored only on [QUEST_COMPLETE] — never on your word alone. Offer a");
          sb.AppendLine("bargain only when the favor is truly yours to give and the deed genuinely serves you.");
+         sb.AppendLine("The bargain is put to the player as your price, which they may accept or refuse; until they");
+         sb.AppendLine("accept, nothing is agreed.");
          sb.AppendLine();
       }
 
@@ -8759,12 +8761,16 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("complete it, which reads as a broken promise. Never present a task as given, accepted,");
          sb.AppendLine("or underway unless you emit the block with it.");
          sb.AppendLine();
-         sb.AppendLine("THE MOMENT YOU COMMIT, EMIT IT: the instant you agree, in dialogue, to send the player on a");
-         sb.AppendLine("concrete mission, fetch, delivery, or bandit-clearing, however that agreement is worded, the");
+         sb.AppendLine("THE MOMENT YOU OFFER, EMIT IT: the instant you put a concrete mission, fetch, delivery, or");
+         sb.AppendLine("bandit-clearing to the player, however it is worded, the");
          sb.AppendLine("[QUEST] block is MANDATORY in that SAME reply. Do not merely discuss it, hint at it across");
-         sb.AppendLine("several turns, or say \"I will have a task for you\" / \"consider it done\" and leave the block");
-         sb.AppendLine("for later: back-and-forth talk with no block behind it is exactly the broken promise this");
-         sb.AppendLine("rule exists to prevent.");
+         sb.AppendLine("several turns, or say \"I will have a task for you\" and leave the block for later: talk with");
+         sb.AppendLine("no block behind it is a broken promise.");
+         sb.AppendLine("THE BLOCK PUTS YOUR OFFER TO THE PLAYER: the game then asks them to accept or decline it. Until");
+         sb.AppendLine("they accept, it is only your offer: never speak as though they have agreed, never thank them");
+         sb.AppendLine("for taking it up, and never treat it as underway. Emit it only when YOU ask a deed of the");
+         sb.AppendLine("player; never when you merely speak of an enemy, a place or a wish, and never for something");
+         sb.AppendLine("the player asked YOU to do (that deed is yours, not theirs).");
          sb.AppendLine();
          sb.AppendLine("[QUEST]");
          sb.AppendLine("type: one token from the list above");
