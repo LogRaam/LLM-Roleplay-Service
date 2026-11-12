@@ -291,27 +291,7 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
             // the host can log it and the one-shot retry above can fire.
             var finishReason = root["choices"]?[0]?["finish_reason"]?.Value<string>();
 
-            LlmUsage? usage = null;
-            if (root["usage"] is JObject usageEl)
-            {
-               int prompt = usageEl["prompt_tokens"]?.Value<int>() ?? 0;
-               int completion = usageEl["completion_tokens"]?.Value<int>() ?? 0;
-
-               // Cached token counts when reported by the provider.
-               // OpenRouter normalizes these into the usage block.
-               int? cachedRead = ReadIntOrNull(usageEl["cache_read_input_tokens"]) ?? ReadIntOrNull(usageEl["cached_tokens"]) ?? ReadIntOrNull(usageEl["prompt_tokens_details"]?["cached_tokens"]);
-
-               // What it cost and what it hid (OpenRouter, when asked with usage.include): the bill itself, the
-               // tokens spent thinking, and the prompt written to cache. Read when present, never required.
-               usage = new LlmUsage(prompt, completion) {
-                  CachedPromptTokens = cachedRead,
-                  Cost = ReadDoubleOrNull(usageEl["cost"]),
-                  ReasoningTokens = ReadIntOrNull(usageEl["completion_tokens_details"]?["reasoning_tokens"]),
-                  CacheWriteTokens = ReadIntOrNull(usageEl["prompt_tokens_details"]?["cache_write_tokens"])
-               };
-            }
-
-            return new LlmResponse {Content = content, IsSuccess = true, Usage = usage, FinishReason = finishReason};
+            return new LlmResponse {Content = content, IsSuccess = true, Usage = ReadUsage(root["usage"]), FinishReason = finishReason};
          }
          catch (Exception ex)
          {
@@ -320,6 +300,44 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          }
       }
 
+      /// <summary>
+      ///   The usage block, or null. LapitaPolata (Discord, 11/11/2026, 2.8.7): an endpoint wrote
+      ///   <c>"completion_tokens_details": null</c> on every reply that did not reason; a JSON null is a JValue, not a C#
+      ///   null, so indexing into it threw and the whole, valid reply was thrown away as "not a single JSON object" (14 in
+      ///   one session). A child is read only from a real object, and the block is read apart from the reply: what a call
+      ///   cost is never worth the reply itself.
+      /// </summary>
+      private static LlmUsage? ReadUsage(JToken? usageToken)
+      {
+         if (!(usageToken is JObject usageEl)) return null;
+
+         try
+         {
+            int prompt = ReadIntOrNull(usageEl["prompt_tokens"]) ?? 0;
+            int completion = ReadIntOrNull(usageEl["completion_tokens"]) ?? 0;
+
+            // Cached token counts when reported by the provider.
+            // OpenRouter normalizes these into the usage block.
+            int? cachedRead = ReadIntOrNull(usageEl["cache_read_input_tokens"]) ?? ReadIntOrNull(usageEl["cached_tokens"]) ?? ReadChildIntOrNull(usageEl["prompt_tokens_details"], "cached_tokens");
+
+            // What it cost and what it hid (OpenRouter, when asked with usage.include): the bill itself, the
+            // tokens spent thinking, and the prompt written to cache. Read when present, never required.
+            return new LlmUsage(prompt, completion) {
+               CachedPromptTokens = cachedRead,
+               Cost = ReadDoubleOrNull(usageEl["cost"]),
+               ReasoningTokens = ReadChildIntOrNull(usageEl["completion_tokens_details"], "reasoning_tokens"),
+               CacheWriteTokens = ReadChildIntOrNull(usageEl["prompt_tokens_details"], "cache_write_tokens")
+            };
+         }
+         catch (Exception)
+         {
+            return null;
+         }
+      }
+
+      /// <summary>A number under <paramref name="parent" />, read only when the parent is a real object (a JSON null is not).</summary>
+      private static int? ReadChildIntOrNull(JToken? parent, string name) => parent is JObject obj ? ReadIntOrNull(obj[name]) : null;
+
       /// <summary>A short, single-line excerpt of a raw body, for diagnosing a non-JSON response.</summary>
       private static string Snippet(string? body)
       {
@@ -327,7 +345,8 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
 
          string oneLine = body!.Replace("\r", " ").Replace("\n", " ").Trim();
 
-         return oneLine.Length <= 160 ? oneLine : oneLine.Substring(0, 160) + "…";
+         // 600, not 160 (LapitaPolata, 11/11/2026): the cause sat past the first 160 characters of a body that WAS JSON.
+         return oneLine.Length <= 600 ? oneLine : oneLine.Substring(0, 600) + "…";
       }
 
       private static double? ReadDoubleOrNull(JToken? token)

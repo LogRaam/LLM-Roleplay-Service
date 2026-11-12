@@ -50,6 +50,39 @@ namespace NpcMemoryServiceTests
          response.Usage.CachedPromptTokens.Should().Be(800);
       }
 
+      // LapitaPolata (Discord, 11/11/2026, 2.8.7), the body exactly as the endpoint wrote it: "completion_tokens_details" is
+      // a JSON null whenever the model did not reason. STAKE: indexing into that null threw, and a valid reply was thrown
+      // away as "not a single JSON object", 14 times in one session.
+      [Test]
+      public void GIVEN_a_usage_detail_written_as_json_null_WHEN_parsed_THEN_the_reply_is_kept_and_the_counts_read()
+      {
+         const string body = "{\"id\":\"23d358c4\",\"object\":\"chat.completion\",\"model\":\"free/glm-5.3-flash\"," +
+                             "\"choices\":[{\"index\":0,\"message\":{\"role\":\"assistant\",\"content\":\"Well met.\"},\"finish_reason\":\"stop\"}]," +
+                             "\"usage\":{\"prompt_tokens\":380,\"completion_tokens\":40,\"total_tokens\":420," +
+                             "\"prompt_tokens_details\":{\"audio_tokens\":0,\"text_tokens\":0,\"image_tokens\":0,\"video_tokens\":0}," +
+                             "\"completion_tokens_details\":null,\"cost_tokens\":0}}";
+
+         LlmResponse response = OpenRouterClient.ParseResponse(body);
+
+         response.IsSuccess.Should().BeTrue();
+         response.Content.Should().Be("Well met.");
+         response.Usage!.PromptTokens.Should().Be(380);
+         response.Usage.ReasoningTokens.Should().BeNull();
+      }
+
+      // STAKE: what a call cost is never worth the reply. Every usage field written as null still leaves the reply whole.
+      [Test]
+      public void GIVEN_every_usage_field_written_as_null_WHEN_parsed_THEN_the_reply_is_kept()
+      {
+         const string body = "{\"choices\":[{\"message\":{\"role\":\"assistant\",\"content\":\"Well met.\"},\"finish_reason\":\"stop\"}]," +
+                             "\"usage\":{\"prompt_tokens\":null,\"completion_tokens\":null,\"prompt_tokens_details\":null,\"completion_tokens_details\":null,\"cost\":null}}";
+
+         LlmResponse response = OpenRouterClient.ParseResponse(body);
+
+         response.IsSuccess.Should().BeTrue();
+         response.Content.Should().Be("Well met.");
+      }
+
       // A truncated reply retried with a bigger budget is billed twice. Reporting the retry alone made every total
       // the mod could compute lower than the invoice.
       [Test]
