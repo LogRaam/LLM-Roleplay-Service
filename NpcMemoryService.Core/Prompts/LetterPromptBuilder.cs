@@ -78,6 +78,13 @@ namespace NpcMemoryService.Core.Prompts
 
       private static string Capitalised(string s) => string.IsNullOrEmpty(s) ? s : char.ToUpperInvariant(s[0]) + s.Substring(1);
 
+      /// <summary>
+      ///   bdionysis80 (Nexus, 12/11/2026): "current date Summer 9 1084 while receiving letters with timestamp summer
+      ///   1085". The writer was given the absolute day count and no date, and worked a year out of it one too many. The
+      ///   host now gives the calendar date in CURRENT WORLD STATE; this says that date is the only one to write.
+      /// </summary>
+      internal const string DateLine = "If you date the letter, use the date given in CURRENT WORLD STATE exactly; never work a date out from the day count.";
+
       private static string SignatureLine(NpcProfile npc, string playerName, string? writtenBy)
          => string.IsNullOrWhiteSpace(writtenBy) ? SignOffLine(npc, playerName) : DictatedLine(npc, playerName, writtenBy!);
 
@@ -102,6 +109,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("not a face-to-face conversation. Keep it to 2-3 paragraphs.");
          sb.AppendLine($"Address {playerName} by name. Do not use modern expressions.");
          sb.AppendLine(SignatureLine(npc, playerName, writtenBy));
+         sb.AppendLine(DateLine);
          AppendDay(sb, mood, writtenBy);
          AppendPlace(sb, whereabouts, playerSituation);
          sb.AppendLine("Write ONLY the letter body in [DIALOGUE]. Do not emit [EVENT], [ACTION], [STANCE], or any");
@@ -138,6 +146,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Leave one blank line, then write your reply letter in 2-3 paragraphs.");
          sb.AppendLine($"Address {playerName} by name. Period-appropriate language only.");
          sb.AppendLine(SignatureLine(npc, playerName, writtenBy));
+         sb.AppendLine(DateLine);
          // The weaker form of AppendNothingIsSettledByLetter: this path answers a letter the PLAYER chose to
          // write, so the host cannot know what is being answered and cannot name the debt. The invariant still
          // holds for every reason, and it is the only guard on this path.
@@ -211,6 +220,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Write your reply letter in 2-3 paragraphs. Stay in character.");
          sb.AppendLine($"Address {playerName} by name. Do not use modern expressions.");
          sb.AppendLine(SignatureLine(npc, playerName, writtenBy));
+         sb.AppendLine(DateLine);
          AppendDay(sb, mood, writtenBy);
          AppendPlace(sb, whereabouts, playerSituation);
          sb.AppendLine($"Write the letter in the same language as the quoted letter from {playerName} above, not the");
