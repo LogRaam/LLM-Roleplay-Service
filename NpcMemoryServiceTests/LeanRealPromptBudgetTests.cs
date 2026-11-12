@@ -133,8 +133,25 @@ namespace NpcMemoryServiceTests
                // The SHIPPED default (MCM "Adult Content Level"), not Off. Off suppresses the romantic
                // sections AND the discovered-traits list, so measuring at Off measured a configuration almost
                // nobody runs - the same mistake as the missing narrative files, one field along.
-               AdultLevel = AdultContentLevel.Mature
+               AdultLevel = AdultContentLevel.Mature,
+               // The host always builds with quests on (LlmServices); since 12/11/2026 Compact teaches the task menu
+               // below, so the budget measures it.
+               EnableQuests = true
             };
+
+      /// <summary>
+      ///   A full grounded task menu (QuestMenuComposer.MaxEntries = 8 lines, as long as the real ones run). Compact
+      ///   teaches it since superdeeplearningaibot (12/11/2026) was offered no task at all in Compact mode.
+      /// </summary>
+      internal const string FullQuestMenu =
+         "- bandit_hideout (target_settlement: Ocs Hall): a bandit lair infests the country north-east of Ocs Hall\n"
+       + "- bandit_clear (target_settlement: Sargot): looters raid the farms around Sargot this season\n"
+       + "- deliver_letter (target_hero: Count Aldric of the dey Tougard): a message to carry to Pravend\n"
+       + "- capture_prisoner (target_hero: Lord Erwin of the fen Derngil): an enemy lord riding near Marunath\n"
+       + "- attack_lord (target_hero: Boyar Varyag of the Kostomolich): an enemy lord ravaging the border\n"
+       + "- scout_place (target_settlement: Car Banseth): an enemy castle whose walls and garrison you would know\n"
+       + "- provide_goods (category: horses, required_count: 15): your cavalry lost mounts in the last battle\n"
+       + "- reinforce_garrison (target_settlement: Ocs Hall, required_count: 40): its garrison is under strength";
 
       /// <summary>
       ///   The most expensive character the game can actually produce: a landed lord of the player's own house
@@ -150,6 +167,7 @@ namespace NpcMemoryServiceTests
       internal static EncounterContext Encounter(LeanPromptLevel lean)
          => new() {
             LeanLevel = lean,
+            ViableQuestMenu = FullQuestMenu,
             // What a LORD actually receives: the base guidelines narrowed to his own culture
             // (FactionGuidelinesPolicy, 2026-09-15), which is ~2,144 characters lighter than the file.
             // Measuring the un-narrowed file would over-report the budget by that much and hide progress.

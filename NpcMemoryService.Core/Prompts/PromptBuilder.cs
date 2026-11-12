@@ -8002,6 +8002,8 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine();
             }
 
+            AppendLeanQuestMenu(sb, context);
+
             // A small model is the LIKELIEST to invent a fact or a capability, so the boundary is the last thing
             // it reads rather than the first thing dropped for budget. Compact form; see KnowledgeBoundaryPolicy.
             AppendKnowledgeBoundary(sb, lean, context);
@@ -8693,6 +8695,31 @@ namespace NpcMemoryService.Core.Prompts
       /// </summary>
       private static bool MayOfferTasks(EncounterContext? context)
          => context?.SuppressQuests != true && context?.WarStatus != DiplomaticStatus.AtWar && context?.InActiveWrittenTale != true;
+
+      /// <summary>
+      ///   The Compact prompt's only way to give a task: the host's pre-checked menu and the bare block. superdeeplearningaibot
+      ///   (Discord, 12/11/2026): "the edicts ... doesn't trigger any quests. The NPC seems to still read this"; the log
+      ///   showed the Compact prompt, which taught no task at all, so no character could give one. The generic catalogue
+      ///   stays out (a small model's budget); with no menu there is still no task to give.
+      /// </summary>
+      internal const string LeanQuestMenuHeader = "TASKS YOU MAY GIVE (the only ones that exist; copy the type and target exactly):";
+
+      private void AppendLeanQuestMenu(StringBuilder sb, EncounterContext? context)
+      {
+         if (!EnableQuests || !MayOfferTasks(context) || context?.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+         if (string.IsNullOrWhiteSpace(context?.ViableQuestMenu)) return;
+
+         sb.AppendLine(LeanQuestMenuHeader);
+         sb.AppendLine(context!.ViableQuestMenu);
+         sb.AppendLine("A task is only a deed from this list, never a vow. Asking one, emit this block in the same reply:");
+         sb.AppendLine("[QUEST]");
+         sb.AppendLine("type: <token>");
+         sb.AppendLine("target_settlement / target_hero / target_faction: <exact name, when the type needs one>");
+         sb.AppendLine("reward_gold: N");
+         sb.AppendLine("description: one sentence in your voice asking exactly that deed");
+         sb.AppendLine("[/QUEST]");
+         sb.AppendLine();
+      }
 
       private void AppendQuestInstructions(StringBuilder sb, EncounterContext? context = null)
       {

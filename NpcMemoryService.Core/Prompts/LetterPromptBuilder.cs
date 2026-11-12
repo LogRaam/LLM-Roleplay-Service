@@ -285,6 +285,14 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
+      /// <summary>
+      ///   What a spouse or consort writes of while apart. Aporo (Discord, 12/11/2026): "she writes to me about someone who
+      ///   won a lot of tournaments or that some random castle was taken"; Gabriel: a wife speaks of family, love and
+      ///   personal things. Told only to bring "news", the writer filled the letter with the world's.
+      /// </summary>
+      internal const string SpouseLetterLine =
+         "You are the player's spouse, writing to them while you are apart. Write of home and of the two of you: the household, your children if you have any, your own days, what you miss, what you feel. Bring news of the wider world ONLY when it touches your family, your house or the player directly; a tournament won by someone else or a far castle changing hands is not worth the ink. Let your CURRENT feeling toward them (stated in the Context) set the tone: a warm, contented marriage writes with warmth and affection, while a strained one may carry worry or reproach. Do not default to reproach or longing when the bond is in fact strong.";
+
       private static string DescribeReason(LetterReason reason) => reason switch
       {
          LetterReason.TournamentVictory     => "The player recently won a tournament. You are writing to congratulate — or to challenge.",
@@ -295,7 +303,7 @@ namespace NpcMemoryService.Core.Prompts
          LetterReason.GangFavor             => "You want the player to strike a rival gang on your behalf — a dangerous request that comes with a reward.",
          LetterReason.PoliticalAlliance     => "You are hinting at or proposing a formal political alignment between your interests.",
          LetterReason.RomanticCorrespondence => "You are writing the player a personal letter. Let your CURRENT feeling toward them (stated in the Context) set the tone: warm and tender when the bond is strong, cooler or more guarded when it is not. Do not default to longing if you do not truly feel it.",
-         LetterReason.SpouseCorrespondence  => "You are the player's spouse, writing to them while you are apart. Let your CURRENT feeling toward them (stated in the Context) set the tone: a warm, contented marriage writes with warmth, affection, and news, while a strained one may carry worry or reproach. Do not default to reproach or longing when the bond is in fact strong.",
+         LetterReason.SpouseCorrespondence  => SpouseLetterLine,
          LetterReason.CorruptionAttempt     => "You want information about the player's liege or war plans, and are willing to pay — or threaten.",
          LetterReason.Blackmail             => "You know the player has a secret and you intend to use it unless they pay handsomely. The tone should be veiled menace.",
          LetterReason.BirthAnnouncement     => "You have just given birth to the player's child. Write to inform him — the tone depends on your relationship: tender if you love him, matter-of-fact if it was an arrangement, conflicted if it is a secret. Mention the child's name and sex.",
