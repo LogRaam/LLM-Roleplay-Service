@@ -775,6 +775,14 @@ namespace NpcMemoryService.Core.Models
       public LeaveHouseObstacle LeaveHouseClosedBecause { get; init; }
 
       /// <summary>
+      ///   When <see cref="MarriageBlockedBecause" /> is <see cref="MarriageBlockReason.LeadsTheirOwnHouse" />: true when the
+      ///   player could really leave their house to wed this character now (the host teaches its action). With it false and
+      ///   no obstacle to name, that road is not offered at all: Aporo (Discord, 14/11/2026) was told to leave his house, the
+      ///   model filled the missing road with "dissolve your clan and dismiss your companions", and he did.
+      /// </summary>
+      public bool LeaveHouseRoadOpen { get; init; }
+
+      /// <summary>
       ///   True when marriage is on offer ONLY through the family's blessing (ratified 2026-07-23): the match
       ///   is clear in law but this NPC's own regard for the player is still below the marriage bar. A
       ///   POLITICAL union: the NPC may accept out of duty to their house, coldly, and must never be made to

@@ -91,11 +91,12 @@ namespace NpcMemoryServiceTests
       [Test]
       public void GIVEN_she_heads_her_own_house_WHEN_built_THEN_she_keeps_it_and_names_what_she_can_offer()
       {
-         string prompt = Build(new EncounterContext {MarriageBlockedBecause = MarriageBlockReason.LeadsTheirOwnHouse});
+         // Her road open (a ruler, the player able to leave his house): since 14/11/2026 it is offered only then (Aporo).
+         string prompt = Build(new EncounterContext {MarriageBlockedBecause = MarriageBlockReason.LeadsTheirOwnHouse, LeaveHouseRoadOpen = true});
 
-         prompt.Should().Contain("you will never give up yours");
+         prompt.Should().Contain("will never give up yours");
          prompt.Should().Contain("to be lovers");
-         prompt.Should().Contain("their own house to join yours, you remaining its head");
+         prompt.Should().Contain("their own house to join yours").And.Contain("remaining its head");
          prompt.Should().Contain("never act as though they have already made it");
          prompt.Should().NotContain("It is YOU.");
       }

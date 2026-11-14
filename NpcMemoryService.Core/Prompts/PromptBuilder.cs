@@ -3397,7 +3397,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("in a single conversation. You may express affection, longing, or hope for such a future,");
          sb.AppendLine("but you must NOT declare a marriage done, agree to an immediate ceremony, or act as though");
          sb.AppendLine("you are already wed to the player.");
-         AppendMarriageObstacle(sb, context?.MarriageBlockedBecause ?? MarriageBlockReason.None, context?.LeaveHouseClosedBecause ?? LeaveHouseObstacle.None);
+         AppendMarriageObstacle(sb, context?.MarriageBlockedBecause ?? MarriageBlockReason.None, context?.LeaveHouseClosedBecause ?? LeaveHouseObstacle.None,
+            context?.LeaveHouseRoadOpen == true);
          sb.AppendLine();
       }
 
@@ -3421,7 +3422,7 @@ namespace NpcMemoryService.Core.Prompts
       ///   Deliberately worded as WHAT TO CONVEY, never as a line to recite: a stated reason repeated verbatim
       ///   by every NPC would be worse than the generality it replaces.
       /// </summary>
-      private static void AppendMarriageObstacle(StringBuilder sb, MarriageBlockReason reason, LeaveHouseObstacle roadClosed)
+      private static void AppendMarriageObstacle(StringBuilder sb, MarriageBlockReason reason, LeaveHouseObstacle roadClosed, bool roadOpen = false)
       {
          switch (reason)
          {
@@ -3467,12 +3468,19 @@ namespace NpcMemoryService.Core.Prompts
             // never leaves her throne, and she says what she CAN offer instead.
             case MarriageBlockReason.LeadsTheirOwnHouse:
                sb.AppendLine("WHAT STANDS IN THE WAY: you head your own house, as they head theirs, and two heads of houses");
-               sb.AppendLine("cannot wed: one would have to give up their house, and you will never give up yours or its rule.");
-               sb.AppendLine("Say so plainly, then say what you CAN offer, as fits the moment: to be lovers, or a bond you");
-               sb.AppendLine("both own openly without a wedding; or, if they would truly have you as a spouse, that they leave");
-               sb.AppendLine("their own house to join yours, you remaining its head. That last is their choice to make, sealed");
-               sb.AppendLine("only by its own action when one is taught to you: never act as though they have already made it.");
-               AppendLeaveHouseClosed(sb, roadClosed);
+               sb.AppendLine("cannot wed. You will never give up yours or its rule. Say so plainly, then say what you CAN offer,");
+               sb.AppendLine("as fits the moment: to be lovers, or a bond you both own openly without a wedding.");
+               // Aporo (Discord, 14/11/2026): offered this road while no action could take it, the model made up its price
+               // ("dissolve your clan, dismiss your companions") and he paid it. Offered only while it exists.
+               if (roadOpen || roadClosed != LeaveHouseObstacle.None)
+               {
+                  sb.AppendLine("Or, if they would truly have you as a spouse, that they leave their own house to join yours, you");
+                  sb.AppendLine("remaining its head. That is their choice to make, sealed only by its own action when one is taught");
+                  sb.AppendLine("to you: never act as though they have already made it.");
+                  AppendLeaveHouseClosed(sb, roadClosed);
+               }
+               sb.AppendLine("Never ask them to disband or dissolve their house, dismiss their companions or men, or do any deed");
+               sb.AppendLine("as the price of a wedding: no such deed makes one possible.");
 
                break;
 
