@@ -52,6 +52,10 @@ namespace NpcMemoryService.Core.Prompts
          // dropping it to save tokens on a small model would silently return them the generic NPC they replaced.
          Section("authored_backstory", PromptZone.Prefix, (b, sb, s) => { if (LeanPromptPolicy.Include(PromptSection.AuthoredBackstory, s.Lean)) AppendAuthoredBackstory(sb, s.Npc); }),
          Section("authored_conviction", PromptZone.Prefix, (b, sb, s) => { if (LeanPromptPolicy.Include(PromptSection.AuthoredBackstory, s.Lean)) AppendAuthoredConviction(sb, s.Npc); }),
+         // What other mods write of the character (the host's character-text door, Bhelogan 14/11/2026); the host already
+         // chose what fits this prompt's level, so no lean gate here. Empty for nearly everyone: renders nothing.
+         Section("mod_backstory", PromptZone.Prefix, (b, sb, s) => AppendModBackstory(sb, s.Context)),
+         Section("mod_private", PromptZone.Prefix, (b, sb, s) => AppendModPrivate(sb, s.Context)),
          // How they SOUND, after who they are and what they want; derived from the character, so stable all conversation.
          Section("character_voice", PromptZone.Prefix, (b, sb, s) => AppendCharacterVoice(sb, s.Npc, s.Context, LeanPromptPolicy.Include(PromptSection.AuthoredBackstory, s.Lean))),
          // How readily they believe the player: their nature, or a broken faith; stable all conversation.

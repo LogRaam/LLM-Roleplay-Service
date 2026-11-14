@@ -311,6 +311,28 @@ namespace NpcMemoryService.Core.Prompts
 
       #region private
 
+      /// <summary>More of who the character is, from other mods (EncounterContext.NpcModBackstory). No-op when empty.</summary>
+      private static void AppendModBackstory(StringBuilder sb, EncounterContext? context)
+      {
+         if (string.IsNullOrWhiteSpace(context?.NpcModBackstory)) return;
+         sb.AppendLine("MORE OF WHO YOU ARE (true of you; let it show when it fits, never recite it):");
+         sb.AppendLine(context!.NpcModBackstory!.Trim());
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   What the character keeps to themself, from other mods (EncounterContext.NpcModPrivate). A character never lies
+      ///   (the host's rule): they may keep it, deflect, refuse or fall silent, never deny it with a falsehood. No-op when empty.
+      /// </summary>
+      private static void AppendModPrivate(StringBuilder sb, EncounterContext? context)
+      {
+         if (string.IsNullOrWhiteSpace(context?.NpcModPrivate)) return;
+         sb.AppendLine("WHAT YOU KEEP TO YOURSELF (true, and known to you alone): never tell it unless you choose to; if pressed,");
+         sb.AppendLine("deflect, refuse or stay silent, and never deny it with a falsehood.");
+         sb.AppendLine(context!.NpcModPrivate!.Trim());
+         sb.AppendLine();
+      }
+
       private static void AppendAuthoredBackstory(StringBuilder sb, NpcProfile npc)
       {
          if (string.IsNullOrWhiteSpace(npc.AuthoredBackstory)) return;
@@ -8609,8 +8631,9 @@ namespace NpcMemoryService.Core.Prompts
          bool hasCustom = !string.IsNullOrWhiteSpace(PlayerDescription);
          bool hasAppearance = !string.IsNullOrWhiteSpace(context?.PlayerAppearance);
          bool hasGear = !string.IsNullOrWhiteSpace(context?.PlayerGear);
+         bool hasModText = !string.IsNullOrWhiteSpace(context?.PlayerModText);
 
-         if (!hasName && !hasClan && !hasCustom && !hasAppearance && !hasGear) return;
+         if (!hasName && !hasClan && !hasCustom && !hasAppearance && !hasGear && !hasModText) return;
 
          sb.AppendLine("THE PLAYER:");
          if (hasName)
@@ -8644,6 +8667,12 @@ namespace NpcMemoryService.Core.Prompts
          {
             sb.AppendLine();
             sb.AppendLine(PromptVariableExpander.Expand(PlayerDescription, vars));
+         }
+         // What other mods write of the player (the host's character-text door), after the player's own description.
+         if (hasModText)
+         {
+            sb.AppendLine();
+            sb.AppendLine(context!.PlayerModText!.Trim());
          }
 
          sb.AppendLine();

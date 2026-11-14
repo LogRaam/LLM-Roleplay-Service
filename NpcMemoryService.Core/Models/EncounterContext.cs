@@ -131,6 +131,25 @@ namespace NpcMemoryService.Core.Models
       public string? NpcSelfAppearance { get; init; }
 
       /// <summary>
+      ///   More of who the speaking character is, written by other mods through the host's character-text door (Bhelogan,
+      ///   Discord, 14/11/2026): facts of their life, already bounded and filtered for the prompt's level by the host. Stable
+      ///   within a conversation (it sits in the cached part). Null/empty renders nothing.
+      /// </summary>
+      public string? NpcModBackstory { get; init; }
+
+      /// <summary>
+      ///   What the speaking character keeps to themself, written by other mods (a secret): true and known to them alone, never
+      ///   shown to the player by the host. Already bounded by the host. Null/empty renders nothing.
+      /// </summary>
+      public string? NpcModPrivate { get; init; }
+
+      /// <summary>
+      ///   More of who the player is, written by other mods through the host's character-text door, rendered under THE PLAYER
+      ///   after the player's own description. Already bounded by the host. Null/empty renders nothing.
+      /// </summary>
+      public string? PlayerModText { get; init; }
+
+      /// <summary>
       ///   Equipment-awareness pillar (2026-08-29): the PLAYER's notable equipped gear in the THIRD person
       ///   (Subject voice), composed by the host from live equipped items via the pure EquipmentNotabilityPolicy
       ///   (CalradiaRemembers.Logic). A modder reported that CR feeds NO equipment to the prompt at all, so an

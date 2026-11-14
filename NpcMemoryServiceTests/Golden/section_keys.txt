@@ -123,3 +123,5 @@ spared_villages
 legend
 character_voice
 credulity
+mod_backstory
+mod_private
