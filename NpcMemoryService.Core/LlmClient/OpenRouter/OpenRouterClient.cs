@@ -72,10 +72,28 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
       /// </summary>
       public ILlmUsageObserver? UsageObserver { get; set; }
 
+      /// <summary>
+      ///   Optional seat that sees each finished exchange, request and response (the host's player report). Null by default.
+      ///   See <see cref="ILlmExchangeObserver" />.
+      /// </summary>
+      public ILlmExchangeObserver? ExchangeObserver { get; set; }
+
       private string ChatCompletionsUrl =>
          _config.ResolveBaseUrl().TrimEnd(trimChars: '/') + "/chat/completions";
 
       public async Task<LlmResponse> CompleteAsync(LlmRequest request, CancellationToken ct = default)
+      {
+         LlmResponse response = await CompleteCoreAsync(request, ct).ConfigureAwait(false);
+
+         ILlmExchangeObserver? observer = ExchangeObserver;
+         if (observer != null)
+            try { observer.OnExchange(request, response, ModelFor(request)); }
+            catch { /* a diagnostic never fails a player's conversation */ }
+
+         return response;
+      }
+
+      private async Task<LlmResponse> CompleteCoreAsync(LlmRequest request, CancellationToken ct)
       {
          bool asksReasoningOff = IsOff(EffectiveReasoning(request));
          if (asksReasoningOff && (_reasoningOffRefused || RefusesReasoningOff(ModelFor(request))))
