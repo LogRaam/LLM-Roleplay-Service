@@ -1314,6 +1314,13 @@ namespace NpcMemoryService.Core.Models
       public bool NpcIsPlayerHousehold { get; init; }
 
       /// <summary>
+      ///   True when this NPC belongs to the player's own clan (spouse, kin, companion, any member). Aporo (Discord,
+      ///   13/11/2026): "I don't need that 100 denars for bringing 20 grain when it's my money either way"; Gabriel:
+      ///   "tout le clan". A task they give pays no coin; the host enforces it, the teaching says it.
+      /// </summary>
+      public bool NpcInPlayerClan { get; init; }
+
+      /// <summary>
       ///   Stolen Love pillar gate for an NPC married to a THIRD PARTY: whether the player has genuinely won them
       ///   past their marriage and their own nature. <see cref="MarriedSeductionStance.NotApplicable" /> (the
       ///   default) leaves the ordinary infidelity rule untouched (the pillar is off, or this is not a third-party

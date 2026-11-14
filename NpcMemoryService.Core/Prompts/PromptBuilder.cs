@@ -8702,6 +8702,14 @@ namespace NpcMemoryService.Core.Prompts
       ///   showed the Compact prompt, which taught no task at all, so no character could give one. The generic catalogue
       ///   stays out (a small model's budget); with no menu there is still no task to give.
       /// </summary>
+      /// <summary>
+      ///   Taught to a member of the player's own clan with the task block (Aporo, Discord, 13/11/2026: "it's my money
+      ///   either way"; Gabriel: "tout le clan"). The host sets the coin to 0 whatever is written; this keeps the
+      ///   character from promising it.
+      /// </summary>
+      internal const string ClanPurseLine =
+         "You are of the player's own clan and share one purse with them: never pay them for a task (reward_gold: 0). Your thanks is regard (reward_relation).";
+
       internal const string LeanQuestMenuHeader = "TASKS YOU MAY GIVE (the only ones that exist; copy the type and target exactly):";
 
       private void AppendLeanQuestMenu(StringBuilder sb, EncounterContext? context)
@@ -8715,7 +8723,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("[QUEST]");
          sb.AppendLine("type: <token>");
          sb.AppendLine("target_settlement / target_hero / target_faction: <exact name, when the type needs one>");
-         sb.AppendLine("reward_gold: N");
+         if (!context!.NpcInPlayerClan) sb.AppendLine("reward_gold: N");
          sb.AppendLine("description: one sentence in your voice asking exactly that deed");
          sb.AppendLine("[/QUEST]");
          sb.AppendLine();
@@ -8805,8 +8813,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("target_hero: name (only when the type needs it)");
          sb.AppendLine("target_faction: name (only when the type needs it)");
          sb.AppendLine("deadline_days: N (optional; omit or 0 for open-ended; set it for urgent tasks like letters)");
-         sb.AppendLine("reward_gold: N (denars you promise, 0 if none)");
+         sb.AppendLine("reward_gold: N (denars you promise, 0 if none; 0 when the player has said they want no payment)");
          sb.AppendLine("reward_relation: N (personal regard you promise, 0 if none)");
+         if (context?.NpcInPlayerClan == true) sb.AppendLine(ClanPurseLine);
          sb.AppendLine("reward_grant: a favor you grant on completion instead of coin (omit for an ordinary task). One of: join_party, marriage_consent, give_item, give_troops, release_prisoner. See CONDITIONAL BARGAINS.");
 
          if (context?.FiefAndMarriageQuestRewardsAllowed == true)
