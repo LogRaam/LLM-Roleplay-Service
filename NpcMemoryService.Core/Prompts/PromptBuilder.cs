@@ -368,19 +368,33 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
+      /// <summary>
+      ///   The player's own backstory and voice for this character. It COMMITS to the persona (the v1.30.6 report: a strong
+      ///   authored voice, a named figure above all, read flat and generic once the prompt diluted it), and that commitment
+      ///   rides on how the character thinks and answers, not on a signature phrase: VonLemberg (Discord, 15/11/2026, source
+      ///   audit): "explicitly asking an LLM to invent recurring words or phrases and use them consistently is
+      ///   counterproductive ... After a few exchanges, the player notices the pattern rather than the personality."
+      ///   A quirk the player wrote is a tendency that surfaces now and then, never in every line (unless the player wrote
+      ///   that it comes every time: "Preserve explicitly authored speech characteristics"), and none is invented
+      ///   when the player wrote none (the habit under YOUR VOICE, if any, is the only one). This also stops the section
+      ///   from fighting WornPhrasePolicy, which shows the character its own repeated phrases so it finds new ones.
+      /// </summary>
       private static void AppendAuthoredBackstory(StringBuilder sb, NpcProfile npc)
       {
          if (string.IsNullOrWhiteSpace(npc.AuthoredBackstory)) return;
          sb.AppendLine("BACKSTORY AND VOICE (the player wrote this to shape who you are and how you sound). COMMIT to it");
-         sb.AppendLine("fully: it sets your temperament, tone, and manner, and it must come through clearly and");
-         sb.AppendLine("unmistakably in every reply, never as a faint flavour. USE the speech quirks or recurring words it");
-         sb.AppendLine("gives you (a habitual 'Hmm', a name you always use) so the character is instantly recognisable.");
+         sb.AppendLine("fully: it sets your temperament, tone, and manner, and who you are must come through clearly and");
+         sb.AppendLine("unmistakably in every reply, never as a faint flavour: in how you think, judge, react, jest and");
+         sb.AppendLine("argue, and in the words you choose, far more than in any signature phrase. A speech quirk or");
+         sb.AppendLine("recurring word it gives you (a habitual 'Hmm', a name you use) is a tendency that surfaces now and");
+         sb.AppendLine("then, where it fits the moment, never a mark to show in every line (unless it says, in so many");
+         sb.AppendLine("words, that the habit comes every time).");
          sb.AppendLine("It shapes HOW you speak and WHO you are, not WHAT you decide: your conduct still follows your");
          sb.AppendLine($"traits, the guidelines, and the world of {PromptLore.WorldName}. If it names a figure, take that");
          sb.AppendLine("figure's FULL manner, voice, and force of personality; keep only their world out of the fiction");
          sb.AppendLine($"(import no names, places, powers, or lore from outside {PromptLore.WorldName}).");
-         sb.AppendLine("If, and ONLY if, it spells out no speech quirks of its own, take the habit under YOUR VOICE below");
-         sb.AppendLine("(or, when there is none, invent two or three that fit) and use them consistently.");
+         sb.AppendLine("If, and ONLY if, it spells out no speech quirks of its own, the habit under YOUR VOICE below, if");
+         sb.AppendLine("there is one, is yours on the same terms; invent no tics of your own.");
          sb.AppendLine(npc.AuthoredBackstory);
          sb.AppendLine();
       }

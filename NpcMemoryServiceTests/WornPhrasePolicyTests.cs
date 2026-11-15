@@ -180,7 +180,7 @@ namespace NpcMemoryServiceTests
          string prompt = new PromptBuilder().BuildSystemPrompt(Npc("He stutters and ends every line with 'aye'."), new WorldState(), context);
 
          prompt.Should().Contain("where your backstory above says how you speak, it wins");
-         prompt.Should().Contain("take the habit under YOUR VOICE below");
+         prompt.Should().Contain("the habit under YOUR VOICE below");
       }
    }
 }

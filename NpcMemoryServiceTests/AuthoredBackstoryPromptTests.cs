@@ -4,7 +4,8 @@
 // clause, which diluted a strong named persona (e.g. "Kratos style") into faint generic tics ("no hint of
 // personality"). These tests lock the intended behaviour: a non-empty AuthoredBackstory reaches the system
 // prompt in Full mode, the section commits to it forcefully, a named figure's FULL manner is adopted (only
-// its world kept out), the quirk-invention is a strict fallback, and the section is dropped in Lean mode.
+// its world kept out), no tic is invented and a written one surfaces only now and then (VonLemberg, 15/11/2026),
+// and the section is dropped in Lean mode.
 
 #region
 
@@ -57,8 +58,31 @@ namespace NpcMemoryServiceTests
 
          // The anti-dilution guarantee: the persona must be unmistakable in every reply, not a faint flavour.
          prompt.Should().Contain("COMMIT to it");
-         prompt.Should().Contain("every reply");
-         prompt.Should().Contain("instantly recognisable");
+         prompt.Should().Contain("unmistakably in every reply");
+         // ...and it is carried by how the character thinks and answers, not by a signature phrase (VonLemberg, 15/11/2026).
+         prompt.Should().Contain("in how you think, judge, react, jest and");
+      }
+
+      // STAKE: VonLemberg (Discord, 15/11/2026): "a character repeatedly says 'Hmm...', uses the same metaphor, addresses
+      // the player with the same pet name ... the player notices the pattern rather than the personality." A quirk the
+      // player wrote stays, but as a tendency that surfaces now and then, never a mark demanded in every line.
+      [Test]
+      public void GIVEN_a_backstory_with_a_speech_quirk_WHEN_building_the_full_prompt_THEN_the_quirk_is_an_occasional_tendency_not_a_mark_in_every_line()
+      {
+         string prompt = BuildFull(Backstory);
+
+         prompt.Should().Contain("a tendency that surfaces now and");
+         prompt.Should().Contain("never a mark to show in every line");
+         prompt.Should().NotContain("instantly recognisable");
+         prompt.Should().NotContain("use them consistently");
+      }
+
+      // STAKE: the same audit: "Preserve explicitly authored speech characteristics." A player who wrote that the
+      // character ends every line with 'aye' asked for exactly that; the occasional rule must not overrule them.
+      [Test]
+      public void GIVEN_a_backstory_saying_a_habit_comes_every_time_WHEN_building_the_full_prompt_THEN_the_player_s_words_still_win()
+      {
+         BuildFull(Backstory).Should().Contain("(unless it says, in so many");
       }
 
       // A named figure (e.g. "Kratos") must lend the NPC their FULL manner and force of personality, not a
@@ -81,10 +105,14 @@ namespace NpcMemoryServiceTests
       {
          string prompt = BuildFull(Backstory);
 
-         // Quirk invention only kicks in when the backstory itself spells out none.
+         // With no quirk of its own, the backstory borrows only the habit under YOUR VOICE.
          prompt.Should().Contain("ONLY if, it spells out no speech quirks");
          // The v1.30.4 regressive framing that watered strong personas down must not return.
          prompt.Should().NotContain("two or three subtle");
+         // STAKE: and no tic is invented at all (VonLemberg, 15/11/2026: "Remove the instruction to invent two or three
+         // quirks when none are supplied"): an invented tic is exactly the groove WornPhrasePolicy then has to fight.
+         prompt.Should().NotContain("invent two or three");
+         prompt.Should().Contain("invent no tics of your own");
       }
 
       // A whitespace-only backstory must not render an empty, pointless section header; the section only
