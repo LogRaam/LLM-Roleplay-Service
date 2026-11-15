@@ -78,6 +78,14 @@ namespace NpcMemoryService.Core.Models
         public string? SourceMod { get; set; }
 
         /// <summary>
+        ///   A memory the PLAYER wrote or rewrote by hand (cr.memory_add, cr.memory_set), the past they chose to give this
+        ///   character. Memory compression never drops it: nothing in the game would ever write it again, and the player
+        ///   wrote it to be remembered (Icezera, Discord, 15/11/2026: "the added memories were missing"). Additive and
+        ///   optional, as above: older saves read false, and a memory written by hand before 2.8.11 stays unmarked.
+        /// </summary>
+        public bool IsPlayerWritten { get; set; }
+
+        /// <summary>
         ///   The short code this memory shows on its line in a conversation's prompt ("m12"), the name a model uses to say it
         ///   spoke of it (kurushimi00, Gabriel, 01/11/2026). Unique within one character. Null until a conversation opens with
         ///   this character. Not <see cref="Id" />: that one marks what something means to come back to, and is 32 characters.

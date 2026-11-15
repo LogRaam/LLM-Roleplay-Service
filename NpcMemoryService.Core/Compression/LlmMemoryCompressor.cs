@@ -230,6 +230,13 @@ namespace NpcMemoryService.Core.Compression
             if (events[i].IsPrivate)
                protected_.Add(i);
 
+         // What the player wrote by hand is the past they chose for this character, and nothing in the game would ever
+         // write it again (Icezera, 15/11/2026: memories added with cr.memory_add were gone some days later). A memory
+         // dated 30 days back sits far from the five most recent, so only this keeps it.
+         for (var i = 0; i < events.Count; i++)
+            if (events[i].IsPlayerWritten)
+               protected_.Add(i);
+
          // Always-keep types
          for (var i = 0; i < events.Count; i++)
          {
