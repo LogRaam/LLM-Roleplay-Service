@@ -67,7 +67,11 @@ namespace NpcMemoryService.Core.Prompts
          Section("intimacy_consent_rules", PromptZone.Prefix, (b, sb, s) => b.AppendIntimacyConsentRules(sb, s.Npc, s.Context), PromptSectionLock.Sealed),
          Section("social_attraction_instructions", PromptZone.Prefix, (b, sb, s) => b.AppendSocialAttractionInstructions(sb, s.Npc, s.Context)),
          Section("matters_most", PromptZone.Prefix, (b, sb, s) => AppendMattersMost(sb, s.Npc)),
+         // The [DISCOVERY] teaching for it is a section of its own (15/11/2026): the trait is the character, the teaching is
+         // CR's reply format for a talk with the player, and a persona handed to another mod must carry the first only.
+         Section("matters_most_discovery", PromptZone.Prefix, (b, sb, s) => AppendMattersMostDiscovery(sb, s.Npc)),
          Section("fear_and_superstition", PromptZone.Prefix, (b, sb, s) => AppendFearAndSuperstition(sb, s.Npc)),
+         Section("fear_discovery", PromptZone.Prefix, (b, sb, s) => AppendFearDiscovery(sb, s.Npc)),
          Section("gift_tastes", PromptZone.Prefix, (b, sb, s) => AppendGiftTastes(sb, s.Npc)),
          Section("price_reference", PromptZone.Prefix, (b, sb, s) => AppendPriceReference(sb, s.Context, s.Lean)),
          Section("discovered_traits", PromptZone.Prefix, (b, sb, s) => b.AppendDiscoveredTraits(sb, s.Npc, s.Lean)),

@@ -7827,14 +7827,28 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine($"WHAT MATTERS MOST TO YOU, above everything else: {what}. It weighs on what you agree to, what you forgive "
                        + "and what you never will. It shows in what you choose and refuse, not in what you talk about: you speak of it "
                        + "only when the moment touches it. A guarded nature may keep it private; you never name a false one.");
-         if (!npc!.MattersMostKnown)
-         {
-            sb.AppendLine("The first time your own words in [DIALOGUE] plainly tell the player this, add this block after it:");
-            sb.AppendLine("[DISCOVERY]");
-            sb.AppendLine("key: " + MattersMostDiscovery.Key);
-            sb.AppendLine("description: what matters most to you, in one sentence");
-            sb.AppendLine("[/DISCOVERY]");
-         }
+
+         // The blank line closes the block: after the teaching below when there is one, so the prompt reads as one block.
+         if (!TeachesMattersMostDiscovery(npc)) sb.AppendLine();
+      }
+
+      private static bool TeachesMattersMostDiscovery(NpcProfile? npc)
+         => npc != null && DescribeMattersMost(npc.MattersMost).Length > 0 && !npc.MattersMostKnown;
+
+      /// <summary>
+      ///   How the player learns what matters most to the character: the reserved [DISCOVERY] block, while it is not yet
+      ///   known. Its own section (15/11/2026), so a persona handed to another mod (CR's CrPrompt.Persona) keeps the trait
+      ///   and leaves CR's reply format out (cr.test persona_surface found it there).
+      /// </summary>
+      private static void AppendMattersMostDiscovery(StringBuilder sb, NpcProfile npc)
+      {
+         if (!TeachesMattersMostDiscovery(npc)) return;
+
+         sb.AppendLine("The first time your own words in [DIALOGUE] plainly tell the player this, add this block after it:");
+         sb.AppendLine("[DISCOVERY]");
+         sb.AppendLine("key: " + MattersMostDiscovery.Key);
+         sb.AppendLine("description: what matters most to you, in one sentence");
+         sb.AppendLine("[/DISCOVERY]");
          sb.AppendLine();
       }
 
@@ -7856,17 +7870,36 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine($"A SUPERSTITION OF YOURS: you {belief}. It colours your talk now and then, never the whole conversation; "
                           + "it is a belief, and nothing in the world bends to it.");
 
+         // The blank line closes the block: after the teaching below when there is one, so the prompt reads as one block.
+         if (FearDiscoveryKeys(npc).Count == 0) sb.AppendLine();
+      }
+
+      // The reserved keys still to be learned, for a fear and a superstition the character has.
+      private static List<string> FearDiscoveryKeys(NpcProfile? npc)
+      {
          var keys = new List<string>();
-         if (fear.Length > 0 && !npc!.FearKnown) keys.Add(NatureDiscovery.FearKey);
-         if (belief.Length > 0 && !npc!.SuperstitionKnown) keys.Add(NatureDiscovery.SuperstitionKey);
-         if (keys.Count > 0)
-         {
-            sb.AppendLine("The first time the player plainly sees or hears it from you, add this block after [DIALOGUE] (one per reply):");
-            sb.AppendLine("[DISCOVERY]");
-            sb.AppendLine("key: " + string.Join(" or ", keys));
-            sb.AppendLine("description: what the player learned, in one sentence");
-            sb.AppendLine("[/DISCOVERY]");
-         }
+         if (npc == null) return keys;
+
+         if (DescribeFear(npc.Fear).Length > 0 && !npc.FearKnown) keys.Add(NatureDiscovery.FearKey);
+         if (DescribeSuperstition(npc.Superstition).Length > 0 && !npc.SuperstitionKnown) keys.Add(NatureDiscovery.SuperstitionKey);
+
+         return keys;
+      }
+
+      /// <summary>
+      ///   How the player learns a fear or a superstition: the reserved [DISCOVERY] block, while one is not yet known. Its
+      ///   own section (15/11/2026), so a persona handed to another mod keeps the trait and leaves CR's reply format out.
+      /// </summary>
+      private static void AppendFearDiscovery(StringBuilder sb, NpcProfile npc)
+      {
+         List<string> keys = FearDiscoveryKeys(npc);
+         if (keys.Count == 0) return;
+
+         sb.AppendLine("The first time the player plainly sees or hears it from you, add this block after [DIALOGUE] (one per reply):");
+         sb.AppendLine("[DISCOVERY]");
+         sb.AppendLine("key: " + string.Join(" or ", keys));
+         sb.AppendLine("description: what the player learned, in one sentence");
+         sb.AppendLine("[/DISCOVERY]");
          sb.AppendLine();
       }
 

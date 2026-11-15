@@ -125,3 +125,5 @@ character_voice
 credulity
 mod_backstory
 mod_private
+matters_most_discovery
+fear_discovery

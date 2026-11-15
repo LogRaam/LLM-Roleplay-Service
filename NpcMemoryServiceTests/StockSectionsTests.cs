@@ -74,5 +74,27 @@ namespace NpcMemoryServiceTests
 
          sections.Should().NotContain(s => s.Text.Contains(VerbCatalogPolicy.Placeholder));
       }
+
+      // STAKE (cr.test persona_surface in Gabriel's game, 15/11/2026): the persona CR hands another mod (CrPrompt.Persona)
+      // carried "The first time your own words in [DIALOGUE] plainly tell the player this, add this block" inside
+      // matters_most. The trait stays in its section; how the player learns it, CR's reply format, is a section of its own
+      // that a persona leaves out. The prompt the model reads is unchanged.
+      [Test]
+      public void GIVEN_traits_the_player_has_yet_to_learn_WHEN_the_stock_sections_are_read_THEN_the_discovery_teaching_is_in_its_own_sections()
+      {
+         NpcProfile npc = GoldenPromptTests.RichNpc();
+         npc.MattersMost = MattersMost.Children;
+         npc.Fear = Fear.TheSea;
+         npc.Superstition = Superstition.Omens;
+
+         IReadOnlyList<PromptSectionRendering> sections = GoldenPromptTests.Builder(AdultContentLevel.Off)
+                                                                           .RenderStockSections(npc, GoldenPromptTests.World(), GoldenPromptTests.RichEncounter(LeanPromptLevel.Full));
+         string Of(string key) => sections.Single(s => s.Key == key).Text;
+
+         Of("matters_most").Should().Contain("WHAT MATTERS MOST TO YOU").And.NotContain("[DISCOVERY]").And.NotContain("[DIALOGUE]");
+         Of("fear_and_superstition").Should().Contain("A FEAR OF YOURS").And.NotContain("[DISCOVERY]").And.NotContain("[DIALOGUE]");
+         Of("matters_most_discovery").Should().Contain("[DISCOVERY]").And.Contain("key: " + MattersMostDiscovery.Key);
+         Of("fear_discovery").Should().Contain("[DISCOVERY]").And.Contain(NatureDiscovery.FearKey);
+      }
    }
 }
