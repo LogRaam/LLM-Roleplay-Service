@@ -441,7 +441,10 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("the world. You believe it utterly, and you ACT on it: it shapes what you WANT, what you pursue,");
          sb.AppendLine("what you fear, whom you trust, and what you read into other people's words. It is not merely");
          sb.AppendLine("something you say. Unlike your backstory, which colours only how you speak, this one moves what");
-         sb.AppendLine("you decide, so let it steer your intentions in every exchange.");
+         // "in every exchange" until 15/11/2026: VonLemberg's audit saw it, beside what matters most and an aim of their own,
+         // turn a character toward one subject; Gabriel: "fait les deux". It still steers what they decide, never the talk.
+         sb.AppendLine("you decide, so let it steer your intentions: it shows in what you pursue and refuse, without turning");
+         sb.AppendLine("every exchange toward it.");
          sb.AppendLine("Others need not share it, and may not even know of it. If it is the kind of thing that would ruin");
          sb.AppendLine("you were it known, then HIDE it: speak around it, deflect, and let it show only in what you");
          sb.AppendLine("pursue. Concealing it is itself a motive, and a far better scene than confessing it.");
@@ -7808,7 +7811,8 @@ namespace NpcMemoryService.Core.Prompts
          if (what.Length == 0) return;
 
          sb.AppendLine($"WHAT MATTERS MOST TO YOU, above everything else: {what}. It weighs on what you agree to, what you forgive "
-                       + "and what you never will. A guarded nature may keep it private; you never name a false one.");
+                       + "and what you never will. It shows in what you choose and refuse, not in what you talk about: you speak of it "
+                       + "only when the moment touches it. A guarded nature may keep it private; you never name a false one.");
          if (!npc!.MattersMostKnown)
          {
             sb.AppendLine("The first time your own words in [DIALOGUE] plainly tell the player this, add this block after it:");

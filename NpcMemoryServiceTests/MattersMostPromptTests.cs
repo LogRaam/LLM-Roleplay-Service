@@ -32,6 +32,19 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("key: " + MattersMostDiscovery.Key);
       }
 
+      // VonLemberg (source audit, 15/11/2026): what matters most, an aim of their own and a conviction can all point one way,
+      // and "the model may receive three reinforcing motivations and become excessively focused on one subject". Gabriel:
+      // "fait les deux". It weighs on what they decide; a mother who cherishes her children does not bring them into
+      // every answer.
+      [Test]
+      public void GIVEN_what_matters_most_WHEN_the_prompt_is_built_THEN_it_moves_choices_and_is_spoken_of_only_when_the_moment_touches_it()
+      {
+         string prompt = Build(AdultContentLevel.Off, MattersMost.Children, known: false);
+
+         prompt.Should().Contain("It shows in what you choose and refuse, not in what you talk about");
+         prompt.Should().Contain("you speak of it only when the moment touches it");
+      }
+
       // STAKE: once the player knows it, the character is not asked to reveal it again (a discovery every reply).
       [Test]
       public void GIVEN_the_player_already_knows_WHEN_the_prompt_is_built_THEN_it_is_not_asked_to_reveal_it_again()

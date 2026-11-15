@@ -53,6 +53,18 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("moves what");     // "...this one moves what you decide"
       }
 
+      // VonLemberg (source audit, 15/11/2026): "in every exchange" beside what matters most and an aim of their own risked a
+      // character who talks of nothing else. Gabriel: "fait les deux". The conviction still steers what they pursue and
+      // refuse (the test above); it no longer asks to be brought into every exchange.
+      [Test]
+      public void GIVEN_a_conviction_WHEN_building_the_prompt_THEN_it_steers_decisions_without_taking_over_the_talk()
+      {
+         string prompt = Build(Npc(Conviction));
+
+         prompt.Should().Contain("it shows in what you pursue and refuse, without turning");
+         prompt.Should().NotContain("steer your intentions in every exchange");
+      }
+
       // The belief may be FALSE, and that is the drama. An NPC acting on a conviction the world does not share is
       // exactly what the player asked for; a prompt that quietly treated it as fact would have missed the request.
       [Test]
