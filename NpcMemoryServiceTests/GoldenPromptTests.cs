@@ -132,7 +132,7 @@ namespace NpcMemoryServiceTests
 
       // As LlmServices.BuildPromptBuilder sets it in the game, with the narrative files as recognisable stand-ins that
       // carry variables, so their expansion is pinned too.
-      private static PromptBuilder Builder(AdultContentLevel level, bool invertFlags = false)
+      internal static PromptBuilder Builder(AdultContentLevel level, bool invertFlags = false)
          => new()
          {
             AdultLevel = level,
@@ -153,10 +153,10 @@ namespace NpcMemoryServiceTests
             EnableQuests = !invertFlags
          };
 
-      private static WorldState World()
+      internal static WorldState World()
          => new() {CurrentDay = 120, Season = "Winter", ActiveConflicts = "Vlandia against Sturgia", Rumors = "Grain fails around Charas.", TimeOfDay = "night"};
 
-      private static NpcProfile RichNpc()
+      internal static NpcProfile RichNpc()
       {
          var npc = new NpcProfile
          {
@@ -173,7 +173,7 @@ namespace NpcMemoryServiceTests
          return npc;
       }
 
-      private static EncounterContext RichEncounter(LeanPromptLevel lean)
+      internal static EncounterContext RichEncounter(LeanPromptLevel lean)
          => new()
          {
             LeanLevel = lean,

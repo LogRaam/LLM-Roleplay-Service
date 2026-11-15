@@ -114,6 +114,14 @@ namespace NpcMemoryService.Core.Prompts
         /// </summary>
         public static string Resolve(string prompt, IEnumerable<GameActionDefinition>? vocabulary,
                                      LeanPromptLevel lean)
+            => ResolveIn(prompt, prompt, vocabulary, lean);
+
+        /// <summary>
+        ///   Fills the catalogue into <paramref name="prompt" /> (a part of a prompt, such as one section) by what the
+        ///   whole prompt <paramref name="taughtFrom" /> taught. <see cref="Resolve" /> is this with the two the same.
+        /// </summary>
+        public static string ResolveIn(string prompt, string taughtFrom, IEnumerable<GameActionDefinition>? vocabulary,
+                                       LeanPromptLevel lean)
         {
             if (string.IsNullOrEmpty(prompt) || prompt.IndexOf(Placeholder, StringComparison.Ordinal) < 0)
                 return prompt;
@@ -122,7 +130,7 @@ namespace NpcMemoryService.Core.Prompts
                                              .Where(d => d != null && !string.IsNullOrWhiteSpace(d.Type))
                                              .ToList();
 
-            HashSet<string> taught = TaughtIn(prompt);
+            HashSet<string> taught = TaughtIn(taughtFrom ?? prompt);
 
             var sb = new StringBuilder();
 

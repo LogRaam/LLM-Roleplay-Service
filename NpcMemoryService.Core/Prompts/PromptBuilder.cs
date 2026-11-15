@@ -215,25 +215,60 @@ namespace NpcMemoryService.Core.Prompts
          // The sections, keyed (PromptBuilder.Sections.cs: increment 1 of the Prompt Composer), in the stock order or in
          // the layout the host chose for this character (increment 2: PromptLayoutResolver keeps the locks). Each writes
          // exactly what this method wrote at that place before; the golden prompts hold the stock order to the character.
-         var state = new PromptBuildState {Npc = npc, World = world, Context = encounterContext, Lean = lean, Vars = vars};
-         IReadOnlyDictionary<string, PromptSectionText>? texts = encounterContext?.PromptTexts;
-         foreach (PromptSectionSpec section in PromptLayoutResolver.Order(CharacterSections, encounterContext?.PromptLayout))
-         {
-            // Increment 3: a profile's rewording meets the section's OWN rendering, so its gate decides first.
-            if (texts == null || section.Zone == PromptZone.Marker || !texts.TryGetValue(section.Key, out PromptSectionText? text))
-            {
-               section.Render(this, sb, state);
-               continue;
-            }
-
-            var own = new StringBuilder();
-            section.Render(this, own, state);
-            sb.Append(PromptSectionTextApplier.Apply(section.Key, own.ToString(), text, section.Lock, vars));
-         }
+         foreach (PromptSectionRendering slice in WriteSections(npc, world, encounterContext, vars, lean, stock: false))
+            sb.Append(slice.Text);
 
          // The verb catalogue is the LAST thing written even though it sits near the top of the prompt:
          // it lists what this prompt TAUGHT, and until this line that was not known. See VerbCatalogPolicy.
          return VerbCatalogPolicy.Resolve(sb.ToString(), ActionVocabulary, lean);
+      }
+
+      /// <summary>
+      ///   The character prompt's sections as the STOCK prompt writes them for this character in this encounter, in the
+      ///   stock order, each with the text it wrote: no profile's layout and no profile's rewording, so a profile editor
+      ///   shows what a sections/&lt;key&gt;.txt would replace (Bhelogan, 14/11/2026: "read-only stock text of a prompt
+      ///   section (for the profile editor)"). The texts joined are exactly the stock prompt (the verb catalogue filled
+      ///   in where it sits). An empty text means the section writes nothing for this character right now (its gate is
+      ///   shut), not that it has no words. Since 2.8.10.
+      /// </summary>
+      public IReadOnlyList<PromptSectionRendering> RenderStockSections(NpcProfile npc, WorldState world, EncounterContext? encounterContext = null)
+      {
+         Dictionary<string, string> vars = BuildPromptVariables(npc, encounterContext);
+         LeanPromptLevel lean = encounterContext?.LeanLevel ?? LeanPromptLevel.Full;
+         List<PromptSectionRendering> slices = WriteSections(npc, world, encounterContext, vars, lean, stock: true);
+
+         // The catalogue lists what the WHOLE prompt taught, so it is resolved against the whole and written into the
+         // one slice that holds its placeholder.
+         string whole = string.Concat(slices.Select(x => x.Text));
+
+         return slices.Select(x => x.Text.IndexOf(VerbCatalogPolicy.Placeholder, StringComparison.Ordinal) < 0
+                                      ? x
+                                      : new PromptSectionRendering {Key = x.Key, Zone = x.Zone, Lock = x.Lock, Text = VerbCatalogPolicy.ResolveIn(x.Text, whole, ActionVocabulary, lean)})
+                      .ToList();
+      }
+
+      // One walk of the keyed sections, shared by the prompt and the stock read so the two can never differ. stock: the
+      // stock order and wording, whatever layout and texts the encounter carries.
+      private List<PromptSectionRendering> WriteSections(NpcProfile npc, WorldState world, EncounterContext? encounterContext,
+                                                         Dictionary<string, string> vars, LeanPromptLevel lean, bool stock)
+      {
+         var slices = new List<PromptSectionRendering>();
+         var state = new PromptBuildState {Npc = npc, World = world, Context = encounterContext, Lean = lean, Vars = vars};
+         IReadOnlyDictionary<string, PromptSectionText>? texts = stock ? null : encounterContext?.PromptTexts;
+         foreach (PromptSectionSpec section in stock ? CharacterSections : PromptLayoutResolver.Order(CharacterSections, encounterContext?.PromptLayout))
+         {
+            var own = new StringBuilder();
+            section.Render(this, own, state);
+            string written = own.ToString();
+
+            // Increment 3: a profile's rewording meets the section's OWN rendering, so its gate decides first.
+            if (texts != null && section.Zone != PromptZone.Marker && texts.TryGetValue(section.Key, out PromptSectionText? text))
+               written = PromptSectionTextApplier.Apply(section.Key, written, text, section.Lock, vars);
+
+            slices.Add(new PromptSectionRendering {Key = section.Key, Zone = section.Zone, Lock = section.Lock, Text = written});
+         }
+
+         return slices;
       }
 
       /// <summary>

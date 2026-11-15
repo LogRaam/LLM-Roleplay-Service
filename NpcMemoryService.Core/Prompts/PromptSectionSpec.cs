@@ -65,6 +65,22 @@ namespace NpcMemoryService.Core.Prompts
       internal Action<PromptBuilder, StringBuilder, PromptBuildState> Render { get; }
    }
 
+   /// <summary>One section of the character prompt as one build wrote it (PromptBuilder.RenderStockSections). Since 2.8.10.</summary>
+   public sealed class PromptSectionRendering
+   {
+      /// <summary>The section's key (PromptBuilder.CharacterSections).</summary>
+      public string Key { get; init; } = "";
+
+      /// <summary>Which side of the cache marker it is written on.</summary>
+      public PromptZone Zone { get; init; }
+
+      /// <summary>How far a profile may change it.</summary>
+      public PromptSectionLock Lock { get; init; }
+
+      /// <summary>What it wrote; empty when its gate was shut for this build.</summary>
+      public string Text { get; init; } = "";
+   }
+
    /// <summary>What one build of the character prompt is about, handed to every section.</summary>
    internal sealed class PromptBuildState
    {
