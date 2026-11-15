@@ -105,12 +105,16 @@ namespace NpcMemoryService.Core.Knowledge
         ///   world.
         /// </param>
         /// <param name="alreadyKnown">Whether the world already carries this claim.</param>
-        public static ClaimVerdict Judge(WorldClaim claim, bool speakerIsThePlayer, bool alreadyKnown = false)
+        /// <param name="playerName">
+        ///   The player's name, so a claim that names them is refused whatever the model labelled it. Null skips the
+        ///   name check (the words "the player" are still caught).
+        /// </param>
+        public static ClaimVerdict Judge(WorldClaim claim, bool speakerIsThePlayer, bool alreadyKnown = false, string? playerName = null)
         {
             if (claim == null) return ClaimVerdict.NoSpeaker;
             if (speakerIsThePlayer) return ClaimVerdict.FromThePlayer;
             if (string.IsNullOrWhiteSpace(claim.SpeakerId)) return ClaimVerdict.NoSpeaker;
-            if (claim.AboutThePlayer) return ClaimVerdict.AboutThePlayer;
+            if (claim.AboutThePlayer || NamesThePlayer(claim.Text, playerName)) return ClaimVerdict.AboutThePlayer;
             if (claim.Subject == ClaimSubject.EngineOwned) return ClaimVerdict.EngineOwnsIt;
             if (claim.Subject == ClaimSubject.Unknown) return ClaimVerdict.Unclassified;
             if (!PromotableSubjects.Contains(claim.Subject)) return ClaimVerdict.EngineOwnsIt;
@@ -121,6 +125,44 @@ namespace NpcMemoryService.Core.Knowledge
             if (alreadyKnown) return ClaimVerdict.AlreadyKnown;
 
             return ClaimVerdict.Accepted;
+        }
+
+        /// <summary>
+        ///   Whether the sentence names the player: by the words "the player", by their whole name, or by any word of it
+        ///   of four letters or more ("Arwa" of "Arwa of the Banu Ara"). VonLemberg (source audit, 15/11/2026): the gate
+        ///   refused a claim flagged AboutThePlayer, and nothing ever set the flag; the extractor is only ASKED to leave
+        ///   the player out. Coarse on purpose, like the duplicate check: a false match loses one rumour, a false miss
+        ///   writes the player's deed into the world under a second author.
+        /// </summary>
+        public static bool NamesThePlayer(string? text, string? playerName)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return false;
+            if (HasWord(text!, "the player")) return true;
+            if (string.IsNullOrWhiteSpace(playerName)) return false;
+            if (HasWord(text!, playerName!.Trim())) return true;
+
+            foreach (string word in playerName!.Split(new[] {' ', '-', '\t'}, System.StringSplitOptions.RemoveEmptyEntries))
+                if (word.Length >= 4 && HasWord(text!, word))
+                    return true;
+
+            return false;
+        }
+
+        private static bool HasWord(string text, string word)
+        {
+            var from = 0;
+            while (true)
+            {
+                int at = text.IndexOf(word, from, System.StringComparison.OrdinalIgnoreCase);
+                if (at < 0) return false;
+
+                int end = at + word.Length;
+                bool startsClean = at == 0 || !char.IsLetterOrDigit(text[at - 1]);
+                bool endsClean = end >= text.Length || !char.IsLetterOrDigit(text[end]);
+                if (startsClean && endsClean) return true;
+
+                from = at + 1;
+            }
         }
 
         /// <summary>

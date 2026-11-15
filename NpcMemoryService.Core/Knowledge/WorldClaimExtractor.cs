@@ -67,6 +67,10 @@ namespace NpcMemoryService.Core.Knowledge
             sb.AppendLine();
             sb.AppendLine("Also ignore anything the PLAYER said. Only what the character asserted counts.");
             sb.AppendLine();
+            sb.AppendLine("Report only what has HAPPENED or is happening. A plan, an intention, a promise, a hope, a");
+            sb.AppendLine("fear or a what-if (\"I intend to arrange a marriage\", \"there may be a wedding come spring\")");
+            sb.AppendLine("is not news of the thing itself: never report it as a claim.");
+            sb.AppendLine();
             sb.AppendLine("One line per claim, in this exact format, and nothing else:");
             sb.AppendLine("CLAIM | <LABEL> | <place name, or ->  | <FACT or GUESS> | <one plain sentence, third person>");
             sb.AppendLine();

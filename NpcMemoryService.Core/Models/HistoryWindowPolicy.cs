@@ -49,6 +49,39 @@ namespace NpcMemoryService.Core.Models
             _ => MemoryStrand.Lived
          };
 
+      /// <summary>
+      ///   How many memories this character lived with the player: word that reached them and their own life apart do
+      ///   not make an acquaintance (VonLemberg, source audit, 15/11/2026: a rumour injected on a lord the player never
+      ///   met made the player no stranger to him).
+      /// </summary>
+      public static int LivedCount(IReadOnlyList<NotableEvent>? events)
+      {
+         var count = 0;
+         if (events == null) return count;
+
+         foreach (NotableEvent e in events)
+            if (e != null && StrandOf(e) == MemoryStrand.Lived)
+               count++;
+
+         return count;
+      }
+
+      /// <summary>
+      ///   The day of the latest memory lived with the player, or null when there is none: the last time they dealt
+      ///   with each other, which a rumour heard yesterday does not move (same audit).
+      /// </summary>
+      public static int? LastLivedDay(IReadOnlyList<NotableEvent>? events)
+      {
+         int? last = null;
+         if (events == null) return last;
+
+         foreach (NotableEvent e in events)
+            if (e != null && StrandOf(e) == MemoryStrand.Lived && (last == null || e.gameDay > last))
+               last = e.gameDay;
+
+         return last;
+      }
+
       /// <summary>True for a memory that is only word that reached the character.</summary>
       public static bool IsHeard(NotableEvent e) => StrandOf(e) == MemoryStrand.Heard;
 
