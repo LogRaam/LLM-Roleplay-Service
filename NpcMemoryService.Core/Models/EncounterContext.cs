@@ -1852,7 +1852,8 @@ namespace NpcMemoryService.Core.Models
       ///   The player's name is news to this character: a stranger who has never heard it, or heard it only in passing
       ///   (PlayerFamePolicy's two lowest bands). THE PLAYER then gives the name without bidding them use it, and says they
       ///   may once the player gives it or someone names them. VonLemberg (Discord, 16/11/2026): the fame line said "You
-      ///   have never heard the name X" and THE PLAYER said "address them by this name". False for everyone else.
+      ///   have never heard the name X" and THE PLAYER said "address them by this name". False for everyone else. The same
+      ///   stranger is told they know nothing of the player's parents, rather than their names (Gabriel, 16/11/2026).
       /// </summary>
       public bool PlayerNameIsNewsToSpeaker { get; init; }
 

@@ -2395,7 +2395,16 @@ namespace NpcMemoryService.Core.Prompts
          var kin = new List<string>();
          if (!string.IsNullOrWhiteSpace(context.PlayerFatherName)) kin.Add($"father {context.PlayerFatherName}");
          if (!string.IsNullOrWhiteSpace(context.PlayerMotherName)) kin.Add($"mother {context.PlayerMotherName}");
-         if (kin.Count > 0)
+         // VonLemberg (Discord, 16/11/2026, "Player Parentage Observer Knowledge"): a stranger who never heard the player's
+         // name was handed the parents' real names. The block exists so no name is invented; for such a stranger it keeps
+         // that, and gives no names (Gabriel: "oui vas-y").
+         if (kin.Count > 0 && context.PlayerNameIsNewsToSpeaker)
+         {
+            sb.AppendLine("THE PLAYER'S PARENTAGE:");
+            sb.AppendLine("You know nothing of their parents: if they come up, you do not know who they were, and you never invent a name for them.");
+            sb.AppendLine();
+         }
+         else if (kin.Count > 0)
          {
             sb.AppendLine("THE PLAYER'S PARENTAGE:");
             sb.AppendLine($"If you ever speak of the player's parents, these are their real names — never invent one: {string.Join("; ", kin)}.");
