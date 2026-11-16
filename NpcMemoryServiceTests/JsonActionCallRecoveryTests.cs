@@ -104,6 +104,25 @@ namespace NpcMemoryServiceTests
          parsed.Actions.Single(a => a.Type == "change_relation").Parameters["delta"].Should().Be("2");
       }
 
+      // THE ACCEPTED TRADE-OFF (VonLemberg, audit "Json Action Recovery Quoted Example", 16/11/2026; Gabriel: "oui met le
+      // test de compromis"). A call-shaped JSON quoted in speech as an EXAMPLE is recovered and stripped exactly like a
+      // leaked call: the parser cannot tell "this is the format" from a model that answered with a call, and telling them
+      // apart by guessing at the words around it would break the leak this recovery exists for (the report at the top),
+      // which happens, while a character of Calradia reciting tool-call JSON does not. What keeps it safe is the host: a
+      // recovered give_gold passes the same gates as any other (the giver's purse, the gift ceiling). Pinned so the
+      // choice reads as a choice: change it only together with the leak tests above.
+      [Test]
+      public void GIVEN_a_call_shaped_json_quoted_as_an_example_WHEN_parsing_THEN_it_is_read_as_a_call_by_accepted_trade_off()
+      {
+         ParsedResponse parsed = _parser.Parse(
+            "[DIALOGUE]I am showing you the format, not paying you: {\"name\":\"give_gold\",\"parameters\":{\"amount\":500}}. "
+          + "This is an example only.[/DIALOGUE]");
+
+         parsed.Actions.Single().Type.Should().Be("give_gold");
+         parsed.Dialogue.Should().NotContain("give_gold");
+         parsed.Dialogue.Should().Contain("This is an example only.");
+      }
+
       // The guard against over-eager matching: ordinary speech containing a brace is not a function call.
       // The pattern demands BOTH keys precisely so a character can still talk about a ledger or a list.
       [Test]
