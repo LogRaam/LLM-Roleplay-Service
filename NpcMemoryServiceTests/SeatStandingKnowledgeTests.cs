@@ -261,7 +261,40 @@ namespace NpcMemoryServiceTests
          });
 
          said.Should().Contain("sacked").And.Contain("not recovered");
-         said.Should().Contain("lived there all your life");
+         said.Should().Contain("is your home");
+      }
+
+      // VonLemberg / Goeth (Discord, 16/11/2026): a merchant in his home town read "is your own town ... and you have
+      // lived there all your life" while the location note called him a guest there. Home is not property, and nothing
+      // in the game says he was born there: he lives there, it is not his to hold, and no lifelong claim is made.
+      [Test]
+      public void GIVEN_a_notable_in_his_home_town_WHEN_rendered_THEN_it_is_his_home_not_his_holding_and_no_lifelong_claim_is_made()
+      {
+         string said = Render(new SeatFacts {PlaceName = "Pravend", Role = SeatRole.Notable, Kind = SettlementKind.Town, Prosperity = ProsperityBand.Comfortable});
+
+         said.Should().Contain("is your home").And.Contain("not yours to hold");
+         said.Should().NotContain("all your life").And.NotContain("your own holdings").And.NotContain("your steward's books");
+      }
+
+      // VonLemberg / Goeth (16/11/2026): "its people have risen against you" made a local artisan the one his town rose
+      // against. A resident's town rises against its lord; the lord's and the governor's still against them.
+      [Test]
+      public void GIVEN_a_town_in_revolt_WHEN_a_resident_or_its_holder_speaks_THEN_only_the_holder_is_the_one_risen_against()
+      {
+         Render(new SeatFacts {PlaceName = "Pravend", Role = SeatRole.Notable, Kind = SettlementKind.Town, IsInRebellion = true})
+            .Should().Contain("risen against its lord").And.NotContain("risen against you");
+         Render(new SeatFacts {PlaceName = "Pravend", Role = SeatRole.Owner, Kind = SettlementKind.Town, IsInRebellion = true})
+            .Should().Contain("risen against you");
+      }
+
+      // The resident keeps the rule against figures (the bench's invented tallies) with a way out that is truly his:
+      // the books are the lord's steward's, not his.
+      [Test]
+      public void GIVEN_a_notable_WHEN_rendered_in_full_THEN_he_is_forbidden_figures_and_told_whose_books_they_are()
+      {
+         string said = Render(new SeatFacts {PlaceName = "Pravend", Role = SeatRole.Notable, Kind = SettlementKind.Town, Prosperity = ProsperityBand.Comfortable});
+
+         said.Should().Contain("Never give a figure").And.Contain("its lord's steward, not by you");
       }
 
       // A village keeps no garrison. Telling its headman it has a skeleton one would be a fact the player can

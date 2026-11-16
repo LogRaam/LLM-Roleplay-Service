@@ -82,11 +82,21 @@ namespace NpcMemoryService.Core.Knowledge
             // The line the whole increment exists for. A prohibition alone tends to be obeyed by silence, which
             // would be its own regression, so it also hands over the in-character way OUT: the same move that
             // made the purse probe read so well ("You keep your own purse, not I") rather than as a refusal.
-            sb.AppendLine("You know how your own holdings FARE, in exactly those terms and no finer. Never give a "
-                          + "figure for stores, garrison, coin, population or harvest, and never invent a detail "
-                          + "of how the place is run that is not written above: you have not counted any of it, "
-                          + "and a number you name is one the player can check and find false. If you are pressed "
-                          + "for a tally, say plainly that you would have to send for your steward's books.");
+            // VonLemberg / Goeth (16/11/2026): "your own holdings" and "your steward's books" were said to a
+            // merchant or a headman too, who holds nothing and keeps no steward. A resident keeps the same rule,
+            // with the way out that is truly his.
+            if (seats.Any(s => s.Role != SeatRole.Notable))
+                sb.AppendLine("You know how your own holdings FARE, in exactly those terms and no finer. Never give a "
+                              + "figure for stores, garrison, coin, population or harvest, and never invent a detail "
+                              + "of how the place is run that is not written above: you have not counted any of it, "
+                              + "and a number you name is one the player can check and find false. If you are pressed "
+                              + "for a tally, say plainly that you would have to send for your steward's books.");
+            else
+                sb.AppendLine("You know how your home FARES as anyone who lives there does, in exactly those terms and no "
+                              + "finer. Never give a figure for stores, garrison, coin, population or harvest, and never "
+                              + "invent a detail of how the place is run that is not written above: you have not counted "
+                              + "any of it, and a number you name is one the player can check and find false. If you are "
+                              + "pressed for a tally, say plainly that such books are kept by its lord's steward, not by you.");
         }
 
         #region private
@@ -127,7 +137,11 @@ namespace NpcMemoryService.Core.Knowledge
         private static string Joined(IReadOnlyList<string> items)
             => items.Count == 1 ? items[0] : string.Join(", ", items.Take(items.Count - 1)) + " and " + items[items.Count - 1];
 
-        /// <summary>"You govern Pravend, a town of the player's own house."</summary>
+        /// <summary>
+        ///   "You govern Pravend, a town of the player's own house." A notable's line says HOME, not property: it once
+        ///   read "is your own town ... and you have lived there all your life", while the WHERE YOU ARE note called
+        ///   the same merchant a guest there (VonLemberg / Goeth, 16/11/2026), and nothing in the game says all his life.
+        /// </summary>
         private static string Holding(SeatFacts seat, string place)
         {
             string kind = seat.Kind == SettlementKind.Unknown ? "holding" : seat.Kind.ToString().ToLowerInvariant();
@@ -137,7 +151,7 @@ namespace NpcMemoryService.Core.Knowledge
             {
                 case SeatRole.Governor: return $"You govern {place}, a {kind}{whose}, day to day.";
                 case SeatRole.Owner: return $"You hold {place}, a {kind}{whose}.";
-                case SeatRole.Notable: return $"{place} is your own {kind}{whose}, and you have lived there all your life.";
+                case SeatRole.Notable: return $"{place}, a {kind}{whose}, is your home: you live there, though it is not yours to hold.";
                 default: return $"You answer for {place}, a {kind}{whose}.";
             }
         }
@@ -154,7 +168,8 @@ namespace NpcMemoryService.Core.Knowledge
                 clauses.Add(string.IsNullOrWhiteSpace(seat.BesiegerName)
                     ? "it is under siege as you speak"
                     : $"{seat.BesiegerName!.Trim()} lays siege to it as you speak");
-            if (seat.IsInRebellion) clauses.Add("its people have risen against you");
+            // A resident is not the one his town rose against (VonLemberg / Goeth, 16/11/2026).
+            if (seat.IsInRebellion) clauses.Add(seat.Role == SeatRole.Notable ? "its people have risen against its lord" : "its people have risen against you");
             if (seat.IsBeingRaided) clauses.Add("raiders are burning its lands right now");
             if (seat.IsStarving) clauses.Add("its people are going hungry");
             if (seat.IsLooted) clauses.Add("it was sacked and has not recovered");
@@ -174,7 +189,7 @@ namespace NpcMemoryService.Core.Knowledge
             // absentee holder knows how the place FARES; he does not know what came in on Tuesday.
             if (deep) AddIf(clauses, Food(seat));
             AddIf(clauses, Garrison(seat));
-            AddIf(clauses, Loyalty(seat));
+            AddIf(clauses, Loyalty(seat, seat.Role == SeatRole.Notable));
             AddIf(clauses, Security(seat));
 
             return clauses;
@@ -244,14 +259,15 @@ namespace NpcMemoryService.Core.Knowledge
             }
         }
 
-        private static string? Loyalty(SeatFacts seat)
+        /// <summary>The people's temper toward whoever rules the place: the speaker, or for a resident its lord.</summary>
+        private static string? Loyalty(SeatFacts seat, bool resident)
         {
             switch (seat.Loyalty)
             {
                 case LoyaltyBand.Rebellious: return "its people are near revolt";
                 case LoyaltyBand.Restless: return "its people are restless";
                 case LoyaltyBand.Content: return "its people are content enough";
-                case LoyaltyBand.Devoted: return "its people are devoted to you";
+                case LoyaltyBand.Devoted: return resident ? "its people are devoted to their lord" : "its people are devoted to you";
                 default: return null;
             }
         }
