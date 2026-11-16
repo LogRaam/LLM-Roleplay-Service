@@ -8730,8 +8730,13 @@ namespace NpcMemoryService.Core.Prompts
          if (!hasName && !hasClan && !hasCustom && !hasAppearance && !hasGear && !hasModText) return;
 
          sb.AppendLine("THE PLAYER:");
-         if (hasName)
-            sb.AppendLine($"Name: {PlayerName} — address them by this name when it feels natural.");
+         // A stranger the name means nothing to is not bid to use it (VonLemberg, 16/11/2026): the fame line above says they
+         // never heard it. The name stays written, as the captor's own path keeps the role anchor honest, so that once the
+         // player gives it in the talk the character can use it; the conversation itself is where that happens.
+         if (hasName && context?.PlayerNameIsNewsToSpeaker == true)
+            sb.AppendLine($"Name: {PlayerName}. They have not told you this name: do not call them by it until they give it, or someone here names them.");
+         else if (hasName)
+            sb.AppendLine($"Name: {PlayerName} \u2014 address them by this name when it feels natural.");
          sb.AppendLine($"Gender: {(PlayerIsFemale ? "female" : "male")}");
          if (hasClan)
             sb.AppendLine($"Clan: {PlayerClanName}");

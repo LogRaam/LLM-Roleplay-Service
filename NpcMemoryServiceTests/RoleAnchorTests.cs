@@ -75,6 +75,25 @@ namespace NpcMemoryServiceTests
 
       #region private
 
+      // VonLemberg (Discord, 16/11/2026): a stranger read "You have never heard the name Arthur" and then "address them by
+      // this name". When the name is news to the speaker it is not bid to be used until the player gives it.
+      [Test]
+      public void GIVEN_a_stranger_the_name_is_news_to_WHEN_the_prompt_is_built_THEN_they_are_not_bid_to_use_it_until_given()
+      {
+         string prompt = new PromptBuilder {PlayerName = "Arthur"}.BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 12},
+            new EncounterContext {Scene = SceneType.Keep, PlayerNameIsNewsToSpeaker = true});
+
+         prompt.Should().NotContain("address them by this name");
+         prompt.Should().Contain("do not call them by it until they give it");
+      }
+
+      // Everyone else, who knows the player or knows of them, is still bid to use the name as before.
+      [Test]
+      public void GIVEN_a_speaker_who_knows_the_name_WHEN_the_prompt_is_built_THEN_they_are_bid_to_use_it()
+      {
+         Build().Should().Contain("Name: Arthur \u2014 address them by this name when it feels natural.");
+      }
+
       private static NpcProfile Npc() => new() {Id = "n", Name = "Chief Rolan", Faction = "Sturgia", Clan = "Rolan"};
 
       private static string Build(LeanPromptLevel lean = LeanPromptLevel.Full, string? captives = null)

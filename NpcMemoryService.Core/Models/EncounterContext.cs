@@ -1849,6 +1849,14 @@ namespace NpcMemoryService.Core.Models
       public string? PlayerFameLine { get; init; }
 
       /// <summary>
+      ///   The player's name is news to this character: a stranger who has never heard it, or heard it only in passing
+      ///   (PlayerFamePolicy's two lowest bands). THE PLAYER then gives the name without bidding them use it, and says they
+      ///   may once the player gives it or someone names them. VonLemberg (Discord, 16/11/2026): the fame line said "You
+      ///   have never heard the name X" and THE PLAYER said "address them by this name". False for everyone else.
+      /// </summary>
+      public bool PlayerNameIsNewsToSpeaker { get; init; }
+
+      /// <summary>
       ///   The edicts where this character lives (Gabriel, 22/10/2026): the one holding on their town, their realm's, one
       ///   their town forced off, one line each, worded game-side by EdictNote. Null when no edict touches them.
       /// </summary>
