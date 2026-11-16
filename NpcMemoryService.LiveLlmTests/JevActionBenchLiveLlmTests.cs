@@ -74,11 +74,24 @@ namespace NpcMemoryService.LiveLlmTests
          List<ActionBenchCase> cases = Cases();
 
          IReadOnlyList<JevBenchResult> jev = await JevActionBench.RunAsync(_http, _aimlKey, _settings.JevModel, cases);
-         var interpreter = new OpenRouterClient(_http, new OpenRouterConfig {ApiKey = openRouterKey!, Model = _settings.Model});
+         // The interpreter reads the same reasoning and provider settings as the rest of the live lane, so a run
+         // can match the in-game Interpret setting (reasoning left blank = the provider's default, often thinking).
+         string? reasoning = string.IsNullOrWhiteSpace(_settings.ReasoningEffort) ? null : _settings.ReasoningEffort;
+         string? providerPin = string.IsNullOrWhiteSpace(_settings.ProviderPin) ? null : _settings.ProviderPin;
+         var interpreter = new OpenRouterClient(_http, new OpenRouterConfig {
+            ApiKey = openRouterKey!,
+            Model = _settings.Model,
+            ReasoningProvider = () => reasoning,
+            ProviderSlugsProvider = () => providerPin,
+            AllowProviderFallbacksProvider = () => _settings.AllowProviderFallbacks
+         });
+         var clock = System.Diagnostics.Stopwatch.StartNew();
          ActionBenchReport report = await ActionBenchRunner.RunAsync(interpreter, cases);
+         clock.Stop();
 
          TestContext.Out.WriteLine(JevActionBench.Format(jev, _settings.JevModel));
-         TestContext.Out.WriteLine($"INTERPRETER ({_settings.Model}), same cases, types AND parameters:");
+         TestContext.Out.WriteLine($"INTERPRETER ({_settings.Model}, reasoning={reasoning ?? "(default)"}, providerPin={providerPin ?? "(none)"}), same cases, types AND parameters, "
+                                   + $"{clock.Elapsed.TotalSeconds / Math.Max(1, cases.Count):0.0} s per case on average:");
          TestContext.Out.WriteLine(report.Format());
          jev.Count(r => !r.CallSucceeded).Should().Be(0);
          report.CallFailures.Should().Be(0);
