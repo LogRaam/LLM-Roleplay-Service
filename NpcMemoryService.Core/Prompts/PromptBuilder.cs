@@ -9076,6 +9076,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("grant_fief: name a town or castle YOUR OWN clan holds right now, and only if you truly lead");
          sb.AppendLine("that clan (a vassal cannot give away a fief that is not truly in their own gift). Set");
          sb.AppendLine("reward_settlement to its exact name. It passes to the player the moment the task is done.");
+         // Aporo (16/11/2026; Gabriel: "b"): a realm's land goes only to a lord sworn to it.
+         sb.AppendLine("If your house serves a realm, its land passes only to a lord sworn to that realm as a vassal:");
+         sb.AppendLine("to anyone else, make the fief wait on their oath, or the game cannot pay it.");
          sb.AppendLine();
          sb.AppendLine("marriage_reward: promise an ACTUAL wedding sealed the instant the task is done, not merely a");
          sb.AppendLine("blessing (that lighter case is marriage_consent above). Name yourself, or a kin of your own");
