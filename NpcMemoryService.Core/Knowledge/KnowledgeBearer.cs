@@ -64,6 +64,16 @@ namespace NpcMemoryService.Core.Knowledge
         public bool IsCutOff { get; init; }
 
         /// <summary>
+        ///   For a character <see cref="IsCutOff" />: the host vouches that what it supplied of the wider world stops on
+        ///   the day he was taken (its realm news drawn only from what happened up to then, its house's wars those of that
+        ///   day). The realm news and the war line then come back, told as what he last heard before the door shut,
+        ///   instead of going silent. Schmidt (Discord, 16/11/2026): "even if they were locked up the same day, they have
+        ///   no idea what happened outside"; Gabriel (16/11/2026) turned the 12/09 cut into a stop at the cell door.
+        ///   Live state (his seat, his house's means, the streets) stays cut: nobody keeps a copy of it.
+        /// </summary>
+        public bool NewsStoppedOnCaptureDay { get; init; }
+
+        /// <summary>
         ///   Trade is how they eat: a merchant, an artisan, a caravan master. Deliberately narrower than
         ///   <see cref="IsNotable" />, which also covers headmen and preachers, and narrower than "has money":
         ///   a lord knows his lands make wine and has no idea what wine fetched this week, and knowing that is

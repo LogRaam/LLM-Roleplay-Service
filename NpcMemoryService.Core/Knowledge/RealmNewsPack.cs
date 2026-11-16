@@ -57,7 +57,9 @@ namespace NpcMemoryService.Core.Knowledge
             // is the ordinary history's business, not this pack's. house_means and seat_standing honoured this
             // from the day the flag existed; this pack and underworld did not, so a captive was reading the
             // CURRENT fortunes of his realm from a dungeon (audit, 15/09/2026).
-            if (bearer.IsCutOff) return KnowledgeDepth.None;
+            // Since 16/11/2026 (Schmidt; Gabriel): he keeps what he knew when the door shut, when the host stopped his
+            // news on that day; told then as what he last heard, at the reach his station had.
+            if (bearer.IsCutOff && !bearer.NewsStoppedOnCaptureDay) return KnowledgeDepth.None;
 
             if (bearer.IsLord || bearer.OwnHouseIsPlayerHouse) return KnowledgeDepth.Knowing;
             if (bearer.IsNotable) return KnowledgeDepth.Ordinary;
@@ -82,8 +84,9 @@ namespace NpcMemoryService.Core.Knowledge
             KnowledgeDepth depth = DepthFor(context!.Bearer);
             if (depth == KnowledgeDepth.None) return;
 
-            AppendHeadline(sb, news.Headline, lean);
-            AppendTidings(sb, Reaching(news.Tidings, depth, lean), lean);
+            bool fromBeforeTheCell = context.Bearer?.IsCutOff == true;
+            AppendHeadline(sb, news.Headline, lean, fromBeforeTheCell);
+            AppendTidings(sb, Reaching(news.Tidings, depth, lean), lean, fromBeforeTheCell);
         }
 
         #region private
@@ -126,9 +129,19 @@ namespace NpcMemoryService.Core.Knowledge
         ///   The great news, which reaches everyone. Kept word for word from the block it replaces, because
         ///   this prose has been tuned in play and the migration was meant to move it, not rewrite it.
         /// </summary>
-        private static void AppendHeadline(StringBuilder sb, string? headline, bool lean)
+        private static void AppendHeadline(StringBuilder sb, string? headline, bool lean, bool fromBeforeTheCell)
         {
             if (string.IsNullOrWhiteSpace(headline)) return;
+
+            if (fromBeforeTheCell)
+            {
+                sb.AppendLine("THE TALK OF THE REALM WHEN YOU WERE TAKEN:");
+                sb.AppendLine(headline);
+                if (!lean) sb.AppendLine("It was the great news the day the door shut on you; no word has reached you since, so you do not know how it has turned out.");
+                sb.AppendLine();
+
+                return;
+            }
 
             sb.AppendLine("THE TALK OF ALL THE REALM:");
             sb.AppendLine(headline);
@@ -142,9 +155,25 @@ namespace NpcMemoryService.Core.Knowledge
             sb.AppendLine();
         }
 
-        private static void AppendTidings(StringBuilder sb, List<Tiding> tidings, bool lean)
+        private static void AppendTidings(StringBuilder sb, List<Tiding> tidings, bool lean, bool fromBeforeTheCell)
         {
             if (tidings.Count == 0) return;
+
+            if (fromBeforeTheCell)
+            {
+                sb.AppendLine("WHAT YOU HAD HEARD BEFORE YOU WERE TAKEN:");
+                if (!lean)
+                {
+                    sb.AppendLine("Word that reached you before your captivity, and nothing since. Speak of it as old news");
+                    sb.AppendLine("('when I was taken, word was that'), in your own words, never as a list, and never as");
+                    sb.AppendLine("though you knew how it stands today.");
+                }
+
+                foreach (Tiding tiding in tidings) sb.AppendLine($"- {Tag(tiding.Confidence)}{tiding.Text!.TrimEnd('.', ' ')}.");
+                sb.AppendLine();
+
+                return;
+            }
 
             sb.AppendLine("WHAT YOU'VE HEARD (news that has reached you):");
 

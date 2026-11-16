@@ -18,6 +18,11 @@
 //
 // If these fail, a prisoner is either reporting this morning's grain stores from inside a dungeon, or has
 // forgotten where his own family's lands are.
+//
+// 16/11/2026 (Schmidt, Discord: "even if they were locked up the same day, they have no idea what happened outside";
+// Gabriel: "oui vas-y"): the news stops at the cell door rather than vanishing. When the host vouches that it stopped
+// the news on the capture day (KnowledgeBearer.NewsStoppedOnCaptureDay), the realm news and the war line come back,
+// told as what he last heard. Live state (seat, means, streets) stays cut, so still no pack keeps a stale copy.
 
 #region
 
@@ -160,6 +165,48 @@ namespace NpcMemoryServiceTests
          foreach (KnowledgePack pack in aboutReach)
             pack.DepthFor(CaptiveLord()).Should().Be(KnowledgeDepth.None,
                $"{pack.Name} reports what a character HEARS from outside, and a cell is where hearing stops");
+      }
+
+      // ── news stops at the cell door (16/11/2026) ──────────────────────────
+
+      private static KnowledgeBearer CaptiveLordWithNewsOfHisCaptureDay()
+         => new() {IsLord = true, HasHouse = true, HoldsASeat = true, IsCutOff = true, NewsStoppedOnCaptureDay = true};
+
+      // STAKE: Schmidt's lord, taken this morning, had never heard of the war he was taken in. With his news stopped on
+      // the day he was taken, he hears at the reach his station had, and it is told as what he last heard.
+      [Test]
+      public void GIVEN_a_captive_whose_news_stops_on_his_capture_day_WHEN_the_realm_news_is_rendered_THEN_he_tells_it_as_what_he_last_heard()
+      {
+         new RealmNewsPack().DepthFor(CaptiveLordWithNewsOfHisCaptureDay()).Should().Be(KnowledgeDepth.Knowing);
+
+         var sb = new StringBuilder();
+         new RealmNewsPack().Render(sb, new EncounterContext {
+            Bearer = CaptiveLordWithNewsOfHisCaptureDay(),
+            RealmNews = new RealmNewsFacts {Headline = "- Vlandia declared war on Sturgia.", Tidings = new List<Tiding> {new() {Text = "Pravend was besieged"}}}
+         }, false);
+
+         string text = sb.ToString();
+         text.Should().Contain("WHEN YOU WERE TAKEN").And.Contain("Vlandia declared war on Sturgia").And.Contain("Pravend was besieged");
+         text.Should().NotContain("great news of the moment");
+      }
+
+      // STAKE: the wars he names are those of the day he was taken, said as such, so he does not speak of them as today's.
+      [Test]
+      public void GIVEN_a_captive_whose_news_stops_on_his_capture_day_WHEN_his_house_is_described_THEN_its_wars_are_those_of_that_day()
+      {
+         var facts = new HouseStandingFacts {HouseName = "Leonipardes", Fiefs = new List<string> {"Hargendorf"}, AtWarWith = new List<string> {"Sturgia"}};
+
+         string captive = Render(facts, CaptiveLordWithNewsOfHisCaptureDay());
+
+         captive.Should().Contain("When you were taken").And.Contain("Sturgia").And.Contain("no word since");
+      }
+
+      // STAKE: what nobody keeps a copy of stays out of a cell: his seat's state, his house's means, the streets.
+      [Test]
+      public void GIVEN_a_captive_whose_news_stops_on_his_capture_day_WHEN_live_state_packs_are_weighed_THEN_they_stay_silent()
+      {
+         foreach (KnowledgePack pack in new KnowledgePack[] {new UnderworldPack(), new HouseMeansPack(), new SeatStandingPack()})
+            pack.DepthFor(CaptiveLordWithNewsOfHisCaptureDay()).Should().Be(KnowledgeDepth.None, pack.Name);
       }
 
       #region private

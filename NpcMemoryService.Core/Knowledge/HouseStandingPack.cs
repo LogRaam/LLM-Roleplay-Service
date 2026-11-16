@@ -90,10 +90,16 @@ namespace NpcMemoryService.Core.Knowledge
             // exactly what a courier would have had to bring him. Gabriel's cut-off ruling, 2026-09-12, and
             // the same durable-versus-today's line that put house_means in its own pack.
             bool cutOff = context?.Bearer?.IsCutOff == true;
+            // Since 16/11/2026 (Schmidt; Gabriel): the host may give the wars of the day he was taken; told as such.
+            bool warsOfCaptureDay = cutOff && context?.Bearer?.NewsStoppedOnCaptureDay == true;
 
             int warCap = lean ? HouseStandingFacts.MaxWarsNamedLean : HouseStandingFacts.MaxWarsNamed;
-            List<string> wars = cutOff ? new List<string>() : Named(facts.AtWarWith, warCap);
-            if (wars.Count > 0)
+            List<string> wars = cutOff && !warsOfCaptureDay ? new List<string>() : Named(facts.AtWarWith, warCap);
+            if (warsOfCaptureDay)
+                sb.AppendLine(wars.Count > 0
+                    ? $"When you were taken, {ours} was at war with {Join(wars, facts.AtWarWith.Count, warCap)}, and with no other realm; you have had no word since."
+                    : $"When you were taken, {ours} was at war with no realm; you have had no word since.");
+            else if (wars.Count > 0)
                 sb.AppendLine($"{ours} is at war with {Join(wars, facts.AtWarWith.Count, warCap)}, and with no other realm.");
             else if (!cutOff)
                 sb.AppendLine($"{ours} is at war with no realm.");
