@@ -31,5 +31,14 @@
   "temperature": 0.7,
 
   "_presencePenalty": "Pushes the model off words it has already used. The game ships 0.3. The one lever that reduces repetition on weaker models.",
-  "presencePenalty": 0.3
+  "presencePenalty": 0.3,
+
+  "_aimlApiKey": "AIML API key for the Jev decision bench only. Empty falls back to the AIMLAPI_KEY environment variable; neither set, the Jev bench skips. NEVER here: only in your git-ignored copy.",
+  "aimlApiKey": "",
+
+  "_jevModel": "Jev model id on AIML API: typesafe/jev (current release) or a pinned one such as typesafe/jev-1.14.",
+  "jevModel": "typesafe/jev",
+
+  "_jevCases": "subset (5 cases, a few calls) or all (the whole action bench catalog).",
+  "jevCases": "subset"
 }

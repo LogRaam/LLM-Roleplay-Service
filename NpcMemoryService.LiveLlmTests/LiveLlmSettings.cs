@@ -102,6 +102,22 @@ namespace NpcMemoryService.LiveLlmTests
       public float PresencePenalty { get; set; } = 0.3f;
 
       /// <summary>
+      ///   AIML API key for the Jev decision bench (JevActionBenchLiveLlmTests). Optional: left empty, the bench falls back
+      ///   to the AIMLAPI_KEY environment variable, and skips when neither is set. Same rule as <see cref="ApiKey" />: only
+      ///   in the git-ignored copy, never in the example.
+      /// </summary>
+      [JsonPropertyName("aimlApiKey")]
+      public string? AimlApiKey { get; set; }
+
+      /// <summary>The Jev model id (AIML API): "typesafe/jev" follows the current release, "typesafe/jev-1.14" pins one.</summary>
+      [JsonPropertyName("jevModel")]
+      public string JevModel { get; set; } = "typesafe/jev";
+
+      /// <summary>Which bench cases the Jev bench runs: "subset" (the interpreter smoke run's few cases) or "all" (the whole catalog).</summary>
+      [JsonPropertyName("jevCases")]
+      public string JevCases { get; set; } = "subset";
+
+      /// <summary>
       ///   Loads the settings beside the test assembly, then beside the project. Returns a CLOSED default when
       ///   no file exists or it cannot be read: a malformed file must never be read as permission to spend.
       /// </summary>
