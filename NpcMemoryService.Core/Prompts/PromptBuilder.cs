@@ -84,6 +84,16 @@ namespace NpcMemoryService.Core.Prompts
       public bool EnableQuests { get; init; } = false;
 
       /// <summary>
+      ///   When true (default), an ordinary conversation is taught the <c>[NARRATION]</c> block (a neutral camera on
+      ///   the setting) and asked to open the scene with one. False for a player who wants the dialogue alone
+      ///   (1Enfant, Nexus, 16/11/2026: "How do I disable the description of the surrounding environment?"): the
+      ///   block is not taught, the opening tableau is not asked for, and the setting lives in the character's own
+      ///   *gestures*. Captive scenes keep their own narration contract either way: there it carries what is done
+      ///   to the prisoner, which has no other channel.
+      /// </summary>
+      public bool EnableSceneNarration { get; init; } = true;
+
+      /// <summary>
       ///   When true (default), the response format includes the <c>[REPUTATION]</c>
       ///   block, letting the LLM move <see cref="NpcProfile.ReputationWithPlayer" />.
       ///   Consumers that drive the NPC's standing from an external, authoritative
@@ -4824,6 +4834,8 @@ namespace NpcMemoryService.Core.Prompts
       private void AppendNarrationFrequency(StringBuilder sb, EncounterContext? context)
       {
          if (IsActiveCaptiveVoiceScene(context)) return;
+         // The player turned scene narration off: no opening tableau, no frequency rule for a block never taught.
+         if (!EnableSceneNarration) return;
 
          bool opening = context?.IsConversationOpening == true;
 
@@ -7716,7 +7728,7 @@ namespace NpcMemoryService.Core.Prompts
          // The narrative-voice teachings are Full-prompt only: Lean is a hard token budget for small
          // local models (pinned by LeanPromptPolicyTests), and ~2k chars of style guidance would bust it.
          if (context?.LeanLevel != LeanPromptLevel.Lean)
-            AppendNarrativeVoice(sb, npc.IsFemale);
+            AppendNarrativeVoice(sb, npc.IsFemale, EnableSceneNarration);
          string discoverySuffix = AdultLevel != AdultContentLevel.Off
             ? ", [DISCOVERY]"
             : "";
@@ -7741,7 +7753,7 @@ namespace NpcMemoryService.Core.Prompts
       ///   the same *action*-speech-narration template every turn). Captive scenes are excluded upstream: they carry
       ///   their own voice contract.
       /// </summary>
-      private static void AppendNarrativeVoice(StringBuilder sb, bool female)
+      private static void AppendNarrativeVoice(StringBuilder sb, bool female, bool sceneNarration)
       {
          sb.AppendLine("NARRATIVE VOICE (governs every reply):");
          sb.AppendLine("- Narrate in the third person: your character by name or \"he/she\", the world around");
@@ -7761,11 +7773,22 @@ namespace NpcMemoryService.Core.Prompts
             : "    *He rises abruptly, worry crossing his face.* \"Speak. You are frightening me.\"");
          sb.AppendLine("- Show intent through the body, never state it (\"her hand rests on her sword, ready to");
          sb.AppendLine("  draw\", not \"she is suspicious of you\").");
-         sb.AppendLine("- THE SCENE ITSELF IS NOT YOURS TO SPEAK: put it in [NARRATION], never in [DIALOGUE].");
-         sb.AppendLine("  The room, the light, the sounds, the shadow the candles throw against the wall. It is");
-         sb.AppendLine("  a neutral camera on the SETTING, held apart from your own gestures:");
-         sb.AppendLine("    [NARRATION]She stands motionless in the half-dark of the armoury, her shadow");
-         sb.AppendLine("    wavering against the wall as the few remaining candles gutter.[/NARRATION]");
+         if (sceneNarration)
+         {
+            sb.AppendLine("- THE SCENE ITSELF IS NOT YOURS TO SPEAK: put it in [NARRATION], never in [DIALOGUE].");
+            sb.AppendLine("  The room, the light, the sounds, the shadow the candles throw against the wall. It is");
+            sb.AppendLine("  a neutral camera on the SETTING, held apart from your own gestures:");
+            sb.AppendLine("    [NARRATION]She stands motionless in the half-dark of the armoury, her shadow");
+            sb.AppendLine("    wavering against the wall as the few remaining candles gutter.[/NARRATION]");
+         }
+         else
+         {
+            // 1Enfant (Nexus, 16/11/2026) turned the scene narration off. Without a channel for the setting a model
+            // may speak the room aloud instead; the setting goes into the gestures, briefly, or nowhere.
+            sb.AppendLine("- NO SCENE DESCRIPTION: write no [NARRATION] block. When the place matters, let a touch of");
+            sb.AppendLine("  it live in one of your *gestures* (*she glances at the guttering candles*), and never");
+            sb.AppendLine("  describe the room aloud in your spoken words.");
+         }
          sb.AppendLine();
          sb.AppendLine("READING THE PLAYER'S TURN:");
          sb.AppendLine("- The player's *stage directions* are accomplished fact: they happened exactly as");
@@ -8195,7 +8218,8 @@ namespace NpcMemoryService.Core.Prompts
          // the model pulling in two directions at once, and it drifted into the captor's own first person
          // ("the spit lands near my boots") while the sensations it was right to keep stayed correct
          // (Gabriel, in play 2026-07-19).
-         if (!IsActiveCaptiveVoiceScene(context))
+         // Not taught at all when the player turned scene narration off (EnableSceneNarration).
+         if (!IsActiveCaptiveVoiceScene(context) && EnableSceneNarration)
          {
             // HOW OFTEN this block is wanted is a fact about THIS TURN, and it is not stated here. It used
             // to be, branched on IsConversationOpening — and this line sits ~2.5% into the prompt, inside the
