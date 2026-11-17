@@ -28,6 +28,13 @@ namespace NpcMemoryService.Core.Models
       public string? ModelOverride { get; init; }
 
       /// <summary>
+      ///   Sends the request without the player's OpenRouter provider pin. Set only for another mod's request aimed at a
+      ///   model of its own (CrLlmRequest.Model, VonLemberg 17/11/2026): the pinned providers may not host it. False keeps
+      ///   the pin, as every request had before.
+      /// </summary>
+      public bool OmitProviderPin { get; init; }
+
+      /// <summary>
       ///   The STABLE prefix of <see cref="SystemPrompt" /> (must be a literal prefix) — the part that does
       ///   not change turn-to-turn within a conversation (identity, persona, instructions). When set and
       ///   caching is on, the cache breakpoint goes here, so only this prefix is cached and the dynamic
