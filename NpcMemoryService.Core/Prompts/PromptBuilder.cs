@@ -1509,7 +1509,8 @@ namespace NpcMemoryService.Core.Prompts
             string where = string.IsNullOrWhiteSpace(p.Place) ? "" : $", in {p.Place}";
             List<string> others = (p.AlsoPresent ?? new List<string>()).Where(n => !string.IsNullOrWhiteSpace(n)).ToList();
             string with = others.Count == 0 ? "" : $"; also there: {string.Join(", ", others)}";
-            sb.AppendLine($"-- {p.When}{where}{with} --");
+            string about = string.IsNullOrWhiteSpace(p.About) ? "" : $"; about {p.About}{(p.Latest ? ", the latest said on it" : "")}";
+            sb.AppendLine($"-- {p.When}{where}{with}{about} --");
             foreach (RecalledLine line in p.Lines.Where(l => !string.IsNullOrWhiteSpace(l?.Text)))
                sb.AppendLine($"[{line.Speaker}] {line.Text.Trim()}");
          }
@@ -1517,6 +1518,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("These are old words, kept for their tone and for the threads still open between you. What you remember");
          sb.AppendLine("above and what is true now outweigh them: things may have changed since. Never recite them back; let them");
          sb.AppendLine("colour how you speak, and pick up a thread only when this moment calls for it.");
+         if (passages.Any(p => p.Latest))
+            sb.AppendLine("Passages about the same matter are one story told over several talks: the one marked the latest says how it stands now.");
          sb.AppendLine();
       }
 

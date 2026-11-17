@@ -34,6 +34,15 @@ namespace NpcMemoryService.Core.Models
       /// <summary>The others who were there and heard it, besides the character and the player.</summary>
       public IReadOnlyList<string> AlsoPresent { get; init; } = new List<string>();
 
+      /// <summary>
+      ///   The matter this passage shares with the turn, when it is one of several conversations on it ("Varcheg").
+      ///   Gabriel (17/11/2026): a mission spoken of over several conversations must come back linked.
+      /// </summary>
+      public string? About { get; init; }
+
+      /// <summary>The newest passage on that matter: it says how things stand now.</summary>
+      public bool Latest { get; init; }
+
       /// <summary>The lines, in the order they were said.</summary>
       public IReadOnlyList<RecalledLine> Lines { get; init; } = new List<RecalledLine>();
    }

@@ -51,6 +51,25 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("Never recite them back");
       }
 
+      // STAKE (Gabriel, 17/11/2026): a mission told over several talks is one story, and its latest terms are the ones that hold.
+      [Test]
+      public void GIVEN_passages_on_one_matter_WHEN_built_THEN_the_matter_and_the_latest_are_named()
+      {
+         var context = new EncounterContext {
+            LeanLevel = LeanPromptLevel.Full,
+            RecalledExchanges = new List<RecalledExchange> {
+               new() {When = "20 days ago", About = "Varcheg", Lines = new List<RecalledLine> {new() {Speaker = "YOU", Text = "I will pay one thousand."}}},
+               new() {When = "2 days ago", About = "Varcheg", Latest = true, Lines = new List<RecalledLine> {new() {Speaker = "YOU", Text = "Two thousand, not one."}}}
+            }
+         };
+
+         string prompt = Prompt(context);
+
+         prompt.Should().Contain("-- 20 days ago; about Varcheg --");
+         prompt.Should().Contain("-- 2 days ago; about Varcheg, the latest said on it --");
+         prompt.Should().Contain("the one marked the latest says how it stands now");
+      }
+
       // STAKE: words that change every turn above the marker would re-bill the whole cached prefix each reply.
       [Test]
       public void GIVEN_recalled_words_WHEN_the_prompt_is_built_THEN_they_sit_below_the_cache_marker()
