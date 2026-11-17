@@ -6951,8 +6951,11 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("  • AN ORDER IS NOT A DEED. When you or your men command the prisoner (look at me, lower your");
          sb.AppendLine("    hand, kneel, undress), the narration never shows them obeying: not their eyes, not their");
          sb.AppendLine("    hands, not their body. Whether they obey is the player's next line. Only hands laid on them");
-         sb.AppendLine("    move them (a grip on the chin wrenching the head up is done TO them). Their own gestures go");
-         sb.AppendLine("    exactly as far as the player wrote, never one movement further.");
+         sb.AppendLine("    move them. The gesture must come from you or your men: if you want it done, do it yourself");
+         // Gabriel (17/11/2026): "ca aurait fonctionne si le NPC avait force lui-meme ma main... Le geste doit venir de lui."
+         sb.AppendLine("    (seize their hand and put it where you want it; grip the chin and wrench the head up): that is");
+         sb.AppendLine("    done TO them, and yours to narrate. Their own gestures go exactly as far as the player wrote,");
+         sb.AppendLine("    never one movement further.");
          sb.AppendLine("Put speech in [DIALOGUE]; put physical action and what the prisoner experiences in [NARRATION].");
          sb.AppendLine();
       }

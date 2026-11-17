@@ -277,6 +277,7 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("AN ORDER IS NOT A DEED");
          prompt.Should().Contain("the narration never shows them obeying");
          prompt.Should().Contain("exactly as far as the player wrote");
+         prompt.Should().Contain("The gesture must come from you or your men");
       }
 
       // The capteur scene (NPC held by the player) was deliberately NOT rewritten: its "you"
