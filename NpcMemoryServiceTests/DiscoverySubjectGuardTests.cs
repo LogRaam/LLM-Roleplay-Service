@@ -20,6 +20,23 @@ namespace NpcMemoryServiceTests
    [TestFixture]
    public class DiscoverySubjectGuardTests
    {
+      // VonLemberg (Discord, 16/11/2026, source audit): the name tell used to try EVERY word of the player's name, so
+      // a player called "Arwa the Swift" lost every discovery that opened with "The" or "Swift". Only the first
+      // word of the name is the tell: it is the word a sentence about the player opens with.
+      // STAKE: a player whose name holds a common word silently loses most of what they learn about characters,
+      // and can never see that anything was dropped.
+      [TestCase("The scar along her jaw came from a siege she will not name.")]
+      [TestCase("Swift to anger, she forgives just as quickly.")]
+      public void GIVEN_a_player_name_holding_common_words_WHEN_a_discovery_opens_with_one_of_them_THEN_it_is_not_flagged(string description)
+         => DiscoverySubjectGuard.IsAboutPlayer("temper", description, "Arwa the Swift").Should().BeFalse();
+
+      // The fix keeps the tell itself: a sentence opening with the first word of that same name is still about the
+      // player. STAKE: facts about the player land on the character's Encyclopedia page as if they were hers.
+      [TestCase("Arwa the Swift fights from the saddle.")]
+      [TestCase("Arwa prefers to lead.")]
+      public void GIVEN_a_player_name_holding_common_words_WHEN_a_discovery_opens_with_its_first_word_THEN_it_is_flagged(string description)
+         => DiscoverySubjectGuard.IsAboutPlayer("orientation", description, "Arwa the Swift").Should().BeTrue();
+
       // ── Clear signals worth catching ────────────────────────────────────
 
       // The reported leak: a key namespaced to the player (the model's own attempt to label what it wrote)

@@ -575,6 +575,24 @@ namespace NpcMemoryServiceTests
          profile.DiscoveredTraits.Should().ContainSingle();
       }
 
+      // VonLemberg (Discord, 16/11/2026): end to end, a discovery about the character that opens with a common word
+      // of the player's name ("The" of "Arwa the Swift") reaches the profile. STAKE: the Encyclopedia's "What you
+      // know" section stays empty for that player whatever the characters reveal.
+      [Test]
+      public void GIVEN_a_player_named_with_a_common_word_WHEN_a_discovery_opens_with_that_word_THEN_it_is_stored()
+      {
+         NpcProfile profile = CreateProfile();
+         var response = new ParsedResponse {
+            Dialogue = "",
+            Discovery = new DiscoveredTrait {Key = "scar", Description = "The scar along her jaw came from a siege.", GameDay = 0}
+         };
+
+         ProfileMutator.Apply(profile, response, gameDay: 1, romanticContentEnabled: true,
+            orientationCompatible: true, applyReputation: false, intimacyPermitted: true, playerName: "Arwa the Swift");
+
+         profile.DiscoveredTraits.Should().ContainSingle();
+      }
+
       // ---------- Event dedup & meta-reasoning guards ----------
 
       // Player report: a model that re-emitted the same [EVENT] several times across one conversation had

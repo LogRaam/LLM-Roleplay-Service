@@ -26,7 +26,7 @@ namespace NpcMemoryService.Core.Parsing
    ///   supposed to be the one revealed about. Three explicit signals only:
    ///   <list type="bullet">
    ///     <item>the description's opening words are literally "the player";</item>
-   ///     <item>the description opens with the player's own name (<paramref name="playerName" />, when supplied);</item>
+   ///     <item>the description opens with the first word of the player's name (<c>playerName</c>, when supplied);</item>
    ///     <item>the key is namespaced to "player" (e.g. <c>player_orientation</c>).</item>
    ///   </list>
    ///   No attempt is made to parse the rest of the sentence, so a discovery that names the player
@@ -58,19 +58,20 @@ namespace NpcMemoryService.Core.Parsing
          => !string.IsNullOrWhiteSpace(key)
          && key!.Split('_').Any(segment => string.Equals(segment, "player", StringComparison.OrdinalIgnoreCase));
 
-      /// <summary>The description's very first word is the player's own name, the clearest sign the sentence is ABOUT them, not the NPC.</summary>
+      /// <summary>
+      ///   The description opens with the FIRST word of the player's name, the clearest sign the sentence is ABOUT them,
+      ///   not the NPC. Only the first word: VonLemberg (Discord, 16/11/2026) found that trying every word dropped,
+      ///   for a player called "Arwa the Swift", every discovery opening with "The" or "Swift". A sentence about the
+      ///   player opens with their given name, and the full name begins with it too.
+      /// </summary>
       private static bool OpensWithPlayerName(string description, string? playerName)
       {
          if (string.IsNullOrWhiteSpace(playerName)) return false;
 
-         foreach (string token in playerName!.Split((char[]) null!, StringSplitOptions.RemoveEmptyEntries))
-         {
-            if (token.Length < 2) continue;
-            if (Regex.IsMatch(description, $@"^\s*{Regex.Escape(token)}\b", RegexOptions.IgnoreCase))
-               return true;
-         }
+         string first = playerName!.Split((char[]) null!, StringSplitOptions.RemoveEmptyEntries)[0];
+         if (first.Length < 2) return false;
 
-         return false;
+         return Regex.IsMatch(description, $@"^\s*{Regex.Escape(first)}\b", RegexOptions.IgnoreCase);
       }
    }
 }
