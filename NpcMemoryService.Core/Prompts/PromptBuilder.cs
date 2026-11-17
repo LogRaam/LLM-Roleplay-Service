@@ -6945,6 +6945,14 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("    they are what makes the scene dramatic. But never narrate what they THINK,");
          sb.AppendLine("    DECIDE, SAY, or DO in answer: their mind and their choices belong to the player");
          sb.AppendLine("    alone. End each beat on the situation, not on their response to it.");
+         // Gabriel (17/11/2026, screenshot): the captor ordered "look at me... your hand travels down" and the narration
+         // carried it out ("forcing your head up until your gaze meets mine... your own hand presses against"). The rule
+         // above forbade what the prisoner DOES; an obeyed order slipped through as if it were done TO them.
+         sb.AppendLine("  • AN ORDER IS NOT A DEED. When you or your men command the prisoner (look at me, lower your");
+         sb.AppendLine("    hand, kneel, undress), the narration never shows them obeying: not their eyes, not their");
+         sb.AppendLine("    hands, not their body. Whether they obey is the player's next line. Only hands laid on them");
+         sb.AppendLine("    move them (a grip on the chin wrenching the head up is done TO them). Their own gestures go");
+         sb.AppendLine("    exactly as far as the player wrote, never one movement further.");
          sb.AppendLine("Put speech in [DIALOGUE]; put physical action and what the prisoner experiences in [NARRATION].");
          sb.AppendLine();
       }

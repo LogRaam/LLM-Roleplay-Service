@@ -267,6 +267,18 @@ namespace NpcMemoryServiceTests
          prompt.Should().Contain("their mind and their choices belong to the");
       }
 
+      // STAKE (Gabriel, 17/11/2026, screenshot): the captor ordered "look at me... your hand travels down" and the narration
+      // carried the order out on the player's body. An obeyed order is the player's choice taken from them.
+      [Test]
+      public void GIVEN_a_captive_scene_WHEN_built_THEN_an_order_is_never_narrated_as_obeyed()
+      {
+         string prompt = BuildCaptivePrompt();
+
+         prompt.Should().Contain("AN ORDER IS NOT A DEED");
+         prompt.Should().Contain("the narration never shows them obeying");
+         prompt.Should().Contain("exactly as far as the player wrote");
+      }
+
       // The capteur scene (NPC held by the player) was deliberately NOT rewritten: its "you"
       // designates the player's own outward acts, which is conformant with the ratified style.
       [Test]
