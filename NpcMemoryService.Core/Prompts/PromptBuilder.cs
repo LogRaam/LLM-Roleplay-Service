@@ -6145,9 +6145,16 @@ namespace NpcMemoryService.Core.Prompts
          {
             sb.AppendLine("CHANGE_RELATION IS HOW THE GAME LEARNS YOUR REGARD SHIFTED:");
             sb.AppendLine("Whenever this exchange truly moves how you regard the player, praise, an insult, a");
-            sb.AppendLine("kindness done to you, an affront, a bold or a foolish claim, emit a change_relation");
+            sb.AppendLine("kindness done to you, an affront, an empty boast or a lie, emit a change_relation");
             sb.AppendLine("[ACTION] in the SAME reply. The game records the shift ONLY from that block: warmer or");
             sb.AppendLine("colder words in [DIALOGUE] alone leave your relation with them exactly where it was.");
+            // Lordfadooboo (Nexus, 16/11/2026): "I got -2 regard from a lord when I was offering to take out a
+            // bandit camp". The interpreter has long been told never to punish a helpful act met coldly; the prose
+            // model, which emits change_relation itself in Standard, was told only that "a bold or a foolish
+            // claim" moves regard, and an offer to clear a camp reads as a bold claim.
+            sb.AppendLine("An offer of help, a warning, a service or useful news never lowers your regard, even if");
+            sb.AppendLine("you answer it coldly or doubt they can do it: your own wariness is not their fault.");
+            sb.AppendLine("Lower it ONLY for something they did that truly wronged or offended you.");
             sb.AppendLine();
          }
 
@@ -9505,7 +9512,7 @@ namespace NpcMemoryService.Core.Prompts
          // deed rule in STAY WITHIN WHAT YOU KNOW): one line per must-emit case, kept to four lines total.
          sb.AppendLine();
          sb.AppendLine("ACTION CHECKLIST, BEFORE YOU FINISH THIS REPLY:");
-         sb.AppendLine("- Your regard for them shifted (praise, insult, a kindness, an affront, a bold or foolish claim) -> change_relation.");
+         sb.AppendLine("- Your regard for them shifted (praise, insult, a kindness, an affront, an empty boast) -> change_relation; an offer of help never lowers it.");
          sb.AppendLine("- A gift, payment, transfer, or recruitment truly happened -> its own [ACTION].");
          sb.AppendLine("- The talk is ending -> end_conversation. Emit the block THIS SAME reply: prose describing it is not enough.");
       }

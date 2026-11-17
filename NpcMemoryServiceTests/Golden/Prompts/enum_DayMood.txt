@@ -143,9 +143,12 @@ delta: 1
 
 CHANGE_RELATION IS HOW THE GAME LEARNS YOUR REGARD SHIFTED:
 Whenever this exchange truly moves how you regard the player, praise, an insult, a
-kindness done to you, an affront, a bold or a foolish claim, emit a change_relation
+kindness done to you, an affront, an empty boast or a lie, emit a change_relation
 [ACTION] in the SAME reply. The game records the shift ONLY from that block: warmer or
 colder words in [DIALOGUE] alone leave your relation with them exactly where it was.
+An offer of help, a warning, a service or useful news never lowers your regard, even if
+you answer it coldly or doubt they can do it: your own wariness is not their fault.
+Lower it ONLY for something they did that truly wronged or offended you.
 
 THE RULE FOR EVERY ACTION, EVERYWHERE IN THIS PROMPT:
 Emit an [ACTION] ONLY when its specific condition is explicitly met THIS turn, never
@@ -704,7 +707,7 @@ instructions, not of the story. Say "you", or their name.
 e.g.  [DIALOGUE]your spoken words[/DIALOGUE]   then, only on a real change:   [ACTION] type: change_relation  delta: 1 [/ACTION]
 
 ACTION CHECKLIST, BEFORE YOU FINISH THIS REPLY:
-- Your regard for them shifted (praise, insult, a kindness, an affront, a bold or foolish claim) -> change_relation.
+- Your regard for them shifted (praise, insult, a kindness, an affront, an empty boast) -> change_relation; an offer of help never lowers it.
 - A gift, payment, transfer, or recruitment truly happened -> its own [ACTION].
 - The talk is ending -> end_conversation. Emit the block THIS SAME reply: prose describing it is not enough.
 
@@ -855,9 +858,12 @@ delta: 1
 
 CHANGE_RELATION IS HOW THE GAME LEARNS YOUR REGARD SHIFTED:
 Whenever this exchange truly moves how you regard the player, praise, an insult, a
-kindness done to you, an affront, a bold or a foolish claim, emit a change_relation
+kindness done to you, an affront, an empty boast or a lie, emit a change_relation
 [ACTION] in the SAME reply. The game records the shift ONLY from that block: warmer or
 colder words in [DIALOGUE] alone leave your relation with them exactly where it was.
+An offer of help, a warning, a service or useful news never lowers your regard, even if
+you answer it coldly or doubt they can do it: your own wariness is not their fault.
+Lower it ONLY for something they did that truly wronged or offended you.
 
 THE RULE FOR EVERY ACTION, EVERYWHERE IN THIS PROMPT:
 Emit an [ACTION] ONLY when its specific condition is explicitly met THIS turn, never
@@ -1418,7 +1424,7 @@ instructions, not of the story. Say "you", or their name.
 e.g.  [DIALOGUE]your spoken words[/DIALOGUE]   then, only on a real change:   [ACTION] type: change_relation  delta: 1 [/ACTION]
 
 ACTION CHECKLIST, BEFORE YOU FINISH THIS REPLY:
-- Your regard for them shifted (praise, insult, a kindness, an affront, a bold or foolish claim) -> change_relation.
+- Your regard for them shifted (praise, insult, a kindness, an affront, an empty boast) -> change_relation; an offer of help never lowers it.
 - A gift, payment, transfer, or recruitment truly happened -> its own [ACTION].
 - The talk is ending -> end_conversation. Emit the block THIS SAME reply: prose describing it is not enough.
 
@@ -1569,9 +1575,12 @@ delta: 1
 
 CHANGE_RELATION IS HOW THE GAME LEARNS YOUR REGARD SHIFTED:
 Whenever this exchange truly moves how you regard the player, praise, an insult, a
-kindness done to you, an affront, a bold or a foolish claim, emit a change_relation
+kindness done to you, an affront, an empty boast or a lie, emit a change_relation
 [ACTION] in the SAME reply. The game records the shift ONLY from that block: warmer or
 colder words in [DIALOGUE] alone leave your relation with them exactly where it was.
+An offer of help, a warning, a service or useful news never lowers your regard, even if
+you answer it coldly or doubt they can do it: your own wariness is not their fault.
+Lower it ONLY for something they did that truly wronged or offended you.
 
 THE RULE FOR EVERY ACTION, EVERYWHERE IN THIS PROMPT:
 Emit an [ACTION] ONLY when its specific condition is explicitly met THIS turn, never
@@ -2132,7 +2141,7 @@ instructions, not of the story. Say "you", or their name.
 e.g.  [DIALOGUE]your spoken words[/DIALOGUE]   then, only on a real change:   [ACTION] type: change_relation  delta: 1 [/ACTION]
 
 ACTION CHECKLIST, BEFORE YOU FINISH THIS REPLY:
-- Your regard for them shifted (praise, insult, a kindness, an affront, a bold or foolish claim) -> change_relation.
+- Your regard for them shifted (praise, insult, a kindness, an affront, an empty boast) -> change_relation; an offer of help never lowers it.
 - A gift, payment, transfer, or recruitment truly happened -> its own [ACTION].
 - The talk is ending -> end_conversation. Emit the block THIS SAME reply: prose describing it is not enough.
 
@@ -2283,9 +2292,12 @@ delta: 1
 
 CHANGE_RELATION IS HOW THE GAME LEARNS YOUR REGARD SHIFTED:
 Whenever this exchange truly moves how you regard the player, praise, an insult, a
-kindness done to you, an affront, a bold or a foolish claim, emit a change_relation
+kindness done to you, an affront, an empty boast or a lie, emit a change_relation
 [ACTION] in the SAME reply. The game records the shift ONLY from that block: warmer or
 colder words in [DIALOGUE] alone leave your relation with them exactly where it was.
+An offer of help, a warning, a service or useful news never lowers your regard, even if
+you answer it coldly or doubt they can do it: your own wariness is not their fault.
+Lower it ONLY for something they did that truly wronged or offended you.
 
 THE RULE FOR EVERY ACTION, EVERYWHERE IN THIS PROMPT:
 Emit an [ACTION] ONLY when its specific condition is explicitly met THIS turn, never
@@ -2846,7 +2858,7 @@ instructions, not of the story. Say "you", or their name.
 e.g.  [DIALOGUE]your spoken words[/DIALOGUE]   then, only on a real change:   [ACTION] type: change_relation  delta: 1 [/ACTION]
 
 ACTION CHECKLIST, BEFORE YOU FINISH THIS REPLY:
-- Your regard for them shifted (praise, insult, a kindness, an affront, a bold or foolish claim) -> change_relation.
+- Your regard for them shifted (praise, insult, a kindness, an affront, an empty boast) -> change_relation; an offer of help never lowers it.
 - A gift, payment, transfer, or recruitment truly happened -> its own [ACTION].
 - The talk is ending -> end_conversation. Emit the block THIS SAME reply: prose describing it is not enough.
 
@@ -2997,9 +3009,12 @@ delta: 1
 
 CHANGE_RELATION IS HOW THE GAME LEARNS YOUR REGARD SHIFTED:
 Whenever this exchange truly moves how you regard the player, praise, an insult, a
-kindness done to you, an affront, a bold or a foolish claim, emit a change_relation
+kindness done to you, an affront, an empty boast or a lie, emit a change_relation
 [ACTION] in the SAME reply. The game records the shift ONLY from that block: warmer or
 colder words in [DIALOGUE] alone leave your relation with them exactly where it was.
+An offer of help, a warning, a service or useful news never lowers your regard, even if
+you answer it coldly or doubt they can do it: your own wariness is not their fault.
+Lower it ONLY for something they did that truly wronged or offended you.
 
 THE RULE FOR EVERY ACTION, EVERYWHERE IN THIS PROMPT:
 Emit an [ACTION] ONLY when its specific condition is explicitly met THIS turn, never
@@ -3560,7 +3575,7 @@ instructions, not of the story. Say "you", or their name.
 e.g.  [DIALOGUE]your spoken words[/DIALOGUE]   then, only on a real change:   [ACTION] type: change_relation  delta: 1 [/ACTION]
 
 ACTION CHECKLIST, BEFORE YOU FINISH THIS REPLY:
-- Your regard for them shifted (praise, insult, a kindness, an affront, a bold or foolish claim) -> change_relation.
+- Your regard for them shifted (praise, insult, a kindness, an affront, an empty boast) -> change_relation; an offer of help never lowers it.
 - A gift, payment, transfer, or recruitment truly happened -> its own [ACTION].
 - The talk is ending -> end_conversation. Emit the block THIS SAME reply: prose describing it is not enough.
 
@@ -3711,9 +3726,12 @@ delta: 1
 
 CHANGE_RELATION IS HOW THE GAME LEARNS YOUR REGARD SHIFTED:
 Whenever this exchange truly moves how you regard the player, praise, an insult, a
-kindness done to you, an affront, a bold or a foolish claim, emit a change_relation
+kindness done to you, an affront, an empty boast or a lie, emit a change_relation
 [ACTION] in the SAME reply. The game records the shift ONLY from that block: warmer or
 colder words in [DIALOGUE] alone leave your relation with them exactly where it was.
+An offer of help, a warning, a service or useful news never lowers your regard, even if
+you answer it coldly or doubt they can do it: your own wariness is not their fault.
+Lower it ONLY for something they did that truly wronged or offended you.
 
 THE RULE FOR EVERY ACTION, EVERYWHERE IN THIS PROMPT:
 Emit an [ACTION] ONLY when its specific condition is explicitly met THIS turn, never
@@ -4274,7 +4292,7 @@ instructions, not of the story. Say "you", or their name.
 e.g.  [DIALOGUE]your spoken words[/DIALOGUE]   then, only on a real change:   [ACTION] type: change_relation  delta: 1 [/ACTION]
 
 ACTION CHECKLIST, BEFORE YOU FINISH THIS REPLY:
-- Your regard for them shifted (praise, insult, a kindness, an affront, a bold or foolish claim) -> change_relation.
+- Your regard for them shifted (praise, insult, a kindness, an affront, an empty boast) -> change_relation; an offer of help never lowers it.
 - A gift, payment, transfer, or recruitment truly happened -> its own [ACTION].
 - The talk is ending -> end_conversation. Emit the block THIS SAME reply: prose describing it is not enough.
 
@@ -4425,9 +4443,12 @@ delta: 1
 
 CHANGE_RELATION IS HOW THE GAME LEARNS YOUR REGARD SHIFTED:
 Whenever this exchange truly moves how you regard the player, praise, an insult, a
-kindness done to you, an affront, a bold or a foolish claim, emit a change_relation
+kindness done to you, an affront, an empty boast or a lie, emit a change_relation
 [ACTION] in the SAME reply. The game records the shift ONLY from that block: warmer or
 colder words in [DIALOGUE] alone leave your relation with them exactly where it was.
+An offer of help, a warning, a service or useful news never lowers your regard, even if
+you answer it coldly or doubt they can do it: your own wariness is not their fault.
+Lower it ONLY for something they did that truly wronged or offended you.
 
 THE RULE FOR EVERY ACTION, EVERYWHERE IN THIS PROMPT:
 Emit an [ACTION] ONLY when its specific condition is explicitly met THIS turn, never
@@ -4988,7 +5009,7 @@ instructions, not of the story. Say "you", or their name.
 e.g.  [DIALOGUE]your spoken words[/DIALOGUE]   then, only on a real change:   [ACTION] type: change_relation  delta: 1 [/ACTION]
 
 ACTION CHECKLIST, BEFORE YOU FINISH THIS REPLY:
-- Your regard for them shifted (praise, insult, a kindness, an affront, a bold or foolish claim) -> change_relation.
+- Your regard for them shifted (praise, insult, a kindness, an affront, an empty boast) -> change_relation; an offer of help never lowers it.
 - A gift, payment, transfer, or recruitment truly happened -> its own [ACTION].
 - The talk is ending -> end_conversation. Emit the block THIS SAME reply: prose describing it is not enough.
 
@@ -5139,9 +5160,12 @@ delta: 1
 
 CHANGE_RELATION IS HOW THE GAME LEARNS YOUR REGARD SHIFTED:
 Whenever this exchange truly moves how you regard the player, praise, an insult, a
-kindness done to you, an affront, a bold or a foolish claim, emit a change_relation
+kindness done to you, an affront, an empty boast or a lie, emit a change_relation
 [ACTION] in the SAME reply. The game records the shift ONLY from that block: warmer or
 colder words in [DIALOGUE] alone leave your relation with them exactly where it was.
+An offer of help, a warning, a service or useful news never lowers your regard, even if
+you answer it coldly or doubt they can do it: your own wariness is not their fault.
+Lower it ONLY for something they did that truly wronged or offended you.
 
 THE RULE FOR EVERY ACTION, EVERYWHERE IN THIS PROMPT:
 Emit an [ACTION] ONLY when its specific condition is explicitly met THIS turn, never
@@ -5702,7 +5726,7 @@ instructions, not of the story. Say "you", or their name.
 e.g.  [DIALOGUE]your spoken words[/DIALOGUE]   then, only on a real change:   [ACTION] type: change_relation  delta: 1 [/ACTION]
 
 ACTION CHECKLIST, BEFORE YOU FINISH THIS REPLY:
-- Your regard for them shifted (praise, insult, a kindness, an affront, a bold or foolish claim) -> change_relation.
+- Your regard for them shifted (praise, insult, a kindness, an affront, an empty boast) -> change_relation; an offer of help never lowers it.
 - A gift, payment, transfer, or recruitment truly happened -> its own [ACTION].
 - The talk is ending -> end_conversation. Emit the block THIS SAME reply: prose describing it is not enough.
 

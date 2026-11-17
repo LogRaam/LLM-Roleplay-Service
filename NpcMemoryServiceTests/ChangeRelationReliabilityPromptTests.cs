@@ -38,7 +38,7 @@ namespace NpcMemoryServiceTests
             Npc(), new WorldState {CurrentDay = 10},
             new EncounterContext {LeanLevel = level});
 
-      // The core fix: a shift in regard (praise, insult, a kindness, an affront, a bold or foolish claim) must
+      // The core fix: a shift in regard (praise, insult, a kindness, an affront, an empty boast or a lie) must
       // be tied to the change_relation [ACTION] tag, parallel to the existing anti-empty-promise deed rule, so
       // a weak model cannot narrate warmer or colder feelings in prose and consider the relation moved.
       [Test]
@@ -48,8 +48,21 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().Contain("CHANGE_RELATION IS HOW THE GAME LEARNS YOUR REGARD SHIFTED");
          prompt.Should().Contain("praise, an insult, a");
-         prompt.Should().Contain("kindness done to you, an affront, a bold or a foolish claim");
+         prompt.Should().Contain("kindness done to you, an affront, an empty boast or a lie");
          prompt.Should().Contain("The game records the shift ONLY from that block");
+      }
+
+      // Lordfadooboo (Nexus, 16/11/2026) lost 2 regard with a lord for offering to clear a bandit camp: the prose
+      // model was told "a bold or a foolish claim" moves regard and read his offer as one. STAKE: a player who
+      // volunteers help is punished for it, and every friendly talk seems to bleed regard at random.
+      [Test]
+      public void GIVEN_a_full_prompt_WHEN_built_THEN_an_offer_of_help_is_never_a_cause_to_lower_regard()
+      {
+         string prompt = Build(LeanPromptLevel.Full);
+
+         prompt.Should().Contain("An offer of help, a warning, a service or useful news never lowers your regard");
+         prompt.Should().Contain("an offer of help never lowers it");
+         prompt.Should().NotContain("bold or a foolish claim").And.NotContain("bold or foolish claim");
       }
 
       // Placement: the directive sits beside the change_relation teaching in GAME ACTIONS, well before the
