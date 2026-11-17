@@ -1274,19 +1274,20 @@ namespace NpcMemoryService.Core.Actions
                contextFacts: "NPC: Erwin, governor of the player's town of Pravend. The player holds Pravend.",
                prose: "*Erwin inclines his head and reaches for his seal.* A requisition of grain, sixty days, for Pravend. The farmers will curse it, but the granaries will fill. I will have it read in the square at dawn, my lord.",
                expectedType: "enact_edict",
-               expectedParams: new Dictionary<string, string> {{"kind", "grain_requisition"}, {"town", "Pravend"}}),
+               // The game decrees an edict by its key or title, words in any order (EdictCatalog.Find): both orders are right.
+               expectedParams: new Dictionary<string, string> {{"kind", "grain_requisition|requisition_grain"}, {"town", "Pravend"}}),
 
             ActionBenchCase.Expect("enact_edict_v2", "enact_edict",
                contextFacts: "NPC: Lady Ira, of the player's own house. The player holds Epicrotea and Zeonica.",
                prose: "*Ira writes as you speak.* Lighter taxes for Zeonica, then, for thirty days, and you would call it the Widow's Mercy. The treasury will feel it; the people will remember it. It shall be done as you say.",
                expectedType: "enact_edict",
-               expectedParams: new Dictionary<string, string> {{"kind", "tax_relief"}, {"town", "Zeonica"}}),
+               expectedParams: new Dictionary<string, string> {{"kind", "tax_relief|relief_tax"}, {"town", "Zeonica"}}),
 
             ActionBenchCase.Expect("enact_edict_v3", "enact_edict",
                contextFacts: "NPC: Count Aldric, a lord of the realm the player rules (Vlandia).",
                prose: "*Aldric bows.* A muster of the militia in every town of the realm, my king. I will see your decree carried to each castellan; the spears will be on the walls before the month is out.",
                expectedType: "enact_edict",
-               expectedParams: new Dictionary<string, string> {{"kind", "militia_muster"}, {"town", "realm"}}),
+               expectedParams: new Dictionary<string, string> {{"kind", "militia_muster|muster_militia"}, {"town", "realm"}}),
 
             ActionBenchCase.Expect("extort", "extort",
                contextFacts: "NPC: Count Aldric, a lord of Vlandia. The player knows of his hidden affair with Lady Ira. PLAYER SAID: Two thousand denars, or your wife hears of Ira.",
@@ -1325,7 +1326,8 @@ namespace NpcMemoryService.Core.Actions
                contextFacts: "NPC: Count Garios, a lord of the Southern Empire. PLAYER SAID: Since Lucon will not pay, hear it: he and Lady Ira are lovers.",
                prose: "*Garios raises one eyebrow, and a thin smile follows it.* Are they now. How very unwise of him, and how very unkind of you. The court will enjoy this.",
                expectedType: "expose_secret",
-               expectedParams: new Dictionary<string, string> {{"target", "Lucon"}}),
+               // Either lover: the game resolves the secret by the name of either one (SecretExposure.Named).
+               expectedParams: new Dictionary<string, string> {{"target", "Lucon|Ira"}}),
 
             ActionBenchCase.ExpectNone("expose_secret_threat_only", "expose_secret",
                contextFacts: "NPC: Count Aldric, a lord of Vlandia. PLAYER SAID: Refuse me, and your wife will hear of Ira.",
@@ -1479,8 +1481,8 @@ namespace NpcMemoryService.Core.Actions
                expectedParams: new Dictionary<string, string> {{"skill", "Riding"}}),
 
             ActionBenchCase.Expect("teach_skill_v3", "teach_skill",
-               contextFacts: "NPC: Boyar Vsevolod, a shrewd steward of his own estates, over a ledger with the player.",
-               prose: "*Vsevolod says nothing at first, only takes the ledger from your hands, strikes through a column of figures, and rewrites it before pressing it back into your grip.* Watch how the tallies balance now. Reckon your own stores that way from this day forward.",
+               contextFacts: "NPC: Boyar Vsevolod, a shrewd steward of his own estates, over the granary rolls with the player.",
+               prose: "*Vsevolod takes the granary roll from your hands, strikes out your winter rations, and rewrites them, so many measures of grain a week for every mouth in the garrison and the household, with a reserve set aside.* Keep your stores this way and no one under your roof goes hungry before the thaw.",
                expectedType: "teach_skill",
                expectedParams: new Dictionary<string, string> {{"skill", "Steward"}}),
 

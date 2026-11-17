@@ -73,6 +73,30 @@ namespace NpcMemoryServiceTests
             .Should().Be(ActionBenchVerdict.ParamMismatch);
       }
 
+      // Some deeds have more than one right answer in the game itself: expose_secret is carried out on the name of
+      // EITHER lover (SecretExposure.Named in the mod). On 16/11/2026 two interpreters both named Lady Ira where the
+      // case only accepted Lucon, and the bench reported a fault the game would never have refused.
+      [Test]
+      public void GIVEN_a_param_with_two_answers_the_game_accepts_WHEN_the_model_names_either_THEN_it_hits()
+      {
+         ActionBenchCase test = ActionBenchCase.Expect("expose_secret", "expose_secret", "ctx", "prose", "expose_secret",
+            new Dictionary<string, string> {{"target", "Lucon|Ira"}});
+
+         ActionBenchScorer.Score(new[] {Act("expose_secret", ("target", "Lady Ira"))}, test).Should().Be(ActionBenchVerdict.Hit);
+         ActionBenchScorer.Score(new[] {Act("expose_secret", ("target", "Lucon"))}, test).Should().Be(ActionBenchVerdict.Hit);
+      }
+
+      // Listing two answers must not open the door to any name: a model that names a third person told the wrong
+      // secret, and the bench must still say so.
+      [Test]
+      public void GIVEN_a_param_with_two_answers_WHEN_the_model_names_someone_else_THEN_it_is_a_param_mismatch()
+      {
+         ActionBenchCase test = ActionBenchCase.Expect("expose_secret", "expose_secret", "ctx", "prose", "expose_secret",
+            new Dictionary<string, string> {{"target", "Lucon|Ira"}});
+
+         ActionBenchScorer.Score(new[] {Act("expose_secret", ("target", "Count Garios"))}, test).Should().Be(ActionBenchVerdict.ParamMismatch);
+      }
+
       // A NAME parameter is matched tolerantly: a model that writes "Lord Derthert" for an expected "Derthert" has
       // extracted the right captive, and scoring that as a mismatch would punish a correct answer.
       [Test]

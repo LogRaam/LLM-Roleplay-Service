@@ -71,11 +71,18 @@ namespace NpcMemoryService.Core.Actions
       // A numeric expectation (an amount, a delta) must match exactly, digits are unforgiving. A textual one (a
       // captive's name, a fief) is matched TOLERANTLY, case-insensitive substring, because a model legitimately
       // writes "Lord Derthert" for an expected "Derthert" and that is a correct extraction, not a mismatch.
+      // An expectation may list several answers separated by '|' when the game itself carries out any of them
+      // (expose_secret takes either lover's name, an edict its key's words in any order), so the bench never marks
+      // wrong a value the game would accept.
       private static bool ValueMatches(string expected, string actual)
       {
-         string want = (expected ?? string.Empty).Trim();
          string got = (actual ?? string.Empty).Trim();
 
+         return (expected ?? string.Empty).Split('|').Any(alternative => MatchesOne(alternative.Trim(), got));
+      }
+
+      private static bool MatchesOne(string want, string got)
+      {
          if (IsSignedInteger(want))
             return string.Equals(want, got, StringComparison.Ordinal);
 
