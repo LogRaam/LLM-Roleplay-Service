@@ -665,6 +665,11 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
       ///   (providers that reject the array form, e.g. NanoGPT), it is sent as a
       ///   plain OpenAI string — the maximally-portable form.
       /// </summary>
+      /// <summary>True when the request names a model other than the one the player configured.</summary>
+      private bool TargetsAnotherModel(LlmRequest request)
+         => !string.IsNullOrWhiteSpace(request.ModelOverride)
+            && !string.Equals(request.ModelOverride!.Trim(), (_config.ResolveModel() ?? string.Empty).Trim(), System.StringComparison.OrdinalIgnoreCase);
+
       internal object ToWireFormat(LlmRequest request)
       {
          var messages = new List<object> {BuildSystemMessage(request)};
@@ -747,7 +752,11 @@ namespace NpcMemoryService.Core.LlmClient.OpenRouter
          // Several providers moderate their own OUTPUT and cut generation the moment profanity appears, which
          // arrives as a reply chopped mid-sentence. Omitted entirely when nothing is pinned, so every other
          // OpenAI-compatible endpoint keeps receiving exactly the payload it received before.
-         string[] providerSlugs = _config.ResolveProviderSlugs();
+         //
+         // The pin belongs to the model the player configured. VonLemberg (Discord, 17/11/2026) asked that another mod's
+         // request reach a model of its own (ModelOverride): the player's providers may not host that model at all, and a
+         // pin without fallbacks would then refuse every such call. A request aimed at another model goes unpinned.
+         string[] providerSlugs = TargetsAnotherModel(request) ? new string[0] : _config.ResolveProviderSlugs();
          if (providerSlugs.Length > 0)
             payload["provider"] = new Dictionary<string, object> {
                ["order"] = providerSlugs,
