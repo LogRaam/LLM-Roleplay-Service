@@ -255,5 +255,16 @@ namespace NpcMemoryServiceTests
          foreach (LeanPromptLevel lean in new[] {LeanPromptLevel.Full, LeanPromptLevel.Lean})
             KnowledgeBoundaryPolicy.Text(lean).Should().StartWith("WHAT YOU DO NOT KNOW");
       }
+
+      // STAKE (bdionysis80, Nexus, 17/11/2026): asked who fathered his wife's child, three people and his companion each
+      // told a different invented story. Here even a rumour misleads, so the full form says plainly nothing has reached them.
+      // (The compact form keeps its budget: its "only what you have seen, been told, or read here" already covers it.)
+      [Test]
+      public void GIVEN_the_full_form_WHEN_read_THEN_the_players_household_secrets_are_unknown_even_as_rumour()
+      {
+         string full = KnowledgeBoundaryPolicy.Text(LeanPromptLevel.Full);
+         full.Should().Contain("what passes in the player's household, when you are not of it");
+         full.Should().Contain("not even as a rumour");
+      }
    }
 }

@@ -138,6 +138,12 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("- what their purse holds;");
             sb.AppendLine("- the numbers, the companies, or the losses of a battle you were not present at;");
             sb.AppendLine("- where they have travelled, or what they did, when you were not with them;");
+            // bdionysis80 (Nexus, 17/11/2026): asked who had fathered his wife's child, three people and his own companion
+            // each told him a different invented story. A rumour told as a rumour still misleads a man looking for the truth
+            // of his own house, so here even the rumour is ruled out.
+            sb.AppendLine("- what passes in the player's household, when you are not of it: who fathered a child there, whom");
+            sb.AppendLine("  their spouse takes to bed, a secret of their marriage. Unless it is written above, no word of it");
+            sb.AppendLine("  has reached you, not even as a rumour: say you know nothing of it, never offer a tale;");
             sb.AppendLine("- anything else they have simply not told you.");
             sb.AppendLine();
             sb.AppendLine("WHEN YOU DO NOT KNOW SOMETHING, SAY SO, IN YOUR OWN VOICE. \"How would I know that?\" is a");
