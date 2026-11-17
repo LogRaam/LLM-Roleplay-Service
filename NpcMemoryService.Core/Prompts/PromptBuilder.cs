@@ -1490,6 +1490,36 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
       }
 
+      /// <summary>
+      ///   Goeth (Discord, 17/11/2026): "Summaries keep the facts, but they lose the tone, the inside jokes and the exact
+      ///   words." Earlier words the host found for this turn, framed so they colour the reply without being recited
+      ///   (kurushimi00, 01/11/2026: a character reciting the checklist of shared events) and without outranking what
+      ///   changed since (a promise broken, a grudge forgiven). Below the marker: they change every turn. Full prompt only.
+      /// </summary>
+      private static void AppendRecalledExchanges(StringBuilder sb, EncounterContext context)
+      {
+         if (context.LeanLevel != LeanPromptLevel.Full || context.RecalledExchanges == null) return;
+
+         List<RecalledExchange> passages = context.RecalledExchanges.Where(p => p?.Lines != null && p.Lines.Any(l => !string.IsNullOrWhiteSpace(l?.Text))).ToList();
+         if (passages.Count == 0) return;
+
+         sb.AppendLine("WORDS FROM EARLIER TALKS (what was really said, word for word; [YOU] is you, [PLAYER] is the player):");
+         foreach (RecalledExchange p in passages)
+         {
+            string where = string.IsNullOrWhiteSpace(p.Place) ? "" : $", in {p.Place}";
+            List<string> others = (p.AlsoPresent ?? new List<string>()).Where(n => !string.IsNullOrWhiteSpace(n)).ToList();
+            string with = others.Count == 0 ? "" : $"; also there: {string.Join(", ", others)}";
+            sb.AppendLine($"-- {p.When}{where}{with} --");
+            foreach (RecalledLine line in p.Lines.Where(l => !string.IsNullOrWhiteSpace(l?.Text)))
+               sb.AppendLine($"[{line.Speaker}] {line.Text.Trim()}");
+         }
+
+         sb.AppendLine("These are old words, kept for their tone and for the threads still open between you. What you remember");
+         sb.AppendLine("above and what is true now outweigh them: things may have changed since. Never recite them back; let them");
+         sb.AppendLine("colour how you speak, and pick up a thread only when this moment calls for it.");
+         sb.AppendLine();
+      }
+
       private static void AppendEncounterContext(StringBuilder sb, EncounterContext? context)
       {
          if (context == null) return;
@@ -1525,6 +1555,8 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine(context.AuthoredQuestBlock);
             sb.AppendLine();
          }
+
+         AppendRecalledExchanges(sb, context);
 
          AppendStoryChoicesWhenProseReads(sb, context);
 

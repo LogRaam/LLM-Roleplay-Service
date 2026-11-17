@@ -1685,6 +1685,13 @@ namespace NpcMemoryService.Core.Models
       public string? AuthoredQuestBlock { get; init; }
 
       /// <summary>
+      ///   Passages of earlier conversations, word for word, that bear on this turn (Goeth, 17/11/2026: long memory). The
+      ///   host picks them from words this character heard; written below the cache marker since they change every turn,
+      ///   and only in the Full prompt. Null or empty: nothing is written.
+      /// </summary>
+      public IReadOnlyList<RecalledExchange>? RecalledExchanges { get; init; }
+
+      /// <summary>
       ///   The choices a written tale lets the player take BY WORDS in this very conversation (branching tales,
       ///   04/10/2026): each declared id with what the player's words must mean, and how to report one. Taught to
       ///   whoever reads this turn's actions: the interpreter (<see cref="Prompts.ActionInterpreterContextBuilder" />)

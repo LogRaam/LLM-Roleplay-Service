@@ -1420,6 +1420,13 @@ CURRENT ENCOUNTER:
 
 [AuthoredQuestBlock]
 
+WORDS FROM EARLIER TALKS (what was really said, word for word; [YOU] is you, [PLAYER] is the player):
+-- [When], in [Place]; also there: [AlsoPresent item] --
+[[Speaker]] [Text]
+These are old words, kept for their tone and for the threads still open between you. What you remember
+above and what is true now outweigh them: things may have changed since. Never recite them back; let them
+colour how you speak, and pick up a thread only when this moment calls for it.
+
 FOR YOUR [ACTION] BLOCK ONLY: what the game will recognise in this exchange. None of it is yours to announce, offer, hint at or steer toward, and never narrate something in order to report it; play the scene as you would without them.
 [StoryChoicesForInterpreter]
 
