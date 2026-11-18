@@ -101,14 +101,22 @@ namespace NpcMemoryServiceTests
             MoodCause.Of(m, new MoodFacts {IsCaptive = true, PersonalBlow = true}, 7)!.Text.Should().Be("being held prisoner");
       }
 
-      // STAKE: good news causes good days: a realm winning lifts an expansive lord, his own gladness a high-spirited one.
+      // STAKE (Gabriel, 17/11/2026: "oui pour les bonnes journees aussi"): a gladness the host names is the cause of any good
+      // day, the tournament he won rather than the realm's war going well.
       [Test]
-      public void GIVEN_good_news_WHEN_he_is_in_good_humour_THEN_the_good_news_is_the_cause()
+      public void GIVEN_a_named_gladness_WHEN_he_is_in_good_humour_THEN_the_gladness_is_the_cause()
       {
          var facts = new MoodFacts {RealmHasLatelyWon = true, PersonalGladness = true, PersonalGladnessWhat = "the tournament you won at Lageta"};
 
-         MoodCause.Of(DayMood.Expansive, facts, 7)!.Text.Should().Be("your realm's war going well");
+         MoodCause.Of(DayMood.Expansive, facts, 7)!.Text.Should().Be("the tournament you won at Lageta");
          MoodCause.Of(DayMood.HighSpirits, facts, 7)!.Text.Should().Be("the tournament you won at Lageta");
+      }
+
+      // STAKE: good news causes good days: with no gladness of his own to name, a realm winning lifts an expansive lord.
+      [Test]
+      public void GIVEN_only_the_realm_winning_WHEN_he_is_expansive_THEN_the_war_is_the_cause()
+      {
+         MoodCause.Of(DayMood.Expansive, new MoodFacts {RealmHasLatelyWon = true, PersonalGladness = true}, 7)!.Text.Should().Be("your realm's war going well");
       }
 
       // STAKE (fkasad, 19/10/2026): "the war is going badly" gives the player nothing to answer; the host's words name

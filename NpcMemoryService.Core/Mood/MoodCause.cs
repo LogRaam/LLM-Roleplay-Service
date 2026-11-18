@@ -66,6 +66,10 @@ namespace NpcMemoryService.Core.Mood
          // name keeps its weight among the others.
          bool lowDay = mood == DayMood.Grim || mood == DayMood.ShortTempered || mood == DayMood.Guarded || mood == DayMood.Weary;
          if (lowDay && f.PersonalBlow && !string.IsNullOrWhiteSpace(f.PersonalBlowWhat)) return f.PersonalBlowWhat!.Trim();
+         // And a gladness with a subject is the cause of any good day (Gabriel, 17/11/2026: "oui pour les bonnes journees
+         // aussi"): the tournament he won, not the realm's war going well.
+         bool goodDay = mood == DayMood.Expansive || mood == DayMood.HighSpirits;
+         if (goodDay && f.PersonalGladness && !string.IsNullOrWhiteSpace(f.PersonalGladnessWhat)) return f.PersonalGladnessWhat!.Trim();
 
          var leaned = new List<(int By, string Why)>();
          void If(bool fact, int by, string why)
