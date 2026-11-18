@@ -61,6 +61,12 @@ namespace NpcMemoryService.Core.Mood
       {
          if (f.IsCaptive) return "being held prisoner";
 
+         // A blow with a subject is the cause of any low day (Gabriel, 17/11/2026, on a lord whose brother had just died
+         // naming "coin running short" for a guarded day: "la cause devrait etre le sujet"). A blow the host could not
+         // name keeps its weight among the others.
+         bool lowDay = mood == DayMood.Grim || mood == DayMood.ShortTempered || mood == DayMood.Guarded || mood == DayMood.Weary;
+         if (lowDay && f.PersonalBlow && !string.IsNullOrWhiteSpace(f.PersonalBlowWhat)) return f.PersonalBlowWhat!.Trim();
+
          var leaned = new List<(int By, string Why)>();
          void If(bool fact, int by, string why)
          {

@@ -47,15 +47,36 @@ namespace NpcMemoryServiceTests
          cause.Text.Should().Be("a blow of your own these last days");
       }
 
-      // STAKE: of several facts, the one that leaned this mood most: a grim man who lost kin and whose realm is losing
-      // is grim over the death first (6 against 4).
+      // STAKE: of several facts, the one that leaned this mood most: a wounded man whose realm is losing is short-tempered
+      // over his wounds (4 against 2).
       [Test]
-      public void GIVEN_two_facts_that_lean_grim_WHEN_he_is_grim_THEN_the_stronger_is_named()
+      public void GIVEN_two_facts_that_lean_a_mood_WHEN_none_is_a_named_blow_THEN_the_stronger_is_named()
       {
-         var facts = new MoodFacts {RealmHasLatelyLost = true, IsHurt = true, PersonalBlow = true, PersonalBlowWhat = "the loss of Pravend"};
+         var facts = new MoodFacts {RealmHasLatelyLost = true, IsHurt = true};
 
-         MoodCause.Of(DayMood.Grim, facts, 7)!.Text.Should().Be("the loss of Pravend");
          MoodCause.Of(DayMood.ShortTempered, facts, 7)!.Text.Should().Be("your wounds");
+         MoodCause.Of(DayMood.Grim, facts, 7)!.Text.Should().Be("your realm's war going badly");
+      }
+
+      // STAKE (Gabriel, 17/11/2026): a lord whose brother had just died gave "coin running short" as the cause of his guarded
+      // day: "la cause devrait etre le sujet". A blow the host names is the cause of any low day, whatever else leans it.
+      [Test]
+      public void GIVEN_a_named_blow_WHEN_the_day_is_low_THEN_the_blow_is_the_cause_over_coin_wounds_and_war()
+      {
+         var facts = new MoodFacts {
+            PersonalBlow = true, PersonalBlowWhat = "the death of your brother Olek", CoffersAreEmpty = true, IsHurt = true, RealmHasLatelyLost = true, IsDeepNight = true
+         };
+
+         foreach (DayMood low in new[] {DayMood.Grim, DayMood.ShortTempered, DayMood.Guarded, DayMood.Weary})
+            MoodCause.Of(low, facts, 7)!.Text.Should().Be("the death of your brother Olek");
+      }
+
+      // STAKE: a blow the host could not name says nothing a player can answer, so it keeps its weight: on a guarded day
+      // empty coffers (3) still outweigh it (2).
+      [Test]
+      public void GIVEN_an_unnamed_blow_WHEN_the_day_is_guarded_and_the_coffers_empty_THEN_the_coin_is_the_cause()
+      {
+         MoodCause.Of(DayMood.Guarded, new MoodFacts {PersonalBlow = true, CoffersAreEmpty = true}, 7)!.Text.Should().Be("coin running short");
       }
 
       // STAKE: a fact that did not lean the mood did not cause it: a grim man with a fresh gladness is not grim over
