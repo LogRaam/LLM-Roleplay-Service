@@ -72,7 +72,7 @@ namespace NpcMemoryService.Core.Prompts
          var sb = new StringBuilder();
          sb.AppendLine("SETTING: " + BuildSetting(context));
          sb.AppendLine("PLAYER: " + BuildPlayer(context, player));
-         sb.Append("YOU: " + BuildYou(npc, player));
+         sb.Append("YOU: " + BuildYou(npc, player, context));
 
          if (conversationInProgress)
          {
@@ -235,12 +235,12 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>The NPC's own label and nature, then their current regard toward the player as a signed number.</summary>
-      private static string BuildYou(NpcProfile? npc, string player)
+      private static string BuildYou(NpcProfile? npc, string player, EncounterContext? context)
       {
          var sb = new StringBuilder();
          sb.Append(DescribeNpcLabel(npc));
 
-         string? nature = DescribeNpcNature(npc);
+         string? nature = DescribeNpcNature(npc, context?.PromptLayout);
          if (!string.IsNullOrEmpty(nature)) sb.Append(", " + nature);
 
          int regard = npc?.ReputationWithPlayer ?? 0;
@@ -320,13 +320,27 @@ namespace NpcMemoryService.Core.Prompts
       ///   The NPC's nature descriptor to calibrate the interpreter's tone: the derived <see cref="NpcProfile.Trait" />
       ///   archetype if present, else the free-text <see cref="NpcProfile.Personality" />. The SDK profile has no raw
       ///   five-trait levels (those live engine-side in the mod), so this projects only what genuinely exists here.
+      ///   Each follows the prompt profile (tashmetu, Nexus 19/11/2026; Gabriel: "fais suivre le profil par l'interpreteur
+      ///   aussi"): a layout that turns off the "archetype" or "personality" section removes it here too, so the
+      ///   interpreter never judges by a nature another mod replaced and the speaker's prompt no longer shows.
       /// </summary>
-      private static string? DescribeNpcNature(NpcProfile? npc)
+      private static string? DescribeNpcNature(NpcProfile? npc, PromptLayout? layout)
       {
          if (npc == null) return null;
 
-         return !string.IsNullOrWhiteSpace(npc.Trait) ? npc.Trait!.Trim() : TrimNote(npc.Personality);
+         if (!string.IsNullOrWhiteSpace(npc.Trait) && !IsOff(layout, ArchetypeSection)) return npc.Trait!.Trim();
+
+         return IsOff(layout, PersonalitySection) ? null : TrimNote(npc.Personality);
       }
+
+      /// <summary>The character prompt's section keys for the archetype and the personality line (PromptBuilder.CharacterSections).</summary>
+      private const string ArchetypeSection = "archetype";
+
+      private const string PersonalitySection = "personality";
+
+      /// <summary>Whether the prompt profile's layout turns a section off (keys compare as the layout's own, ordinally).</summary>
+      private static bool IsOff(PromptLayout? layout, string key)
+         => layout?.Off != null && layout.Off.Any(k => string.Equals(k?.Trim(), key, System.StringComparison.Ordinal));
 
       /// <summary>Formats regard with an explicit sign, e.g. +12, -5, +0, in an invariant, locale-proof form.</summary>
       private static string FormatRegard(int regard)

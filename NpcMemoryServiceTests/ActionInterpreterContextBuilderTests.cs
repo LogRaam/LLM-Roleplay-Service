@@ -162,6 +162,30 @@ namespace NpcMemoryServiceTests
          digest.Should().Contain("Pitiless");
       }
 
+      // STAKE (tashmetu, Nexus 19/11/2026; Gabriel: "fais suivre le profil par l'interpreteur aussi"): a profile shipped
+      // with Traits of Calradia turns CR's archetype off because Traits gives the lord its own nature. If the interpreter
+      // still read "The Hollow Lord", it would judge the lord's words by a nature his prompt no longer shows.
+      [Test]
+      public void GIVEN_a_profile_turning_off_the_archetype_WHEN_projected_THEN_the_personality_line_stands_in_for_it()
+      {
+         var context = new EncounterContext {PromptLayout = new PromptLayout {Off = new[] {"archetype"}}};
+
+         string digest = ActionInterpreterContextBuilder.Project(context, Profile(trait: "The Hollow Lord", personality: "Steadfast and plain"), "Aldric");
+
+         digest.Should().NotContain("Hollow").And.Contain("Steadfast and plain");
+      }
+
+      // STAKE: both turned off, the interpreter carries no nature of CR's at all, as the prompt carries none.
+      [Test]
+      public void GIVEN_a_profile_turning_off_archetype_and_personality_WHEN_projected_THEN_no_nature_of_crs_appears()
+      {
+         var context = new EncounterContext {PromptLayout = new PromptLayout {Off = new[] {"archetype", "personality"}}};
+
+         string digest = ActionInterpreterContextBuilder.Project(context, Profile(trait: "The Hollow Lord", personality: "Steadfast and plain"), "Aldric");
+
+         digest.Should().NotContain("Hollow").And.NotContain("Steadfast").And.Contain("YOU: Caladog of Fen Company. Your current regard");
+      }
+
       // Negative regard must render with its minus sign, not just a bare number the interpreter could read as positive.
       // The sign is the single fact that tells the interpreter whether the NPC's baseline toward the player is warm or
       // hostile, which colours how it reads an ambiguous line of prose.
