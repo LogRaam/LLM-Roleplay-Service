@@ -2225,6 +2225,14 @@ namespace NpcMemoryService.Core.Models
       public string? PastOnMentionBlock { get; init; }
 
       /// <summary>
+      ///   Pre-formatted past bonds the speaker lived with someone in the scene, someone just named, or the player (Lufaine,
+      ///   Discord, 18/11/2026: old romances and rivalries authored in a character override). One line each, prefixed "- ".
+      ///   Its own heading, since a bond with someone standing there was not raised by the player. Null when none: nothing
+      ///   renders.
+      /// </summary>
+      public string? PastBondsBlock { get; init; }
+
+      /// <summary>
       ///   Produces a natural-language description of this encounter, suitable
       ///   for injection into the LLM system prompt. Returns an empty string
       ///   when all fields are Unknown.

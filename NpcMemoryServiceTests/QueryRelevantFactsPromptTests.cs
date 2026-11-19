@@ -128,6 +128,26 @@ namespace NpcMemoryServiceTests
          prompt.IndexOf(pastLine).Should().BeGreaterThan(prompt.IndexOf(PromptBuilder.EncounterSectionHeading));
       }
 
+      // STAKE: Lufaine (Discord, 18/11/2026) authored past bonds; one with someone standing in the room, or with the player,
+      // comes to mind unasked. Under the past-on-mention heading ("what they just named") the model would read it as raised by
+      // the player and bring the old romance up every turn, or blurt it before the rival. Its own heading, below the marker,
+      // says to bring it up only when it serves, in every Lean level since the player bond is in every conversation.
+      [TestCase(LeanPromptLevel.Full)]
+      [TestCase(LeanPromptLevel.Lean)]
+      public void GIVEN_a_past_bonds_block_WHEN_building_the_prompt_THEN_it_renders_under_its_own_heading_never_as_raised_by_the_player(LeanPromptLevel lean)
+      {
+         const string bondLine = "- (you were part of it) An old rivalry with Lord Garios: they fought over one fief (before the present days). BOND_MARKER.";
+         var context = new EncounterContext {LeanLevel = lean, PastBondsBlock = bondLine};
+
+         string prompt = new PromptBuilder().BuildSystemPrompt(Npc(), new WorldState {CurrentDay = 10}, context);
+
+         prompt.Should().Contain("WHO YOU SHARE A PAST WITH");
+         prompt.Should().Contain(bondLine);
+         prompt.Should().Contain("only when it");
+         prompt.Should().NotContain("WHAT YOU REMEMBER OF THE PAST THAT TOUCHES ON THIS");
+         prompt.IndexOf(bondLine).Should().BeGreaterThan(prompt.IndexOf(PromptBuilder.EncounterSectionHeading));
+      }
+
       // Nothing named in the speaker's past: the prompt is as before.
       [Test]
       public void GIVEN_no_past_on_mention_block_WHEN_building_the_prompt_THEN_its_heading_is_absent()

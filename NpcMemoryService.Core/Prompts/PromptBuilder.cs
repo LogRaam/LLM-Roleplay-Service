@@ -1655,6 +1655,18 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
+         // Lufaine (Discord, 18/11/2026): past bonds authored in a character override. Not under the heading above: a bond
+         // with someone in the room, or with the player, comes to mind without the player raising it.
+         if (!string.IsNullOrWhiteSpace(context.PastBondsBlock))
+         {
+            sb.AppendLine("WHO YOU SHARE A PAST WITH (bonds you lived long before these days, with someone here or just named):");
+            sb.AppendLine("Let each colour how you regard that person and how you speak to or of them. Bring one up only when it");
+            sb.AppendLine("serves the moment, never as a recital and never in every reply; before others, say of it only what you");
+            sb.AppendLine("would say in front of them. Add no detail a line does not give.");
+            sb.AppendLine(context.PastBondsBlock);
+            sb.AppendLine();
+         }
+
          if (!string.IsNullOrWhiteSpace(context.PlayerFameLine))
          {
             sb.AppendLine("WHAT YOU KNOW OF THEIR NAME (you have never met; this is all the name tells you):");
