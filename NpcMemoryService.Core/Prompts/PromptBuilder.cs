@@ -3208,23 +3208,34 @@ namespace NpcMemoryService.Core.Prompts
          if (!string.IsNullOrEmpty(encounterContext?.PregnancyNote))
             sb.AppendLine(encounterContext!.PregnancyNote);
          sb.AppendLine();
+      }
 
+      /// <summary>
+      ///   The archetype the host read from the game's traits ("The Hollow Lord..."), under CHARACTER:. Its own section since
+      ///   tashmetu (Nexus, 19/11/2026): a mod that gives the character its own nature (Traits of Calradia) turns it off in a
+      ///   prompt profile without losing the identity around it.
+      /// </summary>
+      private static void AppendArchetype(StringBuilder sb, NpcProfile npc)
+      {
+         if (string.IsNullOrWhiteSpace(npc.Trait)) return;
+
+         sb.AppendLine("CHARACTER:");
+         sb.AppendLine(npc.Trait);
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   The personality line and the order to stay true to it. Its own section since tashmetu (Nexus, 19/11/2026), as
+      ///   <see cref="AppendArchetype" />.
+      /// </summary>
+      private static void AppendPersonality(StringBuilder sb, NpcProfile npc)
+      {
          if (!string.IsNullOrWhiteSpace(npc.Personality))
          {
             sb.AppendLine("PERSONALITY:");
             sb.AppendLine(npc.Personality);
             sb.AppendLine();
-         }
 
-         if (!string.IsNullOrWhiteSpace(npc.Trait))
-         {
-            sb.AppendLine("CHARACTER:");
-            sb.AppendLine(npc.Trait);
-            sb.AppendLine();
-         }
-
-         if (!string.IsNullOrWhiteSpace(npc.Personality))
-         {
             sb.AppendLine("STAY TRUE TO THIS NATURE:");
             sb.AppendLine("Let your nature show in what you value and how you judge, not only when asked about it directly, and even on");
             sb.AppendLine("subjects the lines above do not name. If your nature is cold, cruel, calculating, or self-serving, do not drift");

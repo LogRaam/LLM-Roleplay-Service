@@ -96,5 +96,27 @@ namespace NpcMemoryServiceTests
          Of("matters_most_discovery").Should().Contain("[DISCOVERY]").And.Contain("key: " + MattersMostDiscovery.Key);
          Of("fear_discovery").Should().Contain("[DISCOVERY]").And.Contain(NatureDiscovery.FearKey);
       }
+
+      // STAKE (tashmetu, Nexus 19/11/2026): with Traits of Calradia a lord its traits make Steadfast read as "The Hollow Lord"
+      // in the same prompt, and the archetype "rides inside another one, so turning it off loses more than it should". The
+      // archetype and the personality line are sections of their own: a profile turns them off and the identity stays.
+      [Test]
+      public void GIVEN_a_profile_turning_off_archetype_and_personality_WHEN_the_prompt_is_built_THEN_they_are_gone_and_the_identity_stays()
+      {
+         PromptBuilder builder = GoldenPromptTests.Builder(AdultContentLevel.Off);
+         NpcProfile npc = GoldenPromptTests.RichNpc();
+         npc.Trait = "The Hollow Lord. A vacancy wearing armor.";
+         npc.Personality = "Cold and watchful.";
+         EncounterContext profiled = GoldenPromptTests.RichEncounter(LeanPromptLevel.Full);
+         typeof(EncounterContext).GetProperty(nameof(EncounterContext.PromptLayout))!
+                                 .SetValue(profiled, new PromptLayout {Off = new[] {"archetype", "personality"}});
+
+         string stock = builder.BuildSystemPrompt(npc, GoldenPromptTests.World(), GoldenPromptTests.RichEncounter(LeanPromptLevel.Full));
+         string prompt = builder.BuildSystemPrompt(npc, GoldenPromptTests.World(), profiled);
+
+         stock.Should().Contain("The Hollow Lord").And.Contain("Cold and watchful.");
+         prompt.Should().NotContain("The Hollow Lord").And.NotContain("CHARACTER:").And.NotContain("Cold and watchful.").And.NotContain("STAY TRUE TO THIS NATURE");
+         prompt.Should().Contain("YOU ARE " + npc.Name.ToUpperInvariant());
+      }
    }
 }

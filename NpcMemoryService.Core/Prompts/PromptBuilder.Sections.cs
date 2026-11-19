@@ -41,6 +41,10 @@ namespace NpcMemoryService.Core.Prompts
          Section("lean_behavior_guidelines", PromptZone.Prefix, (b, sb, s) => { if (!(LeanPromptPolicy.UseFullBehaviorGuidelines(s.Lean))) b.AppendLeanBehaviorGuidelines(sb, s.Context, s.Vars); }),
          // ── Per-NPC identity ─────────────────────────────────────────────────
          Section("identity", PromptZone.Prefix, (b, sb, s) => AppendIdentity(sb, s.Npc, s.Context, b.PlayerIsFemale)),
+         // The host's archetype and personality line, apart from the identity so a profile can leave them out when another
+         // mod gives the character its own nature (tashmetu, Nexus 19/11/2026, Traits of Calradia).
+         Section("archetype", PromptZone.Prefix, (b, sb, s) => AppendArchetype(sb, s.Npc)),
+         Section("personality", PromptZone.Prefix, (b, sb, s) => AppendPersonality(sb, s.Npc)),
          // Who the player IS to this character: sworn, hired, kin, captive, or bound by nothing. It sits
          // beside the identity because it is the same kind of fact and changes on the same scale (an oath, a
          // war), and ABOVE the marker because it used to ride below it and was billed fresh every turn for a
