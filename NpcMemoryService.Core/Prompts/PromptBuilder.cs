@@ -1340,6 +1340,9 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine($"It was fought over {context.PostDuelCourtedHeroName!.Trim()}: press your claim, the field decided it in your favour.");
          }
 
+         // Aporo (Discord, 18/11/2026): a beaten mercenary said he would be the player's prisoner, a stake the game never held.
+         sb.AppendLine("Gold is the only stake the game held on this fight, and any wager is already paid. Never yield yourself or");
+         sb.AppendLine("ask the player to yield as a prisoner, nor hand over land, a horse or a service, as its prize.");
          sb.AppendLine();
       }
 
@@ -1403,10 +1406,12 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("spirit: grievance   (default: a real affront, and the loser is humbled by it)");
          sb.AppendLine("        OR   spirit: friendly   (a bout you BOTH want: a wager, a test of arms, a match");
          sb.AppendLine("        between people who mean no harm by it and will think no worse of each other after)");
+         AppendWagerField(sb, context);
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("Then STOP AT THE CHALLENGE. Your line ends the instant the matter is put to steel: do NOT");
          sb.AppendLine("describe drawing, the fight, a wound, or who prevails; the game stages the fight for real.");
          sb.AppendLine("Without this action nothing is called for, whatever your words say.");
+         AppendWagerRule(sb, context);
          AppendAnswerToPlayersChallenge(sb, context, "cross steel with them");
          sb.AppendLine();
       }
@@ -1445,11 +1450,37 @@ namespace NpcMemoryService.Core.Prompts
                           ? "challenger: player   (they called for it)   OR   challenger: you   (you call them out)"
                           : "challenger: player   (they called for it; you never call them out yourself)");
          sb.AppendLine("spirit: grievance   OR   spirit: friendly");
+         AppendWagerField(sb, context);
          sb.AppendLine("[/ACTION]");
          sb.AppendLine("Then STOP AT THE CHALLENGE: do not describe the fight or who wins. The game stages it for real.");
          sb.AppendLine("Without this action nothing is called for, whatever your words say.");
+         AppendWagerRule(sb, context);
          AppendAnswerToPlayersChallenge(sb, context, "trade blows with them");
          sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   The optional wager line of the challenge, only when this character's purse can stake something (Aporo, Discord,
+      ///   18/11/2026: a 30,000 bet the game never held). The cap is the character's own purse, never the player's coin.
+      /// </summary>
+      private static void AppendWagerField(StringBuilder sb, EncounterContext context)
+      {
+         if (context.DuelWagerCap <= 0) return;
+
+         sb.AppendLine($"wager: <denars>   (only a sum you BOTH agreed; at most {context.DuelWagerCap}, what your purse can stake)");
+      }
+
+      /// <summary>
+      ///   What the game holds on the fight: gold and nothing else (Gabriel, 18/11/2026). Said before the character agrees to
+      ///   a stake, so it never promises a prisoner, a horse or land that no one will ever hand over.
+      /// </summary>
+      private static void AppendWagerRule(StringBuilder sb, EncounterContext context)
+      {
+         sb.AppendLine(context.DuelWagerCap > 0
+                          ? "A WAGER is gold or nothing: the loser pays the winner once it is fought, and only if it was in the action."
+                          : "NO WAGER can ride on it: your purse can stake nothing, so it is fought for honour alone.");
+         sb.AppendLine("Never stake or accept as a stake a person, a prisoner, a horse, land or a service: the game holds none of");
+         sb.AppendLine("them. Refuse such a stake in your own words, or turn it to gold or to honour.");
       }
 
       /// <summary>

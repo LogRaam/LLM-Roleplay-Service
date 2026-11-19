@@ -186,5 +186,36 @@ namespace NpcMemoryServiceTests
 
          prompt.Should().Contain("YOU DECLINE: you will not trade blows with them now");
       }
+
+      // STAKE: Aporo (Discord, 18/11/2026) bet 30,000 and a prisoner on a duel the game held no wager for. A character whose
+      // purse can stake gold is taught the wager line with its own cap, and told that nothing but gold can ride.
+      [TestCase(false)]
+      [TestCase(true)]
+      public void GIVEN_a_purse_that_can_stake_WHEN_built_THEN_the_gold_wager_is_taught_and_every_other_stake_refused(bool brawl)
+      {
+         string prompt = Build(new EncounterContext {DuelChallengeAvailable = true, DuelIsBrawl = brawl, DuelWagerCap = 2300});
+
+         prompt.Should().Contain("wager: <denars>").And.Contain("at most 2300");
+         prompt.Should().Contain("A WAGER is gold or nothing").And.Contain("a person, a prisoner, a horse, land or a service");
+      }
+
+      // STAKE: with nothing to stake, the character is never taught a wager line it could fill with coin it does not have.
+      [Test]
+      public void GIVEN_a_purse_that_can_stake_nothing_WHEN_built_THEN_no_wager_line_is_taught()
+      {
+         string prompt = Build(new EncounterContext {DuelChallengeAvailable = true});
+
+         prompt.Should().NotContain("wager: <denars>");
+         prompt.Should().Contain("NO WAGER can ride on it");
+      }
+
+      // STAKE: after the fight, a beaten character must not yield as the player's prisoner, a prize no one will hand over.
+      [Test]
+      public void GIVEN_the_conversation_after_a_fight_WHEN_built_THEN_no_prisoner_or_land_is_offered_as_its_prize()
+      {
+         string prompt = Build(new EncounterContext {IsPostDuel = true, PostDuelPlayerWon = true});
+
+         prompt.Should().Contain("Never yield yourself or").And.Contain("any wager is already paid");
+      }
    }
 }

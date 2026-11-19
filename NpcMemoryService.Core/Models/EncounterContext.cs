@@ -832,6 +832,14 @@ namespace NpcMemoryService.Core.Models
       public string? DuelVenueLabel { get; init; }
 
       /// <summary>
+      ///   The most gold this character may agree to stake on the fight: its own purse, rounded down and held at one transfer's
+      ///   ceiling; 0 when no wager can ride. Only read when <see cref="DuelChallengeAvailable" /> is set. Aporo (Discord,
+      ///   18/11/2026) bet 30,000 on a duel the game held no wager for; Gabriel (18/11/2026): gold is the one stake the game
+      ///   holds, and the character is told so before it agrees to anything else.
+      /// </summary>
+      public int DuelWagerCap { get; init; }
+
+      /// <summary>
       ///   True when this conversation RESUMES right after a fought duel: the NPC just crossed blades with the
       ///   player and speaks from that, coloured by <see cref="PostDuelPlayerWon" />. Drives
       ///   <c>AppendPostDuelContext</c>, which holds the victor/loser register on every turn (a beaten NPC does
