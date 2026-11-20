@@ -123,6 +123,13 @@ namespace NpcMemoryService.Core.Models
         public int RequiredItemCount { get; set; }
 
         /// <summary>
+        ///   For a garrison task: the fit men the player has already left on the named walls through the game's own
+        ///   garrison screen (Lordfadooboo, Nexus, 20/11/2026: 30 men donated there and the task never moved), so
+        ///   several donations add up to <see cref="RequiredItemCount" />. Zero on quests saved before it existed.
+        /// </summary>
+        public int DeliveredCount { get; set; }
+
+        /// <summary>
         ///   For a <see cref="RewardGrant.MarriageConsent" /> bargain, or a <see cref="RewardGrant.MarriageReward" />
         ///   (COUNCIL_ACTIONS.md Partie 5): the hero whose hand is at stake, the intended spouse, distinct from
         ///   the deed's <see cref="TargetHeroId" /> (which may name a rival to capture, a town to take, etc.).
