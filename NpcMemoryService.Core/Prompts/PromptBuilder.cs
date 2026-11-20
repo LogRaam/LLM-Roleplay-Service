@@ -7817,7 +7817,11 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine(npc.IsFemale
             ? "  *She glances away, toward the hearth.*"
             : "  *He glances away, toward the hearth.*");
-         sb.AppendLine("  My father said much the same, before he fell at Pendraic.");
+         // Eisendrache2 (Nexus, 19/11/2026, Gemma 3 12B): "Many lords claim that their fathers have died at the battle at
+         // Pendraic", fathers alive and well, and he was called a liar for saying so. This line was "My father said much the
+         // same, before he fell at Pendraic.": a small model took the example for its own life. An example states nothing
+         // about the world (DialogueStyleExampleTests).
+         sb.AppendLine("  That is a question for another day.");
          sb.AppendLine("Use them sparingly — they should serve the moment, not slow it down.");
          sb.AppendLine();
          sb.AppendLine("VARY YOUR OPENINGS: never begin two of your replies the same way, and do not retell the");
