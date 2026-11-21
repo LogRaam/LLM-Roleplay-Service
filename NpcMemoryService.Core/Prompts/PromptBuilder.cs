@@ -9276,7 +9276,13 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.AppendLine("ROMANTIC NATURE:");
 
-         if (!string.IsNullOrWhiteSpace(npc.Romantic.ArchetypeName))
+         // JackJack (Discord, 20/11/2026): with "archetype" off in his profile, "!remove Archetype:" took the label but "not
+         // the 2 paragraphs beneath it". Both sketches are written FROM the archetype (RomanticProfileBuilder.GetSketches),
+         // so turning the archetype off takes its label and its two paragraphs here too (Gabriel, 20/11/2026: "oui vas-y").
+         // Orientation, patterns, desires and the bond with the player stay: they come from elsewhere.
+         bool archetypeOff = context?.PromptLayout?.TurnsOff("archetype") == true;
+
+         if (!archetypeOff && !string.IsNullOrWhiteSpace(npc.Romantic.ArchetypeName))
             sb.AppendLine($"Archetype: {npc.Romantic.ArchetypeName}");
 
          sb.AppendLine($"Orientation: {DescribeOrientation(npc.Romantic.Orientation, npc.Romantic.IsFemale)}");
@@ -9304,13 +9310,13 @@ namespace NpcMemoryService.Core.Prompts
                           + "plainly. Jealousy of the arrangement itself is not in your nature.");
          }
 
-         if (!string.IsNullOrWhiteSpace(npc.Romantic.RelationalSketch))
+         if (!archetypeOff && !string.IsNullOrWhiteSpace(npc.Romantic.RelationalSketch))
          {
             sb.AppendLine();
             sb.AppendLine(npc.Romantic.RelationalSketch);
          }
 
-         if (AdultLevel >= AdultContentLevel.Explicit && !string.IsNullOrWhiteSpace(npc.Romantic.IntimateSketch))
+         if (!archetypeOff && AdultLevel >= AdultContentLevel.Explicit && !string.IsNullOrWhiteSpace(npc.Romantic.IntimateSketch))
          {
             sb.AppendLine();
             sb.AppendLine("In matters of intimacy:");

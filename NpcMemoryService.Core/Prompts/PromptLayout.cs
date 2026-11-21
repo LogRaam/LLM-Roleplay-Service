@@ -30,6 +30,10 @@ namespace NpcMemoryService.Core.Prompts
 
       /// <summary>Where it came from ("profile 'x', layout 'lord'"), for the log and cr.prompt_check.</summary>
       public string? Source { get; init; }
+
+      /// <summary>Whether this layout turns the section <paramref name="key" /> off (keys compare as written, ordinally).</summary>
+      public bool TurnsOff(string key)
+         => Off != null && Off.Any(k => string.Equals(k?.Trim(), key, StringComparison.Ordinal));
    }
 
    /// <summary>Turns a layout into the sections written, in order, keeping the locks. Pure.</summary>

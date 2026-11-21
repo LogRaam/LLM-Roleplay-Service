@@ -118,5 +118,29 @@ namespace NpcMemoryServiceTests
          prompt.Should().NotContain("The Hollow Lord").And.NotContain("CHARACTER:").And.NotContain("Cold and watchful.").And.NotContain("STAY TRUE TO THIS NATURE");
          prompt.Should().Contain("YOU ARE " + npc.Name.ToUpperInvariant());
       }
+
+      // STAKE (JackJack, Discord 20/11/2026): with the archetype turned off, "!remove Archetype:" took the romance block's label
+      // but "not the 2 paragraphs beneath it", and no fixed line could, since they are written from each archetype. Turning
+      // the archetype off takes its romantic label and both paragraphs; the orientation and the patterns stay.
+      [Test]
+      public void GIVEN_a_profile_turning_off_the_archetype_WHEN_the_romance_block_is_built_THEN_the_archetype_paragraphs_go_and_the_orientation_stays()
+      {
+         PromptBuilder builder = GoldenPromptTests.Builder(AdultContentLevel.Explicit);
+         NpcProfile npc = GoldenPromptTests.RichNpc();
+         npc.Romantic = new RomanticProfile {
+            ArchetypeName = "The Wary Heart", RelationalSketch = "Trust comes slowly to her, and leaves fast.",
+            IntimateSketch = "She wants to be asked, never assumed.", Orientation = SexualOrientation.Bisexual, IsFemale = true
+         };
+         EncounterContext profiled = GoldenPromptTests.RichEncounter(LeanPromptLevel.Full);
+         typeof(EncounterContext).GetProperty(nameof(EncounterContext.PromptLayout))!
+                                 .SetValue(profiled, new PromptLayout {Off = new[] {"archetype"}});
+
+         string stock = builder.BuildSystemPrompt(npc, GoldenPromptTests.World(), GoldenPromptTests.RichEncounter(LeanPromptLevel.Full));
+         string prompt = builder.BuildSystemPrompt(npc, GoldenPromptTests.World(), profiled);
+
+         stock.Should().Contain("Archetype: The Wary Heart").And.Contain("Trust comes slowly").And.Contain("She wants to be asked");
+         prompt.Should().NotContain("The Wary Heart").And.NotContain("Trust comes slowly").And.NotContain("She wants to be asked");
+         prompt.Should().Contain("ROMANTIC NATURE:").And.Contain("Orientation:");
+      }
    }
 }

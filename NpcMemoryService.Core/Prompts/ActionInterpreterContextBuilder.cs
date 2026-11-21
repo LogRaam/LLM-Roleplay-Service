@@ -339,8 +339,7 @@ namespace NpcMemoryService.Core.Prompts
       private const string PersonalitySection = "personality";
 
       /// <summary>Whether the prompt profile's layout turns a section off (keys compare as the layout's own, ordinally).</summary>
-      private static bool IsOff(PromptLayout? layout, string key)
-         => layout?.Off != null && layout.Off.Any(k => string.Equals(k?.Trim(), key, System.StringComparison.Ordinal));
+      private static bool IsOff(PromptLayout? layout, string key) => layout?.TurnsOff(key) == true;
 
       /// <summary>Formats regard with an explicit sign, e.g. +12, -5, +0, in an invariant, locale-proof form.</summary>
       private static string FormatRegard(int regard)
