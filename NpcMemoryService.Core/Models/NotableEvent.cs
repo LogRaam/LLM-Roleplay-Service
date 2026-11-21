@@ -41,8 +41,9 @@ namespace NpcMemoryService.Core.Models
 
         /// <summary>
         ///   A stable identity for this memory, set when something intends to come BACK to it later — an
-        ///   anchor a summarizer will enrich once the model has read the transcript. Null everywhere else,
-        ///   and null on every event written before 16/09/2026.
+        ///   anchor a summarizer will enrich once the model has read the transcript. Since 2.8.18 also given,
+        ///   on first read, to any memory another mod can point at (CrNpcMemory.GetMemories, the Memories
+        ///   panel): Bhelogan's pictures attach to it (20/11/2026). Null on a memory nothing has pointed at yet.
         ///
         ///   <para>
         ///     Two defects made it necessary, and both come from the same cause: a memory was identified by
@@ -84,6 +85,21 @@ namespace NpcMemoryService.Core.Models
         ///   optional, as above: older saves read false, and a memory written by hand before 2.8.11 stays unmarked.
         /// </summary>
         public bool IsPlayerWritten { get; set; }
+
+        /// <summary>
+        ///   The file name (never a path) of the picture another mod painted for this memory, kept in CR's memory-picture
+        ///   folder for this campaign, or null. Bhelogan (Discord, 20/11/2026) asked for pictures in the Memories panel;
+        ///   Gabriel (20/11/2026): "on protège les IDS associés à des images", so memory compression never drops a
+        ///   memory that carries one. Additive and optional, as above.
+        /// </summary>
+        public string? ImageFile { get; set; }
+
+        /// <summary>
+        ///   The conversation this memory was written in (CrConversation's SessionId, the one CrConversation.Ended carries
+        ///   with the whole transcript), or null for a memory born outside a conversation and every memory written before
+        ///   2.8.18. Lets another mod find who was there and what was said (Bhelogan, 20/11/2026). Additive and optional.
+        /// </summary>
+        public string? SessionId { get; set; }
 
         /// <summary>
         ///   The short code this memory shows on its line in a conversation's prompt ("m12"), the name a model uses to say it

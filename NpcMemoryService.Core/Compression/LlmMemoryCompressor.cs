@@ -237,6 +237,12 @@ namespace NpcMemoryService.Core.Compression
             if (events[i].IsPlayerWritten)
                protected_.Add(i);
 
+         // A memory with a picture keeps it (Gabriel, 20/11/2026: "on protège les IDS associés à des images"): folded
+         // into a summary, the picture would hang on nothing, and the player asked for it to be painted.
+         for (var i = 0; i < events.Count; i++)
+            if (!string.IsNullOrEmpty(events[i].ImageFile))
+               protected_.Add(i);
+
          // Always-keep types
          for (var i = 0; i < events.Count; i++)
          {
