@@ -258,6 +258,13 @@ namespace NpcMemoryService.Core.Models
       ///   so (DepaHN, 27/10/2026; Gabriel, 01/11/2026): the closest one, once per war. Added last to preserve old-save
       ///   ordinals.
       /// </summary>
-      VillagesSpared
+      VillagesSpared,
+
+      /// <summary>
+      ///   A character who has come to love the player, and never said so, writes to confess it (Gabriel, 23/11/2026: "Une
+      ///   lettre d'aveux ou d'amour serait tres bien"). Written only when the conversation itself would let them say it
+      ///   first; said once; no follow-up if the player stays silent. Added last to preserve old-save ordinals.
+      /// </summary>
+      LoveConfession
    }
 }
