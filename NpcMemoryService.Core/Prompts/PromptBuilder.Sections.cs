@@ -127,7 +127,7 @@ namespace NpcMemoryService.Core.Prompts
          Section("scheme_warning", PromptZone.Prefix, (b, sb, s) => AppendSchemeWarning(sb, s.Context)),
          Section("love_match_proposal", PromptZone.Prefix, (b, sb, s) => AppendLoveMatchProposal(sb, s.Npc, s.Context)),
          Section("consort_proposal", PromptZone.Prefix, (b, sb, s) => AppendConsortProposal(sb, s.Context)),
-         Section("secret_lover_proposal", PromptZone.Prefix, (b, sb, s) => AppendSecretLoverProposal(sb, s.Context)),
+         Section("secret_lover_proposal", PromptZone.Prefix, (b, sb, s) => AppendSecretLoverProposal(sb, s.Npc, s.Context)),
          Section("open_relationship_proposal", PromptZone.Prefix, (b, sb, s) => AppendOpenRelationshipProposal(sb, s.Context)),
          Section("plural_acceptance", PromptZone.Prefix, (b, sb, s) => AppendPluralAcceptance(sb, s.Context)),
          Section("partner_lover_known", PromptZone.Prefix, (b, sb, s) => AppendPartnerLoverKnown(sb, s.Context)),

@@ -556,6 +556,14 @@ namespace NpcMemoryService.Core.Models
       public bool SecretLoverEligible { get; init; }
 
       /// <summary>
+      ///   The NPC <see cref="SecretLoverEligible" /> names is NOT one of the player's companions (a lord, a lady, a notable):
+      ///   the section then speaks of a discreet bond between the two of them, not of a comrade in arms. Gabriel
+      ///   (22/11/2026), asked whether the secret lover should stay with companions: "il ne devrait pas y avoir de
+      ///   restrictions". False (the companion text) in hosts that never set it.
+      /// </summary>
+      public bool SecretLoverNotACompanion { get; init; }
+
+      /// <summary>
       ///   True when this NPC is a COMMITTED partner of the player (spouse or consort) with whom an OPEN
       ///   ARRANGEMENT could be named, and one is not already in force. When true, the prompt teaches the
       ///   <c>open_relationship</c> action in BOTH directions: the player may offer reciprocal open terms, or

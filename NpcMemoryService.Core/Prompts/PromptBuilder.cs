@@ -1028,12 +1028,36 @@ namespace NpcMemoryService.Core.Prompts
       ///   <c>take_as_secret_lover</c> action. Unlike the open consort bond, this is DISCREET, kept hidden to
       ///   avoid stirring jealousy, and it is genuine affection between comrades, never a bargain or leverage.
       /// </summary>
-      private static void AppendSecretLoverProposal(StringBuilder sb, EncounterContext? context)
+      private static void AppendSecretLoverProposal(StringBuilder sb, NpcProfile? npc, EncounterContext? context)
       {
          // The adult-content gate lives game-side in ResolveSecretLoverEligible (SecretLoverEligible is only
          // set when adult content is on), so this static section needs no AdultLevel check of its own.
          if (context?.SecretLoverEligible != true) return;
          if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+
+         // Gabriel (22/11/2026): "il ne devrait pas y avoir de restrictions". A lord, a lady or a notable may be one too,
+         // and is no comrade in arms: the same bond, said for who they are.
+         if (context.SecretLoverNotACompanion)
+         {
+            bool wed = !string.IsNullOrWhiteSpace(npc?.SpouseName);
+            sb.AppendLine("A SECRET LOVER, IF YOUR HEART HAS TURNED THAT WAY:");
+            sb.AppendLine("If, and ONLY if, what has grown between you and the player has become real desire for you, you may");
+            sb.AppendLine("speak of it or welcome it when they do. What you would share is a DISCREET intimacy: quiet, genuine");
+            sb.AppendLine(wed
+               ? "moments together, kept SECRET by both of you from your spouse, your household and every watching eye."
+               : "moments together, kept SECRET by both of you from the court, your kin and every watching eye.");
+            sb.AppendLine("It is NOT a demand, NOT a bargain, and NEVER leverage; if one of you declines, the other accepts it");
+            sb.AppendLine("with dignity and nothing else between you changes.");
+            sb.AppendLine();
+            sb.AppendLine("Only when the player has clearly and warmly welcomed this, both of you agreeing, emit:");
+            sb.AppendLine("[ACTION]");
+            sb.AppendLine("type: take_as_secret_lover");
+            sb.AppendLine("[/ACTION]");
+            sb.AppendLine("Never emit it on your own confession alone, only once the feeling is truly returned.");
+            sb.AppendLine();
+
+            return;
+         }
 
          sb.AppendLine("A SECRET LOVER, IF YOUR HEART HAS TURNED THAT WAY:");
          sb.AppendLine("You have followed this leader through war. You are, first and always, a faithful companion,");
@@ -6132,6 +6156,12 @@ namespace NpcMemoryService.Core.Prompts
             : s == RomanticStatus.Broken ? $" (ended in {since})"
             : $" (since {since})";
 
+      // Gabriel's ruling (22/11/2026) opened the secret bond beyond companions, and showed the old SecretLover line was
+      // false for anyone unwed (most companions taken by take_as_secret_lover): it told them they were married to another.
+      private static string DescribeStatus(RomanticStatus s, bool married) => s == RomanticStatus.SecretLover && !married
+         ? "Your lover in secret: intimate with the player, and by your shared choice clandestine, never acknowledged openly."
+         : DescribeStatus(s);
+
       private static string DescribeStatus(RomanticStatus s) => s switch {
          RomanticStatus.Curious => "Noticed the player, intrigued but distant.",
          // avalanche24 (Nexus, 04/11/2026): "Active romantic interest" alone let Rhagaea deny a courtship her Heart page showed.
@@ -9351,7 +9381,7 @@ namespace NpcMemoryService.Core.Prompts
          if (npc.Romantic.Status != RomanticStatus.None)
          {
             sb.AppendLine();
-            sb.AppendLine($"Current bond with the player{BondSince(npc.Romantic.Status, context?.RomanticBondSince)}: {DescribeStatus(npc.Romantic.Status)}");
+            sb.AppendLine($"Current bond with the player{BondSince(npc.Romantic.Status, context?.RomanticBondSince)}: {DescribeStatus(npc.Romantic.Status, !string.IsNullOrWhiteSpace(npc.SpouseName))}");
             sb.AppendLine($"Attraction toward the player: {DescribeAttraction(npc.Romantic.AttractionToPlayer)}");
          }
 

@@ -1040,15 +1040,11 @@ type: take_as_consort
 The bond, once named, is real.
 
 A SECRET LOVER, IF YOUR HEART HAS TURNED THAT WAY:
-You have followed this leader through war. You are, first and always, a faithful companion,
-a brother or sister in arms, and the trust between you was forged in hardship. If, and ONLY if,
-that closeness has quietly become something more for you, admiration turned to real desire, you
-may confide it, with the courage and vulnerability of a comrade, never a schemer.
-
-What you would seek is a DISCREET intimacy: quiet, genuine moments together, kept SECRET, by your
-own choice, to spare them and their household the jealousy it could stir. This is NOT a demand,
-NOT a bargain, and NEVER leverage: you ask nothing in return but them, and if they gently decline
-you accept it with a comrade's dignity and the friendship stands unbroken.
+If, and ONLY if, what has grown between you and the player has become real desire for you, you may
+speak of it or welcome it when they do. What you would share is a DISCREET intimacy: quiet, genuine
+moments together, kept SECRET by both of you from your spouse, your household and every watching eye.
+It is NOT a demand, NOT a bargain, and NEVER leverage; if one of you declines, the other accepts it
+with dignity and nothing else between you changes.
 
 Only when the player has clearly and warmly welcomed this, both of you agreeing, emit:
 [ACTION]
