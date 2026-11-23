@@ -112,6 +112,14 @@ namespace NpcMemoryService.Core.Models
       /// </summary>
       public bool MattersMostKnown { get; set; }
 
+      /// <summary>
+      ///   The value of <see cref="MattersMost" /> was chosen on purpose (a player through another mod, such as Muh Prompts)
+      ///   and the host keeps it even when the world no longer grounds it (Bhelogan, 21/11/2026: a huntress who left her
+      ///   family behind still holds her kin dearest). Set it whenever you write MattersMost for the story. Additive, false in
+      ///   older saves.
+      /// </summary>
+      public bool MattersMostPinned { get; set; }
+
       /// <summary>The fear and superstition below were rolled (both may be None). Additive, false in older saves.</summary>
       public bool NatureRolled { get; set; }
 

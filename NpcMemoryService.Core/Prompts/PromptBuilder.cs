@@ -3361,9 +3361,12 @@ namespace NpcMemoryService.Core.Prompts
          if (lean == LeanPromptLevel.Lean)
          {
             sb.AppendLine();
-            sb.AppendLine("WHAT THE PLAYER DOES: text in *asterisks*, or a plain first-person physical statement, is a real");
-            sb.AppendLine("action happening now. Engage with it in character; never call it nonsense. But it settles their");
-            sb.AppendLine("BODY here, never the world or the past: they may hold out a bag, what is inside is only their word.");
+            // whiskeypatt (Discord 21/11/2026): narration of a past deed was quoted back by the NPC. Lean keeps that rule
+            // too, in the room the budget guards leave, so the whole section is said more tightly.
+            sb.AppendLine("WHAT THE PLAYER DOES: *asterisks* or a first-person physical act is real, now.");
+            sb.AppendLine("Engage with it in character, never call it nonsense. It settles their BODY, not the world: of a");
+            sb.AppendLine("bag they hold out, what is inside is only their word. Narrated thoughts, feelings, past deeds are");
+            sb.AppendLine("unseen: never quote them. Quoted words are speech.");
 
             return;
          }
@@ -3376,7 +3379,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Treat it as something actually HAPPENING right now, never as nonsense. Respond in character with");
          sb.AppendLine("your words (and, if it fits, your own *stage directions*). NEVER react as though the player said");
          sb.AppendLine("something senseless or ask what they are talking about. Their ordinary unmarked sentences are what");
-         sb.AppendLine("they SAY; keep the two apart. You are still a free person: you may welcome it, allow it, flinch,");
+         sb.AppendLine("they SAY, unless the message also holds words in quotation marks: then only the quoted words are");
+         sb.AppendLine("spoken, and the rest is narration. Keep the two apart. You are still a free person: you may welcome it, allow it, flinch,");
          sb.AppendLine("resist, or refuse, as fits who you are and how you regard them. What you must always do is ENGAGE");
          sb.AppendLine("with it as a real event in the scene.");
          // The boundary this section lacked. Player report (a recorded playthrough, 2026-07-22): the player wrote
@@ -3393,6 +3397,17 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("whether the head inside it belongs to the man they name is not theirs to declare. Coin, goods and");
          sb.AppendLine("captives change hands only when the game itself says they have, never because a stage direction");
          sb.AppendLine("said so.");
+         // whiskeypatt (Discord 21/11/2026): "i rejoined the camp, tired, after killing 31 men. then went to greet lord A
+         // \"Hello A\"" and the lord answered "so 31 men you killed was it?", reading his narration as something heard.
+         // Gabriel (22/11/2026) chose to keep the asterisks and say what the character PERCEIVES, rather than add a new
+         // notation for thoughts: the same rule also stops an NPC answering *I wonder if he is lying*.
+         sb.AppendLine("WHAT YOU PERCEIVE: only what can be SEEN or HEARD in this room now. Their narration often tells more:");
+         sb.AppendLine("what they did before they came (*this morning I paid a man to spy on you*; I rode back after killing");
+         sb.AppendLine("thirty men), what they think or feel (*I wonder if you are lying*). That is a note");
+         sb.AppendLine("to the storyteller, NOT words spoken to you: you never heard it and do not know it. Never repeat,");
+         sb.AppendLine("quote, count or answer it, and never let it show in what you suspect; react only to what shows on them");
+         sb.AppendLine("(weariness, blood on a sleeve, a guarded look). When their message holds words in quotation marks,");
+         sb.AppendLine("those words are what they say; the rest around them is narration.");
       }
 
       /// <summary>
