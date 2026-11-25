@@ -189,18 +189,18 @@ namespace NpcMemoryService.Core.Services
       private FittedRequest FitToWindow(int window, NpcProfile npc, WorldState world, EncounterContext? context, string systemPrompt, ChatSession session, int maxTokens)
       {
          bool alreadyCompact = context?.LeanLevel == LeanPromptLevel.Lean;
-         ContextFit fit = FitOf(window, systemPrompt, maxTokens, session, alreadyCompact ? 1 : ContextFitPolicy.KeepWithFullPrompt);
+         ContextFit fit = FitOf(window, systemPrompt, maxTokens, session, alreadyCompact ? ContextFitPolicy.KeepWithCompactPrompt : ContextFitPolicy.KeepWithFullPrompt);
          bool switched = false;
 
          if (!fit.Fits && !alreadyCompact && context != null)
          {
             systemPrompt = PromptBuilder.BuildSystemPrompt(npc, world, context.WithLeanLevel(LeanPromptLevel.Lean));
             maxTokens = Math.Min(maxTokens, LeanReplyBudget.Tokens);
-            fit = FitOf(window, systemPrompt, maxTokens, session, 1);
+            fit = FitOf(window, systemPrompt, maxTokens, session, ContextFitPolicy.KeepWithCompactPrompt);
             switched = true;
          }
          else if (!fit.Fits)
-            fit = FitOf(window, systemPrompt, maxTokens, session, 1);
+            fit = FitOf(window, systemPrompt, maxTokens, session, ContextFitPolicy.KeepWithCompactPrompt);
 
          Report(npc?.Id, window, fit, switched);
 

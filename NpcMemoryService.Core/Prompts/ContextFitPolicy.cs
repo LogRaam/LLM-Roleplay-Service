@@ -9,6 +9,12 @@
 //
 // The order, cheapest loss first: the oldest raw lines of the conversation (the running recap and the latest lines
 // stay), then the compact prompt with less history again. The prompt is never cut piecewise: it is whole or compact.
+//
+// hype (Discord, 23/11/2026), qwen3 4B on Ollama, Compact, two companions: every request after the second carried the
+// running recap and the player's new line, and nothing else. Istiona was asked what Emencard had just said and had
+// never been shown it; neither of them could see their own last replies, so both looped on the same openings. Compact
+// kept ONE line at the floor, and the full reply budget was counted as if every reply filled it. Two limits now: under
+// Compact the last exchange stays (KeepWithCompactPrompt), and the reply is reserved at most a quarter of the window.
 
 #region
 
@@ -118,6 +124,20 @@ namespace NpcMemoryService.Core.Prompts
       public const int KeepWithFullPrompt = 6;
 
       /// <summary>
+      ///   With the compact prompt there is no smaller prompt left to fall back on, so the floor is the last exchange:
+      ///   the character's own last reply, what another person present said, and the player's new line. Below it the
+      ///   character answers a question about words it was never shown, and repeats itself because it cannot see what
+      ///   it already said (hype, 23/11/2026). A request that still does not fit is reported as not fitting.
+      /// </summary>
+      public const int KeepWithCompactPrompt = 4;
+
+      /// <summary>
+      ///   The most of the window the reply is reserved, whatever the reply budget says. A reply rarely runs to a large
+      ///   budget, and counting all of it pushed the whole conversation out of a window it would have fitted in.
+      /// </summary>
+      public const double MaxReplyShare = 0.25;
+
+      /// <summary>
       ///   Leaves out the oldest raw lines, after the pinned recap, until the request fits or only
       ///   <see cref="ContextFitFacts.KeepAtLeast" /> remain. When anything is left out, the conversation then starts on
       ///   a player's line (a local chat template may refuse a conversation that opens on the character's).
@@ -131,15 +151,18 @@ namespace NpcMemoryService.Core.Prompts
          IReadOnlyList<ContextFitMessage> m = f.Messages ?? Array.Empty<ContextFitMessage>();
          int pinned = Math.Min(Math.Max(0, f.PinnedLeading), m.Count);
          int maxDrop = Math.Max(0, m.Count - pinned - Math.Max(1, f.KeepAtLeast));
+         int reply = Math.Min(Math.Max(0, f.ReplyTokens), (int) Math.Floor(usable * MaxReplyShare));
 
          int drop = 0;
-         while (drop < maxDrop && Cost(f, m, pinned, drop, cpt) > usable) drop++;
+         while (drop < maxDrop && Cost(f.PromptChars, reply, m, pinned, drop, cpt) > usable) drop++;
 
+         // Open on a player's line when it costs no line the floor keeps (a character's opening line is relabelled as
+         // its own words by MessageAlternationPolicy otherwise).
          if (drop > 0)
-            while (drop < m.Count - pinned - 1 && !m[pinned + drop].IsUser)
+            while (drop < maxDrop && !m[pinned + drop].IsUser)
                drop++;
 
-         return new ContextFit {Drop = drop, EstimatedTokens = Cost(f, m, pinned, drop, cpt), UsableTokens = usable};
+         return new ContextFit {Drop = drop, EstimatedTokens = Cost(f.PromptChars, reply, m, pinned, drop, cpt), UsableTokens = usable};
       }
 
       /// <summary>
@@ -162,9 +185,9 @@ namespace NpcMemoryService.Core.Prompts
 
       #region private
 
-      private static int Cost(ContextFitFacts f, IReadOnlyList<ContextFitMessage> m, int pinned, int drop, double cpt)
+      private static int Cost(int promptChars, int replyTokens, IReadOnlyList<ContextFitMessage> m, int pinned, int drop, double cpt)
       {
-         double tokens = f.PromptChars / cpt + Math.Max(0, f.ReplyTokens);
+         double tokens = promptChars / cpt + replyTokens;
          for (int i = 0; i < m.Count; i++)
          {
             if (i >= pinned && i < pinned + drop) continue;

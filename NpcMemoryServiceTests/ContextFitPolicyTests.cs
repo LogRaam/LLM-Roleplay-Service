@@ -98,6 +98,38 @@ namespace NpcMemoryServiceTests
          ContextFitPolicy.Measured(30000, 0).Should().BeNull();
       }
 
+      // hype (Discord, 23/11/2026), Compact on a small local model with two companions present: each request carried the
+      // recap and the player's new line only, so Istiona was asked about Emencard's words without being shown them, and
+      // both repeated themselves because neither could see its own last reply. Under Compact the last exchange stays.
+      [Test]
+      public void GIVEN_a_compact_request_too_big_for_the_window_WHEN_fitted_THEN_the_last_exchange_stays()
+      {
+         var messages = new List<ContextFitMessage> {new() {IsUser = true, Chars = 1400}}; // the running recap
+         messages.AddRange(Conversation(13));
+
+         ContextFit fit = ContextFitPolicy.Fit(new ContextFitFacts {
+            WindowTokens = 16384, PromptChars = 49000, ReplyTokens = 600, Messages = messages, PinnedLeading = 1,
+            KeepAtLeast = ContextFitPolicy.KeepWithCompactPrompt
+         });
+
+         int kept = messages.Count - 1 - fit.Drop;
+         kept.Should().BeGreaterThanOrEqualTo(4, "the character's last reply, the other speaker's line and the player's new one");
+      }
+
+      // Same report: a reply budget near the window's size was counted in full, as if every reply filled it, and the
+      // whole conversation was pushed out of a window it fitted in. The reply is reserved a quarter of the window at most.
+      [Test]
+      public void GIVEN_a_reply_budget_as_large_as_the_window_WHEN_fitted_THEN_it_does_not_push_the_conversation_out()
+      {
+         ContextFit fit = ContextFitPolicy.Fit(new ContextFitFacts {
+            WindowTokens = 32000, PromptChars = 49000, ReplyTokens = 32000, Messages = Conversation(12),
+            KeepAtLeast = ContextFitPolicy.KeepWithCompactPrompt
+         });
+
+         fit.Drop.Should().Be(0);
+         fit.Fits.Should().BeTrue();
+      }
+
       // The client's retry of a cut reply doubles the reply budget: it is only tried when that still fits the window.
       [Test]
       public void GIVEN_a_request_near_the_edge_WHEN_a_cut_reply_would_be_retried_THEN_the_retry_only_runs_if_it_fits()
