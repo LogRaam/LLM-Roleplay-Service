@@ -91,6 +91,24 @@ namespace NpcMemoryServiceTests
          wire[0].Content.Should().Contain("not a question waiting on you");
       }
 
+      // Bhelogan (Discord, 21/11/2026): his wife opened with "I am very angry with you. Too much time has gone by
+      // since last you visited" and then believed HE had said it. Moving her line to the user side puts it where
+      // the player's words sit, so the label is the only thing left saying whose words they are. It read "Said to
+      // you", which named her as the one spoken to.
+    [Test]
+      public void GIVEN_a_conversation_opening_on_the_characters_line_WHEN_it_moves_to_the_player_side_THEN_it_is_named_as_her_own_words()
+      {
+         IReadOnlyList<LlmMessage> wire = MessageAlternationPolicy.Normalize(new List<LlmMessage> {
+            Npc("I am very angry with you. Too much time has gone by since last you visited."),
+            User("I have gear in my stores. Take whatever would serve you better.")
+         });
+
+         string opening = wire[0].Content;
+         opening.Should().Contain("YOUR OWN words");
+         opening.Should().Contain("not the player's words to you");
+         opening.Should().NotContain("Said to you");
+      }
+
       // An ordinary two-sided conversation must come out untouched, or this repair would be a change to
       // every player on OpenRouter who never had a problem.
     [Test]

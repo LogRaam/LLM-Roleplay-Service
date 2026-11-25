@@ -50,12 +50,20 @@ namespace NpcMemoryService.Core.Models
         ///   Frames an NPC line that has no player turn before it. A conversation may open with the NPC (the
         ///   line the player just heard in the vanilla dialogue), but a template that demands the user speak
         ///   first cannot be given an assistant turn to start with. It is presented as what it actually is,
-        ///   speech that already happened, in the same words <see cref="ChatSession.AddPriorExchange" /> uses
-        ///   for the vanilla exchange: not a re-labelling of who spoke, but a statement of when.
+        ///   speech that already happened, in the same spirit as <see cref="ChatSession.AddPriorExchange" />:
+        ///   a statement of when, and of WHO. Moving the line to the user side puts it where the player's words
+        ///   sit, so the label must say the words are the character's own.
+        ///   <para>
+        ///     Bhelogan (Discord, 21/11/2026): his wife opened with the vanilla line "I am very angry with you. Too
+        ///     much time has gone by since last you visited", and in the chat she took it as said by HIM. The label
+        ///     read "Said to you a moment ago", which named the character as the one spoken to: it told her that her
+        ///     own reproach was the player's.
+        ///   </para>
         /// </summary>
         public const string OpeningLabel =
-            "[Said to you a moment ago, before this exchange began. It is the ground you are standing on, "
-            + "not a question waiting on you.]";
+            "[You said this yourself a moment ago, before this exchange began: these are YOUR OWN words to the "
+            + "player, not the player's words to you. It is the ground you are standing on, not a question "
+            + "waiting on you.]";
 
         /// <summary>Blank line between two merged turns, so a reader (and a model) still sees two utterances.</summary>
         private const string Join = "\n\n";
