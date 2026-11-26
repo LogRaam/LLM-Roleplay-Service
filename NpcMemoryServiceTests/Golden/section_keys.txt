@@ -129,3 +129,4 @@ matters_most_discovery
 fear_discovery
 archetype
 personality
+attack_together

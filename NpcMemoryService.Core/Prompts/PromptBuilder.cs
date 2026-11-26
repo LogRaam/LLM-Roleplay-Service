@@ -4324,6 +4324,32 @@ namespace NpcMemoryService.Core.Prompts
       }
 
       /// <summary>
+      ///   attack_together: ONE army of this lord's party and the player's, raised against an enemy within reach. Below the
+      ///   marker, since the targets are this turn's. froggyluv (Nexus, 25/11/2026): a lord planned at length how they would attack an enemy party together, and "once the conversation ended, she took off the other direction." Gabriel (25/11/2026): the lord who agrees raises ONE army of the two parties, the most powerful leads, and it attacks the right target.
+      /// </summary>
+      private static void AppendAttackTogether(StringBuilder sb, EncounterContext? context)
+      {
+         if (context?.NpcCanAttackTogether != true || context.JointAttackTargets == null || context.JointAttackTargets.Count == 0) return;
+         if (context.PlayerStatus == PlayerStatusVsNpc.Captive) return;
+         sb.AppendLine("ATTACK TOGETHER, ONE ARMY OF YOUR PARTY AND THE PLAYER'S:");
+         sb.AppendLine("If you and the player agree to attack an enemy together (hunt a party down, raid a village, besiege a");
+         sb.AppendLine("castle or a town), the game raises ONE army of your two parties and marches it on the target.");
+         sb.AppendLine(context.JointAttackPlayerLeads
+            ? "The player outranks you here and leads it: your party joins theirs."
+            : "You outrank the player here and lead it: the player's party follows yours.");
+         sb.AppendLine("The target can only be one of these, named by its id:");
+         foreach (string t in context.JointAttackTargets) sb.AppendLine("  " + t);
+         sb.AppendLine("When you both agree, emit:");
+         sb.AppendLine("[ACTION]");
+         sb.AppendLine("type: attack_together");
+         sb.AppendLine("target: <the id above>");
+         sb.AppendLine("[/ACTION]");
+         sb.AppendLine("Only this block raises the army; a plan in words moves no one. follow_me is an escort with no target:");
+         sb.AppendLine("for an attack, emit attack_together instead. The player is asked to confirm before the army forms.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
       ///   dismiss_escort: the MIRROR of follow_me, taught only while THIS NPC's own party is CURRENTLY
       ///   escorting the player (<see cref="EncounterContext.NpcIsEscortingPlayer" />): either side may end
       ///   the arrangement early, before its bounded term runs out.

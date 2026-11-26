@@ -78,7 +78,7 @@ namespace NpcMemoryService.Core.Prompts
             "grant_fief", "revoke_fief", "expel_from_clan", "grant_stipend", "swear_oath",
 
             // Riding and escort, gated on whether this person is or could be doing it.
-            "follow_me", "dismiss_escort", "ride_with_me", "part_ways",
+            "follow_me", "dismiss_escort", "ride_with_me", "part_ways", "attack_together",
 
             // Bonds, each gated on an eligibility the host resolves.
             "take_as_consort", "take_as_secret_lover", "open_relationship", "close_relationship", "end_affair",

@@ -116,6 +116,7 @@ Available actions:
 - reassure_companion: The player sincerely addresses an unhappy companion's voiced grievance, softening their discontent a little.
 - recall_companion: The player orders an away companion to abandon their errand and return; the companion is actually brought home, not merely told to.
 - follow_me: A lord leading their own party agrees to have it escort the player's across the map for a while, keeping their own troops and command (never joining the player's party or clan).
+- attack_together: A lord attacks an enemy with the player, one army.
 - dismiss_escort: An active escort begun by follow_me ends early, before its term runs out.
 - ride_with_me: A lord or lady without a field party of their own agrees to ride inside the player's own party for a time, keeping their own clan (no marriage, no clan-join).
 - part_ways: A retainer riding in the player's party via ride_with_me leaves and returns to their own clan and business.
@@ -1409,6 +1410,20 @@ is answering you. Never speak as though they came to you.
 
 THIS MEETING — YOU SOUGHT THE PLAYER OUT:
 [InterceptionReason]
+
+ATTACK TOGETHER, ONE ARMY OF YOUR PARTY AND THE PLAYER'S:
+If you and the player agree to attack an enemy together (hunt a party down, raid a village, besiege a
+castle or a town), the game raises ONE army of your two parties and marches it on the target.
+The player outranks you here and leads it: your party joins theirs.
+The target can only be one of these, named by its id:
+  [JointAttackTargets item]
+When you both agree, emit:
+[ACTION]
+type: attack_together
+target: <the id above>
+[/ACTION]
+Only this block raises the army; a plan in words moves no one. follow_me is an escort with no target:
+for an attack, emit attack_together instead. The player is asked to confirm before the army forms.
 
 NOTE ON YOUR LAST REPLY:
 [LlmFormatFeedbackNote]

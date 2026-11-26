@@ -1754,6 +1754,22 @@ namespace NpcMemoryService.Core.Models
       public bool NpcIsEscortingPlayer { get; init; }
 
       /// <summary>
+      ///   True when the game confirms this lord could raise ONE army with the player right now to attack an enemy (host
+      ///   fact: same realm, own party, neither already in an army, a siege or a battle, an enemy within reach; see the
+      ///   mod's <c>JointAttackPolicy.CanRaise</c>). Drives the <c>attack_together</c> action. froggyluv (Nexus, 25/11/2026): a lord planned at length how they would attack an enemy party together, and "once the conversation ended, she took off the other direction." Gabriel (25/11/2026): the lord who agrees raises ONE army of the two parties, the most powerful leads, and it attacks the right target.
+      /// </summary>
+      public bool NpcCanAttackTogether { get; init; }
+
+      /// <summary>Meaningful with <see cref="NpcCanAttackTogether" />: the player commands the joint army (else this lord does).</summary>
+      public bool JointAttackPlayerLeads { get; init; }
+
+      /// <summary>
+      ///   Meaningful with <see cref="NpcCanAttackTogether" />: the enemies within reach the army may be raised against, one
+      ///   line each, "id: name (what it is)". The model names one by its id; nothing else may be the target.
+      /// </summary>
+      public IReadOnlyList<string> JointAttackTargets { get; init; } = new List<string>();
+
+      /// <summary>
       ///   True when the game confirms this lord could genuinely ride IN the player's OWN party right now (host
       ///   fact: a lord/lady who does NOT lead a field party of their own, alive, free, not of the player's clan,
       ///   at peace with the player, and holding them in sufficient regard; see the mod's own

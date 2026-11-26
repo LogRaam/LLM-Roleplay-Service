@@ -827,8 +827,19 @@ namespace NpcMemoryService.Core.Actions
                antiPatterns: new[] {
                   "the lord merely being asked or considering the escort, without actually agreeing",
                   "a lord WITHOUT a field party of their own riding inside the player's party instead, which is the distinct verb ride_with_me",
-                  "the escort ending rather than beginning, which is dismiss_escort"
+                  "the escort ending rather than beginning, which is dismiss_escort",
+                  "a joint attack on a named enemy, which is attack_together"
                }),
+            Spec("attack_together",
+               "A lord attacks an enemy with the player, one army.",
+               tells: new[] {
+                  "a lord agrees, in this reply, to march on a named enemy with the player"
+               },
+               antiPatterns: new[] {
+                  "an attack only discussed, not agreed",
+                  "riding along with no target, which is follow_me"
+               },
+               new GameActionParam("target", "the enemy's id from the list")),
             Spec("dismiss_escort",
                "An active escort begun by follow_me ends early, before its term runs out.",
                tells: new[] {

@@ -178,6 +178,7 @@ namespace NpcMemoryService.Core.Prompts
          // turn two. Below the marker they cost nothing and the standing line can be restated every turn.
          Section("who_sought_whom", PromptZone.Tail, (b, sb, s) => AppendWhoSoughtWhom(sb, s.Context)),
          Section("interception", PromptZone.Tail, (b, sb, s) => AppendInterception(sb, s.Context)),
+         Section("attack_together", PromptZone.Tail, (b, sb, s) => AppendAttackTogether(sb, s.Context)),
          Section("format_feedback", PromptZone.Tail, (b, sb, s) => AppendFormatFeedback(sb, s.Context)),
          Section("held_prisoners_brief", PromptZone.Tail, (b, sb, s) => AppendHeldPrisonersBrief(sb, s.Context, s.Lean)),
          // A captive's terms and how readily she bargains: her fear can move within the conversation, so per turn.

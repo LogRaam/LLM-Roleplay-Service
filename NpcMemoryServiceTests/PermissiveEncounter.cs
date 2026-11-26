@@ -47,6 +47,7 @@ namespace NpcMemoryServiceTests
 
             NpcCanEscortPlayer = true, NpcIsEscortingPlayer = true, NpcCanRideWithPlayer = true,
             NpcIsRidingWithPlayer = true,
+            NpcCanAttackTogether = true, JointAttackTargets = new[] {"looters_1: Looters (a party of 30)"},
 
             ConsortEligible = true, SecretLoverEligible = true, OpenRelationshipEligible = true,
             PartnerLoverKnown = true, PartnerLoverName = "Liena",

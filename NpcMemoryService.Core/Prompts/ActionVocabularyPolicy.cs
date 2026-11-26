@@ -45,8 +45,10 @@ namespace NpcMemoryService.Core.Prompts
         ///   (extortion by the player, Gabriel) took it 98 past with its own lines cut short; two more again. 82 until
         ///   the same day, when expose_secret (Gabriel's go) did the same again. 80 until 07/11/2026, when reconcile_with
         ///   (kurushimi00: peace made at the player's table) took it 47 past with its own entry cut to one short line.
+        ///   78 until 25/11/2026, when attack_together (froggyluv and Gabriel: one army of a lord's party and the
+        ///   player's) took it 93 past with its own entry cut to one short line; three characters in all.
         /// </summary>
-        public const int LeanDescriptionChars = 78;
+        public const int LeanDescriptionChars = 75;
 
         /// <summary>
         ///   The description as this prompt should carry it. Full prompts get every word. Lean gets the first

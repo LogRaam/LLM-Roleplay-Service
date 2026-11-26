@@ -930,6 +930,21 @@ namespace NpcMemoryService.Core.Actions
                prose: "*Vsevolod simply wheels his column into formation alongside yours without further ceremony, his own banners still flying above his own men.* Lead the way. We will not fall behind.",
                expectedType: "follow_me"),
 
+            ActionBenchCase.Expect("attack_together", "attack_together",
+               contextFacts: "NPC: Lady Ira, who leads her own field party; an enemy war party, looters_1, camps to the north.",
+               prose: "*Ira unrolls the map and taps the hills to the north.* Agreed. We strike them together at first light, your men and mine as one army.",
+               expectedType: "attack_together"),
+
+            ActionBenchCase.Expect("attack_together_v2", "attack_together",
+               contextFacts: "NPC: Lord Garios, who leads his own field party; the enemy village Ocs Hall lies a day's ride east.",
+               prose: "*Garios grins and calls for his horse.* Ocs Hall it is. We ride on it side by side and leave them nothing to harvest.",
+               expectedType: "attack_together"),
+
+            ActionBenchCase.Expect("attack_together_v3", "attack_together",
+               contextFacts: "NPC: Boyar Vsevolod, who leads his own field party; the enemy castle Varcheg lies close by.",
+               prose: "*Vsevolod slams his fist on the table.* Then we lay siege to Varcheg, you and I, one host under one banner. Sound the march.",
+               expectedType: "attack_together"),
+
             ActionBenchCase.Expect("dismiss_escort", "dismiss_escort",
                contextFacts: "Lord Ansen's own party has been escorting the player's via follow_me.",
                prose: "*Ansen reins in his horse and turns it back toward his own lands.* Our roads part here. My men and I have our own business to see to now, the escort ends today.",
