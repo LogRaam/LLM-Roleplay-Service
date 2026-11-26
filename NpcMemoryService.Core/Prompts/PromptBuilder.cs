@@ -5791,7 +5791,9 @@ namespace NpcMemoryService.Core.Prompts
 
          if (context.PrivacyRequested)
          {
-            sb.AppendLine("THE PLAYER HAS JUST REQUESTED A PRIVATE AUDIENCE: decide and emit the action THIS TURN.");
+            // whiskeypatt (Discord, 25/11/2026): the request read as "you have some important stuff to say".
+            sb.AppendLine("THE PLAYER HAS JUST REQUESTED A PRIVATE AUDIENCE: decide and emit the action THIS TURN. It is a wish");
+            sb.AppendLine("for privacy, not a sign of grave news.");
             sb.AppendLine();
          }
       }

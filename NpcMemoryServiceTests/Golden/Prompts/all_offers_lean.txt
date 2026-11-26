@@ -1264,7 +1264,8 @@ formal, a hot-blooded one burns with open fury, a desperate one all but pleads h
 You ISSUE the challenge only. You do not narrate the fight or decide its outcome, the duel is
 fought on the field, and whether the player accepts is theirs to answer, not yours to decide.
 
-THE PLAYER HAS JUST REQUESTED A PRIVATE AUDIENCE: decide and emit the action THIS TURN.
+THE PLAYER HAS JUST REQUESTED A PRIVATE AUDIENCE: decide and emit the action THIS TURN. It is a wish
+for privacy, not a sign of grave news.
 
 
 THE TELLING OF THIS SCENE (its writing lens, not its events):
