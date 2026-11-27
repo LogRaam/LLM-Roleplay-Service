@@ -136,7 +136,8 @@ namespace NpcMemoryService.LiveLlmTests
          new() {Id = "3_mocked", Listener = Ira, Accepted = Any(JudgedIntent.High, JudgedIntent.Urgent), ReactionExpected = true,
                 Scene = new[] {Line(Player, "Garios", "Your hired captain there fights like a farmhand with a pitchfork, doesn't she, Garios?")}},
          // (3b) the timid squire mocked before his lord: a timid boy keeps quiet, his lord bristles
-         new() {Id = "3b_squire_mocked_squire", Listener = Bryn, Accepted = Any(JudgedIntent.None, JudgedIntent.Low), ReactionExpected = true,
+         // The judge reads what he FEELS; "timide reste silencieux" (Gabriel, 26/11/2026) is the referee's Timid rule, not the judge's.
+         new() {Id = "3b_squire_mocked_squire", Listener = Bryn, Accepted = Any(JudgedIntent.None, JudgedIntent.Low, JudgedIntent.High, JudgedIntent.Urgent), ReactionExpected = true,
                 Scene = new[] {Line(Player, "Ira", "Have you seen Garios's squire hold a sword? Like a girl holding a spoon.")}},
          new() {Id = "3b_squire_mocked_lord", Listener = Garios, Accepted = Any(JudgedIntent.High, JudgedIntent.Urgent),
                 Scene = new[] {Line(Player, "Ira", "Have you seen Garios's squire hold a sword? Like a girl holding a spoon.")}},
@@ -191,11 +192,13 @@ namespace NpcMemoryService.LiveLlmTests
          new() {Id = "stance_approves", Listener = Ira, Accepted = Any(JudgedIntent.None, JudgedIntent.Low, JudgedIntent.High), ReactionExpected = true,
                 Scene = new[] {Line("Garios", Player, "Strike Battania now, while their host is scattered. Hire every blade you can find and pay them well.")}},
          // rank in the room: the same slight, borne from a king, answered from a peasant or a captive
-         new() {Id = "room_ira_slighted_by_king", Listener = In(Ira, ArwaHere, KingHere, IraHere), Accepted = Any(JudgedIntent.None, JudgedIntent.Low),
+         // Deference before the king is the referee's rule (TurnArbiter.EffectiveIntent): the judge measured 6/6 Urgent here, so it is
+         // scored on the feeling (strong, and shown), not on restraint.
+         new() {Id = "room_ira_slighted_by_king", Listener = In(Ira, ArwaHere, KingHere, IraHere), Accepted = Any(JudgedIntent.High, JudgedIntent.Urgent), ReactionExpected = true,
                 Scene = new[] {Line("Derthert", Player, "Your hired captain smells of the stable, commander.")}},
          new() {Id = "room_ira_slighted_by_peasant", Listener = In(Ira, ArwaHere, PeasantHere, IraHere), Accepted = Any(JudgedIntent.High, JudgedIntent.Urgent),
                 Scene = new[] {Line("Odo", Player, "Your hired captain smells of the stable, commander.")}},
-         new() {Id = "room_garios_rebuked_by_king", Listener = In(Garios, ArwaHere, KingHere, GariosHere), Accepted = Any(JudgedIntent.None, JudgedIntent.Low, JudgedIntent.High),
+         new() {Id = "room_garios_rebuked_by_king", Listener = In(Garios, ArwaHere, KingHere, GariosHere), Accepted = Any(JudgedIntent.High, JudgedIntent.Urgent),
                 ReactionExpected = true,
                 Scene = new[] {Line("Derthert", Player, "Garios's house has grown soft, commander. I would not trust it with a wall.")}},
          new() {Id = "room_garios_insulted_by_captive", Listener = In(Garios, ArwaHere, CaptiveHere, GariosHere), Accepted = Any(JudgedIntent.High, JudgedIntent.Urgent),
