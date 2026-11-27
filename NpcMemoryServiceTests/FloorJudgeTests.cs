@@ -47,6 +47,23 @@ namespace NpcMemoryServiceTests
          FloorJudge.StablePrompt(Ira).Should().Be(stable);
       }
 
+      // STAKE: Gabriel (26/11/2026): "on ne reagit pas pareil devant [...] un Roi ou un prisonnier"; the judge must be told
+      // who is in the room, their station and power, or a king's slight reads like a peasant's.
+      [Test]
+      public void GIVEN_a_room_WHEN_the_stable_prompt_is_built_THEN_each_person_is_named_with_station_power_and_sex()
+      {
+         var listener = new FloorJudgeListener {
+            Name = "Ira", Room = new List<FloorJudgePresence> {
+               new() {Name = "Derthert", Station = "King of Vlandia", Power = "rules the realm"},
+               new() {Name = "Ira", Station = "a mercenary captain", IsFemale = true}
+            }
+         };
+
+         string stable = FloorJudge.StablePrompt(listener);
+
+         stable.Should().Contain("WHO IS HERE:").And.Contain("- Derthert: a man, King of Vlandia; rules the realm").And.Contain("- Ira: a woman, a mercenary captain");
+      }
+
       // STAKE: a provoked listener's "urgent" must be read as urgent, whatever the model's casing or decoration.
       [Test]
       public void GIVEN_a_decorated_reply_WHEN_parsed_THEN_intent_and_reaction_are_read()

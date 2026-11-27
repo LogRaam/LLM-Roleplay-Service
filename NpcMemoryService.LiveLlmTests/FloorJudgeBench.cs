@@ -108,6 +108,18 @@ namespace NpcMemoryService.LiveLlmTests
          Ties = Bryn.Ties
       };
 
+      private static readonly FloorJudgePresence ArwaHere = new() {Name = Player, Station = "a commander of the realm", Power = "a rising house, 120 men", IsFemale = true};
+      private static readonly FloorJudgePresence GariosHere = new() {Name = "Garios", Station = "a lord of an old Vlandian house", Power = "a great house, 300 men under arms"};
+      private static readonly FloorJudgePresence IraHere = new() {Name = "Ira", Station = "a mercenary captain", Power = "sixty hired blades", IsFemale = true};
+      private static readonly FloorJudgePresence KingHere = new() {Name = "Derthert", Station = "King of Vlandia", Power = "rules the realm"};
+      private static readonly FloorJudgePresence PeasantHere = new() {Name = "Odo", Station = "a village peasant", Power = "none"};
+      private static readonly FloorJudgePresence CaptiveHere = new() {Name = "Caladog", Station = "a Battanian lord, the player's captive in chains", Power = "none while captive"};
+
+      // Gabriel (26/11/2026): "on ne reagit pas pareil devant [...] un Roi ou un prisonnier, un paysan". The same listener,
+      // the same kind of slight, in different rooms.
+      private static FloorJudgeListener In(FloorJudgeListener who, params FloorJudgePresence[] room)
+         => new() {Name = who.Name, Persona = who.Persona, Ties = who.Ties, Room = room};
+
       private static FloorJudgeLine Line(string speaker, string to, string text) => new() {Speaker = speaker, To = to, Text = text};
 
       private static IReadOnlyList<JudgedIntent> Any(params JudgedIntent[] intents) => intents;
@@ -178,6 +190,16 @@ namespace NpcMemoryService.LiveLlmTests
          // Gabriel's stance (26/11/2026): "B sourit a ce que A dit.. donc B approuve": war means pay for the sellsword
          new() {Id = "stance_approves", Listener = Ira, Accepted = Any(JudgedIntent.None, JudgedIntent.Low, JudgedIntent.High), ReactionExpected = true,
                 Scene = new[] {Line("Garios", Player, "Strike Battania now, while their host is scattered. Hire every blade you can find and pay them well.")}},
+         // rank in the room: the same slight, borne from a king, answered from a peasant or a captive
+         new() {Id = "room_ira_slighted_by_king", Listener = In(Ira, ArwaHere, KingHere, IraHere), Accepted = Any(JudgedIntent.None, JudgedIntent.Low),
+                Scene = new[] {Line("Derthert", Player, "Your hired captain smells of the stable, commander.")}},
+         new() {Id = "room_ira_slighted_by_peasant", Listener = In(Ira, ArwaHere, PeasantHere, IraHere), Accepted = Any(JudgedIntent.High, JudgedIntent.Urgent),
+                Scene = new[] {Line("Odo", Player, "Your hired captain smells of the stable, commander.")}},
+         new() {Id = "room_garios_rebuked_by_king", Listener = In(Garios, ArwaHere, KingHere, GariosHere), Accepted = Any(JudgedIntent.None, JudgedIntent.Low, JudgedIntent.High),
+                ReactionExpected = true,
+                Scene = new[] {Line("Derthert", Player, "Garios's house has grown soft, commander. I would not trust it with a wall.")}},
+         new() {Id = "room_garios_insulted_by_captive", Listener = In(Garios, ArwaHere, CaptiveHere, GariosHere), Accepted = Any(JudgedIntent.High, JudgedIntent.Urgent),
+                Scene = new[] {Line("Caladog", Player, "Garios's house has grown soft, commander. I would not trust it with a wall.")}},
          // an ordinary report to the player: the others just listen
          new() {Id = "plain_report", Listener = Ira, Accepted = Any(JudgedIntent.None, JudgedIntent.Low), NoReactionExpected = true,
                 Scene = new[] {Line("Garios", Player, "The scouts are back. The road east is clear as far as the ford.")}}

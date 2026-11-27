@@ -14,6 +14,10 @@
 // indice pour le joueur que B sait p-e quelque chose." So the default is none, and a reaction is a tell worth noticing.
 // Or a stance (Gabriel, same day): "une reaction peut aussi appuyer quelque chose.. A dit et B sourit a ce que A dit.. donc B
 // approuve ce que A dit": a smile or a shake of the head that tells the player who sides with what was just said.
+// And who is in the room (Gabriel, same day): "on ne reagit pas pareil devant une femme, un homme, un Roi ou un prisonnier,
+// un paysan, un voleur, etc. La puissance d'un seigneur aussi devrait orienter les reactions de tout NPC." The judge is told
+// each person present, their station, their power and their sex, so a slight from a king is borne and one from a peasant
+// is not.
 
 #region
 
@@ -53,6 +57,25 @@ namespace NpcMemoryService.Core.Prompts
 
       /// <summary>One line per other person present: who they are to this listener ("Ira: a rival captain you distrust").</summary>
       public IReadOnlyList<string> Ties { get; init; } = new List<string>();
+
+      /// <summary>Everyone in the room, the listener included, as the game knows them: station, power, sex.</summary>
+      public IReadOnlyList<FloorJudgePresence> Room { get; init; } = new List<FloorJudgePresence>();
+   }
+
+   /// <summary>One person in the room, as the game knows them.</summary>
+   public sealed class FloorJudgePresence
+   {
+      /// <summary>Their name.</summary>
+      public string Name { get; init; } = "";
+
+      /// <summary>Their station: "King of Vlandia", "a lord of the realm", "a captive in chains", "a village peasant", "a known thief".</summary>
+      public string Station { get; init; } = "";
+
+      /// <summary>Their power, in the game's terms, or empty: "rules the realm", "a great house, 300 men under arms".</summary>
+      public string Power { get; init; } = "";
+
+      /// <summary>A woman.</summary>
+      public bool IsFemale { get; init; }
    }
 
    /// <summary>One line of the scene so far.</summary>
@@ -95,7 +118,9 @@ namespace NpcMemoryService.Core.Prompts
       {
          var sb = new StringBuilder();
          sb.AppendLine("You judge ONE listener in a group conversation set in a medieval world. You never write dialogue.");
-         sb.AppendLine("After the last line spoken, say how much this listener wants to take the floor, and how they react without words.");
+         sb.AppendLine("After the last line spoken, say whether this listener would actually take the floor HERE, before these people,");
+         sb.AppendLine("and how they react without words. Wanting to speak is not daring to: a fury held back before a king is low or");
+         sb.AppendLine("none, and shows in the reaction instead.");
          sb.AppendLine();
          sb.AppendLine("intent, one of:");
          sb.AppendLine("- none: nothing to say; the line does not concern them, or they would keep quiet.");
@@ -112,6 +137,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("Judge as THIS person would, by their temperament and their ties to the others: a proud lord bristles at a slight,");
          sb.AppendLine("a timid squire keeps quiet before his betters, a rival seizes an opening. Being addressed is not a reason to want");
          sb.AppendLine("to speak more than they would; being spoken ABOUT may be.");
+         sb.AppendLine("Weigh WHO is in the room and who spoke. One does not react or speak the same before a king, a great lord, a");
+         sb.AppendLine("prisoner, a peasant or a known thief: rank and power command restraint, fear or deference, a captive or a lowly man");
+         sb.AppendLine("may be answered at once, and a woman or a man is met as this listener's own customs and temperament would.");
          sb.AppendLine();
          sb.AppendLine("Answer with exactly two lines and nothing else:");
          sb.AppendLine("intent: <none|low|high|urgent>");
@@ -121,6 +149,18 @@ namespace NpcMemoryService.Core.Prompts
          if (!string.IsNullOrWhiteSpace(listener?.Persona)) sb.AppendLine(listener!.Persona.Trim());
          foreach (string tie in listener?.Ties ?? new List<string>())
             if (!string.IsNullOrWhiteSpace(tie)) sb.AppendLine("- " + tie.Trim());
+
+         IReadOnlyList<FloorJudgePresence> room = listener?.Room ?? new List<FloorJudgePresence>();
+         if (room.Count > 0)
+         {
+            sb.AppendLine();
+            sb.AppendLine("WHO IS HERE:");
+            foreach (FloorJudgePresence p in room)
+            {
+               string power = string.IsNullOrWhiteSpace(p.Power) ? "" : $"; {p.Power.Trim()}";
+               sb.AppendLine($"- {p.Name}: {(p.IsFemale ? "a woman" : "a man")}, {p.Station.Trim()}{power}");
+            }
+         }
 
          return sb.ToString();
       }
