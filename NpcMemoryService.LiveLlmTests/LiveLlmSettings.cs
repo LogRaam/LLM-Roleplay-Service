@@ -118,6 +118,17 @@ namespace NpcMemoryService.LiveLlmTests
       public string JevCases { get; set; } = "subset";
 
       /// <summary>
+      ///   The model the group-conversation floor judge bench tries (FloorJudgeBenchLiveLlmTests). Gabriel (26/11/2026): a
+      ///   fast, cheap model; DeepSeek V4.1 Flash led the 16/11 action bench at Jev's price.
+      /// </summary>
+      [JsonPropertyName("floorJudgeModel")]
+      public string FloorJudgeModel { get; set; } = "deepseek/deepseek-v4.1-flash";
+
+      /// <summary>The floor judge's reasoning effort: "off" by default (on 16/11 DeepSeek was better and four times faster without it).</summary>
+      [JsonPropertyName("floorJudgeReasoning")]
+      public string FloorJudgeReasoning { get; set; } = "off";
+
+      /// <summary>
       ///   Loads the settings beside the test assembly, then beside the project. Returns a CLOSED default when
       ///   no file exists or it cannot be read: a malformed file must never be read as permission to spend.
       /// </summary>

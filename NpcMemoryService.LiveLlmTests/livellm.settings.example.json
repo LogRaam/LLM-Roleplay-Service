@@ -40,5 +40,11 @@
   "jevModel": "typesafe/jev",
 
   "_jevCases": "subset (5 cases, a few calls) or all (the whole action bench catalog).",
-  "jevCases": "subset"
+  "jevCases": "subset",
+
+  "_floorJudgeModel": "Group conversation floor judge bench: the cheap, fast model that says who wants to speak (never writes dialogue).",
+  "floorJudgeModel": "deepseek/deepseek-v4.1-flash",
+
+  "_floorJudgeReasoning": "The floor judge's reasoning effort: off (default) | low | medium | high.",
+  "floorJudgeReasoning": "off"
 }
