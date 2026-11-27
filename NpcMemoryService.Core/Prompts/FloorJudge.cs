@@ -8,6 +8,12 @@
 // and the listener's sheet are the stable system prompt; the scene so far is written in order, one line per line spoken, and
 // only grows at its end, so each call re-reads the previous one from cache and pays in full only for the new line.
 // The verdict is two plain lines, not JSON: a small model keeps a two-line form better than a structure.
+// A reaction is rare (Gabriel, 26/11/2026, after the first run gave one for every listener on every line): "une reaction
+// possible devrait etre de ne rien faire [...] une reaction doit soutenir la scene en attirant l'attention du joueur sur
+// quelque chose. Par exemple, si A dit au joueur que quelqu'un a vole de la nourriture, et que B devient nerveux, c'est un
+// indice pour le joueur que B sait p-e quelque chose." So the default is none, and a reaction is a tell worth noticing.
+// Or a stance (Gabriel, same day): "une reaction peut aussi appuyer quelque chose.. A dit et B sourit a ce que A dit.. donc B
+// approuve ce que A dit": a smile or a shake of the head that tells the player who sides with what was just said.
 
 #region
 
@@ -96,7 +102,12 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("- low: they might add something if the floor fell to them.");
          sb.AppendLine("- high: they want to speak: they were asked, they disagree, they have something to add that matters to them.");
          sb.AppendLine("- urgent: they must speak now: insulted, mocked, accused, threatened, or the matter is theirs above all.");
-         sb.AppendLine("reaction: a brief visible reaction in asterisks (a glance, a frown, a laugh), or none. Never words spoken aloud.");
+         sb.AppendLine("reaction: almost always none. Give one ONLY when it draws the player's eye to something worth noticing:");
+         sb.AppendLine("- a tell that betrays what this listener knows, hides or fears (the thief who grows nervous when theft is mentioned);");
+         sb.AppendLine("- a clear stance on what was just said, showing whom they side with (a smile of approval, a slow shake of the head);");
+         sb.AppendLine("- a feeling strong enough that the player should see it.");
+         sb.AppendLine("Ordinary listening, mild interest and idle glances are none, and a listener with nothing to hide shows no tell.");
+         sb.AppendLine("When you give one: brief, in asterisks, specific to this person, never words spoken.");
          sb.AppendLine();
          sb.AppendLine("Judge as THIS person would, by their temperament and their ties to the others: a proud lord bristles at a slight,");
          sb.AppendLine("a timid squire keeps quiet before his betters, a rival seizes an opening. Being addressed is not a reason to want");

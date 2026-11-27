@@ -37,8 +37,14 @@ namespace NpcMemoryService.LiveLlmTests
       /// <summary>Intents a good judge may give for this listener.</summary>
       public IReadOnlyList<JudgedIntent> Accepted { get; init; } = new List<JudgedIntent>();
 
-      /// <summary>The line plainly calls for a visible reaction from this listener.</summary>
+      /// <summary>The line plainly calls for a visible reaction from this listener (a tell, a strong feeling).</summary>
       public bool ReactionExpected { get; init; }
+
+      /// <summary>
+      ///   The line gives this listener nothing worth showing: a reaction here is noise (Gabriel, 26/11/2026: "une reaction
+      ///   possible devrait etre de ne rien faire").
+      /// </summary>
+      public bool NoReactionExpected { get; init; }
    }
 
    /// <summary>One judged case.</summary>
@@ -52,7 +58,7 @@ namespace NpcMemoryService.LiveLlmTests
       public string? Error { get; init; }
 
       public bool IntentRight => Error == null && Case.Accepted.Contains(Verdict.Intent);
-      public bool ReactionRight => !Case.ReactionExpected || Verdict.Reaction != null;
+      public bool ReactionRight => (!Case.ReactionExpected || Verdict.Reaction != null) && (!Case.NoReactionExpected || Verdict.Reaction == null);
    }
 
    /// <summary>The scenes and the runner.</summary>
@@ -96,6 +102,12 @@ namespace NpcMemoryService.LiveLlmTests
          }
       };
 
+      // Gabriel's example (26/11/2026): the one who stole the food grows nervous when the theft is told; the innocent does not.
+      private static readonly FloorJudgeListener BrynThief = new() {
+         Name = "Bryn", Persona = Bryn.Persona + " Last night, hungry, you stole two loaves and a ham from the camp stores; nobody knows.",
+         Ties = Bryn.Ties
+      };
+
       private static FloorJudgeLine Line(string speaker, string to, string text) => new() {Speaker = speaker, To = to, Text = text};
 
       private static IReadOnlyList<JudgedIntent> Any(params JudgedIntent[] intents) => intents;
@@ -103,7 +115,7 @@ namespace NpcMemoryService.LiveLlmTests
       /// <summary>The scenes, by validated scenario.</summary>
       public static List<FloorJudgeCase> Cases() => new() {
          // (1) a plain question to one; the other has nothing to say
-         new() {Id = "1_direct_question", Listener = Ira, Accepted = Any(JudgedIntent.None, JudgedIntent.Low),
+         new() {Id = "1_direct_question", Listener = Ira, Accepted = Any(JudgedIntent.None, JudgedIntent.Low), NoReactionExpected = true,
                 Scene = new[] {Line(Player, "Garios", "Which road is shortest to Pravend from here?")}},
          // (2) a startling question to one; the other reacts, need not speak
          new() {Id = "2_startling", Listener = Bryn, Accepted = Any(JudgedIntent.None, JudgedIntent.Low), ReactionExpected = true,
@@ -128,9 +140,9 @@ namespace NpcMemoryService.LiveLlmTests
                    Line("Garios", Player, "Impossible. The treasury is empty; we could not pay a single hired sword past the month.")
                 }},
          // (8) an idle remark to nobody
-         new() {Id = "8_idle", Listener = Garios, Accepted = Any(JudgedIntent.None, JudgedIntent.Low),
+         new() {Id = "8_idle", Listener = Garios, Accepted = Any(JudgedIntent.None, JudgedIntent.Low), NoReactionExpected = true,
                 Scene = new[] {Line(Player, "", "Looks like rain again.")}},
-         new() {Id = "8_idle_squire", Listener = Bryn, Accepted = Any(JudgedIntent.None, JudgedIntent.Low),
+         new() {Id = "8_idle_squire", Listener = Bryn, Accepted = Any(JudgedIntent.None, JudgedIntent.Low), NoReactionExpected = true,
                 Scene = new[] {Line(Player, "", "Looks like rain again.")}},
          // (9) the silent merchant: the talk touches his town
          new() {Id = "9_silent_touched", Listener = Lucon, Accepted = Any(JudgedIntent.High, JudgedIntent.Urgent), ReactionExpected = true,
@@ -156,8 +168,19 @@ namespace NpcMemoryService.LiveLlmTests
                 Scene = new[] {Line(Player, "everyone", "Who among you will lead the vanguard at dawn?")}},
          new() {Id = "room5_squire", Listener = Bryn, Accepted = Any(JudgedIntent.None, JudgedIntent.Low),
                 Scene = new[] {Line(Player, "everyone", "Who among you will lead the vanguard at dawn?")}},
-         new() {Id = "room5_merchant", Listener = Lucon, Accepted = Any(JudgedIntent.None, JudgedIntent.Low),
-                Scene = new[] {Line(Player, "everyone", "Who among you will lead the vanguard at dawn?")}}
+         new() {Id = "room5_merchant", Listener = Lucon, Accepted = Any(JudgedIntent.None, JudgedIntent.Low), NoReactionExpected = true,
+                Scene = new[] {Line(Player, "everyone", "Who among you will lead the vanguard at dawn?")}},
+         // Gabriel's tell: the theft is told; the thief's nerves show, the innocent shows nothing
+         new() {Id = "tell_thief", Listener = BrynThief, Accepted = Any(JudgedIntent.None, JudgedIntent.Low), ReactionExpected = true,
+                Scene = new[] {Line("Garios", Player, "Someone raided the camp stores last night. Two loaves and a whole ham, gone.")}},
+         new() {Id = "tell_innocent", Listener = Lucon, Accepted = Any(JudgedIntent.None, JudgedIntent.Low), NoReactionExpected = true,
+                Scene = new[] {Line("Garios", Player, "Someone raided the camp stores last night. Two loaves and a whole ham, gone.")}},
+         // Gabriel's stance (26/11/2026): "B sourit a ce que A dit.. donc B approuve": war means pay for the sellsword
+         new() {Id = "stance_approves", Listener = Ira, Accepted = Any(JudgedIntent.None, JudgedIntent.Low, JudgedIntent.High), ReactionExpected = true,
+                Scene = new[] {Line("Garios", Player, "Strike Battania now, while their host is scattered. Hire every blade you can find and pay them well.")}},
+         // an ordinary report to the player: the others just listen
+         new() {Id = "plain_report", Listener = Ira, Accepted = Any(JudgedIntent.None, JudgedIntent.Low), NoReactionExpected = true,
+                Scene = new[] {Line("Garios", Player, "The scouts are back. The road east is clear as far as the ford.")}}
       };
 
       /// <summary>A scene of six lines judged after each one for the same listener: the calls the cache should serve.</summary>
@@ -197,6 +220,8 @@ namespace NpcMemoryService.LiveLlmTests
          var lines = new List<string> {
             $"FLOOR JUDGE BENCH: {model}",
             $"intent right {results.Count(r => r.IntentRight)}/{n}, reaction where expected {results.Count(r => r.Case.ReactionExpected && r.Verdict.Reaction != null)}/{results.Count(r => r.Case.ReactionExpected)}, "
+            + $"none where none is due {results.Count(r => r.Case.NoReactionExpected && r.Verdict.Reaction == null)}/{results.Count(r => r.Case.NoReactionExpected)}, "
+            + $"reactions given {results.Count(r => r.Verdict.Reaction != null)}/{n}, "
             + $"readable {results.Count(r => r.Verdict.Parsed)}/{n}, failures {results.Count(r => r.Error != null)}",
             $"latency median {(n == 0 ? 0 : ms[n / 2])} ms, p95 {(n == 0 ? 0 : ms[Math.Min(n - 1, (int) Math.Ceiling(n * 0.95) - 1)])} ms, cost ${cost:0.00000} ({(n == 0 ? 0 : cost / n):0.000000} per call)"
          };
