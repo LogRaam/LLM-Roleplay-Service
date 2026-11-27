@@ -3174,6 +3174,17 @@ namespace NpcMemoryService.Core.Prompts
          _ => $" some {days} days ago"
       };
 
+      /// <summary>
+      ///   "a woman", "a man", or the race's own noun with its article ("an elf woman") when the host names one
+      ///   (CatWithFourEyes, 26/11/2026).
+      /// </summary>
+      internal static string KindPhrase(bool isFemale, string? kindNoun)
+      {
+         string noun = string.IsNullOrWhiteSpace(kindNoun) ? (isFemale ? "woman" : "man") : kindNoun!.Trim();
+
+         return ("aeiouAEIOU".IndexOf(noun[0]) >= 0 ? "an " : "a ") + noun;
+      }
+
       private static void AppendIdentity(StringBuilder sb, NpcProfile npc, EncounterContext? encounterContext, bool playerIsFemale)
       {
          // A clanless NPC (a hunted notable, a landless wanderer) has no house to name. Older data stored the
@@ -3189,8 +3200,8 @@ namespace NpcMemoryService.Core.Prompts
          if (encounterContext?.IsHiredCompanion == true) belonging = "with no noble house of your own, riding for hire in the player's company";
 
          sb.AppendLine(npc.Age > 0
-            ? $"YOU ARE {npc.Name.ToUpperInvariant()}, a {(npc.IsFemale ? "woman" : "man")} of {npc.Age} years, {belonging}."
-            : $"YOU ARE {npc.Name.ToUpperInvariant()}, a {(npc.IsFemale ? "woman" : "man")} {belonging}.");
+            ? $"YOU ARE {npc.Name.ToUpperInvariant()}, {KindPhrase(npc.IsFemale, encounterContext?.NpcKindNoun)} of {npc.Age} years, {belonging}."
+            : $"YOU ARE {npc.Name.ToUpperInvariant()}, {KindPhrase(npc.IsFemale, encounterContext?.NpcKindNoun)} {belonging}.");
          sb.AppendLine(npc.IsFemale
             ? "You are female. Always speak of yourself as a woman, using she/her, whatever any older record might imply."
             : "You are male. Always speak of yourself as a man, using he/him, whatever any older record might imply.");
@@ -6619,7 +6630,7 @@ namespace NpcMemoryService.Core.Prompts
          // over both branches below, which otherwise deny him the name.
          if (context.CaptorKnowsPlayerName && !string.IsNullOrWhiteSpace(PlayerName))
          {
-            sb.AppendLine($"You know this prisoner's name: {PlayerName} ({(PlayerIsFemale ? "a woman" : "a man")}). " + "They gave it up to you, so use it as you please; you did not have it from any register, you have it " + "because they told you. Your history and what you can see of them still colour everything you say.");
+            sb.AppendLine($"You know this prisoner's name: {PlayerName} ({KindPhrase(PlayerIsFemale, context.PlayerKindNoun)}). " + "They gave it up to you, so use it as you please; you did not have it from any register, you have it " + "because they told you. Your history and what you can see of them still colour everything you say.");
             if (!string.IsNullOrWhiteSpace(context.PlayerAppearance))
                sb.AppendLine($"What you can SEE of them (do not invent past this): {context.PlayerAppearance}");
             if (!string.IsNullOrWhiteSpace(context.PlayerGear))
@@ -6652,7 +6663,7 @@ namespace NpcMemoryService.Core.Prompts
             return;
          }
 
-         sb.AppendLine($"This captive is a {(PlayerIsFemale ? "woman" : "man")}. You do NOT know their name, " + "their house, or their station: brigands like you live apart from lords and their " + "registers. Do not use a name for them or claim to know who they are; you would not.");
+         sb.AppendLine($"This captive is {KindPhrase(PlayerIsFemale, context.PlayerKindNoun)}. You do NOT know their name, " + "their house, or their station: brigands like you live apart from lords and their " + "registers. Do not use a name for them or claim to know who they are; you would not.");
          // The log (Gabriel, 2026-07-19) showed a first-time captor invent a shared past ("same as when you
          // tried biting down earlier") off nothing but the prisoner's current "teeth clenched" line. A
          // stranger has no history to reach for, so forbid it outright rather than hoping the "do not claim
@@ -6692,7 +6703,7 @@ namespace NpcMemoryService.Core.Prompts
          if (knows)
          {
             string house = string.IsNullOrWhiteSpace(PlayerClanName) ? "" : " of " + PlayerClanName;
-            sb.AppendLine($"You know this prisoner: {PlayerName}{house} ({(PlayerIsFemale ? "a woman" : "a man")}). "
+            sb.AppendLine($"You know this prisoner: {PlayerName}{house} ({KindPhrase(PlayerIsFemale, context.PlayerKindNoun)}). "
                           + "You had their name before this, or they have given it to you, so use it and their house as you please.");
             if (!string.IsNullOrWhiteSpace(context.PlayerAppearance))
                sb.AppendLine($"What you can SEE of them (do not invent past this): {context.PlayerAppearance}");
@@ -6703,7 +6714,7 @@ namespace NpcMemoryService.Core.Prompts
             return;
          }
 
-         sb.AppendLine($"This captive is a {(PlayerIsFemale ? "woman" : "man")} of evident rank: their arms, their bearing,");
+         sb.AppendLine($"This captive is {KindPhrase(PlayerIsFemale, context.PlayerKindNoun)} of evident rank: their arms, their bearing,");
          sb.AppendLine("and the make of their gear mark them a noble worth a ransom. But you do NOT know their NAME or");
          sb.AppendLine("their HOUSE. You took a stranger on the field, not a name from a herald's roll. Do not call them by");
          sb.AppendLine("a name, and do not name their clan, until THEY give it to you; never invent one, and never claim to");

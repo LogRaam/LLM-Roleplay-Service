@@ -1326,6 +1326,15 @@ namespace NpcMemoryService.Core.Models
       public bool IsHiredCompanion { get; init; }
 
       /// <summary>
+      ///   The noun this character's race is called by ("elf woman"), from the host's race file, or null for "woman"/"man".
+      ///   CatWithFourEyes (Discord, 26/11/2026): overhaul mods with non-human races read every character as a man or woman.
+      /// </summary>
+      public string? NpcKindNoun { get; init; }
+
+      /// <summary>The noun the player's race is called by ("dwarf man"), or null for "woman"/"man".</summary>
+      public string? PlayerKindNoun { get; init; }
+
+      /// <summary>
       ///   Where the player stands beside this character, in rank and at arms, as one sentence or two (the host's
       ///   PlayerRungPolicy). Gabriel (28/10/2026): a villager is ruder to a nobody than to the head of a tier 3 house;
       ///   avalanche24 (28/10/2026): a weakling spoke to a master of arms as his better. Null when the host says nothing.
