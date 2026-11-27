@@ -68,11 +68,11 @@ namespace NpcMemoryServiceTests
       [Test]
       public void GIVEN_a_decorated_reply_WHEN_parsed_THEN_intent_and_reaction_are_read()
       {
-         FloorJudgeVerdict v = FloorJudge.Parse("- Intent: URGENT\n- Reaction: *her jaw tightens*");
+         FloorJudgeVerdict v = FloorJudge.Parse("- Intent: URGENT\n- Reaction: *held-back anger*.");
 
          v.Parsed.Should().BeTrue();
          v.Intent.Should().Be(JudgedIntent.Urgent);
-         v.Reaction.Should().Be("*her jaw tightens*");
+         v.Reaction.Should().Be("held-back anger");
       }
 
       // STAKE: "none" is no reaction; an unreadable reply is treated as nothing to say, never as a wish to speak.
@@ -86,13 +86,14 @@ namespace NpcMemoryServiceTests
          garbage.Intent.Should().Be(JudgedIntent.None);
       }
 
-      // STAKE: a reaction is a gesture; a rambling one is cut at a word so it never becomes a speech.
+      // STAKE: Gabriel (26/11/2026): the prose model writes the gesture; a judge that rambles a description is cut back to a
+      // label so its words never reach the player as narration.
       [Test]
-      public void GIVEN_a_long_reaction_WHEN_parsed_THEN_it_is_cut_at_a_word()
+      public void GIVEN_a_described_gesture_instead_of_a_label_WHEN_parsed_THEN_it_is_cut_at_a_word()
       {
          string longOne = "*" + string.Join(" ", System.Linq.Enumerable.Repeat("glances", 60)) + "*";
 
-         FloorJudge.Parse("intent: none\nreaction: " + longOne).Reaction!.Length.Should().BeLessThanOrEqualTo(FloorJudge.MaxReactionChars + 1);
+         FloorJudge.Parse("intent: none\nreaction: " + longOne).Reaction!.Length.Should().BeLessThanOrEqualTo(FloorJudge.MaxReactionChars);
       }
    }
 }

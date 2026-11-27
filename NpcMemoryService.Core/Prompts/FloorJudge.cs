@@ -18,6 +18,9 @@
 // un paysan, un voleur, etc. La puissance d'un seigneur aussi devrait orienter les reactions de tout NPC." The judge is told
 // each person present, their station, their power and their sex, so a slight from a king is borne and one from a peasant
 // is not.
+// The judge NAMES the reaction, it does not write it (Gabriel, 26/11/2026: "PROSE"): a word or three ("nervous",
+// "approving", "held-back anger"), which the player's prose model turns into a gesture. The first runs showed why: the
+// judge's own gestures repeated across characters ("jaw tightens, hand drops to sword hilt").
 
 #region
 
@@ -97,7 +100,7 @@ namespace NpcMemoryService.Core.Prompts
       /// <summary>How much they want to speak.</summary>
       public JudgedIntent Intent { get; init; }
 
-      /// <summary>A short non-verbal (or brief sound) reaction to the last line, or null.</summary>
+      /// <summary>What shows on the listener, named in a word or three ("nervous", "approving"), or null. The prose model writes the gesture.</summary>
       public string? Reaction { get; init; }
 
       /// <summary>False when the reply could not be read: the host treats the listener as having nothing to say.</summary>
@@ -107,8 +110,8 @@ namespace NpcMemoryService.Core.Prompts
    /// <summary>Builds the judge's prompt and reads its verdict. Pure.</summary>
    public static class FloorJudge
    {
-      /// <summary>The longest reaction kept; a longer one is cut at a word, since a reaction is a gesture, not a speech.</summary>
-      public const int MaxReactionChars = 160;
+      /// <summary>The longest reaction label kept; a longer one is cut at a word, since it names a feeling, it does not describe it.</summary>
+      public const int MaxReactionChars = 40;
 
       /// <summary>
       ///   The stable part: the rules and the listener's sheet. Identical on every call for this listener in this scene, so it
@@ -132,7 +135,8 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("- a clear stance on what was just said, showing whom they side with (a smile of approval, a slow shake of the head);");
          sb.AppendLine("- a feeling strong enough that the player should see it.");
          sb.AppendLine("Ordinary listening, mild interest and idle glances are none, and a listener with nothing to hide shows no tell.");
-         sb.AppendLine("When you give one: brief, in asterisks, specific to this person, never words spoken.");
+         sb.AppendLine("When you give one, NAME it in one to three plain words (nervous, approving, held-back anger, amused contempt);");
+         sb.AppendLine("do not describe a gesture, another writer will.");
          sb.AppendLine();
          sb.AppendLine("Judge as THIS person would, by their temperament and their ties to the others: a proud lord bristles at a slight,");
          sb.AppendLine("a timid squire keeps quiet before his betters, a rival seizes an opening. Being addressed is not a reason to want");
@@ -143,7 +147,7 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
          sb.AppendLine("Answer with exactly two lines and nothing else:");
          sb.AppendLine("intent: <none|low|high|urgent>");
-         sb.AppendLine("reaction: <*a brief gesture*|none>");
+         sb.AppendLine("reaction: <one to three words|none>");
          sb.AppendLine();
          sb.AppendLine($"THE LISTENER: {listener?.Name}");
          if (!string.IsNullOrWhiteSpace(listener?.Persona)) sb.AppendLine(listener!.Persona.Trim());
@@ -222,13 +226,13 @@ namespace NpcMemoryService.Core.Prompts
 
       private static string? ReadReaction(string value)
       {
-         string v = value.Trim().Trim('"', '<', '>').Trim();
+         string v = value.Trim().Trim('"', '<', '>', '*', '.').Trim();
          if (v.Length == 0 || v.Equals("none", StringComparison.OrdinalIgnoreCase)) return null;
          if (v.Length <= MaxReactionChars) return v;
 
          int cut = v.LastIndexOf(' ', MaxReactionChars);
 
-         return v.Substring(0, cut > 0 ? cut : MaxReactionChars).TrimEnd() + "*";
+         return v.Substring(0, cut > 0 ? cut : MaxReactionChars).TrimEnd();
       }
    }
 }
