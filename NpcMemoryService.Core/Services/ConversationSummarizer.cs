@@ -41,18 +41,25 @@ namespace NpcMemoryService.Core.Services
       ///   Returns a concise first-person, past-tense memory line, or null on failure /
       ///   empty transcript (the caller then keeps the base summary it already stored).
       /// </summary>
+      /// <param name="presentWhileHost">
+      ///   The character the player came to see, when <paramref name="npc" /> was a WITNESS of the talk (present, not the one
+      ///   addressed); null for the one addressed. lpsalce (Nexus, 26/11/2026, 2.8.21): "When a companion is present but not
+      ///   the one addressed, CR often gives them a copy of the addressed character's own memory (sometimes the player's)
+      ///   instead of one in their own voice: 'I' is someone else, and the witness appears by name in the third person."
+      /// </param>
       public async Task<string?> SummarizeAsync(
          NpcProfile npc,
          string conversationTranscript,
          string playerName,
          string? replyLanguage = null,
          CancellationToken ct = default,
-         bool? playerIsFemale = null)
+         bool? playerIsFemale = null,
+         string? presentWhileHost = null)
       {
          if (npc == null || string.IsNullOrWhiteSpace(conversationTranscript)) return null;
 
          var request = new LlmRequest {
-            SystemPrompt = BuildSystemPrompt(npc, playerName, replyLanguage, playerIsFemale),
+            SystemPrompt = BuildSystemPrompt(npc, playerName, replyLanguage, playerIsFemale, presentWhileHost),
             Messages = [new LlmMessage(MessageRole.User, conversationTranscript)],
             Parameters = Parameters
          };
@@ -73,13 +80,19 @@ namespace NpcMemoryService.Core.Services
 
       #region private
 
-      private static string BuildSystemPrompt(NpcProfile npc, string playerName, string? replyLanguage, bool? playerIsFemale)
+      private static string BuildSystemPrompt(NpcProfile npc, string playerName, string? replyLanguage, bool? playerIsFemale, string? presentWhileHost)
       {
          string who = string.IsNullOrWhiteSpace(playerName)
             ? "a visitor"
             : playerName;
+         bool witness = !string.IsNullOrWhiteSpace(presentWhileHost);
          var sb = new StringBuilder();
-         sb.AppendLine($"You are {npc.Name}. You just spoke with {who}; the conversation has ended.");
+         sb.AppendLine(witness
+            ? $"You are {npc.Name}. You were present while {who} spoke with {presentWhileHost}; you were not the one they came to see, though you spoke too. The conversation has ended."
+            : $"You are {npc.Name}. You just spoke with {who}; the conversation has ended.");
+         // lpsalce (26/11/2026): witnesses were handed the addressed character's memory, or the player's. Say whose lines are
+         // whose, and who "I" is.
+         sb.AppendLine($"Lines beginning \"{npc.Name}:\" are yours. In this memory \"I\" is always {npc.Name}: name everyone else in the third person, and never write as {who}{(witness ? " or " + presentWhileHost : "")}.");
          string pronouns = PlayerPronounLine.For(who, playerIsFemale);
          if (pronouns.Length > 0) sb.AppendLine(pronouns);
          sb.AppendLine("Below is the transcript of the exchange.");

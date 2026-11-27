@@ -56,6 +56,35 @@ namespace NpcMemoryServiceTests
          capturingClient.LastRequest!.SystemPrompt.Should().Contain("Fercread is a woman: refer to her as she/her.");
       }
 
+      // STAKE: lpsalce (Nexus, 26/11/2026): a companion present at someone else's talk was given that character's memory, or
+      // the player's ("'I' is someone else, and the witness appears by name in the third person"). The witness is told it
+      // was a witness, which lines are its own, and that "I" is itself.
+      [Test]
+      public async Task GIVEN_a_witness_of_another_talk_WHEN_the_summary_prompt_is_built_THEN_it_remembers_as_itself()
+      {
+         var capturingClient = new CapturingLlmClient();
+         var summarizer = new ConversationSummarizer(capturingClient);
+
+         await summarizer.SummarizeAsync(Npc(), "Fercread: what news?\nGarios: little.\nMesui: the roads are watched.", "Fercread", presentWhileHost: "Garios");
+
+         string prompt = capturingClient.LastRequest!.SystemPrompt;
+         prompt.Should().Contain("You were present while Fercread spoke with Garios; you were not the one they came to see");
+         prompt.Should().Contain("\"I\" is always Mesui").And.Contain("never write as Fercread or Garios");
+      }
+
+      // STAKE: the one addressed keeps the old framing, now also told that "I" is themselves (lpsalce saw the player's voice too).
+      [Test]
+      public async Task GIVEN_the_one_addressed_WHEN_the_summary_prompt_is_built_THEN_it_keeps_its_framing_and_its_own_voice()
+      {
+         var capturingClient = new CapturingLlmClient();
+
+         await new ConversationSummarizer(capturingClient).SummarizeAsync(Npc(), "Fercread: what news?\nMesui: little.", "Fercread");
+
+         string prompt = capturingClient.LastRequest!.SystemPrompt;
+         prompt.Should().Contain("You just spoke with Fercread").And.Contain("\"I\" is always Mesui");
+         prompt.Should().NotContain("You were present while");
+      }
+
       #region private
 
       private static NpcProfile Npc() => new() {
