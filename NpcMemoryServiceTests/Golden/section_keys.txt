@@ -133,3 +133,5 @@ attack_together
 meeting_memory
 composed_opening
 generated_depth
+inner_life
+draft_refused

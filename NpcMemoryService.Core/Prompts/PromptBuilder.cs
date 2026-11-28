@@ -134,6 +134,14 @@ namespace NpcMemoryService.Core.Prompts
       public bool EnableGeneratedDepth { get; init; }
 
       /// <summary>
+      ///   When true, a turn whose context holds an <see cref="EncounterContext.InnerLifeNote" /> or a
+      ///   <see cref="EncounterContext.DraftRefusedNote" /> shows it (the <c>inner_life</c> and <c>draft_refused</c> sections,
+      ///   Stage 6, 28/11/2026). Off by default: a host that keeps no inner life keeps its prompt as it was. Calradia Remembers
+      ///   turns it on; its data is the gate there (set only in its Dramaturge mode).
+      /// </summary>
+      public bool EnableDramaturgeNotes { get; init; }
+
+      /// <summary>
       ///   When true (default), the response format includes the <c>[REPUTATION]</c>
       ///   block, letting the LLM move <see cref="NpcProfile.ReputationWithPlayer" />.
       ///   Consumers that drive the NPC's standing from an external, authoritative
@@ -3514,6 +3522,32 @@ namespace NpcMemoryService.Core.Prompts
 
          sb.AppendLine("THIS MEETING — YOU SOUGHT THE PLAYER OUT:");
          sb.AppendLine(reason);
+         sb.AppendLine();
+      }
+
+      /// <summary>The Dramaturge mode's inner life (Stage 6, 28/11/2026), as the host wrote it; nothing when there is none.</summary>
+      private static void AppendInnerLife(StringBuilder sb, EncounterContext? context)
+      {
+         string? note = context?.InnerLifeNote;
+
+         if (string.IsNullOrWhiteSpace(note)) return;
+
+         sb.AppendLine("WHERE YOU STAND NOW (your inner life at this moment; yours alone, never say it outright):");
+         sb.AppendLine(note!.Trim());
+         sb.AppendLine("Let it shape what you say and how you say it; say less than you feel.");
+         sb.AppendLine();
+      }
+
+      /// <summary>Why the keeper refused the first draft of this reply (Stage 6, 28/11/2026); only on the one rewrite.</summary>
+      private static void AppendDraftRefused(StringBuilder sb, EncounterContext? context)
+      {
+         string? note = context?.DraftRefusedNote;
+
+         if (string.IsNullOrWhiteSpace(note)) return;
+
+         sb.AppendLine("YOUR FIRST DRAFT OF THIS REPLY WAS REFUSED:");
+         sb.AppendLine(note!.Trim());
+         sb.AppendLine("Write this reply again without that fault.");
          sb.AppendLine();
       }
 

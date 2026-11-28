@@ -189,6 +189,9 @@ namespace NpcMemoryService.Core.Prompts
          Section("interception", PromptZone.Tail, (b, sb, s) => AppendInterception(sb, s.Context)),
          Section("attack_together", PromptZone.Tail, (b, sb, s) => AppendAttackTogether(sb, s.Context)),
          Section("format_feedback", PromptZone.Tail, (b, sb, s) => AppendFormatFeedback(sb, s.Context)),
+         // Stage 6 (28/11/2026): the Dramaturge mode's inner life and the keeper's refusal of a first draft; per turn, below the marker.
+         Section("inner_life", PromptZone.Tail, (b, sb, s) => { if (b.EnableDramaturgeNotes) AppendInnerLife(sb, s.Context); }),
+         Section("draft_refused", PromptZone.Tail, (b, sb, s) => { if (b.EnableDramaturgeNotes) AppendDraftRefused(sb, s.Context); }),
          Section("held_prisoners_brief", PromptZone.Tail, (b, sb, s) => AppendHeldPrisonersBrief(sb, s.Context, s.Lean)),
          // A captive's terms and how readily she bargains: her fear can move within the conversation, so per turn.
          Section("captive_terms", PromptZone.Tail, (b, sb, s) => AppendCaptiveTerms(sb, s.Context)),

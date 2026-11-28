@@ -2037,6 +2037,21 @@ namespace NpcMemoryService.Core.Models
       public ComposedOpening? ComposedOpening { get; init; }
 
       /// <summary>
+      ///   Where the character stands inside right now (Stage 6, 28/11/2026, the Dramaturge mode of Calradia Remembers): its
+      ///   feeling, aim, tactic, what it shows and hides, its bond with the player, as a cheap reader kept them after the last
+      ///   line. Lines the host wrote, one per row. Changes every turn, so it rides below the CURRENT ENCOUNTER marker. Null on
+      ///   every turn of every other mode, and then nothing is written. Settable: the host fills it once the reader answers.
+      /// </summary>
+      public string? InnerLifeNote { get; set; }
+
+      /// <summary>
+      ///   Why the character's first draft of THIS reply was refused by the scene keeper (Stage 6, 28/11/2026): a lie against
+      ///   what it knows, a repeat, a contradiction or an invention, with the detail. Set only for the one rewrite that follows;
+      ///   null otherwise, and then nothing is written.
+      /// </summary>
+      public string? DraftRefusedNote { get; set; }
+
+      /// <summary>
       ///   The codes of the memories already marked as discussed when this speaker's conversation opened, captured once as
       ///   <see cref="HistoryKnownThrough" /> is, so a tag written on turn two leaves the cached lines as they were and the
       ///   character is not told to leave alone what it is in the middle of saying (kurushimi00, 01/11/2026). Set means a
