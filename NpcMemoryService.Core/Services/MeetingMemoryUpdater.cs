@@ -127,7 +127,9 @@ namespace NpcMemoryService.Core.Services
          MeetingMemoryReply? reply = Parse(content);
          if (reply == null) return false;
 
-         npc.MeetingMemory = Apply(npc.MeetingMemory, reply, facts);
+         // One reference store on a copy: this runs on the summary queue's worker while the main thread may be reading the
+         // record (a chat opening copies it, a prompt lists it), and lists changed under a reader throw (NpcProfile.ReplaceEvents).
+         npc.MeetingMemory = Apply(npc.MeetingMemory?.Clone(), reply, facts);
 
          return true;
       }

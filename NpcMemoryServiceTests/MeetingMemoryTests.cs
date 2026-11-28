@@ -79,6 +79,22 @@ namespace NpcMemoryServiceTests
          npc.MeetingMemory.Secrets!.Should().ContainSingle();
       }
 
+      // STAKE: the update runs off the main thread while a chat opening may be copying the record; the record a reader holds
+      // must never change under it (a list changed mid-read throws).
+      [Test]
+      public void GIVEN_a_record_held_by_a_reader_WHEN_an_update_lands_THEN_the_held_record_is_untouched()
+      {
+         NpcProfile npc = Npc();
+         MeetingMemoryUpdater.ApplyReply(npc, Reply, Facts(100, "a1"));
+         MeetingMemory held = npc.MeetingMemory!;
+
+         MeetingMemoryUpdater.ApplyReply(npc, "changed: a second change\nopen: nothing", Facts(104, "a2"));
+
+         held.Changes!.Should().HaveCount(1);
+         held.Unsettled.Should().HaveCount(2);
+         npc.MeetingMemory!.Changes!.Should().HaveCount(2);
+      }
+
       // STAKE: a later meeting adds to the past rather than erasing it; the record grows from meeting to meeting.
       [Test]
       public void GIVEN_a_second_meeting_WHEN_applied_THEN_its_change_is_appended_after_the_first()
