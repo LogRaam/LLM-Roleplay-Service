@@ -2023,6 +2023,13 @@ namespace NpcMemoryService.Core.Models
       public MeetingMemory? MeetingMemoryAtOpening { get; init; }
 
       /// <summary>
+      ///   What a composed opening left the main character for this conversation (Stage 3, 28/11/2026): what weighs on them
+      ///   today and what could rub with the player, kept from the player. Set by the host at the opening and the same on
+      ///   every turn after; null on every conversation that was not composed, and then nothing is written.
+      /// </summary>
+      public ComposedOpening? ComposedOpening { get; init; }
+
+      /// <summary>
       ///   The codes of the memories already marked as discussed when this speaker's conversation opened, captured once as
       ///   <see cref="HistoryKnownThrough" /> is, so a tag written on turn two leaves the cached lines as they were and the
       ///   character is not told to leave alone what it is in the middle of saying (kurushimi00, 01/11/2026). Set means a

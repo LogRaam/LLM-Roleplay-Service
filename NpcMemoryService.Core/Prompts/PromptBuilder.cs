@@ -102,6 +102,14 @@ namespace NpcMemoryService.Core.Prompts
       public bool EnableMeetingMemory { get; init; } = true;
 
       /// <summary>
+      ///   When true, a conversation whose <see cref="EncounterContext.ComposedOpening" /> holds a concern or a tension shows
+      ///   it to the character (the <c>composed_opening</c> section, Stage 3, 28/11/2026). Off by default: a host that never
+      ///   composes an opening keeps its prompt as it was. Calradia Remembers turns it on; its data is the gate there (set
+      ///   only on a conversation its "Composed opening scene" switch composed).
+      /// </summary>
+      public bool EnableComposedOpening { get; init; }
+
+      /// <summary>
       ///   When true (default), the response format includes the <c>[REPUTATION]</c>
       ///   block, letting the LLM move <see cref="NpcProfile.ReputationWithPlayer" />.
       ///   Consumers that drive the NPC's standing from an external, authoritative
@@ -3119,6 +3127,23 @@ namespace NpcMemoryService.Core.Prompts
             foreach (string s in kept) sb.AppendLine($"- {s}");
          }
          sb.AppendLine("This is how you feel and what you carry; let it show in how you speak, never recite it.");
+         sb.AppendLine();
+      }
+
+      /// <summary>
+      ///   What a composed opening left the character for this one conversation (Stage 3 of the group-scene plan, 28/11/2026):
+      ///   what weighs on them today and what could rub with the player, both kept from the player. Writes nothing when the
+      ///   conversation was not composed, so every other prompt is unchanged.
+      /// </summary>
+      private static void AppendComposedOpening(StringBuilder sb, ComposedOpening? opening, string playerName)
+      {
+         if (opening == null || !opening.HasContent) return;
+
+         string who = string.IsNullOrWhiteSpace(playerName) ? "the player" : playerName;
+         sb.AppendLine("WHAT YOU CARRY INTO THIS TALK (yours alone; never say it outright):");
+         if (!string.IsNullOrWhiteSpace(opening.Concern)) sb.AppendLine($"- What weighs on you today: {opening.Concern!.Trim()}");
+         if (!string.IsNullOrWhiteSpace(opening.Tension)) sb.AppendLine($"- What could rub between you and {who}: {opening.Tension!.Trim()}");
+         sb.AppendLine("Let it colour how you speak and what you want from this talk; it is a mood and an aim, not news to announce.");
          sb.AppendLine();
       }
 

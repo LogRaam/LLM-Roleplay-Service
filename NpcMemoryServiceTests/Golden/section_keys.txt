@@ -131,3 +131,4 @@ archetype
 personality
 attack_together
 meeting_memory
+composed_opening

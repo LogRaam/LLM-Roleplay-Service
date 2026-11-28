@@ -85,6 +85,9 @@ namespace NpcMemoryService.Core.Prompts
          // What the meetings with the player left (Stage 2, 28/11/2026). It changes when a chat closes, never during one (the
          // chat hands the record as it stood at the opening), so it rides in the cached prefix beside the history.
          Section("meeting_memory", PromptZone.Prefix, (b, sb, s) => b.AppendMeetingMemory(sb, s.Context?.MeetingMemoryFrozen == true ? s.Context.MeetingMemoryAtOpening : s.Npc.MeetingMemory, s.World.CurrentDay, b.PlayerName, s.Lean)),
+         // What a composed opening left the character (Stage 3, 28/11/2026). Composed once at the opening and the same on every
+         // turn of that conversation, so it rides in the cached prefix beside what the meetings left.
+         Section("composed_opening", PromptZone.Prefix, (b, sb, s) => { if (b.EnableComposedOpening) AppendComposedOpening(sb, s.Context?.ComposedOpening, b.PlayerName); }),
          // A legend moves only when a new one reaches this character, so it stays in the cached prefix.
          Section("legend", PromptZone.Prefix, (b, sb, s) => AppendLegend(sb, s.Context)),
          // A captor holding the player prisoner is not a quest-giver: listing the player's tasks
