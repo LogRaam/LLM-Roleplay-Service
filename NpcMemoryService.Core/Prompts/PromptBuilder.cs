@@ -94,6 +94,22 @@ namespace NpcMemoryService.Core.Prompts
       public bool EnableSceneNarration { get; init; } = true;
 
       /// <summary>
+      ///   When true, an ordinary conversation is taught the novel style: the character's speech inside double quotation
+      ///   marks, its own gestures as plain third-person prose (by its name or "he"/"she"), no asterisks, never the
+      ///   player's words or acts. Gabriel (28/11/2026), on "la meilleure forme qui se rapproche de la qualité d'un roman":
+      ///   "oui ok j'aime ça". False (default): the roleplay style, the prompt exactly as before. The player is taught the
+      ///   same way in both (their *asterisks* stay real acts). Captive scenes keep their own voice contract either way
+      ///   (<see cref="NovelStyleApplies" />).
+      /// </summary>
+      public bool EnableNovelStyle { get; init; } = false;
+
+      /// <summary>
+      ///   True when this turn is written in the novel style: <see cref="EnableNovelStyle" /> on, and not a captive scene,
+      ///   whose own third-person rules stand as they are.
+      /// </summary>
+      public bool NovelStyleApplies(EncounterContext? context) => EnableNovelStyle && !IsActiveCaptiveVoiceScene(context);
+
+      /// <summary>
       ///   When true (default), a character whose profile holds a <see cref="NpcProfile.MeetingMemory" /> about this player
       ///   is shown it beside its history (the <c>meeting_memory</c> section). The host sets it from its own switch
       ///   (Calradia Remembers: "Lasting memory of meetings", off by default there), so turning the switch off hides what was
@@ -3543,7 +3559,7 @@ namespace NpcMemoryService.Core.Prompts
       ///   is unreliable. The NPC stays free to welcome, allow, resist, or refuse; what it must not do is fail to
       ///   engage, or react as though the player said something senseless.
       /// </summary>
-      private static void AppendPlayerActionNarration(StringBuilder sb, LeanPromptLevel lean)
+      private static void AppendPlayerActionNarration(StringBuilder sb, LeanPromptLevel lean, bool novel = false)
       {
          // Lean serves small local models whose context the full prompt overflows outright, so both of the
          // anti-claim rules keep only their load-bearing sentence there. The rule itself is NEVER dropped: a
@@ -3567,7 +3583,11 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("  • text wrapped in asterisks, e.g. *I take you by the wrist*, *I step closer*, *I draw my blade*");
          sb.AppendLine("  • a plain first-person physical statement, e.g. \"I put my hand on your shoulder\"");
          sb.AppendLine("Treat it as something actually HAPPENING right now, never as nonsense. Respond in character with");
-         sb.AppendLine("your words (and, if it fits, your own *stage directions*). NEVER react as though the player said");
+         // Stage 5 (28/11/2026): in the novel style the character's own gestures are plain prose; the player's asterisks
+         // above are still their acts.
+         sb.AppendLine(novel
+            ? "your words (and, if it fits, your own gestures in plain prose). NEVER react as though the player said"
+            : "your words (and, if it fits, your own *stage directions*). NEVER react as though the player said");
          sb.AppendLine("something senseless or ask what they are talking about. Their ordinary unmarked sentences are what");
          sb.AppendLine("they SAY, unless the message also holds words in quotation marks: then only the quoted words are");
          sb.AppendLine("spoken, and the rest is narration. Keep the two apart. You are still a free person: you may welcome it, allow it, flinch,");
@@ -8047,20 +8067,34 @@ namespace NpcMemoryService.Core.Prompts
          // Eisendrache2 (25/10/2026, log): qwen3.5-9B narrated "*I lean against the post, my hand...*". The
          // third-person rule lives in AppendNarrativeVoice, Full only, and the one person rule Lean keeps is the
          // EVENT summary's "first person". Lean says it here, in fewer characters than the Full line (budget).
-         sb.AppendLine(context?.LeanLevel == LeanPromptLevel.Lean
-            ? "Brief third-person stage directions (never \"I\") may add color:"
-            : "You may weave brief stage directions into your dialogue when they add color:");
+         // Stage 5 (28/11/2026): the novel style says the same in as many lines, gestures as plain prose, speech quoted.
+         bool novel = NovelStyleApplies(context);
+         if (novel)
+            sb.AppendLine(context?.LeanLevel == LeanPromptLevel.Lean
+               ? "Brief gestures in plain third-person prose (never \"I\", no asterisks), speech in quotes:"
+               : "You may weave brief gestures into your dialogue, as plain third-person prose, when they add color:");
+         else
+            sb.AppendLine(context?.LeanLevel == LeanPromptLevel.Lean
+               ? "Brief third-person stage directions (never \"I\") may add color:"
+               : "You may weave brief stage directions into your dialogue when they add color:");
          // Eisendrache2 (25/10/2026, qwen3.5-9B): this is the only example the compact prompt keeps, and a small
          // model copies it. It was "*He leans back in his chair*" for everyone: a wife narrated as "he", leaning on
          // furniture. It now follows the character's own gender and touches nothing.
-         sb.AppendLine(npc.IsFemale
-            ? "  *She glances away, toward the hearth.*"
-            : "  *He glances away, toward the hearth.*");
+         if (novel)
+            sb.AppendLine(npc.IsFemale
+               ? "  She glances away, toward the hearth."
+               : "  He glances away, toward the hearth.");
+         else
+            sb.AppendLine(npc.IsFemale
+               ? "  *She glances away, toward the hearth.*"
+               : "  *He glances away, toward the hearth.*");
          // Eisendrache2 (Nexus, 19/11/2026, Gemma 3 12B): "Many lords claim that their fathers have died at the battle at
          // Pendraic", fathers alive and well, and he was called a liar for saying so. This line was "My father said much the
          // same, before he fell at Pendraic.": a small model took the example for its own life. An example states nothing
          // about the world (DialogueStyleExampleTests).
-         sb.AppendLine("  That is a question for another day.");
+         sb.AppendLine(novel
+            ? "  \"That is a question for another day.\""
+            : "  That is a question for another day.");
          sb.AppendLine("Use them sparingly — they should serve the moment, not slow it down.");
          sb.AppendLine();
          sb.AppendLine("VARY YOUR OPENINGS: never begin two of your replies the same way, and do not retell the");
@@ -8071,7 +8105,7 @@ namespace NpcMemoryService.Core.Prompts
          // The narrative-voice teachings are Full-prompt only: Lean is a hard token budget for small
          // local models (pinned by LeanPromptPolicyTests), and ~2k chars of style guidance would bust it.
          if (context?.LeanLevel != LeanPromptLevel.Lean)
-            AppendNarrativeVoice(sb, npc.IsFemale, EnableSceneNarration);
+            AppendNarrativeVoice(sb, npc.IsFemale, EnableSceneNarration, novel);
          string discoverySuffix = AdultLevel != AdultContentLevel.Off
             ? ", [DISCOVERY]"
             : "";
@@ -8096,7 +8130,7 @@ namespace NpcMemoryService.Core.Prompts
       ///   the same *action*-speech-narration template every turn). Captive scenes are excluded upstream: they carry
       ///   their own voice contract.
       /// </summary>
-      private static void AppendNarrativeVoice(StringBuilder sb, bool female, bool sceneNarration)
+      private static void AppendNarrativeVoice(StringBuilder sb, bool female, bool sceneNarration, bool novel = false)
       {
          sb.AppendLine("NARRATIVE VOICE (governs every reply):");
          sb.AppendLine("- Narrate in the third person: your character by name or \"he/she\", the world around");
@@ -8104,16 +8138,34 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("  what reaches them from outside: what your character does TO them, says to them,");
          sb.AppendLine("  or what they can see, hear, and physically feel. Never narrate what the player");
          sb.AppendLine("  thinks, decides, or wants.");
-         sb.AppendLine("- YOUR GESTURES BELONG WITH YOUR WORDS, inside [DIALOGUE]: a short *stage direction*");
-         sb.AppendLine("  for a glance or a movement, your spoken words right after, another *gesture* when");
-         sb.AppendLine("  the beat turns. They follow the rhythm of the speech they punctuate, so they stay");
-         sb.AppendLine("  woven through it:");
-         sb.AppendLine(female
-            ? "    *She raises an eyebrow.* \"What do you mean by that, traveller?\""
-            : "    *He raises an eyebrow.* \"What do you mean by that, traveller?\"");
-         sb.AppendLine(female
-            ? "    *She rises abruptly, worry crossing her face.* \"Speak. You are frightening me.\""
-            : "    *He rises abruptly, worry crossing his face.* \"Speak. You are frightening me.\"");
+         if (novel)
+         {
+            // Stage 5 (28/11/2026), the novel style: the same weave, written as a novel prints it.
+            sb.AppendLine("- YOUR GESTURES BELONG WITH YOUR WORDS, inside [DIALOGUE], written as a novel writes them:");
+            sb.AppendLine("  a short sentence of plain prose in the third person (your name or \"he/she\", never \"I\",");
+            sb.AppendLine("  no asterisks) for a glance or a movement, your spoken words right after, ALWAYS inside");
+            sb.AppendLine("  double quotation marks, another gesture when the beat turns:");
+            sb.AppendLine(female
+               ? "    She raises an eyebrow. \"What do you mean by that, traveller?\""
+               : "    He raises an eyebrow. \"What do you mean by that, traveller?\"");
+            sb.AppendLine(female
+               ? "    She rises abruptly, worry crossing her face. \"Speak. You are frightening me.\""
+               : "    He rises abruptly, worry crossing his face. \"Speak. You are frightening me.\"");
+            sb.AppendLine("- Write only YOUR character: never the player's words, thoughts or actions. They write their own.");
+         }
+         else
+         {
+            sb.AppendLine("- YOUR GESTURES BELONG WITH YOUR WORDS, inside [DIALOGUE]: a short *stage direction*");
+            sb.AppendLine("  for a glance or a movement, your spoken words right after, another *gesture* when");
+            sb.AppendLine("  the beat turns. They follow the rhythm of the speech they punctuate, so they stay");
+            sb.AppendLine("  woven through it:");
+            sb.AppendLine(female
+               ? "    *She raises an eyebrow.* \"What do you mean by that, traveller?\""
+               : "    *He raises an eyebrow.* \"What do you mean by that, traveller?\"");
+            sb.AppendLine(female
+               ? "    *She rises abruptly, worry crossing her face.* \"Speak. You are frightening me.\""
+               : "    *He rises abruptly, worry crossing his face.* \"Speak. You are frightening me.\"");
+         }
          sb.AppendLine("- Show intent through the body, never state it (\"her hand rests on her sword, ready to");
          sb.AppendLine("  draw\", not \"she is suspicious of you\").");
          if (sceneNarration)
@@ -8129,7 +8181,9 @@ namespace NpcMemoryService.Core.Prompts
             // 1Enfant (Nexus, 16/11/2026) turned the scene narration off. Without a channel for the setting a model
             // may speak the room aloud instead; the setting goes into the gestures, briefly, or nowhere.
             sb.AppendLine("- NO SCENE DESCRIPTION: write no [NARRATION] block. When the place matters, let a touch of");
-            sb.AppendLine("  it live in one of your *gestures* (*she glances at the guttering candles*), and never");
+            sb.AppendLine(novel
+               ? "  it live in one of your gestures (she glances at the guttering candles), and never"
+               : "  it live in one of your *gestures* (*she glances at the guttering candles*), and never");
             sb.AppendLine("  describe the room aloud in your spoken words.");
          }
          sb.AppendLine();
@@ -8145,7 +8199,9 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("  player acted without speaking, answer the act first.");
          sb.AppendLine();
          sb.AppendLine("VARY THE SHAPE OF YOUR REPLIES, AS A NOVEL DOES:");
-         sb.AppendLine("- Do not answer every turn with the same *action*-speech-narration pattern. Choose");
+         sb.AppendLine(novel
+            ? "- Do not answer every turn with the same action-speech-narration pattern. Choose"
+            : "- Do not answer every turn with the same *action*-speech-narration pattern. Choose");
          sb.AppendLine("  the form the moment calls for: a bare line of speech when words are enough; an");
          sb.AppendLine("  action without words when the gesture says it all; narration alone when the scene");
          sb.AppendLine("  should simply breathe; the full weave only when the moment is rich.");
@@ -8421,14 +8477,20 @@ namespace NpcMemoryService.Core.Prompts
       ///   Explicit examples land better than abstract rules alone, and this one is cheap (~120 tokens) and
       ///   stable, so it stays in the cacheable prefix. Shared by the Full and Lean format contracts.
       /// </summary>
-      private static void AppendFormatExample(StringBuilder sb, bool female)
+      private static void AppendFormatExample(StringBuilder sb, bool female, bool novel = false)
       {
          sb.AppendLine("EXAMPLE OF A COMPLETE REPLY:");
          sb.AppendLine("[DIALOGUE]");
          // Eisendrache2 (25/10/2026): a small model copies this example's pronoun, so it follows the character's.
-         sb.AppendLine(female
-            ? "*She sets down her cup and studies you a moment.*"
-            : "*He sets down his cup and studies you a moment.*");
+         // Stage 5 (28/11/2026): the example a small model copies is the style it writes, so the novel style drops the asterisks.
+         if (novel)
+            sb.AppendLine(female
+               ? "She sets down her cup and studies you a moment."
+               : "He sets down his cup and studies you a moment.");
+         else
+            sb.AppendLine(female
+               ? "*She sets down her cup and studies you a moment.*"
+               : "*He sets down his cup and studies you a moment.*");
          sb.AppendLine("\"You have my word. Bring the grain by week's end and we will speak of the rest.\"");
          sb.AppendLine("[/DIALOGUE]");
          sb.AppendLine("[EVENT]");
@@ -8463,7 +8525,9 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine("change, violence, reveal, first meeting, or farewell), never for casual talk alone.");
             sb.AppendLine();
             sb.AppendLine("[DIALOGUE]");
-            sb.AppendLine("Your in-character response.");
+            sb.AppendLine(NovelStyleApplies(context)
+               ? "Your in-character response: speech in double quotes, your own gestures in plain third-person prose, no asterisks, never the player's words or acts."
+               : "Your in-character response.");
             sb.AppendLine("[/DIALOGUE]");
             sb.AppendLine();
             sb.AppendLine("[EVENT]");
@@ -8484,7 +8548,7 @@ namespace NpcMemoryService.Core.Prompts
                sb.AppendLine();
             }
 
-            AppendFormatExample(sb, npc.IsFemale);
+            AppendFormatExample(sb, npc.IsFemale, NovelStyleApplies(context));
             AppendActionInstructions(sb, lean);
             // ExtraActionTeachings (the extended verb set) is deliberately NOT rendered in Lean mode:
             // a small / short-context model gets only the minimal action contract above.
@@ -8542,10 +8606,26 @@ namespace NpcMemoryService.Core.Prompts
          }
 
          sb.AppendLine("[DIALOGUE]");
-         sb.AppendLine("Your in-character response, with your own *gestures* woven through it. Write your OWN gestures and");
-         sb.AppendLine("actions in the FIRST person - \"*I narrow my eyes*\", \"*my hand drifts to my hilt*\" - or by your own");
-         sb.AppendLine("name. \"you\" and \"your\" refer ONLY to the PLAYER, NEVER to yourself: do not write your own eyes,");
-         sb.AppendLine("voice, or movements as \"your eyes narrow\" or \"you step back\" (that reads as the PLAYER doing it).");
+         if (NovelStyleApplies(context))
+         {
+            // Stage 5 (28/11/2026): the novel style. Gabriel: speech in quotation marks, gestures as plain third-person
+            // prose, no asterisks. The guard against writing the player is the risk this style carries.
+            sb.AppendLine("Your in-character response, written as a novel writes it: your spoken words inside double quotation");
+            sb.AppendLine(npc.IsFemale
+               ? "marks, your OWN gestures and actions as plain prose in the THIRD person, by your own name or \"she\" -"
+               : "marks, your OWN gestures and actions as plain prose in the THIRD person, by your own name or \"he\" -");
+            sb.AppendLine(npc.IsFemale
+               ? "She narrows her eyes. \"You came back.\" - with NO asterisks. \"you\" and \"your\" refer ONLY to the PLAYER,"
+               : "He narrows his eyes. \"You came back.\" - with NO asterisks. \"you\" and \"your\" refer ONLY to the PLAYER,");
+            sb.AppendLine("NEVER to yourself. Never write the player's words, thoughts or actions: the player writes their own.");
+         }
+         else
+         {
+            sb.AppendLine("Your in-character response, with your own *gestures* woven through it. Write your OWN gestures and");
+            sb.AppendLine("actions in the FIRST person - \"*I narrow my eyes*\", \"*my hand drifts to my hilt*\" - or by your own");
+            sb.AppendLine("name. \"you\" and \"your\" refer ONLY to the PLAYER, NEVER to yourself: do not write your own eyes,");
+            sb.AppendLine("voice, or movements as \"your eyes narrow\" or \"you step back\" (that reads as the PLAYER doing it).");
+         }
          sb.AppendLine("[/DIALOGUE]");
          sb.AppendLine();
          // OPTIONAL, and the emphasis matters: the model reaches for any block the contract lists, so a
@@ -8619,7 +8699,7 @@ namespace NpcMemoryService.Core.Prompts
             sb.AppendLine();
          }
 
-         AppendFormatExample(sb, npc.IsFemale);
+         AppendFormatExample(sb, npc.IsFemale, NovelStyleApplies(context));
          AppendActionInstructions(sb, lean);
          AppendExtraActionTeachings(sb, context);
          AppendUnavailableDeeds(sb, context);

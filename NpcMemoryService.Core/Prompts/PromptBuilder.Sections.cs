@@ -219,7 +219,7 @@ namespace NpcMemoryService.Core.Prompts
          // Hoisted out of AppendEncounterContext so it still renders when encounterContext is null, and kept
          // late (near the language mirror) so recency reinforces the anti-confabulation guard.
          Section("stay_within_what_you_know", PromptZone.Tail, (b, sb, s) => AppendStayWithinWhatYouKnow(sb, s.Lean), PromptSectionLock.Required),
-         Section("player_action_narration", PromptZone.Tail, (b, sb, s) => AppendPlayerActionNarration(sb, s.Lean), PromptSectionLock.Required),
+         Section("player_action_narration", PromptZone.Tail, (b, sb, s) => AppendPlayerActionNarration(sb, s.Lean, b.NovelStyleApplies(s.Context)), PromptSectionLock.Required),
          // Kept beside its two siblings at the very end of the prompt, where recency is highest: the three of
          // them are the anti-confabulation wall, one guarding what the NPC promises, one what a stage direction
          // can settle, and this one what the NPC is willing to believe.

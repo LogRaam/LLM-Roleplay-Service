@@ -67,6 +67,9 @@ namespace NpcMemoryServiceTests
             ["conversation_memories_lean"] = () => InConversation(LeanPromptLevel.Lean),
             ["coin_full"] = () => Builder(AdultContentLevel.Mature).BuildSystemPrompt(RichNpc(), World(), WithCoin(RichEncounter(LeanPromptLevel.Full))),
             ["coin_lean"] = () => Builder(AdultContentLevel.Mature).BuildSystemPrompt(RichNpc(), World(), WithCoin(RichEncounter(LeanPromptLevel.Lean))),
+            // Stage 5 (28/11/2026): the novel style ("Narrative style: Novel"), Full and Compact, beside the default lord.
+            ["novel_full"] = () => Builder(AdultContentLevel.Mature, novel: true).BuildSystemPrompt(RichNpc(), World(), RichEncounter(LeanPromptLevel.Full)),
+            ["novel_lean"] = () => Builder(AdultContentLevel.Mature, novel: true).BuildSystemPrompt(RichNpc(), World(), RichEncounter(LeanPromptLevel.Lean)),
             ["captor_scene"] = () => Builder(AdultContentLevel.Hardcore).BuildSystemPrompt(DeepNpc(), World(), WithWitnesses(Offers(RichEncounter(LeanPromptLevel.Full), captor: true)))
          };
 
@@ -132,7 +135,7 @@ namespace NpcMemoryServiceTests
 
       // As LlmServices.BuildPromptBuilder sets it in the game, with the narrative files as recognisable stand-ins that
       // carry variables, so their expansion is pinned too.
-      internal static PromptBuilder Builder(AdultContentLevel level, bool invertFlags = false)
+      internal static PromptBuilder Builder(AdultContentLevel level, bool invertFlags = false, bool novel = false)
          => new()
          {
             AdultLevel = level,
@@ -150,7 +153,8 @@ namespace NpcMemoryServiceTests
             IntimacyThresholdRelief = 0,
             EnableReputationBlock = invertFlags,
             EnableMemoryBlock = invertFlags,
-            EnableQuests = !invertFlags
+            EnableQuests = !invertFlags,
+            EnableNovelStyle = novel
          };
 
       internal static WorldState World()
