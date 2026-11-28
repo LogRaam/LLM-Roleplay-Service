@@ -136,7 +136,8 @@ namespace NpcMemoryService.Core.Prompts
       /// <summary>
       ///   When true, a turn whose context holds an <see cref="EncounterContext.InnerLifeNote" /> or a
       ///   <see cref="EncounterContext.DraftRefusedNote" /> shows it (the <c>inner_life</c> and <c>draft_refused</c> sections,
-      ///   Stage 6, 28/11/2026). Off by default: a host that keeps no inner life keeps its prompt as it was. Calradia Remembers
+      ///   Stage 6, 28/11/2026), and likewise an <see cref="EncounterContext.SceneDirectionNote" /> (<c>scene_direction</c>,
+      ///   Stage 7). Off by default: a host that keeps no inner life keeps its prompt as it was. Calradia Remembers
       ///   turns it on; its data is the gate there (set only in its Dramaturge mode).
       /// </summary>
       public bool EnableDramaturgeNotes { get; init; }
@@ -3535,6 +3536,18 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine("WHERE YOU STAND NOW (your inner life at this moment; yours alone, never say it outright):");
          sb.AppendLine(note!.Trim());
          sb.AppendLine("Let it shape what you say and how you say it; say less than you feel.");
+         sb.AppendLine();
+      }
+
+      /// <summary>The dramaturge's word for this reply (Stage 7, 28/11/2026), as the host wrote it; nothing when there is none.</summary>
+      private static void AppendSceneDirection(StringBuilder sb, EncounterContext? context)
+      {
+         string? note = context?.SceneDirectionNote;
+
+         if (string.IsNullOrWhiteSpace(note)) return;
+
+         sb.AppendLine("THE SCENE NOW (true; it bears on this reply):");
+         sb.AppendLine(note!.Trim());
          sb.AppendLine();
       }
 

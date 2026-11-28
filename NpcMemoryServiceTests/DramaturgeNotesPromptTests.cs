@@ -36,6 +36,19 @@ namespace NpcMemoryServiceTests
 
          Prompt(new EncounterContext {InnerLifeNote = "  ", DraftRefusedNote = ""}).Should().Be(bare);
          Prompt(new EncounterContext {InnerLifeNote = "- you feel: wary", DraftRefusedNote = "a lie"}, enabled: false).Should().Be(bare);
+         Prompt(new EncounterContext {SceneDirectionNote = " "}).Should().Be(bare);
+         Prompt(new EncounterContext {SceneDirectionNote = "A rider comes in."}, enabled: false).Should().Be(bare);
+      }
+
+      // STAKE (Stage 7): an event the dramaturge brought is a fact of the scene for the reply that follows it, and that note
+      // changes every turn, so it sits below the CURRENT ENCOUNTER marker.
+      [Test]
+      public void GIVEN_a_scene_direction_WHEN_the_prompt_is_built_THEN_it_reads_exactly_so_below_the_marker()
+      {
+         string prompt = Prompt(new EncounterContext {SceneDirectionNote = "This has just happened: a rider comes in with news of the siege."}).Replace("\r\n", "\n");
+
+         prompt.Should().Contain("THE SCENE NOW (true; it bears on this reply):\nThis has just happened: a rider comes in with news of the siege.\n");
+         prompt.IndexOf("THE SCENE NOW").Should().BeGreaterThan(prompt.IndexOf(PromptBuilder.EncounterSectionHeading));
       }
 
       // STAKE: the character writes from where it stands now, told never to say it outright, and the note changes every turn,

@@ -135,3 +135,4 @@ composed_opening
 generated_depth
 inner_life
 draft_refused
+scene_direction

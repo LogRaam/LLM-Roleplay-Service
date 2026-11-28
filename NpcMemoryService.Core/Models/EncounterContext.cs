@@ -2052,6 +2052,14 @@ namespace NpcMemoryService.Core.Models
       public string? DraftRefusedNote { get; set; }
 
       /// <summary>
+      ///   The dramaturge's word for THIS reply (Stage 7, 28/11/2026, the Dramaturge mode of Calradia Remembers): an event the
+      ///   world just brought into the scene (true, drawn from the game's facts), or that the scene has said what it had to say
+      ///   and may be brought to a close in character. Lines the host wrote. Set for one reply, then cleared; null otherwise, and
+      ///   then nothing is written.
+      /// </summary>
+      public string? SceneDirectionNote { get; set; }
+
+      /// <summary>
       ///   The codes of the memories already marked as discussed when this speaker's conversation opened, captured once as
       ///   <see cref="HistoryKnownThrough" /> is, so a tag written on turn two leaves the cached lines as they were and the
       ///   character is not told to leave alone what it is in the middle of saying (kurushimi00, 01/11/2026). Set means a
