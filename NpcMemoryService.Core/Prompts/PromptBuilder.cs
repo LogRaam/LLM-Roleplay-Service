@@ -94,6 +94,14 @@ namespace NpcMemoryService.Core.Prompts
       public bool EnableSceneNarration { get; init; } = true;
 
       /// <summary>
+      ///   When true (default), a character whose profile holds a <see cref="NpcProfile.MeetingMemory" /> about this player
+      ///   is shown it beside its history (the <c>meeting_memory</c> section). The host sets it from its own switch
+      ///   (Calradia Remembers: "Lasting memory of meetings", off by default there), so turning the switch off hides what was
+      ///   already recorded. With no record nothing is written either way.
+      /// </summary>
+      public bool EnableMeetingMemory { get; init; } = true;
+
+      /// <summary>
       ///   When true (default), the response format includes the <c>[REPUTATION]</c>
       ///   block, letting the LLM move <see cref="NpcProfile.ReputationWithPlayer" />.
       ///   Consumers that drive the NPC's standing from an external, authoritative
@@ -3064,6 +3072,68 @@ namespace NpcMemoryService.Core.Prompts
          sb.AppendLine();
          AppendHeard(sb, npc, heard, currentDay);
          AppendOwnLife(sb, npc, own, currentDay);
+      }
+
+      /// <summary>
+      ///   What the character's meetings with the player left in them (Stage 2 of the group-scene plan, 28/11/2026): the
+      ///   lasting changes with the time elapsed counted here, never a day number; where they stand with the player; what is
+      ///   still unsettled; what they still keep from them. Writes nothing at all when there is no record, when it is about
+      ///   another player, or when the host turned it off, so the prompt of every save that never used it is unchanged.
+      ///   The bond line is texture for the prose only: regard and every gate are decided elsewhere.
+      /// </summary>
+      private void AppendMeetingMemory(StringBuilder sb, MeetingMemory? record, int currentDay, string playerName, LeanPromptLevel lean)
+      {
+         if (!EnableMeetingMemory) return;
+         MeetingMemory? m = MeetingMemory.About(record, playerName);
+         if (m == null || !m.HasContent) return;
+
+         bool compact = lean != LeanPromptLevel.Full;
+         string who = string.IsNullOrWhiteSpace(playerName) ? "the player" : playerName;
+         List<MeetingChange> changes = (m.Changes ?? new List<MeetingChange>()).Where(c => !string.IsNullOrWhiteSpace(c.Text)).ToList();
+         if (compact && changes.Count > 2) changes = changes.Skip(changes.Count - 2).ToList();
+         List<string> open = (m.Unsettled ?? new List<string>()).Where(o => !string.IsNullOrWhiteSpace(o)).Take(compact ? 3 : MeetingMemory.MaxUnsettled).ToList();
+         List<string> kept = m.UntoldTo(playerName).Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
+         if (compact && kept.Count > 1) kept = kept.Skip(kept.Count - 1).ToList();
+         string bond = m.Bond?.HasContent == true ? MeetingBondPhrase(m.Bond) : "";
+         if (changes.Count == 0 && open.Count == 0 && kept.Count == 0 && bond.Length == 0) return;
+
+         sb.AppendLine($"WHAT YOUR MEETINGS WITH {who.ToUpperInvariant()} LEFT IN YOU:");
+         if (changes.Count > 0)
+         {
+            sb.AppendLine("What those meetings changed in you, and lasts:");
+            foreach (MeetingChange c in changes)
+            {
+               string ago = RecencySuffix(c.Day, currentDay).TrimStart(',', ' ');
+               sb.AppendLine(ago.Length > 0 ? $"- {ago}: {c.Text}" : $"- {c.Text}");
+            }
+         }
+         if (bond.Length > 0) sb.AppendLine($"Where you stand with {who}: {bond}.");
+         if (open.Count > 0)
+         {
+            sb.AppendLine("Still unsettled between you:");
+            foreach (string o in open) sb.AppendLine($"- {o}");
+         }
+         if (kept.Count > 0)
+         {
+            sb.AppendLine($"What you still keep from {who} (yours to tell or keep):");
+            foreach (string s in kept) sb.AppendLine($"- {s}");
+         }
+         sb.AppendLine("This is how you feel and what you carry; let it show in how you speak, never recite it.");
+         sb.AppendLine();
+      }
+
+      private static string MeetingBondPhrase(MeetingBond bond)
+      {
+         string Part(string level, string verb)
+            => level switch {
+               "yes" => $"you {verb} them",
+               "partly" => $"you partly {verb} them",
+               "no" => $"you do not {verb} them",
+               _ => ""
+            };
+
+         return string.Join(", ", new[] {Part(bond.Understands, "understand"), Part(bond.Forgives, "forgive"), Part(bond.Loves, "love"), Part(bond.Trusts, "trust")}
+                                 .Where(p => p.Length > 0));
       }
 
       /// <summary>The character's own life apart from the player (tashmetu, 08/10/2026), apart from their history with them.</summary>

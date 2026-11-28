@@ -2012,6 +2012,17 @@ namespace NpcMemoryService.Core.Models
       public int? QuestsKnownThrough { get; init; }
 
       /// <summary>
+      ///   Set by a conversation: the prompt shows <see cref="MeetingMemoryAtOpening" /> (null shows nothing) rather than the
+      ///   profile's live record. The record is updated in the background when a chat closes; a talk opened meanwhile must not
+      ///   see it change mid-way, nor see the sitting it continues described back to it (the same reason as
+      ///   <see cref="HistoryKnownThrough" />). Unset, the profile's own record is shown.
+      /// </summary>
+      public bool MeetingMemoryFrozen { get; init; }
+
+      /// <summary>The character's <see cref="NpcProfile.MeetingMemory" /> as it stood when this conversation opened (a copy).</summary>
+      public MeetingMemory? MeetingMemoryAtOpening { get; init; }
+
+      /// <summary>
       ///   The codes of the memories already marked as discussed when this speaker's conversation opened, captured once as
       ///   <see cref="HistoryKnownThrough" /> is, so a tag written on turn two leaves the cached lines as they were and the
       ///   character is not told to leave alone what it is in the middle of saying (kurushimi00, 01/11/2026). Set means a

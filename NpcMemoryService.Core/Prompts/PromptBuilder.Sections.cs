@@ -82,6 +82,9 @@ namespace NpcMemoryService.Core.Prompts
          Section("inherited_note", PromptZone.Prefix, (b, sb, s) => AppendInheritedNote(sb, s.Npc)),
          Section("background_context", PromptZone.Prefix, (b, sb, s) => { if (LeanPromptPolicy.Include(PromptSection.CulturalBackground, s.Lean)) AppendBackgroundContext(sb, s.Npc); }),
          Section("history", PromptZone.Prefix, (b, sb, s) => AppendHistory(sb, s.Npc, s.World.CurrentDay, LeanPromptPolicy.MemoryEventLimit(s.Lean, s.Context?.HistoryMemoryCap), s.Context?.NpcSpouseIsPlayer == true, s.Context?.NpcIsPlayerHousehold == true, s.Context?.HistoryKnownThrough, b.PlayerName, s.Context?.MemoriesDiscussedAtOpening)),
+         // What the meetings with the player left (Stage 2, 28/11/2026). It changes when a chat closes, never during one (the
+         // chat hands the record as it stood at the opening), so it rides in the cached prefix beside the history.
+         Section("meeting_memory", PromptZone.Prefix, (b, sb, s) => b.AppendMeetingMemory(sb, s.Context?.MeetingMemoryFrozen == true ? s.Context.MeetingMemoryAtOpening : s.Npc.MeetingMemory, s.World.CurrentDay, b.PlayerName, s.Lean)),
          // A legend moves only when a new one reaches this character, so it stays in the cached prefix.
          Section("legend", PromptZone.Prefix, (b, sb, s) => AppendLegend(sb, s.Context)),
          // A captor holding the player prisoner is not a quest-giver: listing the player's tasks
