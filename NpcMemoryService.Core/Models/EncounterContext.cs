@@ -2023,6 +2023,13 @@ namespace NpcMemoryService.Core.Models
       public MeetingMemory? MeetingMemoryAtOpening { get; init; }
 
       /// <summary>
+      ///   Set by a conversation when the character had no <see cref="NpcProfile.GeneratedDepth" /> as it opened: the depth is
+      ///   generated in the background and lands on the profile meanwhile, and it must not appear mid-talk (it would change the
+      ///   cached prefix and the character's nature between two lines). It shows from the next conversation on.
+      /// </summary>
+      public bool GeneratedDepthHidden { get; init; }
+
+      /// <summary>
       ///   What a composed opening left the main character for this conversation (Stage 3, 28/11/2026): what weighs on them
       ///   today and what could rub with the player, kept from the player. Set by the host at the opening and the same on
       ///   every turn after; null on every conversation that was not composed, and then nothing is written.

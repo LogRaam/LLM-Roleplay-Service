@@ -110,6 +110,14 @@ namespace NpcMemoryService.Core.Prompts
       public bool EnableComposedOpening { get; init; }
 
       /// <summary>
+      ///   When true, a character whose profile holds a <see cref="NpcProfile.GeneratedDepth" /> is shown it: the voice inside
+      ///   YOUR VOICE (never a second voice line) and the rest in the <c>generated_depth</c> section (Stage 4, 28/11/2026). Off
+      ///   by default: a host that never generates depth keeps its prompt as it was. Calradia Remembers sets it from its
+      ///   "Deeper characters" switch, so turning the switch off hides what was already generated.
+      /// </summary>
+      public bool EnableGeneratedDepth { get; init; }
+
+      /// <summary>
       ///   When true (default), the response format includes the <c>[REPUTATION]</c>
       ///   block, letting the LLM move <see cref="NpcProfile.ReputationWithPlayer" />.
       ///   Consumers that drive the NPC's standing from an external, authoritative
@@ -446,16 +454,68 @@ namespace NpcMemoryService.Core.Prompts
       ///   habit of speech, cursing, piety. When the player authored a voice in the backstory above, that voice wins and
       ///   this fills only what it leaves unsaid.
       /// </summary>
-      private static void AppendCharacterVoice(StringBuilder sb, NpcProfile npc, EncounterContext? context, bool backstoryShown)
+      /// <remarks>
+      ///   A generated voice (Stage 4, 28/11/2026, <paramref name="generatedVoice" />) joins this block as one sentence, never a
+      ///   second voice section, and never beside an authored backstory: a character the player gave a voice keeps that voice.
+      /// </remarks>
+      private static void AppendCharacterVoice(StringBuilder sb, NpcProfile npc, EncounterContext? context, bool backstoryShown, string? generatedVoice = null)
       {
          string? voice = context?.CharacterVoice;
-         if (string.IsNullOrWhiteSpace(voice)) return;
+         string own = string.IsNullOrWhiteSpace(npc?.AuthoredBackstory) ? Sentence(generatedVoice) : "";
+         if (string.IsNullOrWhiteSpace(voice) && own.Length == 0) return;
 
          bool authored = backstoryShown && !string.IsNullOrWhiteSpace(npc?.AuthoredBackstory);
          sb.AppendLine(authored
             ? "YOUR VOICE (where your backstory above says how you speak, it wins; this fills only what it leaves unsaid):"
             : "YOUR VOICE (how you, and no one else, speak):");
-         sb.AppendLine(voice);
+         if (!string.IsNullOrWhiteSpace(voice)) sb.AppendLine(voice);
+         if (own.Length > 0) sb.AppendLine(string.IsNullOrWhiteSpace(voice) ? $"Your manner of speech: {own}" : $"Beneath that habit, your manner of speech: {own}");
+         sb.AppendLine();
+      }
+
+      // A generated line as a sentence: trimmed, closed with a full stop when it has none.
+      private static string Sentence(string? text)
+      {
+         string t = (text ?? "").Trim();
+         if (t.Length == 0) return "";
+
+         return ".!?".IndexOf(t[t.Length - 1]) >= 0 ? t : t + ".";
+      }
+
+      /// <summary>
+      ///   The generated depth this prompt may show: the host turned it on, the profile holds one, and this conversation did not
+      ///   open without it (<see cref="EncounterContext.GeneratedDepthHidden" />). Null otherwise.
+      /// </summary>
+      private GeneratedDepth? ShownDepth(NpcProfile? npc, EncounterContext? context)
+         => EnableGeneratedDepth && context?.GeneratedDepthHidden != true && npc?.GeneratedDepth is {HasContent: true} depth ? depth : null;
+
+      /// <summary>
+      ///   Who the character is beneath the game sheet (Stage 4 of the group-scene plan, 28/11/2026): how they want to be seen,
+      ///   what they fear, what they will never do, and what only they know. The game's own fear wins over the generated one
+      ///   (re-checked here: a fear may be rolled after the depth was generated). The secret is left to the meeting record when
+      ///   that record holds it (<paramref name="meetingRecord" />, shown while <see cref="EnableMeetingMemory" /> is on): the
+      ///   record says whether it is still kept from the player, and once told, "known only to you" would be false. Writes nothing
+      ///   with no depth, so the prompt of every save that never used it is unchanged.
+      /// </summary>
+      private void AppendGeneratedDepth(StringBuilder sb, NpcProfile npc, GeneratedDepth? depth, MeetingMemory? meetingRecord, string playerName)
+      {
+         if (depth == null || npc == null) return;
+
+         string mask = Sentence(depth.Mask);
+         string fear = npc.Fear == Models.Fear.None ? Sentence(depth.Fear) : "";
+         string limit = Sentence(depth.Limit);
+         string secret = Sentence(depth.Secret);
+         if (secret.Length > 0 && EnableMeetingMemory && MeetingMemory.About(meetingRecord, playerName) is { } record
+             && (record.Secrets ?? new List<MeetingSecret>()).Any(k => string.Equals((k.Text ?? "").Trim(), (depth.Secret ?? "").Trim(), StringComparison.OrdinalIgnoreCase)))
+            secret = "";
+         if (mask.Length == 0 && fear.Length == 0 && limit.Length == 0 && secret.Length == 0) return;
+
+         sb.AppendLine("BENEATH WHAT OTHERS SEE (who you are under the surface; let it shape how you act and speak, never recite it):");
+         if (mask.Length > 0) sb.AppendLine($"- How you want to be seen: {mask}");
+         if (fear.Length > 0) sb.AppendLine($"- What you fear most: {fear}");
+         if (limit.Length > 0) sb.AppendLine($"- What you will never do: {limit}");
+         if (secret.Length > 0)
+            sb.AppendLine($"- Known only to you: {secret} Yours to keep or to tell; if pressed, deflect or stay silent, and never deny it with a falsehood.");
          sb.AppendLine();
       }
 

@@ -61,7 +61,10 @@ namespace NpcMemoryService.Core.Prompts
          Section("mod_backstory", PromptZone.Prefix, (b, sb, s) => AppendModBackstory(sb, s.Context)),
          Section("mod_private", PromptZone.Prefix, (b, sb, s) => AppendModPrivate(sb, s.Context)),
          // How they SOUND, after who they are and what they want; derived from the character, so stable all conversation.
-         Section("character_voice", PromptZone.Prefix, (b, sb, s) => AppendCharacterVoice(sb, s.Npc, s.Context, LeanPromptPolicy.Include(PromptSection.AuthoredBackstory, s.Lean))),
+         Section("character_voice", PromptZone.Prefix, (b, sb, s) => AppendCharacterVoice(sb, s.Npc, s.Context, LeanPromptPolicy.Include(PromptSection.AuthoredBackstory, s.Lean), b.ShownDepth(s.Npc, s.Context)?.Voice)),
+         // Who they are beneath the sheet (Stage 4, 28/11/2026): generated once and kept, so it rides in the cached prefix beside
+         // the voice; a conversation that opened without it keeps it hidden until the next one (EncounterContext.GeneratedDepthHidden).
+         Section("generated_depth", PromptZone.Prefix, (b, sb, s) => b.AppendGeneratedDepth(sb, s.Npc, b.ShownDepth(s.Npc, s.Context), s.Context?.MeetingMemoryFrozen == true ? s.Context.MeetingMemoryAtOpening : s.Npc.MeetingMemory, b.PlayerName)),
          // How readily they believe the player: their nature, or a broken faith; stable all conversation.
          Section("credulity", PromptZone.Prefix, (b, sb, s) => AppendCredulity(sb, s.Context)),
          Section("relationships", PromptZone.Prefix, (b, sb, s) => { if (LeanPromptPolicy.Include(PromptSection.Relationships, s.Lean)) AppendRelationships(sb, s.Npc); }),

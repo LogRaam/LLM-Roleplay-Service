@@ -467,6 +467,14 @@ namespace NpcMemoryService.Core.Models
       public MeetingMemory? MeetingMemory { get; set; }
 
       /// <summary>
+      ///   Who this character is beneath the game sheet (voice, mask, fear, limit, a private secret), generated ONCE by the
+      ///   host when its "Deeper characters" switch is on (Stage 4 of the group-scene plan, 28/11/2026) and never regenerated,
+      ///   so the character keeps one nature across meetings. Additive: null on every older save, and then the prompt is
+      ///   unchanged. Lives apart from <see cref="Events" />, so memory compression never folds it away.
+      /// </summary>
+      public GeneratedDepth? GeneratedDepth { get; set; }
+
+      /// <summary>
       ///   Settable since 16/09/2026, for the same reason Faction and Clan are refreshed at every conversation
       ///   open: a frozen creation-time value keeps introducing somebody as who they USED to be. A hero can be
       ///   renamed at runtime — by the player for a companion, or by another mod — and the old name then led
